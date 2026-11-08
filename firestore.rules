@@ -96,6 +96,32 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------
+    // Matching engine settings ("Warini chnowa ntayeb"), edited in the backoffice.
+    // The app validates and merges them with its defaults (resolveMatchingConfig),
+    // the rules only check the envelope and the size.
+    // ------------------------------------------------------------------
+
+    function isValidMatchingSettings(d) {
+      return d.keys().hasOnly(['version', 'config', 'updated_at', 'note'])
+        && d.version is int && d.version > 0
+        && d.config is map
+        && d.updated_at is string && d.updated_at.size() <= 40
+        && d.note is string && d.note.size() <= 200;
+    }
+
+    // Active settings: read by every visitor
+    match /settings/matching {
+      allow read: if true;
+      allow write: if isAdmin() && isValidMatchingSettings(request.resource.data);
+    }
+
+    // History of every published version: never modified nor deleted
+    match /matching_settings_versions/{versionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(versionId) && isValidMatchingSettings(request.resource.data);
+    }
+
+    // ------------------------------------------------------------------
     // User profiles: a user only touches their own profile, with a fixed
     // set of fields. `role` can never be written by the client.
     // ------------------------------------------------------------------

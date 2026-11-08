@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
+import App from '@/app/App.tsx';
+import { installHomeBelowDeepLink } from './app/homeNavigation';
 import './index.css';
 
 declare const __BUILD_ID__: string;
@@ -44,4 +45,5 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+installHomeBelowDeepLink();
 createRoot(document.getElementById('root')!).render(<App />);

@@ -1,0 +1,61 @@
+# 01 · Produit
+
+## L'idée
+
+**Chnowa Ntayeb ?** (« Qu'est-ce que je cuisine ? » en derja tunisienne) by **Chef Souhed**
+aide à trouver quoi cuisiner en 30 secondes avec ce qu'il y a dans le frigo, en priorité des
+plats tunisiens familiaux. Slogan : _« Elli 3andek fel frigo, na3mlou bih makla ! »_.
+
+C'est une **application web installable (PWA)** : elle fonctionne dans le navigateur, s'installe
+sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
+
+## Les utilisateurs
+
+| Qui                     | Ce qu'il fait                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| Visiteur                | Coche les ingrédients de son frigo, voit les recettes possibles, prépare menu et courses |
+| Visiteur avec un compte | Idem, compte Firebase (invité ou e-mail)                                                 |
+| Patron (administrateur) | Gère recettes, ingrédients, prix, thèmes et réglages du moteur dans `/patron`            |
+
+## Les écrans
+
+| Adresse          | Écran         | Rôle                                                                                 |
+| ---------------- | ------------- | ------------------------------------------------------------------------------------ |
+| `/`              | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes      |
+| `/frigo`         | El Frigo      | Cocher ses ingrédients, gérer son placard, scanner une photo du frigo (IA)           |
+| `/recettes`      | Maklet        | Recettes classées en « prêtes », « presque prêtes », « idées », avec filtres         |
+| `/recette/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, ajout aux courses  |
+| `/semaine`       | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique |
+| `/courses`       | Qadhya        | Liste de courses (générée depuis le menu ou manuelle), partage WhatsApp              |
+| `/patron`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                              |
+
+## Les trois niveaux de suggestions
+
+- **Njem ntayebha tawa ! (prêtes)** : rien à acheter.
+- **Naqsek ken chwaya (presque prêtes)** : une ou deux courses.
+- **Afkar okhra behya (idées)** : recettes liées au frigo, mais avec davantage de courses.
+
+Le détail des règles est dans [04 Moteur de matching](04-moteur-matching.md).
+
+## Langues
+
+Trois langues d'interface et de contenu : **derja** (tunisien en alphabet latin, par défaut),
+**français** et **arabe** (affichage de droite à gauche). Chaque recette, ingrédient et thème
+a ses trois noms (`name_fr`, `name_derja`, `name_ar`).
+
+## Vocabulaire
+
+| Terme                    | Sens                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------- |
+| Frigo                    | Ingrédients cochés par l'utilisateur                                                            |
+| Placard (pantry)         | Ingrédients toujours disponibles à la maison (sel, huile, épices…), réglables par l'utilisateur |
+| Ingrédient clé (`key`)   | Sans lui le plat n'existe pas (merguez d'une ojja merguez)                                      |
+| Secondaire (`secondary`) | Nécessaire, mais on peut l'acheter (oignon, poivron…)                                           |
+| Épice / base (`staple`)  | Sel, huile, épices : ne bloque jamais une recette                                               |
+| Substitution             | Ingrédient qui en remplace un autre (agneau au lieu de bœuf)                                    |
+| Catégorie (course)       | Entrée, plat principal ou dessert                                                               |
+| Express                  | Recette de 20 minutes ou moins (calculé, pas saisi)                                             |
+| Healthy                  | Plat équilibré, marqué par le patron                                                            |
+| Patron                   | Administrateur, connecté par le serveur                                                         |
+| Scénario du chef         | Règle de qualité « avec ce frigo, on doit voir ces plats »                                      |
+| DT                       | Dinar tunisien                                                                                  |

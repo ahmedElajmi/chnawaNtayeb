@@ -16,8 +16,7 @@ const MIN_PASSWORD_LENGTH = 12;
 const MIN_SECRET_LENGTH = 32;
 
 export type AdminConfig =
-  | { ok: true; username: string; password: string; secret: string }
-  | { ok: false; reason: string };
+  { ok: true; username: string; password: string; secret: string } | { ok: false; reason: string };
 
 export function getAdminConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
   const username = (env.ADMIN_USERNAME || 'admin').trim();
@@ -55,7 +54,11 @@ function sign(data: string, secret: string): string {
   return crypto.createHmac('sha256', secret).update(data).digest('base64url');
 }
 
-export function createSessionToken(username: string, secret: string, now = Date.now()): { token: string; payload: SessionPayload } {
+export function createSessionToken(
+  username: string,
+  secret: string,
+  now = Date.now()
+): { token: string; payload: SessionPayload } {
   const payload: SessionPayload = { sub: username, role: 'admin', iat: now, exp: now + SESSION_TTL_MS };
   const body = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
   return { token: `${body}.${sign(body, secret)}`, payload };
