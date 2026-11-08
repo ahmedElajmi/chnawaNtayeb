@@ -51,11 +51,7 @@
         },
         "category": {
           "type": "string",
-          "enum": [
-            "entree",
-            "plat_principal",
-            "dessert"
-          ]
+          "enum": ["entree", "plat_principal", "dessert"]
         },
         "cuisine_type": {
           "type": "string",
@@ -77,13 +73,7 @@
           "description": "Optional YouTube link (how to cook the dish)"
         }
       },
-      "required": [
-        "slug",
-        "name_fr",
-        "prep_time_minutes",
-        "cook_time_minutes",
-        "is_published"
-      ]
+      "required": ["slug", "name_fr", "prep_time_minutes", "cook_time_minutes", "is_published"]
     },
     "Ingredient": {
       "title": "Ingredient",
@@ -114,12 +104,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "name_fr",
-        "category",
-        "unit_default",
-        "default_price_tnd"
-      ]
+      "required": ["name_fr", "category", "unit_default", "default_price_tnd"]
     },
     "User": {
       "title": "User",
@@ -160,9 +145,7 @@
           "maxLength": 40
         }
       },
-      "required": [
-        "uid"
-      ]
+      "required": ["uid"]
     },
     "Theme": {
       "title": "Theme",
@@ -359,31 +342,15 @@
         },
         "displayFont": {
           "type": "string",
-          "enum": [
-            "plus-jakarta",
-            "fraunces",
-            "reem-kufi",
-            "cairo",
-            "playfair",
-            "baloo"
-          ]
+          "enum": ["plus-jakarta", "fraunces", "reem-kufi", "cairo", "playfair", "baloo"]
         },
         "cardShape": {
           "type": "string",
-          "enum": [
-            "rounded",
-            "arch",
-            "square"
-          ]
+          "enum": ["rounded", "arch", "square"]
         },
         "pattern": {
           "type": "string",
-          "enum": [
-            "none",
-            "zellige",
-            "dots",
-            "waves"
-          ]
+          "enum": ["none", "zellige", "dots", "waves"]
         },
         "is_published": {
           "type": "boolean"

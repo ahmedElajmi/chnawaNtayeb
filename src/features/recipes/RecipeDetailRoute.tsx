@@ -1,0 +1,50 @@
+import { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router';
+import { RecipeDetailModal } from '@/features/recipes/components/RecipeDetailModal';
+import { useCatalog, useKitchen, useMatchingSettings } from '@/app/ContainerContext';
+import { PATHS } from '@/shared/paths';
+import type { RecipeOverlayState } from './hooks';
+
+/**
+ * /recette/<slug>: the recipe opens on top of the screen it was opened from
+ * (or on top of the recipe list when the address was opened directly).
+ * Closing it goes back, so the phone's back button closes it too.
+ */
+export function RecipeDetailRoute({ slug }: { slug: string }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { catalog, ingredients, remoteChecked } = useCatalog();
+  const { fridge, pantry, favorites, kitchen } = useKitchen();
+  const { config } = useMatchingSettings();
+  const recipe = catalog.findPublishedBySlug(slug);
+  const openedInApp = Boolean((location.state as RecipeOverlayState | null)?.background);
+
+  useEffect(() => {
+    if (!recipe) return;
+    const previous = document.title;
+    document.title = `${recipe.name_fr} | Chnowa Ntayeb by Chef Souhed`;
+    return () => {
+      document.title = previous;
+    };
+  }, [recipe]);
+
+  // Unknown address: wait for the shared catalog (the recipe may be new), then show the list
+  if (!recipe) return remoteChecked ? <Navigate to={PATHS.recipes} replace /> : null;
+
+  const close = () => (openedInApp ? navigate(-1) : navigate(PATHS.recipes, { replace: true }));
+
+  return (
+    <RecipeDetailModal
+      recipe={recipe}
+      isOpen
+      onClose={close}
+      isFavorite={favorites.includes(recipe.id)}
+      onToggleFavorite={(id) => kitchen.toggleFavorite(id)}
+      allIngredients={ingredients}
+      selectedFridgeIds={fridge}
+      pantryIds={pantry}
+      onAddMissingToGrocery={(items) => kitchen.addGroceryItems(items)}
+      matchingConfig={config}
+    />
+  );
+}

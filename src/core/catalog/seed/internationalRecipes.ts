@@ -1,0 +1,4438 @@
+import { Recipe } from '../types';
+
+/**
+ * International classics adapted to Tunisian kitchens and markets (50 recipes).
+ * No photo yet (image_url empty): the app shows the brand visual until one is added from the backoffice.
+ */
+export const internationalRecipes: Recipe[] = [
+  {
+    id: 'rec_int_01_spaghetti_bolognaise',
+    slug: 'spaghetti-bolognaise',
+    name_fr: 'Spaghetti bolognaise',
+    name_derja: 'Spaghetti bolognaise',
+    name_ar: 'سباغيتي بولونيز',
+    description_fr:
+      'Le grand classique italien : une sauce à la viande hachée mijotée longuement avec carotte, céleri et tomate, généreusement servie sur des spaghettis.',
+    description_derja:
+      'El klassik el talyeni: salsa bel l7am el mafroum mtayyba 3la mahlha m3a sfenarya, krafes w tmatem, fo9 spaghetti.',
+    description_ar:
+      'الطبق الإيطالي الكلاسيكي: صلصة اللحم المفروم المطهوة طويلاً مع الجزر والكرافس والطماطم فوق السباغيتي.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 60,
+    base_servings: 4,
+    estimated_cost_tnd: 19,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pates', quantity_base: 400, unit: 'g', role: 'key' },
+      {
+        ingredient_id: 'ing_viande_hachee',
+        quantity_base: 400,
+        unit: 'g',
+        role: 'key',
+        substitutes: ['ing_poulet_hache'],
+      },
+      { ingredient_id: 'ing_tomate', quantity_base: 4, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_carotte', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_celeri', quantity_base: 0.5, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_parmesan', quantity_base: 40, unit: 'g', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Hachez très finement l'oignon, la carotte et le céleri (le soffritto) et faites-les suer 8 minutes dans l'huile à feu doux, sans coloration.",
+        instruction_derja:
+          '9assas rgii9 barcha el bsal, es-sfenarya wel krafes w tayybhom 8 d9aye9 fel zit 3la nar hadya bla ma y7ammrou.',
+        instruction_ar: 'افرم البصل والجزر والكرافس ناعماً جداً، وليّنها 8 دقائق في الزيت على نار هادئة دون أن تتلوّن.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Montez le feu, ajoutez la viande hachée et l'ail, et émiettez-la à la cuillère en bois jusqu'à ce qu'elle perde sa couleur rose et commence à grésiller.",
+        instruction_derja:
+          'Kabber en-nar, zid el l7am el mafroum wet-thoum, w farrdou b mgharfa 3oud 7atta yetbaddel lounou w yebda yetchachta.',
+        instruction_ar:
+          'ارفع النار وأضف اللحم المفروم والثوم، وفتّته بملعقة خشبية حتى يزول لونه الوردي ويبدأ في الطقطقة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Incorporez la tomate concentrée 1 minute, puis les tomates râpées, l'origan et un verre d'eau. Couvrez à moitié et laissez mijoter 45 minutes à feu très doux.",
+        instruction_derja:
+          'Zid et-tmatem el ma3jouna d9i9a, ba3d et-tmatem el m7akka, el origan w kes ma. Ghatti en-nos w khalliha 45 d9i9a 3la nar hadya barcha.',
+        instruction_ar:
+          'أضف الطماطم المعجونة دقيقة، ثم الطماطم المبشورة والزعتر البري وكأس ماء، وغطِّ نصف تغطية واتركها 45 دقيقة على نار هادئة جداً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Cuisez les spaghettis al dente dans une grande casserole d'eau salée, gardez une louche d'eau de cuisson et mélangez les pâtes avec la sauce en ajoutant un peu de cette eau pour lier.",
+        instruction_derja:
+          'Tayyeb es-spaghetti al dente f tanjra kbira ma mal7, khabbi mghorfa mel ma mta3ha w khallat-ha m3a es-salsa w zid chwaya mel ma hadhaka bech yetmasek.',
+        instruction_ar:
+          'اطهُ السباغيتي حتى تبقى متماسكة في قدر كبير من الماء المملّح، واحتفظ بمغرفة من ماء الطهي، ثم اخلطها مع الصلصة مضيفاً قليلاً من ذلك الماء لربطها.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Servez aussitôt avec du parmesan râpé et un tour de moulin à poivre.',
+        instruction_derja: 'Sarbiha toul b parmesan m7akk w chwaya felfel ak7el.',
+        instruction_ar: 'قدّمها فوراً مع جبن البارميزان المبشور ورشّة فلفل أسود.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Une vraie bolognaise ne se presse pas : plus elle mijote, plus la viande devient fondante. Préparez-la la veille, elle est encore meilleure réchauffée.',
+      derja:
+        'El bolognaise ma t7ebbch el zarba: kol ma ttawwel 3al nar, el l7am yertab akther. A3mel-ha mel lila, tkoun a7la ki tsakhanha.',
+      ar: 'البولونيز الحقيقية لا تحب الاستعجال، فكلما طال طهيها صار اللحم أطرى، وحضّرها من الليلة السابقة فهي ألذّ بعد التسخين.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_02_lasagnes_a_la_viande',
+    slug: 'lasagnes-a-la-viande',
+    name_fr: 'Lasagnes à la viande',
+    name_derja: 'Lasagne bel l7am',
+    name_ar: 'لازانيا باللحم',
+    description_fr:
+      "Des couches généreuses de pâtes, de sauce tomate à la viande et de béchamel onctueuse, gratinées à la mozzarella jusqu'à ce que les bords croustillent.",
+    description_derja:
+      'Twaba9 mta3 3jin, salsa bel l7am w béchamel rteba, mgrattina bel mozzarella 7atta el jnab ywalliw m9ar9chin.',
+    description_ar: 'طبقات سخية من العجين وصلصة اللحم والبشاميل الكريمي، مغطاة بالموزاريلا حتى تتحمّر الأطراف وتقرمش.',
+    image_url: '',
+    prep_time_minutes: 40,
+    cook_time_minutes: 75,
+    base_servings: 4,
+    estimated_cost_tnd: 32,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_pate_lasagne', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_viande_hachee', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 4, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_carotte', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_lait', quantity_base: 600, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 50, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 50, unit: 'g', role: 'staple' },
+      {
+        ingredient_id: 'ing_mozzarella',
+        quantity_base: 200,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_parmesan', quantity_base: 40, unit: 'g', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites revenir l'oignon et la carotte hachés 5 minutes dans l'huile, ajoutez la viande et l'ail et faites dorer en émiettant. Ajoutez tomate concentrée, tomates râpées, origan et un demi-verre d'eau, puis laissez mijoter 30 minutes.",
+        instruction_derja:
+          '9alli el bsal wes-sfenarya m9assin 5 d9aye9 fel zit, zid el l7am wet-thoum w 7ammrou w enti tfarrdou. Zid et-tmatem el ma3jouna, et-tmatem el m7akka, el origan w nos kes ma, w khalliha 30 d9i9a.',
+        instruction_ar:
+          'حمّر البصل والجزر المفرومين 5 دقائق في الزيت، أضف اللحم والثوم وحمّره مع التفتيت، ثم أضف الطماطم المعجونة والمبشورة والزعتر البري ونصف كأس ماء واتركه 30 دقيقة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Pour la béchamel, faites fondre le beurre, ajoutez la farine et remuez 1 minute sans coloration, puis versez le lait froid d'un coup en fouettant. Cuisez 5 minutes jusqu'à épaississement, salez et poivrez.",
+        instruction_derja:
+          'Lel béchamel, dawweb ez-zebda, zid el farina w 7arrek d9i9a bla ma t7ammer, ba3d sobb el 7lib bared marra we7da w khabbet. Tayyebha 5 d9aye9 7atta tetkhaththar, w mall7 w falfel.',
+        instruction_ar:
+          'للبشاميل، أذب الزبدة وأضف الطحين وحرّك دقيقة دون تلوين، ثم اسكب الحليب البارد دفعة واحدة مع الخفق، واطهها 5 دقائق حتى تتكثف وتبّلها بالملح والفلفل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Dans un plat beurré, étalez un peu de sauce tomate, puis alternez feuilles de lasagne, sauce à la viande, béchamel et mozzarella en 3 ou 4 couches. Terminez par béchamel, mozzarella et parmesan.',
+        instruction_derja:
+          'F mo3jna madhouna bel zebda, ferrech chwaya salsa, ba3d baddel: wra9 lasagne, salsa bel l7am, béchamel w mozzarella, 3 wala 4 twaba9. Kammel bel béchamel, el mozzarella wel parmesan.',
+        instruction_ar:
+          'في صينية مدهونة بالزبدة افرد قليلاً من الصلصة، ثم تناوب بين أوراق اللازانيا وصلصة اللحم والبشاميل والموزاريلا في 3 أو 4 طبقات، وأنهِ بالبشاميل والموزاريلا والبارميزان.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Couvrez d'aluminium et enfournez 25 minutes à 180°C, puis retirez l'aluminium et poursuivez 15 minutes jusqu'à ce que le dessus soit doré et bouillonnant.",
+        instruction_derja:
+          'Ghatti b papier alu w 7ott fel forn 25 d9i9a 3la 180 daraja, ba3d na77i el papier w kammel 15 d9i9a 7atta el wejh y7ammer w yebda ybaggar.',
+        instruction_ar:
+          'غطِّ بورق الألمنيوم وأدخلها الفرن 25 دقيقة على 180 درجة، ثم انزع الورق وواصل 15 دقيقة حتى يتحمّر السطح ويفور.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Laissez reposer 15 minutes hors du four avant de couper : les couches se tiennent et les parts sortent nettes.',
+        instruction_derja:
+          'Khalliha tertah 15 d9i9a barra el forn 9bal ma t9ossha: et-twaba9 yetmaskou wel 9ta3 yokhorjou ndhaf.',
+        instruction_ar: 'اتركها ترتاح 15 دقيقة خارج الفرن قبل التقطيع لتتماسك الطبقات وتخرج القطع نظيفة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Gardez une sauce à la viande assez liquide : les feuilles de lasagne crues absorbent beaucoup de jus pendant la cuisson et une sauce trop épaisse donnerait des pâtes sèches.',
+      derja:
+        'Khalli es-salsa bel l7am chwaya rtiba: wra9 el lasagne yochorbou barcha fel forn, w ken es-salsa tkhina el 3jin yokhrej yabes.',
+      ar: 'اترك صلصة اللحم سائلة نوعاً ما، فأوراق اللازانيا النيئة تمتص الكثير أثناء الطهي، والصلصة الكثيفة تجعل العجين جافاً.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_03_penne_a_la_creme_et_aux_cham',
+    slug: 'penne-a-la-creme-et-aux-champignons',
+    name_fr: 'Penne à la crème et aux champignons',
+    name_derja: 'Penne bel crème wel champignon',
+    name_ar: 'بيني بالكريمة والفطر',
+    description_fr:
+      "Des champignons bien dorés au beurre et à l'ail, liés d'une crème au parmesan qui enrobe chaque penne : prêt en vingt minutes.",
+    description_derja:
+      'Champignon m7ammer bel zebda wet-thoum, mkhallet m3a crème bel parmesan tghatti kol penne: yo7dher f 20 d9i9a.',
+    description_ar: 'فطر محمّر بالزبدة والثوم في كريمة بالبارميزان تغلّف كل قطعة بيني، جاهز في عشرين دقيقة.',
+    image_url: '',
+    prep_time_minutes: 10,
+    cook_time_minutes: 20,
+    base_servings: 4,
+    estimated_cost_tnd: 14,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pates', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_champignon', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_creme', quantity_base: 200, unit: 'ml', role: 'key' },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 50,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_beurre', quantity_base: 30, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Essuyez les champignons avec un papier humide (ne les lavez pas à grande eau) et coupez-les en lamelles épaisses.',
+        instruction_derja:
+          'Mse7 el champignon b papier mabloul (ma tghaslouch fel ma barcha) w 9ossou chra2e7 ghlidha.',
+        instruction_ar: 'امسح الفطر بورق مبلّل دون غسله بكثير من الماء، وقطّعه شرائح سميكة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites chauffer beurre et huile dans une grande poêle bien chaude, saisissez les champignons en une seule couche 6 à 7 minutes sans trop remuer, jusqu'à ce que leur eau s'évapore et qu'ils dorent. Ajoutez l'ail haché la dernière minute.",
+        instruction_derja:
+          'Sakhan ez-zebda wez-zit f me9la kbira skhouna barcha, 9alli el champignon ta9a we7da 6 l 7 d9aye9 bla ma t7arrek barcha, 7atta yenchaf mé7ou w y7ammer. Zid et-thoum el m9assas fel d9i9a el lekhra.',
+        instruction_ar:
+          'سخّن الزبدة والزيت في مقلاة كبيرة ساخنة جداً، وحمّر الفطر في طبقة واحدة 6 إلى 7 دقائق دون تحريك كثير حتى يتبخر ماؤه ويتحمّر، وأضف الثوم المفروم في الدقيقة الأخيرة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Pendant ce temps, faites cuire les penne dans l'eau salée selon le paquet et réservez un verre d'eau de cuisson.",
+        instruction_derja:
+          'F nafs el wa9t, tayyeb el penne fel ma mal7 kima mektoub 3al paquet w khabbi kes mel ma mta3hom.',
+        instruction_ar: 'في الأثناء اطهُ البيني في الماء المملّح حسب العلبة واحتفظ بكأس من ماء الطهي.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Versez la crème sur les champignons, laissez frémir 2 minutes, ajoutez les penne égouttées et le parmesan, puis détendez avec un peu d'eau de cuisson jusqu'à une sauce brillante. Poivrez et parsemez de persil.",
+        instruction_derja:
+          'Sobb el crème 3al champignon, khalliha tbaggar d9ii9tin, zid el penne msaffya wel parmesan, ba3d rattab b chwaya ma mta3 et-tayyib 7atta es-salsa twalli tlam3. Falfel w rech ma3dnous.',
+        instruction_ar:
+          'اسكب الكريمة على الفطر واتركها تغلي بهدوء دقيقتين، أضف البيني المصفّى والبارميزان، ثم خفّفها بقليل من ماء الطهي حتى تصبح الصلصة لامعة، وتبّلها بالفلفل ورشّ البقدونس.',
+      },
+    ],
+    chef_tip: {
+      fr: "Ne salez les champignons qu'une fois dorés : le sel les fait rendre leur eau tout de suite et ils bouillent au lieu de griller.",
+      derja:
+        'Ma tmall7ch el champignon ken ba3d ma y7ammer: el mel7 ykharrejlou mé7ou toul w yweli yeghli 3oudh ma yet9la.',
+      ar: 'لا تملّح الفطر إلا بعد أن يتحمّر، فالملح يجعله يطلق ماءه فوراً فيُسلق بدل أن يتحمّر.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_04_pizza_margherita',
+    slug: 'pizza-margherita',
+    name_fr: 'Pizza margherita',
+    name_derja: 'Pizza margherita',
+    name_ar: 'بيتزا مارغريتا',
+    description_fr:
+      'La reine des pizzas napolitaines : une pâte fine et gonflée, une sauce tomate simple, de la mozzarella fondante et du basilic frais.',
+    description_derja: 'Malkat el pizza: 3jina rgii9a w mentfkha, salsa tmatem sahla, mozzarella dayba w ri7an friche.',
+    description_ar: 'ملكة البيتزا النابولية: عجين رقيق منتفخ وصلصة طماطم بسيطة وموزاريلا ذائبة وريحان طازج.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 15,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pate_pizza', quantity_base: 2, unit: 'boules', role: 'key' },
+      { ingredient_id: 'ing_mozzarella', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 4, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_basilic', quantity_base: 0.5, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préchauffez le four à sa température maximale (250°C) avec la plaque à l'intérieur pendant 30 minutes.",
+        instruction_derja: 'Sakhan el forn 3la akbar daraja (250) w el plaque dekhlou 30 d9i9a.',
+        instruction_ar: 'سخّن الفرن على أعلى درجة حرارة (250 درجة) مع الصفيحة بداخله لمدة 30 دقيقة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Râpez les tomates, mélangez la pulpe avec la tomate concentrée, l'ail écrasé, l'origan, 1 c.à.s d'huile et le sel, et laissez réduire 8 minutes dans une casserole.",
+        instruction_derja:
+          '7okk et-tmatem, khallat-ha m3a et-tmatem el ma3jouna, et-thoum el marfoukh, el origan, mgharfa zit wel mel7, w khalliha t9oss 8 d9aye9 f casrona.',
+        instruction_ar:
+          'ابشر الطماطم واخلطها مع الطماطم المعجونة والثوم المهروس والزعتر البري وملعقة زيت والملح، واتركها تتكثف 8 دقائق في قدر.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Étalez chaque boule avec les doigts en partant du centre, en laissant un bord plus épais. Étalez une fine couche de sauce sans aller jusqu'au bord.",
+        instruction_derja:
+          'Madd kol koura b sbe3ek mel woust lel jnab, w khalli el 7ach ghlidh chwaya. Ferrech ta9a rgii9a mel salsa bla ma towsel lel 7ach.',
+        instruction_ar:
+          'افرد كل كرة بالأصابع من الوسط نحو الأطراف مع ترك حافة أسمك، ووزّع طبقة رقيقة من الصلصة دون الوصول إلى الحافة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Déchirez la mozzarella bien égouttée en morceaux, répartissez-la et arrosez d'un filet d'huile. Faites glisser sur la plaque chaude et cuisez 8 à 10 minutes jusqu'à ce que la croûte soit tachetée de brun.",
+        instruction_derja:
+          '9atta3 el mozzarella msaffya bel yed w farrachha, w rech chwaya zit. Zla9 el pizza 3al plaque es-skhouna w tayyebha 8 l 10 d9aye9 7atta el 7ach ybanou fih tbo93 m7ammra.',
+        instruction_ar:
+          'قطّع الموزاريلا المصفّاة باليد ووزّعها ورشّ قليلاً من الزيت، ثم مرّر البيتزا على الصفيحة الساخنة واطهها 8 إلى 10 دقائق حتى تظهر على الحافة بقع محمّرة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "À la sortie du four, ajoutez les feuilles de basilic frais et un dernier filet d'huile d'olive.",
+        instruction_derja: 'Ki tokhrej mel forn, zid wra9 er-ri7an el friche w chwaya zit zitouna mel fo9.',
+        instruction_ar: 'عند إخراجها من الفرن أضف أوراق الريحان الطازج ورشّة أخيرة من زيت الزيتون.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Laissez égoutter la mozzarella 30 minutes sur du papier absorbant avant usage : trop humide, elle détrempe la pâte et la pizza ne croustille pas.',
+      derja:
+        'Khalli el mozzarella tetsaffa 30 d9i9a 3la papier 9bal ma testa3malha: ken fiha el ma, tbaloul el 3jina w el pizza ma tokhrejch m9ar9cha.',
+      ar: 'اترك الموزاريلا تتصفّى 30 دقيقة على ورق ماص قبل استعمالها، فإن كانت رطبة بلّلت العجين ولم تقرمش البيتزا.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_05_quiche_lorraine',
+    slug: 'quiche-lorraine',
+    name_fr: 'Quiche lorraine',
+    name_derja: 'Quiche lorraine',
+    name_ar: 'كيش لورين',
+    description_fr:
+      "Une pâte brisée croustillante garnie d'un flan tremblotant aux œufs et à la crème, avec dés de jambon de dinde et fromage gratiné.",
+    description_derja: '3jina brisée m9ar9cha m3amra b khalta 3dham w crème, m3a jambon dinde k3ab w fromage m7ammer.',
+    description_ar:
+      'عجينة هشّة مقرمشة محشوة بمزيج طري من البيض والكريمة مع مكعبات لحم الديك الرومي المدخّن والجبن المحمّر.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 45,
+    base_servings: 4,
+    estimated_cost_tnd: 16,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_pate_brisee', quantity_base: 1, unit: 'rouleau', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_creme', quantity_base: 200, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_lait', quantity_base: 100, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_jambon', quantity_base: 6, unit: 'tranches', role: 'secondary' },
+      {
+        ingredient_id: 'ing_fromage_rape',
+        quantity_base: 80,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_cheddar'],
+      },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 10, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Foncez un moule de 24 cm avec la pâte, piquez le fond, recouvrez de papier cuisson et de légumes secs et faites cuire à blanc 12 minutes à 200°C. Retirez les poids et prolongez 5 minutes.',
+        instruction_derja:
+          'Ferrech el 3jina f mo3jna 24 cm, na99ab el 9a3, ghattih b papier cuisson w 7ott fo9ou 7oummous yabes w tayybou 12 d9i9a 3la 200 daraja. Na77i el 7oummous w zid 5 d9aye9.',
+        instruction_ar:
+          'افرد العجينة في قالب قطره 24 سم، اثقب القاع، غطّه بورق الطهي وضع فوقه حبوباً جافة واخبزه 12 دقيقة على 200 درجة، ثم انزع الحبوب واخبز 5 دقائق إضافية.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Coupez le jambon en lardons et faites-le dorer 3 minutes dans le beurre avec l'oignon émincé, puis laissez tiédir.",
+        instruction_derja:
+          '9oss el jambon k3ab sghar w 7ammrou 3 d9aye9 fel zebda m3a el bsal el m9assas, ba3d khallih yebred chwaya.',
+        instruction_ar: 'قطّع اللحم المدخّن مكعبات صغيرة وحمّره 3 دقائق في الزبدة مع البصل المقطّع، ثم اتركه يفتر.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Battez les œufs avec la crème et le lait sans les faire mousser, salez peu (le jambon est salé) et poivrez généreusement.',
+        instruction_derja:
+          'Khabbet el 3dham m3a el crème wel 7lib bla ma ta3mel ragwa, mall7 chwaya (el jambon mmalla7) w falfel mlee7.',
+        instruction_ar: 'اخفق البيض مع الكريمة والحليب دون تكوين رغوة، وملّح قليلاً لأن اللحم مالح، وأكثر من الفلفل.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Répartissez le jambon et le fromage sur le fond précuit, versez l'appareil et enfournez 25 à 30 minutes à 180°C : le centre doit encore trembler légèrement.",
+        instruction_derja:
+          'Farrech el jambon wel fromage 3al 3jina el mtayyba, sobb el khalta w 7ott fel forn 25 l 30 d9i9a 3la 180: el woust lazem yo93ed yetra3ech chwaya.',
+        instruction_ar:
+          'وزّع اللحم والجبن على العجينة المخبوزة، اسكب المزيج وأدخله الفرن 25 إلى 30 دقيقة على 180 درجة حتى يبقى الوسط مهتزاً قليلاً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Laissez reposer 10 minutes avant de démouler : le flan finit de prendre et se découpe proprement. Servez avec une salade verte.',
+        instruction_derja:
+          'Khalliha tertah 10 d9aye9 9bal ma tkharrejha: el khalta tkammel tetmasek w tet9ass ndhifa. Sarbiha m3a slata khadhra.',
+        instruction_ar:
+          'اتركها ترتاح 10 دقائق قبل إخراجها من القالب ليكتمل تماسك الحشوة وتُقطع بشكل نظيف، وقدّمها مع سلطة خضراء.',
+      },
+    ],
+    chef_tip: {
+      fr: "La cuisson à blanc est la clé d'un fond croustillant : badigeonnez-le d'un peu de jaune d'œuf à la sortie du four pour l'imperméabiliser avant de verser la garniture.",
+      derja:
+        'Tayyib el 3jina wa7adha howa sirr el 9a3 el m9ar9ech: edhnou b chwaya safra 3dham ki tokhrej mel forn bech ma tochrobch el khalta.',
+      ar: 'خَبز العجينة وحدها هو سرّ القاع المقرمش، فادهنه بقليل من صفار البيض عند إخراجه من الفرن ليصبح عازلاً قبل سكب الحشوة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_06_poulet_roti_aux_herbes',
+    slug: 'poulet-roti-aux-herbes-et-au-citron',
+    name_fr: 'Poulet rôti aux herbes et au citron',
+    name_derja: 'Djej fel forn bel 7chich wel 9ares',
+    name_ar: 'دجاج محمّر في الفرن بالأعشاب والليمون',
+    description_fr:
+      "Un poulet entier à la peau dorée et craquante, parfumé à l'ail, au citron et à l'origan, rôti sur un lit de pommes de terre qui confisent dans son jus.",
+    description_derja:
+      'Djeja kemla jeldha m7ammer w m9ar9ech, bel thoum, el 9ares wel origan, fel forn fo9 batata tetayyeb f mé7ha.',
+    description_ar:
+      'دجاجة كاملة بجلد ذهبي مقرمش، معطّرة بالثوم والليمون والزعتر البري، تُشوى فوق بطاطا تتشرّب عصارتها.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 80,
+    base_servings: 4,
+    estimated_cost_tnd: 23,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poulet', quantity_base: 1.5, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 1, unit: 'kg', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'tête', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_beurre', quantity_base: 30, unit: 'g', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Sortez le poulet du réfrigérateur 30 minutes avant et séchez-le soigneusement avec du papier absorbant, à l'intérieur comme à l'extérieur.",
+        instruction_derja:
+          'Kharrej ed-djeja mel frigo 30 d9i9a 9bal w nachchef-ha mlee7 b papier, mel dakhel w mel barra.',
+        instruction_ar: 'أخرج الدجاجة من الثلاجة قبل 30 دقيقة وجفّفها جيداً بورق ماص من الداخل والخارج.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Mélangez l'huile, 4 gousses d'ail écrasées, l'origan, le paprika, le zeste du citron, sel et poivre. Glissez la moitié de cette pâte sous la peau des blancs et des cuisses, frottez le reste dessus.",
+        instruction_derja:
+          'Khallat ez-zit, 4 sninet thoum marfoukha, el origan, el paprika, 9chirt el 9ares m7akka, mel7 w felfel. Dakhel nos el khalta ta7t jeld es-sdar wel fkhadh, w odhen el b9iya mel barra.',
+        instruction_ar:
+          'اخلط الزيت و4 فصوص ثوم مهروسة والزعتر البري والفلفل الحلو وقشر الليمون المبشور والملح والفلفل، وأدخل نصف الخليط تحت جلد الصدر والأفخاذ وادهن الباقي من الخارج.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Placez le citron coupé en deux et le reste de l'ail dans la cavité. Disposez les pommes de terre en quartiers autour, salées et huilées.",
+        instruction_derja:
+          '7ott el 9ares m9ass 3la thnin w b9iyet et-thoum fi kerch ed-djeja. Sayyef el batata m9assa rbo3 mel jnab, mmall7a w madhouna bel zit.',
+        instruction_ar:
+          'ضع الليمون المقسوم نصفين وباقي الثوم داخل الدجاجة، ورتّب حولها أرباع البطاطا المملّحة والمدهونة بالزيت.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Enfournez 20 minutes à 220°C, puis baissez à 190°C pour 55 minutes en arrosant toutes les 20 minutes avec le jus. Le poulet est cuit quand le jus qui coule de la cuisse piquée est clair.',
+        instruction_derja:
+          '7ottha fel forn 20 d9i9a 3la 220, ba3d na99es lel 190 w khalliha 55 d9i9a w sobb 3liha mé7ha kol 20 d9i9a. Tkoun mtayyba ki tna99ab el fakhdh w yokhrej el ma safi.',
+        instruction_ar:
+          'أدخلها الفرن 20 دقيقة على 220 درجة، ثم اخفض إلى 190 درجة لمدة 55 دقيقة مع سقيها بعصارتها كل 20 دقيقة، وتكون ناضجة حين يخرج من الفخذ المثقوب سائل صافٍ.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Couvrez le poulet d'aluminium et laissez-le reposer 10 minutes avant de le découper. Parsemez de persil.",
+        instruction_derja: 'Ghatti ed-djeja b papier alu w khalliha tertah 10 d9aye9 9bal ma t9ossha. Rech ma3dnous.',
+        instruction_ar: 'غطِّ الدجاجة بورق الألمنيوم واتركها ترتاح 10 دقائق قبل تقطيعها، ثم رشّ البقدونس.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Pour une peau ultra croustillante, salez le poulet la veille et laissez-le à découvert au réfrigérateur toute la nuit : la peau sèche et rôtit comme un chips.',
+      derja:
+        'Bech jeld ed-djeja yokhrej m9ar9ech barcha, mall7ha mel lila w khalliha meksoufa fel frigo: el jeld yenchaf w yet7ammer kif el chips.',
+      ar: 'لجلد مقرمش جداً، ملّح الدجاجة من الليلة السابقة واتركها مكشوفة في الثلاجة، فيجفّ الجلد ويتحمّر كالرقائق.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_07_poulet_basquaise',
+    slug: 'poulet-basquaise',
+    name_fr: 'Poulet basquaise',
+    name_derja: 'Djej basquaise bel felfel',
+    name_ar: 'دجاج على الطريقة الباسكية',
+    description_fr:
+      'Des morceaux de poulet dorés puis mijotés dans une piperade fondante de poivrons, tomates et oignons relevée au paprika : le soleil du Pays basque.',
+    description_derja:
+      'Ta9tou3 djej m7ammer w mtayyeb f khalta felfel, tmatem w bsal bel paprika: chams bled el basque.',
+    description_ar: 'قطع دجاج محمّرة ثم مطهوة في صلصة طرية من الفلفل والطماطم والبصل بالفلفل الحلو، شمس بلاد الباسك.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 50,
+    base_servings: 4,
+    estimated_cost_tnd: 19,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poulet', quantity_base: 1.2, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_poivron', quantity_base: 3, unit: 'pièces', role: 'key', substitutes: ['ing_piment'] },
+      { ingredient_id: 'ing_tomate', quantity_base: 5, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 4, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_piment_moulu', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Assaisonnez les morceaux de poulet de sel, poivre et paprika, et faites-les dorer côté peau 6 minutes puis 3 minutes de l'autre côté dans une cocotte avec 2 c.à.s d'huile. Réservez.",
+        instruction_derja:
+          'Tabbel ta9tou3 ed-djej b mel7, felfel w paprika, w 7ammrou men jiht el jeld 6 d9aye9 w 3 d9aye9 mel jiha lo5ra f cocotte b zouz mgharef zit. Na77ih 3la jnab.',
+        instruction_ar:
+          'تبّل قطع الدجاج بالملح والفلفل والفلفل الحلو، وحمّرها من جهة الجلد 6 دقائق ثم 3 دقائق من الجهة الأخرى في قدر بملعقتين من الزيت، ثم ارفعها جانباً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans la même cocotte, faites fondre les oignons émincés et les poivrons en lanières 10 minutes à feu moyen avec le reste d'huile, jusqu'à ce qu'ils soient souples.",
+        instruction_derja:
+          'F nafs el cocotte, tayyeb el bsal el m9assas wel felfel sfayef 10 d9aye9 3la nar motawasta b b9iyet ez-zit 7atta yertbou.',
+        instruction_ar:
+          'في القدر نفسه ليّن البصل المقطّع والفلفل شرائح 10 دقائق على نار متوسطة مع باقي الزيت حتى يطرى.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Ajoutez l'ail, la tomate concentrée et le piment moulu, puis les tomates pelées et concassées. Laissez compoter 5 minutes.",
+        instruction_derja:
+          'Zid et-thoum, et-tmatem el ma3jouna wel felfel el a7mar, ba3d et-tmatem m9achra w m9assa. Khalliha tetsabbek 5 d9aye9.',
+        instruction_ar:
+          'أضف الثوم والطماطم المعجونة والفلفل الأحمر المطحون، ثم الطماطم المقشّرة والمقطّعة، واتركها تتسبّك 5 دقائق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Remettez le poulet dans la piperade, couvrez et laissez mijoter 30 minutes à feu doux en retournant les morceaux à mi-cuisson. Découvrez les 5 dernières minutes si la sauce est trop liquide.',
+        instruction_derja:
+          'Rajja3 ed-djej fel khalta, ghatti w khallih 30 d9i9a 3la nar hadya w a9leb et-ta9tou3 fel nos. Na77i el ghta fel 5 d9aye9 lekhrin ken es-salsa rtiba barcha.',
+        instruction_ar:
+          'أرجع الدجاج إلى الصلصة، غطِّ واتركه 30 دقيقة على نار هادئة مع قلب القطع في منتصف الطهي، واكشف القدر في الدقائق الخمس الأخيرة إذا كانت الصلصة سائلة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Parsemez de persil haché et servez avec du riz blanc ou des pommes de terre vapeur.',
+        instruction_derja: 'Rech ma3dnous m9assas w sarbih m3a rouz abyedh wala batata bel bokhar.',
+        instruction_ar: 'رشّ البقدونس المفروم وقدّمه مع الأرز الأبيض أو البطاطا المطهوة على البخار.',
+      },
+    ],
+    chef_tip: {
+      fr: "Mélangez poivrons rouges, verts et jaunes : le rouge apporte la douceur, le vert une pointe d'amertume et la sauce prend une couleur bien plus gourmande.",
+      derja:
+        'Khallat felfel a7mar, akhdhar w asfar: el a7mar y3ti 7lawa, el akhdhar chwaya mrara, w es-salsa yetla3 lounha yechhi.',
+      ar: 'اخلط الفلفل الأحمر والأخضر والأصفر، فالأحمر يمنح الحلاوة والأخضر لمسة مرارة، ويصبح لون الصلصة أشهى.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_08_buf_bourguignon',
+    slug: 'boeuf-bourguignon-version-sans-vin',
+    name_fr: 'Bœuf bourguignon (version sans vin)',
+    name_derja: 'L7am bagri bourguignon',
+    name_ar: 'لحم بقري على طريقة بورغونيا',
+    description_fr:
+      'Des morceaux de bœuf saisis puis braisés pendant deux heures avec carottes, oignons et champignons, dans une sauce sombre et brillante qui fond en bouche.',
+    description_derja:
+      'Ta9tou3 l7am bagri m7ammra w mtayyba sa3tin m3a sfenarya, bsal w champignon, f salsa ghamka w tlam3 tdoub fel fom.',
+    description_ar: 'قطع لحم بقري محمّرة ثم مطهوة ساعتين مع الجزر والبصل والفطر، في صلصة داكنة لامعة تذوب في الفم.',
+    image_url: '',
+    prep_time_minutes: 30,
+    cook_time_minutes: 150,
+    base_servings: 4,
+    estimated_cost_tnd: 38,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'avance',
+    ingredients: [
+      { ingredient_id: 'ing_boeuf', quantity_base: 800, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_carotte', quantity_base: 3, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_champignon', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_farine', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_vinaigre', quantity_base: 2, unit: 'c.à.s', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Coupez le bœuf (paleron ou macreuse) en cubes de 5 cm, séchez-les et saisissez-les en 3 fournées dans l'huile très chaude, 2 minutes par face, sans les entasser. Réservez.",
+        instruction_derja:
+          '9oss el l7am k3ab 5 cm, nachchefhom w 7ammrhom 3la 3 marrat fel zit skhoun barcha, d9ii9tin kol jiha, bla ma tkaddes-hom. Na77ihom 3la jnab.',
+        instruction_ar:
+          'قطّع اللحم مكعبات بحجم 5 سم، جفّفها وحمّرها على 3 دفعات في زيت ساخن جداً دقيقتين لكل جهة دون تكديسها، ثم ارفعها جانباً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans la même cocotte, faites revenir les oignons et les carottes en rondelles 5 minutes. Remettez la viande, saupoudrez de farine et remuez 2 minutes, puis ajoutez l'ail et la tomate concentrée.",
+        instruction_derja:
+          'F nafs el cocotte, 9alli el bsal wes-sfenarya m9assa dwayer 5 d9aye9. Rajja3 el l7am, rech el farina w 7arrek d9ii9tin, ba3d zid et-thoum wet-tmatem el ma3jouna.',
+        instruction_ar:
+          'في القدر نفسه حمّر البصل وحلقات الجزر 5 دقائق، ثم أرجع اللحم ورشّ الطحين وحرّك دقيقتين، وأضف الثوم والطماطم المعجونة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Déglacez avec le vinaigre en grattant les sucs du fond, puis versez 1 litre d'eau chaude. Portez à frémissement, couvrez et laissez mijoter 2 heures à feu très doux.",
+        instruction_derja:
+          'Sobb el khal w 7okk el 9a3 bech yetfakk el ta3m elli lsa9, ba3d sobb litre ma skhoun. Khalliha tbaggar, ghatti w khalliha sa3tin 3la nar hadya barcha.',
+        instruction_ar:
+          'اسكب الخلّ مع كشط ما التصق بالقاع، ثم أضف لتراً من الماء الساخن، واتركه حتى يغلي بهدوء، غطِّ واتركه ساعتين على نار هادئة جداً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Vingt minutes avant la fin, faites dorer les champignons coupés en quatre dans le beurre 5 minutes et ajoutez-les à la cocotte.',
+        instruction_derja:
+          '20 d9i9a 9bal ma yo7dher, 7ammer el champignon m9ass rbo3 fel zebda 5 d9aye9 w zidou lel cocotte.',
+        instruction_ar: 'قبل 20 دقيقة من النهاية حمّر الفطر المقطّع أرباعاً في الزبدة 5 دقائق وأضفه إلى القدر.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'La viande doit se défaire à la fourchette et la sauce napper la cuillère ; sinon, faites réduire à découvert quelques minutes. Parsemez de persil et servez avec une purée ou des pâtes.',
+        instruction_derja:
+          'El l7am lazem yetfarra9 bel forchette w es-salsa tghatti el mgharfa; ken le, khalliha t9oss bla ghta chwaya. Rech ma3dnous w sarbih m3a purée wala makarouna.',
+        instruction_ar:
+          'يجب أن يتفتّت اللحم بالشوكة وأن تغطي الصلصة الملعقة، وإلا فاتركها تتكثف دون غطاء بضع دقائق، ثم رشّ البقدونس وقدّمه مع البطاطا المهروسة أو المقرونة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Sans vin, une cuillère de vinaigre et la tomate concentrée bien caramélisée au fond de la cocotte apportent l'acidité et la profondeur de goût de la recette d'origine.",
+      derja:
+        'Bla chrab, mgharfa khal w tmatem ma3jouna m7ammra mlee7 fel 9a3 y3tiw el 7mouda w 3om9 et-ta3m mta3 el wasfa el asliya.',
+      ar: 'من دون نبيذ، تمنح ملعقة الخلّ والطماطم المعجونة المحمّرة جيداً في قاع القدر الحموضة وعمق النكهة كما في الوصفة الأصلية.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_09_gratin_dauphinois',
+    slug: 'gratin-dauphinois',
+    name_fr: 'Gratin dauphinois',
+    name_derja: 'Gratin batata dauphinois',
+    name_ar: 'غراتان البطاطا الدوفيني',
+    description_fr:
+      "De fines tranches de pommes de terre cuites lentement dans un mélange de lait et de crème parfumé à l'ail, jusqu'à devenir fondantes sous une croûte dorée.",
+    description_derja:
+      'Chra2e7 batata rgay9 mtayyba 3la mahlha f 7lib w crème bel thoum, 7atta tdoub ta7t 9choura m7ammra.',
+    description_ar: 'شرائح بطاطا رقيقة مطهوة ببطء في الحليب والكريمة المعطّرة بالثوم حتى تذوب تحت قشرة ذهبية.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 70,
+    base_servings: 4,
+    estimated_cost_tnd: 7.5,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 1.2, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_lait', quantity_base: 500, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_creme', quantity_base: 200, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_beurre', quantity_base: 20, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_fromage_rape', quantity_base: 60, unit: 'g', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Épluchez les pommes de terre et coupez-les en rondelles de 3 mm à la mandoline. Ne les rincez pas : leur amidon va épaissir la sauce.',
+        instruction_derja:
+          '9achar el batata w 9ossha dwayer 3 mm bel mandoline. Ma tghaslhech: en-nachaa mta3ha howa elli bech ykhaththar es-salsa.',
+        instruction_ar: 'قشّر البطاطا وقطّعها حلقات بسمك 3 مم بالمبشرة، ولا تغسلها لأن نشاءها سيكثّف الصلصة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans une grande casserole, portez le lait et la crème à frémissement avec l'ail écrasé, le sel et le poivre, ajoutez les pommes de terre et cuisez 10 minutes à feu doux en remuant délicatement.",
+        instruction_derja:
+          'F casrona kbira, sakhan el 7lib wel crème 7atta ybaggrou m3a et-thoum el marfoukh, el mel7 wel felfel, zid el batata w tayyebha 10 d9aye9 3la nar hadya w 7arrek b chwaya.',
+        instruction_ar:
+          'في قدر كبير سخّن الحليب والكريمة حتى بداية الغليان مع الثوم المهروس والملح والفلفل، ثم أضف البطاطا واطهها 10 دقائق على نار هادئة مع التحريك برفق.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Frottez un plat à gratin avec une gousse d'ail coupée puis beurrez-le. Versez-y les pommes de terre et leur crème en lissant la surface.",
+        instruction_derja:
+          'Afrek mo3jnet el gratin b sninet thoum m9assa w ba3d edhenha bel zebda. Sobb fiha el batata m3a el crème w sawwi el wejh.',
+        instruction_ar:
+          'افرك صينية الغراتان بفص ثوم مقطوع ثم ادهنها بالزبدة، واسكب فيها البطاطا مع الكريمة وسوِّ السطح.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Parsemez de petits morceaux de beurre (et de fromage si vous le souhaitez) et enfournez 1 heure à 160°C, jusqu'à ce que la lame d'un couteau traverse sans résistance et que le dessus soit doré.",
+        instruction_derja:
+          'Rech 9ta3 sghar zebda (w fromage ken t7eb) w 7ott fel forn sa3a 3la 160 daraja, 7atta es-sekkina todkhol sahla wel wejh y7ammer.',
+        instruction_ar:
+          'وزّع قطعاً صغيرة من الزبدة (والجبن إن رغبت) وأدخل الصينية الفرن ساعة على 160 درجة حتى تخترقها السكين بسهولة ويتحمّر السطح.',
+      },
+    ],
+    chef_tip: {
+      fr: "Une cuisson douce et longue est indispensable : à four trop chaud, la crème tranche et le gratin devient granuleux au lieu d'être fondant.",
+      derja:
+        'Lazem forn hadi w wa9t twil: ken el forn skhoun barcha, el crème tetfarra9 w el gratin ywalli mfattet 3oudh ma ykoun rteb.',
+      ar: 'الطهي الهادئ والطويل ضروري، ففي الفرن الساخن جداً تنفصل الكريمة ويصبح الغراتان محبّباً بدل أن يكون طرياً.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_10_croque_monsieur',
+    slug: 'croque-monsieur',
+    name_fr: 'Croque-monsieur',
+    name_derja: 'Croque-monsieur',
+    name_ar: 'كروك مسيو',
+    description_fr:
+      'Le casse-croûte des bistrots parisiens : pain de mie doré au beurre, jambon de dinde, béchamel légère et fromage fondu qui file.',
+    description_derja:
+      'Snack el bistro mta3 Paris: pain de mie m7ammer bel zebda, jambon dinde, béchamel khfifa w fromage dayeb.',
+    description_ar:
+      'وجبة المقاهي الباريسية: خبز التوست المحمّر بالزبدة مع لحم الديك الرومي والبشاميل الخفيف والجبن الذائب.',
+    image_url: '',
+    prep_time_minutes: 10,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 10,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_toast', quantity_base: 8, unit: 'tranches', role: 'key' },
+      { ingredient_id: 'ing_jambon', quantity_base: 4, unit: 'tranches', role: 'key' },
+      {
+        ingredient_id: 'ing_fromage_rape',
+        quantity_base: 120,
+        unit: 'g',
+        role: 'key',
+        substitutes: ['ing_mozzarella', 'ing_cheddar'],
+      },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_lait', quantity_base: 200, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 1, unit: 'c.à.c', is_optional: true, role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préparez une béchamel express : faites fondre 15 g de beurre, ajoutez la farine, puis le lait en fouettant 3 minutes jusqu'à épaississement. Salez, poivrez et ajoutez un tiers du fromage.",
+        instruction_derja:
+          'A3mel béchamel fissa3: dawweb 15 g zebda, zid el farina, ba3d el 7lib w khabbet 3 d9aye9 7atta tetkhaththar. Mall7, falfel w zid thoulth el fromage.',
+        instruction_ar:
+          'حضّر بشاميل سريعاً: أذب 15 غ من الزبدة، أضف الطحين ثم الحليب مع الخفق 3 دقائق حتى يتكثف، وتبّله بالملح والفلفل وأضف ثلث الجبن.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Beurrez légèrement les tranches de pain sur une face. Sur le côté non beurré de 4 tranches, étalez un peu de moutarde, une tranche de jambon et une pincée de fromage, puis refermez, face beurrée vers l'extérieur.",
+        instruction_derja:
+          'Edhen el pain de mie b chwaya zebda men jiha we7da. 3la el jiha elli ma fihech zebda mta3 4 tranchat, ferrech chwaya moutarde, tranche jambon w chwaya fromage, w sakkar bel jiha el madhouna lel barra.',
+        instruction_ar:
+          'ادهن شرائح الخبز بقليل من الزبدة من جهة واحدة، وعلى الجهة غير المدهونة لأربع شرائح ضع قليلاً من الخردل وشريحة لحم وقليلاً من الجبن، ثم أغلقها والجهة المدهونة إلى الخارج.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Disposez les croques sur une plaque, nappez le dessus de béchamel et couvrez du reste de fromage.',
+        instruction_derja: 'Sayyef el croque 3la plaque, ghatti el wejh bel béchamel w rech b9iyet el fromage.',
+        instruction_ar: 'رتّب الشطائر على صفيحة، وغطِّ سطحها بالبشاميل ورشّ باقي الجبن.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Enfournez 10 à 12 minutes à 200°C, puis 2 minutes sous le gril, jusqu'à ce que le fromage soit gratiné et bouillonnant. Servez chaud avec une salade verte.",
+        instruction_derja:
+          '7ott fel forn 10 l 12 d9i9a 3la 200 daraja, ba3d d9ii9tin ta7t el grill, 7atta el fromage y7ammer w ybaggar. Sarbih skhoun m3a slata khadhra.',
+        instruction_ar:
+          'أدخلها الفرن 10 إلى 12 دقيقة على 200 درجة ثم دقيقتين تحت الشواية حتى يتحمّر الجبن ويفور، وقدّمها ساخنة مع سلطة خضراء.',
+      },
+    ],
+    chef_tip: {
+      fr: "Utilisez du pain de mie de la veille, un peu rassis : il absorbe moins de beurre, reste croustillant et ne s'écrase pas sous la béchamel.",
+      derja:
+        'Esta3mel pain de mie mta3 el bera7, chwaya yabes: yochrob zebda a9al, yo93ed m9ar9ech w ma yetfazzech ta7t el béchamel.',
+      ar: 'استعمل خبز توست من اليوم السابق، فهو يمتص زبدة أقل ويبقى مقرمشاً ولا يلين تحت البشاميل.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_11_salade_nicoise',
+    slug: 'salade-nicoise',
+    name_fr: 'Salade niçoise',
+    name_derja: 'Slata niçoise',
+    name_ar: 'سلطة نيسواز',
+    description_fr:
+      "La grande salade du soleil de Nice : thon, œufs mollets, tomates juteuses, pommes de terre tièdes et olives, liés par une vinaigrette à l'huile d'olive et à la moutarde.",
+    description_derja:
+      'Slata kbira mel Nice: ton, 3dham mrayba chwaya, tmatem, batata skhouna w zitoun, b sauce zit zitouna w moutarde.',
+    description_ar: 'سلطة نيس المشمسة: تن، بيض نصف مسلوق، طماطم، بطاطا دافئة وزيتون مع صلصة زيت الزيتون والخردل.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 20,
+    base_servings: 4,
+    estimated_cost_tnd: 16,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_thon_boite', quantity_base: 2, unit: 'boîtes', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 4, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 4, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 400, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_laitue', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_olives', quantity_base: 80, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_poivron', quantity_base: 1, unit: 'pièce', role: 'secondary', substitutes: ['ing_piment'] },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_capres', quantity_base: 1, unit: 'c.à.s', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_vinaigre', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites cuire les pommes de terre entières dans l'eau salée 18 à 20 minutes, jusqu'à ce que la pointe d'un couteau s'y enfonce sans résistance, puis coupez-les en rondelles épaisses.",
+        instruction_derja:
+          'Tayyeb el batata kemla f ma w mel7 18 l 20 d9i9a, 7atta tedkhol fiha el sekkina bel sehel, ba3d 9asha rondelles 3arydhin.',
+        instruction_ar:
+          'اسلق البطاطا كاملة في ماء مملح من 18 إلى 20 دقيقة حتى تدخلها السكين بسهولة، ثم قطعها حلقات سميكة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Plongez les œufs dans l'eau bouillante 8 minutes exactement, refroidissez-les dans l'eau glacée et écalez-les : le jaune reste fondant au centre.",
+        instruction_derja:
+          '7ott el 3dham f ma yeghli 8 d9aye9 bel dhabt, ba3d 7ott-hom f ma bared w 9ach-hom: el asfar yo93ed tari f wostou.',
+        instruction_ar:
+          'ضع البيض في الماء المغلي 8 دقائق بالضبط، ثم برّده في ماء مثلج وقشّره ليبقى الصفار طرياً في الوسط.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Fouettez l'huile d'olive avec le vinaigre, la moutarde, l'ail râpé, le sel et le poivre jusqu'à obtenir une vinaigrette légèrement épaisse.",
+        instruction_derja:
+          'Khallet zit el zitouna m3a el khal, el moutarde, el thoum mra7ay, mel7 w filfel, w 7arrek b9owa 7atta tweli el sauce t9ila chwaya.',
+        instruction_ar: 'اخفق زيت الزيتون مع الخل والخردل والثوم المبشور والملح والفلفل حتى تتماسك الصلصة قليلاً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Tapissez un grand plat de feuilles de laitue, puis disposez en bouquets les quartiers de tomates, les pommes de terre tièdes, le poivron en lanières et l'oignon émincé finement.",
+        instruction_derja:
+          'Farech wra9 el salade f sa7n kbir, w rakkeb fo9ha twarf el tmatem, el batata skhouna, el filfel m9asses tiyouret w el bsal m9asses rqi9.',
+        instruction_ar:
+          'افرش أوراق الخس في طبق كبير ورتّب فوقها أرباع الطماطم والبطاطا الدافئة وشرائح الفلفل والبصل المقطع رقيقاً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Ajoutez le thon émietté en gros morceaux, les œufs coupés en quatre, les olives et les câpres, puis nappez de vinaigrette juste avant de servir.',
+        instruction_derja:
+          'Zid el ton m9atta3 kbir, el 3dham m9assa 3la arba3a, el zitoun w el capres, w rech el sauce 9bal ma tserbi direct.',
+        instruction_ar:
+          'أضف التن مفتتاً قطعاً كبيرة والبيض مقطعاً أرباعاً والزيتون والكبار، ثم اسكب الصلصة قبل التقديم مباشرة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Assaisonnez les pommes de terre avec une cuillère de vinaigrette pendant qu'elles sont encore chaudes : elles boivent la sauce et prennent beaucoup plus de goût.",
+      derja: 'Rech chwaya sauce 3al batata w hiya mazelet skhouna: tochrob el sauce w twalli bnina barcha.',
+      ar: 'تبّل البطاطا بملعقة من الصلصة وهي ساخنة، فهي تتشرب النكهة وتصبح ألذ بكثير.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_12_salade_cesar_au_poulet',
+    slug: 'salade-cesar-au-poulet',
+    name_fr: 'Salade César au poulet',
+    name_derja: 'Slata César bel djej',
+    name_ar: 'سلطة سيزر بالدجاج',
+    description_fr:
+      "Laitue croquante, blanc de poulet doré à la poêle, croûtons à l'ail et copeaux de parmesan, le tout enrobé d'une sauce César crémeuse et allégée au yaourt.",
+    description_derja:
+      'Salade fraiche, blanc djej mcharwet fel me9la, croûtons bel thoum w parmesan, b sauce César khfifa bel yaourt.',
+    description_ar: 'خس مقرمش وصدر دجاج محمّر وخبز محمص بالثوم وجبن البارميزان مع صلصة سيزر خفيفة باللبن.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 14,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_laitue', quantity_base: 1, unit: 'pièce', role: 'key' },
+      { ingredient_id: 'ing_poulet', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_parmesan', quantity_base: 50, unit: 'g', role: 'key', substitutes: ['ing_fromage_rape'] },
+      {
+        ingredient_id: 'ing_toast',
+        quantity_base: 4,
+        unit: 'tranches',
+        role: 'secondary',
+        substitutes: ['ing_pain_baguette'],
+      },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Aplatissez légèrement les blancs de poulet, assaisonnez-les de sel, poivre et d'un filet de citron, puis saisissez-les 5 à 6 minutes par face dans 1 cuillère d'huile jusqu'à ce qu'ils soient dorés et cuits à cœur.",
+        instruction_derja:
+          'Raqqa9 blanc el djej chwaya, mallah w filfel w 9atret 9ares, w 7ammrou f m3el9a zit 5 l 6 d9aye9 3la kol jiha 7atta yetchawa w yotyab men dakhel.',
+        instruction_ar:
+          'رقّق صدور الدجاج قليلاً وتبّلها بالملح والفلفل والليمون، ثم حمّرها في ملعقة زيت من 5 إلى 6 دقائق لكل جهة حتى تنضج تماماً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Coupez le pain de mie en cubes, frottez-les avec une gousse d'ail coupée et faites-les dorer à la poêle avec 1 cuillère d'huile, 4 minutes en remuant, jusqu'à ce qu'ils soient bien croustillants.",
+        instruction_derja:
+          '9oss el pain de mie mkaab, 7okk-hom b fass thoum, w 7ammarhom fel me9la b m3el9a zit 4 d9aye9 w enti t9allab 7atta yweliw ye9ar9chou.',
+        instruction_ar:
+          'قطّع خبز التوست مكعبات وافركها بفص ثوم، ثم حمّرها في المقلاة بملعقة زيت 4 دقائق مع التقليب حتى تصبح مقرمشة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Pour la sauce, mixez le yaourt avec la moutarde, le jus d'un demi-citron, l'autre gousse d'ail, la moitié du parmesan râpé, 2 cuillères d'huile, du sel et beaucoup de poivre.",
+        instruction_derja:
+          'Lel sauce, khallet el yaourt m3a el moutarde, 3assir nos 9ares, fass thoum, nos el parmesan mra7ay, zouz m3al9 zit, mel7 w barcha filfel.',
+        instruction_ar:
+          'للصلصة اخلط اللبن مع الخردل وعصير نصف ليمونة وفص الثوم ونصف البارميزان المبشور وملعقتي زيت والملح وكثير من الفلفل.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Lavez et essorez soigneusement la laitue, déchirez-la à la main et mélangez-la avec la sauce dans un grand saladier.',
+        instruction_derja: 'Aghsel el salade w nachafha mlih, 9atta3ha bidek w 9allebha m3a el sauce f zlafa kbira.',
+        instruction_ar: 'اغسل الخس وجففه جيداً ومزقه باليد ثم اخلطه مع الصلصة في وعاء كبير.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Tranchez le poulet tiède en lamelles, posez-le sur la salade avec les croûtons et terminez par des copeaux de parmesan.',
+        instruction_derja:
+          '9oss el djej slayet w howa skhoun chwaya, 7ottou fo9 el salade m3a el croûtons w kammel b copeaux parmesan.',
+        instruction_ar: 'قطّع الدجاج الدافئ شرائح وضعه فوق السلطة مع الخبز المحمص وزيّن برقائق البارميزان.',
+      },
+    ],
+    chef_tip: {
+      fr: "Laissez reposer le poulet 5 minutes sous une feuille d'aluminium avant de le trancher : le jus reste à l'intérieur et la viande ne sèche pas.",
+      derja:
+        'Khalli el djej yortah 5 d9aye9 meghatti b papier alu 9bal ma t9assou: el ma yo93ed fih w mayweliech yabes.',
+      ar: 'اترك الدجاج يرتاح 5 دقائق مغطى بورق الألمنيوم قبل تقطيعه لتبقى العصارة بداخله ولا يجف.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_13_risotto_aux_champignons',
+    slug: 'risotto-aux-champignons',
+    name_fr: 'Risotto aux champignons',
+    name_derja: 'Risotto bel champignons',
+    name_ar: 'ريزوتو بالفطر',
+    description_fr:
+      'Un riz italien crémeux sans crème, cuit louche après louche et lié au beurre et au parmesan, avec des champignons bien poêlés.',
+    description_derja:
+      'Rouz talyeni crémeux bla crème, yotyab kas b kas w yetlam bel zebda w el parmesan, m3a champignons m7ammrin.',
+    description_ar: 'أرز إيطالي كريمي دون قشدة، يُطهى مغرفة بعد مغرفة ويُربط بالزبدة والبارميزان مع فطر محمّر.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 30,
+    base_servings: 4,
+    estimated_cost_tnd: 12,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_riz', quantity_base: 320, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_champignon', quantity_base: 300, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_parmesan', quantity_base: 60, unit: 'g', role: 'key', substitutes: ['ing_fromage_rape'] },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Portez 1,2 L d'eau salée à frémissement dans une casserole et gardez-la chaude à feu doux pendant toute la cuisson.",
+        instruction_derja:
+          'Skhoun 1,2 litre ma bel mel7 f casserole 7atta yebda yrajef, w khallih skhoun 3la nar khfifa tool el tayeb.',
+        instruction_ar: 'سخّن 1,2 لتر من الماء المملح حتى يبدأ في الارتعاش وأبقه ساخناً على نار هادئة طوال الطهي.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Émincez les champignons et faites-les sauter à feu vif dans 1 cuillère d'huile avec l'ail 6 minutes, sans remuer au début, jusqu'à ce qu'ils soient dorés. Réservez.",
+        instruction_derja:
+          '9oss el champignons slayet w 7ammarhom 3la nar 9wiya b m3el9a zit m3a el thoum 6 d9aye9, matnajjamch fel lowel, 7atta y7marrou. N77ihom 3la jnab.',
+        instruction_ar:
+          'قطّع الفطر شرائح وحمّره على نار قوية بملعقة زيت مع الثوم 6 دقائق دون تحريك في البداية حتى يذهب لونه، ثم ارفعه جانباً.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Dans une sauteuse, faites fondre l'oignon finement haché dans le reste d'huile 4 minutes sans coloration, puis ajoutez le riz non lavé et nacrez-le 2 minutes jusqu'à ce que les grains deviennent translucides sur les bords.",
+        instruction_derja:
+          'F sauteuse, ta7chech el bsal m9atta3 rqi9 fel zit el ba9i 4 d9aye9 bla ma y7mar, ba3d zid el rouz bla ma taghslou w 9allbou d9i9tin 7atta ywalli 7arfou chaffef.',
+        instruction_ar:
+          'في مقلاة عميقة، اطهُ البصل المفروم ناعماً في باقي الزيت 4 دقائق دون أن يتلون، ثم أضف الأرز دون غسله وقلّبه دقيقتين حتى تصبح أطراف الحبات شفافة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Versez une louche d'eau chaude et remuez jusqu'à absorption, puis recommencez louche par louche pendant 18 minutes : le riz doit rester crémeux et légèrement ferme sous la dent.",
+        instruction_derja:
+          'Zid mgharfa ma skhoun w 7arrek 7atta yochrobha, w 3awed mgharfa b mgharfa moddet 18 d9i9a: el rouz lazem yo93ed crémeux w fih chwaya 9ess taht el sen.',
+        instruction_ar:
+          'أضف مغرفة ماء ساخن وحرّك حتى يمتصها، وكرّر مغرفة بعد مغرفة لمدة 18 دقيقة حتى يصبح الأرز كريمياً ومتماسكاً قليلاً تحت الأسنان.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Hors du feu, incorporez les champignons, le beurre froid en dés et le parmesan râpé, couvrez 2 minutes puis servez aussitôt avec du persil ciselé.',
+        instruction_derja:
+          'Ba3d ma tetfi el nar, zid el champignons, el zebda bérda m9atta3a w el parmesan mra7ay, ghatti d9i9tin w serbi direct b ma3dnous m9atta3.',
+        instruction_ar:
+          'خارج النار أضف الفطر والزبدة الباردة المقطعة والبارميزان المبشور، غطِّ دقيقتين ثم قدّم فوراً مع البقدونس المفروم.',
+      },
+    ],
+    chef_tip: {
+      fr: "Sans riz arborio, prenez un riz rond et surtout ne le rincez pas : c'est l'amidon de sa surface qui donne au risotto son onctuosité.",
+      derja:
+        'Ken ma l9itech rouz arborio, 5ou rouz mdawer w mataghslouch: el nacha elli 3lih hiya elli ta3ti el risotto el crémeux mte3ou.',
+      ar: 'إن لم تجد أرز الأربوريو فاستعمل أرزاً مستديراً ولا تغسله أبداً، فالنشا على سطحه هو سر القوام الكريمي.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_14_riz_cantonais',
+    slug: 'riz-cantonais',
+    name_fr: 'Riz cantonais',
+    name_derja: 'Rouz cantonais',
+    name_ar: 'أرز كانتوني',
+    description_fr:
+      'Le riz sauté chinois des restaurants : grains bien séparés, omelette émiettée, jambon, petits pois et carottes, relevés à la sauce soja.',
+    description_derja:
+      'Rouz m9alli 3la tari9a chinwa: 7abbat mfarzin, omelette mfatta, jambon, jelbana w sfenneria, b sauce soja.',
+    description_ar: 'الأرز الصيني المقلي كما في المطاعم: حبات منفصلة وعجة مفتتة ولحم مدخن وبازلاء وجزر مع صلصة الصويا.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 25,
+    base_servings: 4,
+    estimated_cost_tnd: 9,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_riz', quantity_base: 300, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 3, unit: 'c.à.s', role: 'key' },
+      {
+        ingredient_id: 'ing_jambon',
+        quantity_base: 4,
+        unit: 'tranches',
+        role: 'secondary',
+        substitutes: ['ing_crevettes'],
+      },
+      { ingredient_id: 'ing_petits_pois', quantity_base: 150, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_carotte', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Rincez le riz jusqu'à ce que l'eau soit claire, puis faites-le cuire avec 1,5 fois son volume d'eau, couvert à feu doux 12 minutes. Étalez-le sur un plateau et laissez-le refroidir complètement.",
+        instruction_derja:
+          'Aghsel el rouz 7atta yesfa el ma, ba3d tayybou b ma 9addou marra w nos, meghatti 3la nar khfifa 12 d9i9a. Farchou f plateau w khallih yebred mlih.',
+        instruction_ar:
+          'اغسل الأرز حتى يصفو الماء ثم اطهه بمرة ونصف حجمه ماء مغطى على نار هادئة 12 دقيقة، وافرده في صينية ليبرد تماماً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites cuire les petits pois et la carotte en petits dés 5 minutes dans l'eau bouillante salée, puis égouttez.",
+        instruction_derja:
+          'Tayyeb el jelbana w el sfenneria m9atta3a k3ab sghar 5 d9aye9 f ma yeghli bel mel7, w safihom.',
+        instruction_ar: 'اسلق البازلاء والجزر المقطع مكعبات صغيرة 5 دقائق في ماء مغلي مملح ثم صفّها.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Battez les œufs avec une pincée de sel, versez-les dans une grande poêle très chaude huilée et brouillez-les en gros morceaux pendant 1 minute. Réservez.',
+        instruction_derja:
+          'Akhfe9 el 3dham b chwaya mel7, sobbhom f me9la kbira skhouna barcha fiha zit, w 7arrekhom 9ta3 kbar d9i9a w7da. N77ihom.',
+        instruction_ar:
+          'اخفق البيض بقليل من الملح واسكبه في مقلاة كبيرة ساخنة جداً مدهونة بالزيت، وحرّكه قطعاً كبيرة دقيقة واحدة ثم ارفعه.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Dans la même poêle, faites revenir l'oignon et l'ail hachés 2 minutes, ajoutez le jambon en dés puis le riz froid, et faites sauter à feu vif 5 minutes en décollant bien les grains.",
+        instruction_derja:
+          'Fel me9la nafsha, 9alli el bsal w el thoum m9attin d9i9tin, zid el jambon k3ab w ba3d el rouz bared, w 9alleb 3la nar 9wiya 5 d9aye9 w enti tfarrez el 7abbat.',
+        instruction_ar:
+          'في نفس المقلاة شوّح البصل والثوم المفرومين دقيقتين، أضف اللحم المدخن مكعبات ثم الأرز البارد، وقلّب على نار قوية 5 دقائق مع فصل الحبات.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Ajoutez les légumes, les œufs et la sauce soja en pluie sur les bords de la poêle, mélangez 2 minutes et rectifiez le poivre avant de servir.',
+        instruction_derja:
+          'Zid el khodhra, el 3dham w sob el sauce soja 3la jnab el me9la, 9alleb d9i9tin w zid el filfel 9bal ma tserbi.',
+        instruction_ar: 'أضف الخضار والبيض واسكب صلصة الصويا على أطراف المقلاة، قلّب دقيقتين وعدّل الفلفل قبل التقديم.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le secret, c'est le riz de la veille : un riz cuit et refroidi au frigo est plus sec, il saute sans coller et chaque grain reste brillant.",
+      derja:
+        'El sirr howa rouz mta3 el bera7: rouz mtayyeb w bared fel frigo ykoun nchef, yet9alla bla ma yelsa9 w kol 7abba to93ed tlam3.',
+      ar: 'السر هو أرز الأمس: الأرز المطبوخ والمبرّد في الثلاجة يكون أجف، فيُقلى دون أن يلتصق وتبقى كل حبة لامعة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_15_poulet_teriyaki',
+    slug: 'poulet-teriyaki',
+    name_fr: 'Poulet teriyaki',
+    name_derja: 'Djej teriyaki',
+    name_ar: 'دجاج ترياكي',
+    description_fr:
+      'Des morceaux de poulet caramélisés dans une sauce japonaise sucrée-salée au soja, miel et gingembre, servis sur un riz blanc fumant.',
+    description_derja:
+      'Djej m9atta3 w mcaramel f sauce yabeniya m9ar9sa w 7lowa, soja, 3sal w zanjabil, m3a rouz abyedh skhoun.',
+    description_ar: 'قطع دجاج مكرملة في صلصة يابانية حلوة ومالحة بالصويا والعسل والزنجبيل، تقدم مع أرز أبيض ساخن.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 25,
+    base_servings: 4,
+    estimated_cost_tnd: 14,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poulet', quantity_base: 600, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 5, unit: 'c.à.s', role: 'key' },
+      { ingredient_id: 'ing_miel', quantity_base: 2, unit: 'c.à.s', role: 'secondary', substitutes: ['ing_sucre'] },
+      { ingredient_id: 'ing_gingembre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_riz', quantity_base: 300, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_vinaigre', quantity_base: 1, unit: 'c.à.s', role: 'secondary' },
+      { ingredient_id: 'ing_maizena', quantity_base: 1, unit: 'c.à.c', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Rincez le riz et faites-le cuire couvert avec 450 ml d'eau à feu très doux 12 minutes, puis laissez-le gonfler 10 minutes hors du feu sans soulever le couvercle.",
+        instruction_derja:
+          'Aghsel el rouz w tayybou meghatti b 450 ml ma 3la nar khfifa barcha 12 d9i9a, ba3d tfi w khallih yentfekh 10 d9aye9 bla ma tna77i el ghta.',
+        instruction_ar:
+          'اغسل الأرز واطهه مغطى مع 450 مل ماء على نار هادئة جداً 12 دقيقة، ثم اتركه ينتفخ 10 دقائق خارج النار دون رفع الغطاء.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Préparez la sauce : mélangez la sauce soja, le miel, le vinaigre, le gingembre et l'ail râpés avec 4 cuillères d'eau, puis délayez la maïzena dedans.",
+        instruction_derja:
+          '7adher el sauce: khallet el sauce soja, el 3sal, el khal, el zanjabil w el thoum mra7yin m3a 4 m3al9 ma, w dawweb fiha el maïzena.',
+        instruction_ar:
+          'حضّر الصلصة: اخلط صلصة الصويا والعسل والخل والزنجبيل والثوم المبشورين مع 4 ملاعق ماء، وذوّب فيها النشا.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Coupez les hauts de cuisse désossés en gros morceaux et faites-les dorer côté peau dans l'huile à feu moyen-vif 6 minutes, puis retournez-les 4 minutes.",
+        instruction_derja:
+          '9oss el djej bla 3dham 9ta3 kbar w 7ammarhom men jiha el jeld fel zit 3la nar motawasta 9wiya 6 d9aye9, ba3d 9allebhom 4 d9aye9.',
+        instruction_ar:
+          'قطّع أفخاذ الدجاج المخلية قطعاً كبيرة وحمّرها من جهة الجلد في الزيت على نار متوسطة قوية 6 دقائق، ثم اقلبها 4 دقائق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Retirez l'excès de graisse, versez la sauce et laissez réduire 3 à 4 minutes en enrobant sans cesse le poulet, jusqu'à ce qu'il soit laqué et brillant.",
+        instruction_derja:
+          'Na77i el dhohn el zayed, sob el sauce w khalliha t9aleb 3 l 4 d9aye9 w enti t9alleb el djej dima, 7atta yweli mlammeh w ylam3.',
+        instruction_ar:
+          'أزل الدهون الزائدة، اسكب الصلصة واتركها تتكثف 3 إلى 4 دقائق مع تقليب الدجاج باستمرار حتى يصبح لامعاً ومغلفاً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Tranchez le poulet, posez-le sur le riz et arrosez-le du reste de sauce de la poêle.',
+        instruction_derja: '9oss el djej slayet, 7ottou fo9 el rouz w rech fo9ou el sauce elli ba9et fel me9la.',
+        instruction_ar: 'قطّع الدجاج شرائح وضعه فوق الأرز واسكب فوقه ما تبقى من صلصة المقلاة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Ajoutez la sauce seulement quand le poulet est déjà doré : le miel brûle vite, et une sauce versée trop tôt devient amère avant que la viande soit cuite.',
+      derja:
+        'Matzidch el sauce ken ma y7march el djej: el 3sal ya7re9 fissa3, w ken tzidou bekri yweli mor 9bal ma yotyab el djej.',
+      ar: 'لا تضف الصلصة إلا بعد أن يتحمر الدجاج، فالعسل يحترق بسرعة ويصبح مراً إن أضيف مبكراً.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_16_nouilles_sautees_aux_legumes',
+    slug: 'nouilles-sautees-aux-legumes',
+    name_fr: 'Nouilles sautées aux légumes',
+    name_derja: 'Nouilles m9alyin bel khodhra',
+    name_ar: 'نودلز مقلية بالخضار',
+    description_fr:
+      "Un wok express et coloré : nouilles sautées avec brocoli, carottes, poivron et chou croquants, dans une sauce soja parfumée au gingembre et à l'ail.",
+    description_derja:
+      'Wok fissa3 w mlawen: nouilles m9alyin m3a brocoli, sfenneria, filfel w krombit y9ar9chou, f sauce soja bel zanjabil w el thoum.',
+    description_ar:
+      'طبق ووك سريع وملون: نودلز مقلية مع البروكلي والجزر والفلفل والملفوف المقرمش في صلصة صويا بالزنجبيل والثوم.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 8,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pates', quantity_base: 350, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 4, unit: 'c.à.s', role: 'key' },
+      { ingredient_id: 'ing_brocoli', quantity_base: 250, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_carotte', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_poivron', quantity_base: 1, unit: 'pièce', role: 'secondary', substitutes: ['ing_piment'] },
+      {
+        ingredient_id: 'ing_chou',
+        quantity_base: 0.25,
+        unit: 'pièce',
+        role: 'secondary',
+        substitutes: ['ing_pak_choi'],
+      },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_gingembre', quantity_base: 15, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 2, unit: 'pièces', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_miel', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites cuire les spaghettis 2 minutes de moins que le temps indiqué, égouttez-les, passez-les sous l'eau froide et mélangez-les avec 1 cuillère d'huile pour qu'ils ne collent pas.",
+        instruction_derja:
+          'Tayyeb el spaghetti d9i9tin a9al mel wa9t elli maktoub, safihom, 3addihom ta7t el ma bared w 9allebhom b m3el9a zit bach mayelts9ouch.',
+        instruction_ar:
+          'اسلق السباغيتي أقل بدقيقتين من الوقت المكتوب، صفّها ومرّرها تحت الماء البارد واخلطها بملعقة زيت حتى لا تلتصق.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Taillez tous les légumes en fines lanières de même taille et détaillez le brocoli en petites fleurettes : la cuisson au wok est rapide et tout doit cuire ensemble.',
+        instruction_derja:
+          '9oss el khodhra lkol tiyouret rqi9a 9ad 9ad, w farra9 el brocoli wardet sghar: tayb el wok fissa3 w lkol lazem yotyab m3a ba3dhou.',
+        instruction_ar:
+          'قطّع كل الخضار شرائح رفيعة بنفس الحجم وفرّق البروكلي زهيرات صغيرة، فالطهي في الووك سريع ويجب أن ينضج كل شيء معاً.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Chauffez le reste d'huile dans un wok ou une grande poêle jusqu'à ce qu'elle fume légèrement, faites sauter l'ail, le gingembre et l'oignon 1 minute, puis la carotte et le brocoli 3 minutes.",
+        instruction_derja:
+          'Skhoun el zit el ba9i f wok wala me9la kbira 7atta tebda tdakhen chwaya, 9alli el thoum, el zanjabil w el bsal d9i9a, ba3d el sfenneria w el brocoli 3 d9aye9.',
+        instruction_ar:
+          'سخّن باقي الزيت في الووك أو مقلاة كبيرة حتى يبدأ بالتدخين قليلاً، شوّح الثوم والزنجبيل والبصل دقيقة ثم الجزر والبروكلي 3 دقائق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Ajoutez le poivron et le chou, faites sauter encore 2 minutes à feu vif : les légumes doivent rester croquants et bien verts.',
+        instruction_derja:
+          'Zid el filfel w el krombit, 9alleb zouz d9aye9 okhrin 3la nar 9wiya: el khodhra lazem to93ed t9ar9ech w khadhra.',
+        instruction_ar: 'أضف الفلفل والملفوف وقلّب دقيقتين أخريين على نار قوية، يجب أن تبقى الخضار مقرمشة وخضراء.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Versez les nouilles, la sauce soja mélangée au miel et, si vous le souhaitez, les œufs battus ; faites sauter 2 minutes en soulevant avec deux pinces jusqu'à ce que tout soit bien enrobé.",
+        instruction_derja:
+          'Zid el nouilles, el sauce soja mkhallta bel 3sal, w ken t7eb el 3dham makhfou9in; 9alleb d9i9tin b zouz pinces 7atta yetlam lkol bel sauce.',
+        instruction_ar:
+          'أضف النودلز وصلصة الصويا الممزوجة بالعسل والبيض المخفوق إن رغبت، وقلّب دقيقتين بملقطين حتى يتغلف كل شيء بالصلصة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Ne surchargez pas la poêle : si elle est trop pleine, les légumes rendent leur eau et bouillent au lieu de sauter. Faites deux tournées si besoin.',
+      derja:
+        'Mat3ammarch el me9la barcha: ken tetmla, el khodhra tkharrej maha w tweli teghli 3oudh ma tet9alla. A3mel 3la zouz marrat ken lazem.',
+      ar: 'لا تملأ المقلاة أكثر من اللازم، وإلا أخرجت الخضار ماءها وسُلقت بدل أن تُقلى. اطهها على دفعتين إن لزم.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_17_curry_de_poulet_au_lait_de_c',
+    slug: 'curry-de-poulet-au-lait-de-coco',
+    name_fr: 'Curry de poulet au lait de coco',
+    name_derja: 'Curry djej bel lait de coco',
+    name_ar: 'كاري الدجاج بحليب جوز الهند',
+    description_fr:
+      'Un curry doux et parfumé : poulet mijoté dans une sauce onctueuse au lait de coco, tomate, gingembre et épices, à servir avec un riz basmati.',
+    description_derja:
+      'Curry 7lew w ri7tou tfou7: djej mtayyeb f sauce crémeuse bel lait de coco, tmatem, zanjabil w 3ter, m3a rouz basmati.',
+    description_ar:
+      'كاري لطيف وعطري: دجاج مطهو في صلصة كريمية بحليب جوز الهند والطماطم والزنجبيل والتوابل، يقدم مع أرز بسمتي.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 35,
+    base_servings: 4,
+    estimated_cost_tnd: 21,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poulet', quantity_base: 700, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_lait_coco', quantity_base: 400, unit: 'ml', role: 'key', substitutes: ['ing_creme'] },
+      { ingredient_id: 'ing_curry', quantity_base: 2, unit: 'c.à.s', role: 'key' },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_tomate', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_gingembre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_riz', quantity_base: 300, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_coriandre', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_curcuma', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites fondre les oignons émincés dans l'huile à feu moyen 8 minutes, jusqu'à ce qu'ils soient tendres et bien dorés.",
+        instruction_derja: 'Ta7chech el bsal m9asses fel zit 3la nar motawasta 8 d9aye9, 7atta yrtab w y7mar mlih.',
+        instruction_ar: 'اطهُ البصل المقطع في الزيت على نار متوسطة 8 دقائق حتى يلين ويتحمر جيداً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Ajoutez l'ail et le gingembre râpés, le curry et le curcuma, et faites revenir 1 minute en remuant pour torréfier les épices sans les brûler.",
+        instruction_derja:
+          'Zid el thoum w el zanjabil mra7yin, el curry w el curcuma, w 9alleb d9i9a bach el 3ter yfou7 bla ma ya7ra9.',
+        instruction_ar: 'أضف الثوم والزنجبيل المبشورين والكاري والكركم وقلّب دقيقة لتحميص التوابل دون حرقها.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Incorporez le poulet coupé en cubes, saisissez-le 5 minutes pour bien l'enrober d'épices, puis ajoutez les tomates râpées et laissez compoter 5 minutes.",
+        instruction_derja:
+          'Zid el djej m9atta3 mkaab, 9allbou 5 d9aye9 bach yetlam bel 3ter, ba3d zid el tmatem mra7ya w khalliha tetfaya 5 d9aye9.',
+        instruction_ar:
+          'أضف الدجاج المقطع مكعبات وقلّبه 5 دقائق ليتغلف بالتوابل، ثم أضف الطماطم المبشورة واتركها تطهى 5 دقائق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Versez le lait de coco, salez, couvrez et laissez mijoter à feu doux 20 minutes, jusqu'à ce que la sauce nappe la cuillère et que le poulet soit tendre.",
+        instruction_derja:
+          'Sob el lait de coco, mallah, ghatti w khalliha ttayb 3la nar khfifa 20 d9i9a, 7atta el sauce tlas9 fel m3el9a w el djej yortob.',
+        instruction_ar:
+          'اسكب حليب جوز الهند وملّح وغطِّ واتركه يطهى على نار هادئة 20 دقيقة حتى تغلّف الصلصة الملعقة ويطرى الدجاج.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Pendant ce temps, cuisez le riz rincé couvert avec 450 ml d'eau salée 12 minutes. Servez le curry parsemé de coriandre fraîche.",
+        instruction_derja:
+          'F nafs el wa9t, tayyeb el rouz maghsoul meghatti b 450 ml ma w mel7 12 d9i9a. Serbi el curry w rech fo9ou ma3dnous 9ozbar.',
+        instruction_ar:
+          'في الأثناء اطهُ الأرز المغسول مغطى بـ 450 مل ماء مملح 12 دقيقة، وقدّم الكاري مرشوشاً بالكزبرة الطازجة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Un filet de citron vert ou de citron ajouté au dernier moment réveille la sauce et équilibre la douceur du lait de coco.',
+      derja: '9atret 9ares wala citron vert fel ekher tfay9 el sauce w tbalanci 7lewet el lait de coco.',
+      ar: 'قطرات من عصير الليمون في آخر لحظة توقظ الصلصة وتوازن حلاوة حليب جوز الهند.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_18_dahl_de_lentilles_corail',
+    slug: 'dahl-de-lentilles-corail',
+    name_fr: 'Dahl de lentilles corail',
+    name_derja: 'Dahl 3des a7mar',
+    name_ar: 'دال العدس الأحمر',
+    description_fr:
+      "Le plat réconfortant de l'Inde : des lentilles corail fondantes mijotées avec tomate, gingembre et épices, adoucies au lait de coco.",
+    description_derja:
+      'Makla hendiya tdaffi: 3des a7mar ydoub, mtayyeb m3a tmatem, zanjabil w 3ter, w mlattef bel lait de coco.',
+    description_ar: 'طبق هندي دافئ: عدس أحمر يذوب، مطهو مع الطماطم والزنجبيل والتوابل ومخفف بحليب جوز الهند.',
+    image_url: '',
+    prep_time_minutes: 10,
+    cook_time_minutes: 30,
+    base_servings: 4,
+    estimated_cost_tnd: 8.5,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_lentilles', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_lait_coco', quantity_base: 200, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_tomate', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_gingembre', quantity_base: 15, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_coriandre', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_curry', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_curcuma', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr: "Rincez les lentilles corail dans une passoire jusqu'à ce que l'eau ne soit plus trouble.",
+        instruction_derja: 'Aghsel el 3des el a7mar f passoire 7atta el ma yweli safi.',
+        instruction_ar: 'اغسل العدس الأحمر في مصفاة حتى يصفو الماء.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites revenir l'oignon haché dans l'huile 5 minutes, ajoutez l'ail, le gingembre râpé, le cumin, le curry et le curcuma, et remuez 1 minute jusqu'à ce que ça embaume.",
+        instruction_derja:
+          '9alli el bsal m9atta3 fel zit 5 d9aye9, zid el thoum, el zanjabil mra7ay, el kammoun, el curry w el curcuma, w 7arrek d9i9a 7atta tfou7 el ri7a.',
+        instruction_ar:
+          'شوّح البصل المفروم في الزيت 5 دقائق، أضف الثوم والزنجبيل المبشور والكمون والكاري والكركم وحرّك دقيقة حتى تفوح الرائحة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Ajoutez les tomates concassées, les lentilles et 700 ml d'eau chaude, portez à ébullition puis laissez frémir 20 minutes à couvert en remuant de temps en temps.",
+        instruction_derja:
+          'Zid el tmatem m9atta3a, el 3des w 700 ml ma skhoun, khalliha toghli w ba3d na99es el nar w ghatti 20 d9i9a, w 7arrek mel wa9t lel wa9t.',
+        instruction_ar:
+          'أضف الطماطم المقطعة والعدس و700 مل ماء ساخن، اتركه يغلي ثم خفّف النار وغطِّ 20 دقيقة مع التحريك من حين لآخر.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Quand les lentilles se défont en purée, versez le lait de coco et laissez épaissir 5 minutes à découvert : le dahl doit être onctueux, ni trop liquide ni compact.',
+        instruction_derja:
+          'Ki yebda el 3des ydoub w ywalli purée, zid el lait de coco w khallih yet9al 5 d9aye9 bla ghta: el dahl lazem ykoun crémeux, la ma la ya9ech.',
+        instruction_ar:
+          'عندما يتفكك العدس ويصبح كالمهروس، أضف حليب جوز الهند واتركه يتكثف 5 دقائق دون غطاء حتى يصبح كريمياً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Salez, ajoutez le jus de citron et servez avec de la coriandre ciselée, accompagné de riz ou de pain.',
+        instruction_derja: 'Mallah, zid 3assir el 9ares w serbi b 9ozbar m9atta3, m3a rouz wala khobz.',
+        instruction_ar: 'ملّح وأضف عصير الليمون وقدّمه مع الكزبرة المفرومة والأرز أو الخبز.',
+      },
+    ],
+    chef_tip: {
+      fr: "Pour un dahl encore plus parfumé, faites grésiller à part une pincée de cumin et d'ail émincé dans une cuillère d'huile chaude et versez ce « tadka » sur le plat au moment de servir.",
+      derja:
+        'Bach yfou7 akther, 9alli wa7dou chwaya kammoun w thoum m9asses f m3el9a zit skhouna w rech-ha fo9 el dahl wa9t el serbi.',
+      ar: 'لنكهة أقوى، اقلِ قليلاً من الكمون والثوم المقطع في ملعقة زيت ساخن على حدة واسكبه فوق الطبق عند التقديم.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_19_chili_con_carne',
+    slug: 'chili-con-carne',
+    name_fr: 'Chili con carne',
+    name_derja: 'Chili con carne',
+    name_ar: 'تشيلي كون كارني',
+    description_fr:
+      'Le grand classique tex-mex : viande hachée et haricots mijotés longuement dans une sauce tomate épicée au cumin, paprika et piment.',
+    description_derja:
+      'Klassik tex-mex: lham mfarrem w loubya mtayybin bechwaya f salsa tmatem m7arra bel kammoun, paprika w felfel a7mar.',
+    description_ar:
+      'الطبق التكس مكس الشهير: لحم مفروم وفاصوليا مطهوة طويلاً في صلصة طماطم حارة بالكمون والفلفل الحلو والحار.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 100,
+    base_servings: 4,
+    estimated_cost_tnd: 26,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_viande_hachee', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_haricots', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 4, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_poivron', quantity_base: 1, unit: 'pièce', role: 'secondary', substitutes: ['ing_piment'] },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_piment_moulu', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_chocolat', quantity_base: 10, unit: 'g', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "La veille, faites tremper les haricots dans un grand volume d'eau. Le jour même, égouttez-les et cuisez-les 1 heure dans l'eau non salée, jusqu'à ce qu'ils soient tendres mais entiers.",
+        instruction_derja:
+          'Men el lila, n9a3 el loubya f barcha ma. El nhar ehdheka, safiha w tayybha se3a f ma bla mel7, 7atta tortob ama to93ed kemla.',
+        instruction_ar:
+          'انقع الفاصوليا من الليلة السابقة في ماء وفير، ثم صفّها واسلقها ساعة في ماء غير مملح حتى تطرى وتبقى كاملة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans une cocotte, faites revenir les oignons et le poivron coupés en dés dans l'huile 6 minutes, puis ajoutez l'ail haché.",
+        instruction_derja:
+          'F cocotte, 9alli el bsal w el filfel m9atta3in k3ab fel zit 6 d9aye9, ba3d zid el thoum m9atta3.',
+        instruction_ar: 'في قدر، شوّح البصل والفلفل المقطعين مكعبات في الزيت 6 دقائق ثم أضف الثوم المفروم.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Montez le feu, ajoutez la viande hachée et faites-la dorer 6 à 8 minutes en l'émiettant à la spatule jusqu'à ce qu'elle ne soit plus rosée.",
+        instruction_derja:
+          'Zid el nar, 7ott el lham el mfarrem w 7ammrou 6 l 8 d9aye9 w enti tfattat fih bel mgharfa 7atta ma yb9ach a7mar.',
+        instruction_ar: 'ارفع النار وأضف اللحم المفروم وحمّره 6 إلى 8 دقائق مع تفتيته بالملعقة حتى يزول لونه الوردي.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Saupoudrez de cumin, paprika, piment et origan, mélangez 1 minute, puis ajoutez la tomate concentrée, les tomates râpées et 300 ml d'eau.",
+        instruction_derja:
+          'Rech el kammoun, el paprika, el felfel a7mar w el origan, 7arrek d9i9a, ba3d zid el tmatem el ma3jouna, el tmatem mra7ya w 300 ml ma.',
+        instruction_ar:
+          'رش الكمون والفلفل الحلو والحار والأوريغانو وحرّك دقيقة، ثم أضف معجون الطماطم والطماطم المبشورة و300 مل ماء.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Incorporez les haricots égouttés, salez et laissez mijoter à couvert 35 minutes à feu doux, en ajoutant un peu d'eau si besoin. Faites fondre le carré de chocolat à la fin.",
+        instruction_derja:
+          'Zid el loubya msafya, mallah w khalliha ttayb meghatti 35 d9i9a 3la nar khfifa, w zid chwaya ma ken lazem. Fel ekher dawweb carré el chocolat.',
+        instruction_ar:
+          'أضف الفاصوليا المصفاة وملّح واتركه يطهى مغطى 35 دقيقة على نار هادئة مع إضافة قليل من الماء عند الحاجة، وذوّب قطعة الشوكولاتة في النهاية.',
+      },
+    ],
+    chef_tip: {
+      fr: "Un petit carré de chocolat noir ne se sent pas mais arrondit l'acidité de la tomate et donne au chili une sauce plus profonde et plus sombre. Il est encore meilleur réchauffé le lendemain.",
+      derja:
+        'Carré sghir chocolat noir matal9ach fih ri7a ama ynaqqes 7moudhet el tmatem w ya3ti el chili sauce ghamgha w a3ma9. W ykoun abna ki tsakhnou ghodwa.',
+      ar: 'قطعة صغيرة من الشوكولاتة الداكنة لا يُشعر بها لكنها تلطف حموضة الطماطم وتعطي الصلصة عمقاً، والطبق ألذ في اليوم التالي.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_20_tacos_au_poulet',
+    slug: 'tacos-au-poulet',
+    name_fr: 'Tacos au poulet',
+    name_derja: 'Tacos bel djej',
+    name_ar: 'تاكوس بالدجاج',
+    description_fr:
+      'Des tortillas tièdes garnies de poulet mariné aux épices mexicaines, salade croquante, tomates fraîches, fromage fondant et sauce yaourt au citron vert.',
+    description_derja:
+      'Tortillas skhounin m3ammrin b djej m9arrem b 3ter mexicain, salade, tmatem, fromage ydoub w sauce yaourt bel citron vert.',
+    description_ar:
+      'تورتيلا دافئة محشوة بدجاج متبل بالتوابل المكسيكية وخس مقرمش وطماطم وجبن ذائب وصلصة لبن بالليمون الأخضر.',
+    image_url: '',
+    prep_time_minutes: 25,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 23,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_tortilla', quantity_base: 8, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_poulet', quantity_base: 500, unit: 'g', role: 'key' },
+      {
+        ingredient_id: 'ing_cheddar',
+        quantity_base: 100,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_mozzarella', 'ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_laitue', quantity_base: 0.5, unit: 'pièce', role: 'secondary', substitutes: ['ing_chou'] },
+      { ingredient_id: 'ing_tomate', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', role: 'secondary' },
+      {
+        ingredient_id: 'ing_citron_vert',
+        quantity_base: 2,
+        unit: 'pièces',
+        role: 'secondary',
+        substitutes: ['ing_citron'],
+      },
+      { ingredient_id: 'ing_coriandre', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_avocat', quantity_base: 1, unit: 'pièce', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_paprika', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Coupez le poulet en fines lanières et mélangez-le avec le paprika, le cumin, l'ail écrasé, le jus d'un citron vert, l'huile et le sel. Laissez mariner au moins 15 minutes.",
+        instruction_derja:
+          '9oss el djej tiyouret rqi9a w 9allbou m3a el paprika, el kammoun, el thoum mahrous, 3assir citron vert, el zit w el mel7. Khallih ytchareb 15 d9i9a 3al a9al.',
+        instruction_ar:
+          'قطّع الدجاج شرائح رفيعة واخلطه مع الفلفل الحلو والكمون والثوم المهروس وعصير ليمونة خضراء والزيت والملح، واتركه يتتبل 15 دقيقة على الأقل.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Préparez les garnitures : laitue ciselée, tomates et oignon en petits dés, coriandre hachée, et une sauce faite du yaourt, du jus du second citron vert et d'une pincée de sel.",
+        instruction_derja:
+          '7adher el 7achwa: salade m9atta3a rqi9a, tmatem w bsal k3ab sghar, 9ozbar m9atta3, w sauce men el yaourt, 3assir el citron vert el theni w chwaya mel7.',
+        instruction_ar:
+          'حضّر الحشوات: خس مفروم، طماطم وبصل مكعبات صغيرة، كزبرة مفرومة، وصلصة من اللبن وعصير الليمونة الثانية وقليل من الملح.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Saisissez le poulet dans une poêle très chaude 6 à 7 minutes en remuant, jusqu'à ce qu'il soit doré sur les bords et cuit à cœur.",
+        instruction_derja:
+          '7ammar el djej f me9la skhouna barcha 6 l 7 d9aye9 w enti t9alleb, 7atta y7mar men jnabou w yotyab men dakhel.',
+        instruction_ar:
+          'حمّر الدجاج في مقلاة ساخنة جداً 6 إلى 7 دقائق مع التقليب حتى يتحمر من الأطراف وينضج من الداخل.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Réchauffez les tortillas 20 secondes de chaque côté dans une poêle sèche pour qu'elles deviennent souples.",
+        instruction_derja: 'Skhoun el tortillas 20 tanya men kol jiha f me9la bla zit bach yweliw rotbin.',
+        instruction_ar: 'سخّن التورتيلا 20 ثانية من كل جهة في مقلاة جافة لتصبح لينة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Garnissez chaque tortilla de salade, de poulet chaud, de fromage râpé, de tomate et d'oignon, puis ajoutez la sauce, l'avocat en lamelles et la coriandre. Pliez et dégustez aussitôt.",
+        instruction_derja:
+          '3ammar kol tortilla b salade, djej skhoun, fromage mra7ay, tmatem w bsal, ba3d zid el sauce, slayet avocat w 9ozbar. Atwiha w koul direct.',
+        instruction_ar:
+          'احشُ كل تورتيلا بالخس والدجاج الساخن والجبن المبشور والطماطم والبصل، ثم أضف الصلصة وشرائح الأفوكادو والكزبرة واطوها وتناولها فوراً.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Posez le fromage directement sur le poulet brûlant : il fond tout seul et colle la garniture, ce qui évite que tout tombe à la première bouchée.',
+      derja:
+        '7ott el fromage direct fo9 el djej skhoun: ydoub wa7dou w ylasse9 el 7achwa, bach matot7ech kol chay men awel 3adha.',
+      ar: 'ضع الجبن مباشرة فوق الدجاج الساخن فيذوب ويلصق الحشوة، فلا تتساقط من أول قضمة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_21_fajitas_de_poulet',
+    slug: 'fajitas-de-poulet',
+    name_fr: 'Fajitas de poulet',
+    name_derja: 'Fajitas bel djej',
+    name_ar: 'فاهيتا الدجاج',
+    description_fr:
+      'Lanières de poulet et poivrons multicolores saisis à feu vif avec des épices fumées, servis grésillants avec des tortillas chaudes à garnir soi-même.',
+    description_derja:
+      'Tiyouret djej w filfel b alwen mchaw7in 3la nar 9wiya b 3ter, yetserbew skhounin m3a tortillas kol wa7ed y3ammar wa7dou.',
+    description_ar: 'شرائح دجاج وفلفل ملون مشوحة على نار قوية بالتوابل، تقدم ساخنة مع التورتيلا ليحشوها كل واحد بنفسه.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 22,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poulet', quantity_base: 600, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tortilla', quantity_base: 8, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_poivron', quantity_base: 3, unit: 'pièces', role: 'key', substitutes: ['ing_piment'] },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      {
+        ingredient_id: 'ing_citron_vert',
+        quantity_base: 2,
+        unit: 'pièces',
+        role: 'secondary',
+        substitutes: ['ing_citron'],
+      },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_coriandre', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_paprika', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_piment_moulu', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Mélangez le paprika, le cumin, le piment, l'origan, l'ail écrasé, 2 cuillères d'huile et le jus d'un citron vert. Enrobez-en les lanières de poulet et laissez reposer 20 minutes.",
+        instruction_derja:
+          'Khallet el paprika, el kammoun, el felfel a7mar, el origan, el thoum mahrous, zouz m3al9 zit w 3assir citron vert. Lamm biha tiyouret el djej w khallih yortah 20 d9i9a.',
+        instruction_ar:
+          'اخلط الفلفل الحلو والكمون والفلفل الحار والأوريغانو والثوم المهروس وملعقتي زيت وعصير ليمونة خضراء، وغلّف بها شرائح الدجاج واتركها 20 دقيقة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr: "Taillez les poivrons de couleurs différentes et les oignons en lanières d'un demi-centimètre.",
+        instruction_derja: '9oss el filfel b alwen mokhtalfa w el bsal tiyouret 3ardh-hom nos centimètre.',
+        instruction_ar: 'قطّع الفلفل متعدد الألوان والبصل شرائح بعرض نصف سنتيمتر.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Dans une grande poêle fumante, saisissez le poulet en une seule couche 5 minutes sans trop remuer pour bien le colorer, puis réservez.',
+        instruction_derja:
+          'F me9la kbira skhouna 7atta tdakhen, 7ammar el djej tab9a w7da 5 d9aye9 bla ma tnajjem barcha bach y7mar mlih, w n77ih.',
+        instruction_ar:
+          'في مقلاة كبيرة ساخنة جداً، حمّر الدجاج في طبقة واحدة 5 دقائق دون تحريك كثير ليأخذ لوناً جيداً، ثم ارفعه.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Dans la même poêle avec le reste d'huile, faites sauter poivrons et oignons 5 minutes à feu vif : ils doivent être légèrement grillés mais encore croquants. Remettez le poulet et arrosez du jus du second citron vert.",
+        instruction_derja:
+          'Fel me9la nafsha bel zit el ba9i, 9alleb el filfel w el bsal 5 d9aye9 3la nar 9wiya: lazem yetchawaw chwaya ama yo93dou y9ar9chou. Rajja3 el djej w rech 3assir el citron vert el theni.',
+        instruction_ar:
+          'في نفس المقلاة مع باقي الزيت، شوّح الفلفل والبصل 5 دقائق على نار قوية حتى يتحمرا قليلاً ويبقيا مقرمشين، ثم أعد الدجاج واعصر فوقه الليمونة الثانية.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Servez la poêle bien chaude au centre de la table avec les tortillas réchauffées, le yaourt et la coriandre : chacun roule sa fajita.',
+        instruction_derja:
+          '7ott el me9la skhouna f wost el tawla m3a el tortillas msakhnin, el yaourt w el 9ozbar: kol wa7ed yloff el fajita mte3ou.',
+        instruction_ar:
+          'قدّم المقلاة ساخنة وسط المائدة مع التورتيلا المسخنة واللبن والكزبرة، وكل واحد يلف الفاهيتا بنفسه.',
+      },
+    ],
+    chef_tip: {
+      fr: "Gardez les tortillas chaudes enveloppées dans un torchon propre : elles restent souples jusqu'à la fin du repas et ne se cassent pas en les roulant.",
+      derja:
+        'Laff el tortillas f foutha ndhifa ba3d ma tsakhenhom: yo93dou rotbin 7atta l ekher el makla w mayetkassrouch ki tloffhom.',
+      ar: 'لُف التورتيلا الساخنة في منشفة نظيفة لتبقى لينة حتى نهاية الوجبة ولا تتكسر عند اللف.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_22_boulettes_suedoises',
+    slug: 'boulettes-suedoises-a-la-creme',
+    name_fr: 'Boulettes suédoises à la crème',
+    name_derja: 'Kefta suédoise bel crème',
+    name_ar: 'كرات اللحم السويدية بالقشدة',
+    description_fr:
+      "Les fameuses köttbullar : de petites boulettes moelleuses dorées au beurre, nappées d'une sauce crémeuse et servies avec une purée maison.",
+    description_derja:
+      'El köttbullar el machhourin: kefta sghira rotba m7ammra fel zebda, b sauce crème, m3a purée mta3 dar.',
+    description_ar: 'كرات اللحم السويدية الشهيرة: كرات صغيرة طرية محمرة بالزبدة مع صلصة كريمية وبطاطا مهروسة منزلية.',
+    image_url: '',
+    prep_time_minutes: 30,
+    cook_time_minutes: 35,
+    base_servings: 4,
+    estimated_cost_tnd: 25,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_viande_hachee', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_creme', quantity_base: 200, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_pain_panure', quantity_base: 50, unit: 'g', role: 'secondary', substitutes: ['ing_toast'] },
+      { ingredient_id: 'ing_oeuf', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_lait', quantity_base: 250, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 800, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 60, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites tremper la chapelure dans 100 ml de lait 5 minutes, puis mélangez-la avec la viande, l'œuf, l'oignon râpé très finement, le sel et le poivre, sans trop pétrir.",
+        instruction_derja:
+          'N9a3 el chapelure f 100 ml 7lib 5 d9aye9, ba3d khalletha m3a el lham, el 3adhma, el bsal mra7ay rqi9 barcha, mel7 w filfel, bla ma t3ajjen barcha.',
+        instruction_ar:
+          'انقع البقسماط في 100 مل حليب 5 دقائق، ثم اخلطه مع اللحم والبيضة والبصل المبشور ناعماً والملح والفلفل دون عجن كثير.',
+      },
+      {
+        step_number: 2,
+        instruction_fr: "Avec les mains humides, formez une trentaine de boulettes de la taille d'une noix.",
+        instruction_derja: 'B ydik mfazzgin, a3mel 9rib 30 kefta 9ad el jouza.',
+        instruction_ar: 'بيدين مبللتين، شكّل حوالي ثلاثين كرة بحجم الجوزة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Pendant ce temps, cuisez les pommes de terre épluchées 20 minutes dans l'eau salée, puis écrasez-les avec 20 g de beurre et le reste du lait chaud.",
+        instruction_derja:
+          'F nafs el wa9t, tayyeb el batata m9achra 20 d9i9a f ma w mel7, ba3d ohrsha b 20 g zebda w el 7lib el ba9i skhoun.',
+        instruction_ar:
+          'في الأثناء اسلق البطاطا المقشرة 20 دقيقة في ماء مملح، ثم اهرسها مع 20 غ زبدة وباقي الحليب الساخن.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Faites dorer les boulettes dans 30 g de beurre à feu moyen 8 à 10 minutes, en secouant la poêle pour qu'elles restent rondes et colorées de tous côtés. Réservez.",
+        instruction_derja:
+          '7ammar el kefta f 30 g zebda 3la nar motawasta 8 l 10 d9aye9, w 7arrek el me9la bach to93ed mdawra w t7mar men kol jiha. N77iha.',
+        instruction_ar:
+          'حمّر الكرات في 30 غ زبدة على نار متوسطة 8 إلى 10 دقائق مع هز المقلاة لتبقى مستديرة وتتحمر من كل الجهات، ثم ارفعها.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Dans la même poêle, faites fondre le reste de beurre, ajoutez la farine et remuez 1 minute, puis versez 250 ml d'eau chaude, la crème, la sauce soja et la moutarde. Laissez épaissir 3 minutes.",
+        instruction_derja:
+          'Fel me9la nafsha, dawweb el zebda el ba9ya, zid el farina w 7arrek d9i9a, ba3d sob 250 ml ma skhoun, el crème, el sauce soja w el moutarde. Khalliha tet9al 3 d9aye9.',
+        instruction_ar:
+          'في نفس المقلاة ذوّب باقي الزبدة وأضف الدقيق وحرّك دقيقة، ثم اسكب 250 مل ماء ساخن والقشدة وصلصة الصويا والخردل واتركها تتكثف 3 دقائق.',
+      },
+      {
+        step_number: 6,
+        instruction_fr:
+          'Remettez les boulettes dans la sauce et laissez mijoter 5 minutes à feu doux. Servez avec la purée.',
+        instruction_derja: 'Rajja3 el kefta lel sauce w khalliha ttayb 5 d9aye9 3la nar khfifa. Serbiha m3a el purée.',
+        instruction_ar: 'أعد الكرات إلى الصلصة واتركها تطهى 5 دقائق على نار هادئة، وقدّمها مع البطاطا المهروسة.',
+      },
+    ],
+    chef_tip: {
+      fr: "En Suède on les sert avec de la confiture d'airelles : une cuillère de confiture de fraises ou de griottes à côté apporte le même contraste sucré-acidulé avec la sauce.",
+      derja:
+        'Fel Suède yserbiwha m3a confiture 7amra 7amdha: m3el9a confiture fraise 7dheha ta3tik nafs el contraste el 7low w el 7amedh m3a el sauce.',
+      ar: 'في السويد تقدم مع مربى التوت البري، وملعقة من مربى الفراولة بجانبها تعطي نفس التباين الحلو الحامض مع الصلصة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_23_saumon_au_four_citronne',
+    slug: 'saumon-au-four-citronne',
+    name_fr: 'Saumon au four citronné',
+    name_derja: 'Saumon fel four bel 9ares',
+    name_ar: 'سلمون بالفرن والليمون',
+    description_fr:
+      "Des pavés de saumon fondants rôtis au four avec ail, citron et huile d'olive, accompagnés de brocoli croquant cuit sur la même plaque.",
+    description_derja:
+      'Pavés saumon rotbin fel four bel thoum, 9ares w zit zitouna, m3a brocoli y9ar9ech mtayyeb fel plaque nafsha.',
+    description_ar: 'قطع سلمون طرية مشوية في الفرن بالثوم والليمون وزيت الزيتون، مع بروكلي مقرمش مطهو في نفس الصينية.',
+    image_url: '',
+    prep_time_minutes: 10,
+    cook_time_minutes: 18,
+    base_servings: 4,
+    estimated_cost_tnd: 39,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_saumon', quantity_base: 600, unit: 'g', role: 'key', substitutes: ['ing_poisson_frais'] },
+      { ingredient_id: 'ing_citron', quantity_base: 2, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_brocoli', quantity_base: 400, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 3, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préchauffez le four à 200 °C. Mélangez l'huile d'olive, l'ail râpé, le zeste d'un citron, son jus, le paprika, le sel et le poivre.",
+        instruction_derja:
+          'Skhoun el four 3la 200 daraja. Khallet zit el zitouna, el thoum mra7ay, 9ochret 9ares mra7ya, 3assirha, el paprika, el mel7 w el filfel.',
+        instruction_ar:
+          'سخّن الفرن إلى 200 درجة. اخلط زيت الزيتون والثوم المبشور وقشر ليمونة مبشوراً وعصيرها والفلفل الحلو والملح والفلفل.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Détaillez le brocoli en fleurettes, enrobez-les de la moitié de la marinade et étalez-les sur une plaque. Enfournez 6 minutes.',
+        instruction_derja:
+          'Farra9 el brocoli wardet, lammha b nos el marinade w farrechha f plaque. Dakhalha lel four 6 d9aye9.',
+        instruction_ar: 'فرّق البروكلي زهيرات وغلّفها بنصف التتبيلة وافردها في صينية، ثم أدخلها الفرن 6 دقائق.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Posez les pavés de saumon côté peau au milieu des brocolis, badigeonnez-les du reste de marinade et couvrez-les de rondelles du second citron.',
+        instruction_derja:
+          '7ott pavés el saumon men jiha el jeld f wost el brocoli, edhen-hom bel marinade el ba9ya w ghattihom b rondelles el 9ares el theni.',
+        instruction_ar:
+          'ضع قطع السلمون على جهة الجلد وسط البروكلي، ادهنها بباقي التتبيلة وغطّها بحلقات الليمونة الثانية.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Faites cuire 12 minutes : le saumon est prêt quand il se détache en lamelles à la fourchette tout en restant légèrement nacré au centre.',
+        instruction_derja:
+          'Tayyeb 12 d9i9a: el saumon yotyab ki yetfakka slayet bel forchetta w yo93ed chwaya lammi3 f wostou.',
+        instruction_ar: 'اطهه 12 دقيقة، يكون السلمون جاهزاً عندما يتفتت شرائح بالشوكة ويبقى لامعاً قليلاً في الوسط.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Parsemez de persil ciselé et servez immédiatement avec les jus de cuisson de la plaque.',
+        instruction_derja: 'Rech ma3dnous m9atta3 w serbi direct m3a el ma elli fel plaque.',
+        instruction_ar: 'رش البقدونس المفروم وقدّمه فوراً مع عصارة الصينية.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Sortez le saumon du réfrigérateur 15 minutes avant la cuisson : un poisson moins froid cuit uniformément et ne se dessèche pas sur les bords avant que le cœur soit cuit.',
+      derja:
+        'Kharrej el saumon mel frigo 15 d9i9a 9bal el tayeb: el 7out elli mouch bared barcha yotyab kifkif w jnabou mayabsouch 9bal ma yotyab wostou.',
+      ar: 'أخرج السلمون من الثلاجة قبل الطهي بـ 15 دقيقة، فالسمك الأقل برودة ينضج بالتساوي ولا تجف أطرافه قبل وسطه.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_24_cabillaud_en_papillote',
+    slug: 'poisson-blanc-en-papillote',
+    name_fr: 'Poisson blanc en papillote',
+    name_derja: '7out abyedh en papillote',
+    name_ar: 'سمك أبيض في ورق الطهي',
+    description_fr:
+      "Des filets de poisson cuits à l'étouffée dans leur papillote avec courgette, tomate, citron et origan : un plat léger, parfumé et sans vaisselle.",
+    description_derja:
+      'Filets 7out mtayybin f papillote m3a 9ra3, tmatem, 9ares w origan: makla khfifa, ri7tha tfou7 w bla mwa3en barcha.',
+    description_ar:
+      'شرائح سمك مطهوة في ورق الطهي مع الكوسة والطماطم والليمون والأوريغانو: طبق خفيف وعطري دون أوانٍ كثيرة.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 20,
+    base_servings: 4,
+    estimated_cost_tnd: 15,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_poisson_frais', quantity_base: 600, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_courgette', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_tomate', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_olives', quantity_base: 40, unit: 'g', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_capres', quantity_base: 1, unit: 'c.à.s', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préchauffez le four à 200 °C et découpez 4 grands rectangles de papier sulfurisé d'environ 40 cm.",
+        instruction_derja: 'Skhoun el four 3la 200 daraja w 9oss 4 wra9 papier cuisson kbar, 9rib 40 cm.',
+        instruction_ar: 'سخّن الفرن إلى 200 درجة وقص 4 مستطيلات كبيرة من ورق الطهي بطول 40 سم تقريباً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Coupez la courgette en fines rondelles, l'oignon en lamelles et les tomates en dés, puis mélangez-les avec 1 cuillère d'huile, l'ail émincé, la moitié de l'origan et du sel.",
+        instruction_derja:
+          '9oss el 9ra3 rondelles rqi9in, el bsal slayet w el tmatem k3ab, w khallethom b m3el9a zit, el thoum m9asses, nos el origan w chwaya mel7.',
+        instruction_ar:
+          'قطّع الكوسة حلقات رقيقة والبصل شرائح والطماطم مكعبات، واخلطها بملعقة زيت والثوم المقطع ونصف الأوريغانو والملح.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Répartissez les légumes au centre de chaque feuille, posez dessus un filet de daurade ou de loup assaisonné, deux rondelles de citron, quelques olives et câpres, puis arrosez du reste d'huile et d'origan.",
+        instruction_derja:
+          '9assam el khodhra f wost kol war9a, 7ott fo9ha filet 9ajouj wala 9rous mmallah, zouz rondelles 9ares, chwaya zitoun w capres, w rech el zit w el origan el ba9yin.',
+        instruction_ar:
+          'وزّع الخضار وسط كل ورقة وضع فوقها شريحة دنيس أو قاروص متبلة وحلقتي ليمون وبعض الزيتون والكبار، ثم رش باقي الزيت والأوريغانو.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Refermez chaque papillote hermétiquement en pliant et roulant les bords plusieurs fois pour emprisonner la vapeur.',
+        instruction_derja: 'Sakker kol papillote mlih w atwi el jnab barcha marrat bach el bokhar mayokhrojch.',
+        instruction_ar: 'أغلق كل لفافة بإحكام بطي الأطراف ولفها عدة مرات لحبس البخار.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Enfournez 15 à 18 minutes selon l'épaisseur des filets : la papillote gonfle quand c'est prêt. Servez-la fermée et ouvrez-la à table, parsemée de persil.",
+        instruction_derja:
+          'Dakhalha lel four 15 l 18 d9i9a 7asb tkhanet el filets: el papillote tentfakh ki totyab. Serbiha msakkra w 7elha 3al tawla w rech ma3dnous.',
+        instruction_ar:
+          'اطهها في الفرن 15 إلى 18 دقيقة حسب سمك الشرائح، تنتفخ اللفافة عندما تنضج. قدّمها مغلقة وافتحها على المائدة مع البقدونس.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le cabillaud se trouve rarement frais chez nous : la daurade, le loup ou le mérou en filets donnent un résultat aussi délicat. Coupez les légumes très fin pour qu'ils cuisent en même temps que le poisson.",
+      derja:
+        'El cabillaud ma tal9ahouch fresh 3anna barcha: filets 9ajouj, 9rous wala mennani ya3tiw nafs el natija. 9oss el khodhra rqi9a barcha bach totyab m3a el 7out fard wa9t.',
+      ar: 'نادراً ما نجد سمك القد طازجاً عندنا، وشرائح الدنيس أو القاروص أو المناني تعطي نفس النتيجة. قطّع الخضار رقيقة جداً لتنضج مع السمك.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_25_crevettes_a_l_ail',
+    slug: 'crevettes-a-l-ail',
+    name_fr: "Crevettes à l'ail",
+    name_derja: 'Crevettes bel thoum',
+    name_ar: 'قمرون بالثوم',
+    description_fr:
+      "Inspirées des gambas al ajillo espagnoles : des crevettes saisies dans une huile d'olive parfumée à l'ail et au piment, finies au beurre, citron et persil.",
+    description_derja:
+      'Kima el gambas al ajillo l espagnoliya: crevettes mchaw7in f zit zitouna bel thoum w el felfel, w fel ekher zebda, 9ares w ma3dnous.',
+    description_ar:
+      'مستوحاة من القمرون بالثوم الإسباني: قمرون مشوّح في زيت الزيتون بالثوم والفلفل الحار، مع الزبدة والليمون والبقدونس.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 8,
+    base_servings: 4,
+    estimated_cost_tnd: 22,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_crevettes', quantity_base: 600, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_ail', quantity_base: 6, unit: 'gousses', role: 'secondary' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 5, unit: 'c.à.s', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_pain_baguette', quantity_base: 1, unit: 'pièce', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_piment_moulu', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Décortiquez les crevettes en gardant la queue, retirez le boyau noir sur le dos et séchez-les bien dans du papier absorbant.',
+        instruction_derja:
+          '9ach el crevettes w khalli el dhil, na77i el khit el ak7el elli fi dhahrha w nachefhom mlih b papier absorbant.',
+        instruction_ar: 'قشّر القمرون مع ترك الذيل، أزل العرق الأسود من ظهره وجففه جيداً بورق المطبخ.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites chauffer l'huile d'olive à feu doux avec l'ail émincé en fines lamelles et le piment 2 minutes : l'ail doit dorer à peine, sans brunir.",
+        instruction_derja:
+          'Skhoun zit el zitouna 3la nar khfifa m3a el thoum m9asses slayet rqi9in w el felfel a7mar d9i9tin: el thoum yasfar chwaya bark, bla ma yesmar.',
+        instruction_ar:
+          'سخّن زيت الزيتون على نار هادئة مع شرائح الثوم الرقيقة والفلفل الحار دقيقتين حتى يصفر الثوم قليلاً دون أن يسمر.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Montez le feu, ajoutez les crevettes salées en une seule couche et faites-les cuire 1 minute 30 par face, jusqu'à ce qu'elles deviennent roses et forment un C.",
+        instruction_derja:
+          'Zid el nar, 7ott el crevettes mmall7in tab9a w7da w tayybhom d9i9a w nos 3la kol jiha, 7atta yweliw rozé w yetlawwaw.',
+        instruction_ar: 'ارفع النار وأضف القمرون المملح في طبقة واحدة واطهه دقيقة ونصف لكل جهة حتى يصبح وردياً ويتقوس.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Hors du feu, ajoutez le beurre, le jus du citron et le persil haché, et secouez la poêle pour lier une sauce brillante.',
+        instruction_derja:
+          'Ba3d ma tetfi el nar, zid el zebda, 3assir el 9ares w el ma3dnous m9atta3, w 7arrek el me9la bach ttla9 sauce tlam3.',
+        instruction_ar: 'خارج النار أضف الزبدة وعصير الليمون والبقدونس المفروم، وهز المقلاة لتتكون صلصة لامعة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: "Servez aussitôt dans la poêle avec du pain grillé pour saucer l'huile parfumée.",
+        instruction_derja: 'Serbi direct fel me9la m3a khobz mchawi bach tghammes fel zit elli ri7tou tfou7.',
+        instruction_ar: 'قدّمه فوراً في المقلاة مع خبز محمص لتغميسه في الزيت المعطر.',
+      },
+    ],
+    chef_tip: {
+      fr: "Une crevette trop cuite devient caoutchouteuse en quelques secondes : retirez-la du feu dès qu'elle forme un C ; si elle se referme en O, c'est déjà trop tard.",
+      derja:
+        'El crevette ki ttayb akther mel lazem tweli ka el caoutchouc f thawani: na77iha mel nar men ki tetlawa ka 7arf C; ken tetsakker ka O, raho fet el wa9t.',
+      ar: 'القمرون الزائد عن النضج يصبح مطاطياً في ثوانٍ، فارفعه عن النار حالما يتقوس كنصف دائرة، وإن انغلق كدائرة فقد فات الأوان.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_26_pates_au_pesto',
+    slug: 'pates-au-pesto-maison',
+    name_fr: 'Pâtes au pesto maison',
+    name_derja: 'Pates bel pesto mta3 dar',
+    name_ar: 'معكرونة بالبيستو المنزلي',
+    description_fr:
+      "Un pesto vert éclatant pilé avec basilic frais, ail, amandes, parmesan et huile d'olive tunisienne, qui enrobe des pâtes al dente.",
+    description_derja:
+      'Pesto akhdhar ychaddek, mdag b 7bak fresh, thoum, louz, parmesan w zit zitouna tounsiya, yetlam m3a pates al dente.',
+    description_ar:
+      'بيستو أخضر زاهٍ بالريحان الطازج والثوم واللوز والبارميزان وزيت الزيتون التونسي يغلّف معكرونة متماسكة.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 12,
+    base_servings: 4,
+    estimated_cost_tnd: 10,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pates', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_basilic', quantity_base: 2, unit: 'bottes', role: 'key', substitutes: ['ing_pesto'] },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 60,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_amandes', quantity_base: 30, unit: 'g', role: 'secondary', substitutes: ['ing_noix'] },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 7, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites légèrement griller les amandes émondées à sec dans une poêle 3 minutes, jusqu'à ce qu'elles sentent bon, puis laissez-les refroidir.",
+        instruction_derja: '7ammas el louz m9achar f me9la bla zit 3 d9aye9 7atta tfou7 ri7tou, w khallih yebred.',
+        instruction_ar: 'حمّص اللوز المقشر في مقلاة دون زيت 3 دقائق حتى تفوح رائحته واتركه يبرد.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Effeuillez le basilic et mixez-le par à-coups avec l'ail, les amandes, une pincée de gros sel et l'huile versée en filet, puis ajoutez le parmesan râpé et mixez juste quelques secondes.",
+        instruction_derja:
+          '9assam wra9 el 7bak w dor-hom fel mixeur b secousses m3a el thoum, el louz, chwaya mel7 khchin w el zit tsobbou b chwaya b chwaya, ba3d zid el parmesan mra7ay w dor thawani bark.',
+        instruction_ar:
+          'انزع أوراق الريحان واطحنها على دفعات مع الثوم واللوز وقليل من الملح الخشن والزيت المسكوب تدريجياً، ثم أضف البارميزان المبشور واطحن ثوانٍ فقط.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Faites cuire les pâtes dans 4 L d'eau bouillante bien salée selon le temps indiqué, en les gardant al dente. Réservez une tasse d'eau de cuisson avant d'égoutter.",
+        instruction_derja:
+          'Tayyeb el pates f 4 litre ma yeghli bel mel7 7asb el wa9t elli maktoub, w khallihom al dente. Khabbi kas men ma el tayeb 9bal ma tsafi.',
+        instruction_ar:
+          'اسلق المعكرونة في 4 لترات ماء مغلي مملح جيداً حسب الوقت المكتوب مع إبقائها متماسكة، واحتفظ بكوب من ماء الطهي قبل التصفية.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Hors du feu, mélangez les pâtes avec le pesto en ajoutant 3 à 4 cuillères d'eau de cuisson pour obtenir une sauce crémeuse qui nappe chaque pâte. Servez avec un peu de parmesan.",
+        instruction_derja:
+          'Ba3d ma tetfi el nar, 9alleb el pates m3a el pesto w zid 3 l 4 m3al9 men ma el tayeb bach tweli el sauce crémeuse w tetlam m3a kol 7abba. Serbi b chwaya parmesan.',
+        instruction_ar:
+          'خارج النار اخلط المعكرونة مع البيستو وأضف 3 إلى 4 ملاعق من ماء الطهي لتصبح الصلصة كريمية وتغلف كل قطعة، وقدّمها مع قليل من البارميزان.',
+      },
+    ],
+    chef_tip: {
+      fr: "Ne chauffez jamais le pesto dans la casserole : le basilic noircit et perd son parfum. Un glaçon dans le bol du mixeur l'aide aussi à rester bien vert.",
+      derja:
+        'Matsakhench el pesto fel casserole abadan: el 7bak yeswed w ri7tou temchi. W 9at3et glace fel mixeur t3awnou yo93ed akhdhar.',
+      ar: 'لا تسخّن البيستو في القدر أبداً، فالريحان يسودّ ويفقد عطره. ومكعب ثلج في الخلاط يساعده على البقاء أخضر.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_27_macaronis_au_fromage',
+    slug: 'macaronis-au-fromage',
+    name_fr: 'Macaronis au fromage',
+    name_derja: 'Mac and cheese',
+    name_ar: 'معكرونة بالجبن',
+    description_fr:
+      "Le mac and cheese américain gratiné : des macaronis enrobés d'une béchamel coulante au cheddar, avec une croûte dorée et croustillante.",
+    description_derja:
+      'El mac and cheese el amerikani mgratini: macaroni mlammin f béchamel bel cheddar tsil, w fo9ha croûte m7ammra t9ar9ech.',
+    description_ar:
+      'المعكرونة بالجبن على الطريقة الأمريكية: معكرونة مغلفة بصلصة بيضاء بجبن الشيدر مع قشرة ذهبية مقرمشة.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 30,
+    base_servings: 4,
+    estimated_cost_tnd: 10,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pates', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_cheddar', quantity_base: 150, unit: 'g', role: 'key', substitutes: ['ing_fromage_rape'] },
+      { ingredient_id: 'ing_lait', quantity_base: 600, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 40, unit: 'g', role: 'secondary' },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 30,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_pain_panure', quantity_base: 3, unit: 'c.à.s', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préchauffez le four à 200 °C. Faites cuire les macaronis 2 minutes de moins que le temps indiqué dans l'eau bouillante salée, puis égouttez.",
+        instruction_derja:
+          'Skhoun el four 3la 200 daraja. Tayyeb el macaroni d9i9tin a9al mel wa9t elli maktoub f ma yeghli bel mel7, w safihom.',
+        instruction_ar:
+          'سخّن الفرن إلى 200 درجة واسلق المعكرونة أقل بدقيقتين من الوقت المكتوب في ماء مغلي مملح ثم صفّها.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Faites fondre le beurre dans une casserole, ajoutez la farine et remuez 1 minute au fouet sans laisser colorer.',
+        instruction_derja: 'Dawweb el zebda f casserole, zid el farina w 7arrek bel fouet d9i9a bla ma t7mar.',
+        instruction_ar: 'ذوّب الزبدة في قدر وأضف الدقيق وحرّك بالمخفقة دقيقة دون أن يتلون.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Versez le lait froid petit à petit en fouettant sans arrêt, puis laissez épaissir 5 minutes à feu moyen jusqu'à ce que la sauce nappe le dos d'une cuillère.",
+        instruction_derja:
+          'Sob el 7lib bared b chwaya b chwaya w enti t7arrek bla 7bess, ba3d khalliha tet9al 5 d9aye9 3la nar motawasta 7atta tlas9 f dhar el m3el9a.',
+        instruction_ar:
+          'اسكب الحليب البارد تدريجياً مع الخفق المستمر، ثم اتركها تتكثف 5 دقائق على نار متوسطة حتى تغلف ظهر الملعقة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Hors du feu, ajoutez la moutarde, le paprika, le poivre et 120 g de cheddar râpé, remuez jusqu'à ce qu'il soit fondu, puis mélangez avec les pâtes.",
+        instruction_derja:
+          'Ba3d ma tetfi el nar, zid el moutarde, el paprika, el filfel w 120 g cheddar mra7ay, 7arrek 7atta ydoub, w ba3d 9allebha m3a el pates.',
+        instruction_ar:
+          'خارج النار أضف الخردل والفلفل الحلو والفلفل و120 غ من الشيدر المبشور وحرّك حتى يذوب، ثم اخلطها مع المعكرونة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Versez dans un plat à gratin, couvrez du reste de cheddar, du parmesan et de la chapelure, et enfournez 15 minutes jusqu'à ce que le dessus soit doré et bouillonnant.",
+        instruction_derja:
+          'Sobha f sa7n four, ghattiha bel cheddar el ba9i, el parmesan w el chapelure, w dakhalha lel four 15 d9i9a 7atta y7mar el wejh w yebda yfawwer.',
+        instruction_ar:
+          'اسكبها في صينية فرن وغطّها بباقي الشيدر والبارميزان والبقسماط، واطهها 15 دقيقة حتى يتحمر السطح ويبدأ بالفوران.',
+      },
+    ],
+    chef_tip: {
+      fr: "Ajoutez toujours le fromage hors du feu : une béchamel trop chaude fait trancher le cheddar, qui devient granuleux et huileux au lieu d'être lisse.",
+      derja:
+        'Zid el fromage dima ba3d ma tetfi el nar: el béchamel ki tkoun skhouna barcha tfarra9 el cheddar w yweli m7abbeb w fih zit 3oudh ma ykoun nadhif w lisse.',
+      ar: 'أضف الجبن دائماً خارج النار، فالصلصة الساخنة جداً تفصل الشيدر فيصبح محبباً ودهنياً بدل أن يكون ناعماً.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_28_aubergines_a_la_parmigiana',
+    slug: 'aubergines-a-la-parmigiana',
+    name_fr: 'Aubergines à la parmigiana',
+    name_derja: 'Bedhinjen parmigiana',
+    name_ar: 'باذنجان بارميجانا',
+    description_fr:
+      "Le gratin du sud de l'Italie : tranches d'aubergines dorées superposées avec une sauce tomate au basilic, de la mozzarella filante et du parmesan.",
+    description_derja:
+      'Gratin mel janoub el talyeni: slayet bedhinjen m7ammrin, tab9a fo9 tab9a m3a salsa tmatem bel 7bak, mozzarella tetmatta w parmesan.',
+    description_ar: 'غراتان جنوب إيطاليا: شرائح باذنجان محمرة متراصة مع صلصة طماطم بالريحان وموزاريلا ذائبة وبارميزان.',
+    image_url: '',
+    prep_time_minutes: 40,
+    cook_time_minutes: 60,
+    base_servings: 4,
+    estimated_cost_tnd: 18,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_aubergine', quantity_base: 1, unit: 'kg', role: 'key' },
+      {
+        ingredient_id: 'ing_mozzarella',
+        quantity_base: 250,
+        unit: 'g',
+        role: 'key',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_tomate', quantity_base: 1, unit: 'kg', role: 'key' },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 60,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_basilic', quantity_base: 1, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 6, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Coupez les aubergines en tranches de 1 cm dans la longueur, salez-les et laissez-les dégorger 30 minutes dans une passoire, puis épongez-les soigneusement.',
+        instruction_derja:
+          '9oss el bedhinjen slayet 3ardh-hom 1 cm bel toul, mallah-hom w khallihom ykharjou maahom 30 d9i9a f passoire, ba3d nachafhom mlih.',
+        instruction_ar:
+          'قطّع الباذنجان شرائح بسمك 1 سم بالطول، ملّحها واتركها تخرج ماءها 30 دقيقة في مصفاة ثم جففها جيداً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Pendant ce temps, faites revenir l'oignon et l'ail hachés dans 1 cuillère d'huile, ajoutez les tomates pelées et concassées, le sucre et du sel, et laissez réduire 20 minutes. Ajoutez la moitié du basilic à la fin.",
+        instruction_derja:
+          'F nafs el wa9t, 9alli el bsal w el thoum m9attin f m3el9a zit, zid el tmatem m9achra w m9atta3a, chwaya sokkor w mel7, w khalliha t9aleb 20 d9i9a. Zid nos el 7bak fel ekher.',
+        instruction_ar:
+          'في الأثناء شوّح البصل والثوم المفرومين في ملعقة زيت، أضف الطماطم المقشرة والمقطعة وقليلاً من السكر والملح واتركها تتكثف 20 دقيقة، وأضف نصف الريحان في النهاية.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Badigeonnez les tranches d'aubergine d'huile et faites-les griller à la poêle ou au four à 220 °C environ 15 minutes, jusqu'à ce qu'elles soient dorées et fondantes.",
+        instruction_derja:
+          'Edhen slayet el bedhinjen bel zit w chwiha fel me9la wala fel four 3la 220 daraja 9rib 15 d9i9a, 7atta t7mar w tortob.',
+        instruction_ar:
+          'ادهن شرائح الباذنجان بالزيت واشوها في المقلاة أو الفرن على 220 درجة نحو 15 دقيقة حتى تتحمر وتطرى.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Dans un plat huilé, alternez une couche de sauce, une couche d'aubergines, des morceaux de mozzarella, du parmesan et des feuilles de basilic. Répétez trois fois et terminez par la sauce et le parmesan.",
+        instruction_derja:
+          'F sa7n medhoun, rakkeb tab9a salsa, tab9a bedhinjen, 9ta3 mozzarella, parmesan w wra9 7bak. 3awed tleth marrat w kammel bel salsa w el parmesan.',
+        instruction_ar:
+          'في صينية مدهونة رتّب طبقة صلصة ثم طبقة باذنجان وقطع موزاريلا وبارميزان وأوراق ريحان، وكرر ثلاث مرات واختم بالصلصة والبارميزان.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Enfournez à 190 °C pendant 30 minutes, jusqu'à ce que les bords bouillonnent et que le dessus soit gratiné. Laissez reposer 15 minutes avant de couper.",
+        instruction_derja:
+          'Dakhlou lel four 3la 190 daraja 30 d9i9a, 7atta yebda yfawwer men jnabou w wejhou yet7ammar. Khallih yortah 15 d9i9a 9bal ma t9assou.',
+        instruction_ar:
+          'اطهه في الفرن على 190 درجة 30 دقيقة حتى تفور الأطراف ويتحمر السطح، واتركه يرتاح 15 دقيقة قبل التقطيع.',
+      },
+    ],
+    chef_tip: {
+      fr: "Griller les aubergines au four plutôt que les frire leur évite d'absorber un bain d'huile : la parmigiana reste fondante sans être lourde.",
+      derja:
+        'Chwi el bedhinjen fel four 3oudh ma t9allih: hakka mayochrobch barcha zit w el parmigiana to93ed rotba w khfifa.',
+      ar: 'شوِ الباذنجان في الفرن بدل قليه حتى لا يتشرب الكثير من الزيت، فتبقى البارميجانا طرية وغير ثقيلة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_29_ratatouille_provencale',
+    slug: 'ratatouille-provencale',
+    name_fr: 'Ratatouille provençale',
+    name_derja: 'Ratatouille',
+    name_ar: 'راتاتوي بروفنسالي',
+    description_fr:
+      "Le mijoté d'été de Provence : aubergine, courgettes, poivrons et tomates cuits séparément puis réunis, parfumés à l'ail, à l'huile d'olive et aux herbes.",
+    description_derja:
+      'Makla sayfiya mel Provence: bedhinjen, 9ra3, filfel w tmatem mtayybin kol wa7ed wa7dou w ba3d mlammin, b thoum, zit zitouna w 7chich.',
+    description_ar:
+      'طبق الصيف البروفنسالي: باذنجان وكوسة وفلفل وطماطم تطهى كل على حدة ثم تجمع، معطرة بالثوم وزيت الزيتون والأعشاب.',
+    image_url: '',
+    prep_time_minutes: 25,
+    cook_time_minutes: 55,
+    base_servings: 4,
+    estimated_cost_tnd: 9,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_aubergine', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_courgette', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 5, unit: 'pièces', role: 'key' },
+      {
+        ingredient_id: 'ing_poivron',
+        quantity_base: 2,
+        unit: 'pièces',
+        role: 'secondary',
+        substitutes: ['ing_piment'],
+      },
+      { ingredient_id: 'ing_oignon', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_basilic', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 4, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 5, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Coupez l'aubergine, les courgettes et les poivrons en cubes d'environ 2 cm, émincez les oignons et pelez puis concassez les tomates.",
+        instruction_derja:
+          '9oss el bedhinjen, el 9ra3 w el filfel k3ab 9rib 2 cm, 9asses el bsal w 9achar el tmatem w 9atta3ha.',
+        instruction_ar:
+          'قطّع الباذنجان والكوسة والفلفل مكعبات بحجم 2 سم تقريباً، وقطّع البصل شرائح، وقشّر الطماطم وقطّعها.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites dorer l'aubergine dans 2 cuillères d'huile 8 minutes à feu moyen-vif, réservez, puis faites de même avec les courgettes 5 minutes.",
+        instruction_derja:
+          '7ammar el bedhinjen f zouz m3al9 zit 8 d9aye9 3la nar motawasta 9wiya, n77ih, w a3mel kifou bel 9ra3 5 d9aye9.',
+        instruction_ar:
+          'حمّر الباذنجان في ملعقتي زيت 8 دقائق على نار متوسطة قوية وارفعه، ثم افعل الشيء نفسه مع الكوسة 5 دقائق.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Dans une cocotte, faites fondre les oignons et les poivrons dans le reste d'huile 10 minutes, ajoutez l'ail écrasé puis les tomates et l'origan, et laissez compoter 10 minutes.",
+        instruction_derja:
+          'F cocotte, ta7chech el bsal w el filfel fel zit el ba9i 10 d9aye9, zid el thoum mahrous w ba3d el tmatem w el origan, w khalliha tetfaya 10 d9aye9.',
+        instruction_ar:
+          'في قدر، اطهُ البصل والفلفل في باقي الزيت 10 دقائق، أضف الثوم المهروس ثم الطماطم والأوريغانو واتركها تطهى 10 دقائق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Ajoutez l'aubergine et les courgettes, salez, poivrez et laissez mijoter à couvert 20 minutes à feu doux : les légumes doivent être fondants mais garder leur forme.",
+        instruction_derja:
+          'Zid el bedhinjen w el 9ra3, mallah w filfel, w khalliha ttayb meghatti 20 d9i9a 3la nar khfifa: el khodhra lazem tortob ama to93ed m3ammra.',
+        instruction_ar:
+          'أضف الباذنجان والكوسة وملّح وفلفل، واتركها تطهى مغطاة 20 دقيقة على نار هادئة حتى تطرى الخضار مع احتفاظها بشكلها.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Retirez du feu, ajoutez le basilic ciselé et un filet d'huile d'olive crue. Servez chaud, tiède ou même froid.",
+        instruction_derja:
+          'Na77iha mel nar, zid el 7bak m9atta3 w 9atret zit zitouna 7ay. Serbiha skhouna, dafya wala 7atta bérda.',
+        instruction_ar: 'ارفعها عن النار وأضف الريحان المفروم ورشة زيت زيتون نيء، وقدّمها ساخنة أو دافئة أو حتى باردة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Cuire chaque légume séparément avant de les réunir est le vrai secret de la ratatouille : chacun garde sa texture et son goût au lieu de finir en compote.',
+      derja:
+        'El sirr el 7a9i9i mta3 el ratatouille: tayyeb kol khodhra wa7adha 9bal ma tlammhom, hakka kol wa7da to93ed b ta3mha w 9wamha w mayweliwech 3ejja.',
+      ar: 'السر الحقيقي للراتاتوي هو طهي كل خضار على حدة قبل جمعها، فيحتفظ كل منها بقوامه ونكهته بدل أن تتحول إلى هريس.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_30_gnocchis_a_la_sauce_tomate',
+    slug: 'gnocchis-maison-a-la-sauce-tomate',
+    name_fr: 'Gnocchis maison à la sauce tomate',
+    name_derja: 'Gnocchi mta3 dar bel salsa',
+    name_ar: 'نيوكي منزلي بصلصة الطماطم',
+    description_fr:
+      "De petits gnocchis de pommes de terre faits maison, légers et moelleux, nappés d'une sauce tomate fraîche au basilic et au parmesan.",
+    description_derja:
+      'Gnocchi sghar bel batata mta3 dar, khfaf w rotbin, b salsa tmatem fresh bel 7bak w el parmesan.',
+    description_ar: 'نيوكي بطاطا منزلي صغير خفيف وطري، مغطى بصلصة طماطم طازجة بالريحان والبارميزان.',
+    image_url: '',
+    prep_time_minutes: 45,
+    cook_time_minutes: 40,
+    base_servings: 4,
+    estimated_cost_tnd: 9,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'avance',
+    ingredients: [
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 1, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_farine', quantity_base: 250, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_tomate', quantity_base: 800, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_basilic', quantity_base: 1, unit: 'botte', role: 'secondary' },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 40,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites cuire les pommes de terre entières avec leur peau dans l'eau salée 25 à 30 minutes, jusqu'à ce qu'elles soient tendres. Pelez-les encore chaudes et écrasez-les finement au presse-purée.",
+        instruction_derja:
+          'Tayyeb el batata kemla b 9ochretha f ma w mel7 25 l 30 d9i9a, 7atta tortob. 9acharha w hiya skhouna w ohrsha mlih b presse-purée.',
+        instruction_ar:
+          'اسلق البطاطا كاملة بقشرها في ماء مملح من 25 إلى 30 دقيقة حتى تطرى، ثم قشرها وهي ساخنة واهرسها ناعماً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Pendant ce temps, faites revenir l'oignon et l'ail hachés dans l'huile, ajoutez les tomates râpées, le sucre et le sel, et laissez mijoter 20 minutes jusqu'à ce que la sauce épaississe.",
+        instruction_derja:
+          'F nafs el wa9t, 9alli el bsal w el thoum m9attin fel zit, zid el tmatem mra7ya, chwaya sokkor w mel7, w khalliha ttayb 20 d9i9a 7atta tet9al el salsa.',
+        instruction_ar:
+          'في الأثناء شوّح البصل والثوم المفرومين في الزيت، أضف الطماطم المبشورة والسكر والملح واتركها تطهى 20 دقيقة حتى تتكثف الصلصة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Sur le plan de travail, mélangez la purée tiède avec l'œuf, une pincée de sel et la farine ajoutée progressivement, juste jusqu'à obtenir une pâte souple qui ne colle plus aux doigts.",
+        instruction_derja:
+          '3al tawla, khallet el batata mahrousa w hiya dafya m3a el 3adhma, chwaya mel7 w el farina tzidha b chwaya b chwaya, 7atta tweli 3ejna rotba ma3adech tlas9 fel sbo3.',
+        instruction_ar:
+          'على سطح العمل اخلط البطاطا الدافئة مع البيضة وقليل من الملح والدقيق المضاف تدريجياً حتى تحصل على عجينة لينة لا تلتصق بالأصابع.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Divisez la pâte, roulez des boudins de 2 cm de diamètre, coupez-les en tronçons de 2 cm et marquez-les sur le dos d'une fourchette. Posez-les sur un plateau fariné.",
+        instruction_derja:
+          '9assam el 3ejna, a3mel menha 3ouwed 9otrhom 2 cm, 9atta3hom 9ta3 2 cm w 3allem 3lihom b dhar el forchetta. 7ott-hom f plateau fih farina.',
+        instruction_ar:
+          'قسّم العجينة وشكّل أصابع بقطر 2 سم، قطّعها قطعاً بطول 2 سم واطبعها بظهر الشوكة، وضعها في صينية مرشوشة بالدقيق.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Plongez les gnocchis par petites quantités dans une grande casserole d'eau bouillante salée et retirez-les à l'écumoire dès qu'ils remontent à la surface, après environ 2 minutes.",
+        instruction_derja:
+          'Ghattes el gnocchi b chwaya b chwaya f casserole kbira ma yeghli bel mel7 w na77ihom bel mgharfa el m9arba men ki yetla3ou fo9 el ma, ba3d 9rib d9i9tin.',
+        instruction_ar:
+          'اغمر النيوكي على دفعات صغيرة في قدر كبير من الماء المغلي المملح وارفعها بالمغرفة المثقوبة حالما تطفو بعد دقيقتين تقريباً.',
+      },
+      {
+        step_number: 6,
+        instruction_fr:
+          'Mélangez délicatement les gnocchis à la sauce tomate chaude avec le basilic déchiré, et servez avec du parmesan râpé.',
+        instruction_derja:
+          '9alleb el gnocchi b chwaya m3a el salsa skhouna w el 7bak m9atta3 bel yed, w serbi b parmesan mra7ay.',
+        instruction_ar: 'اخلط النيوكي برفق مع صلصة الطماطم الساخنة والريحان الممزق، وقدّمها مع البارميزان المبشور.',
+      },
+    ],
+    chef_tip: {
+      fr: "Choisissez des pommes de terre farineuses et ajoutez le minimum de farine : plus vous en mettez, plus les gnocchis deviennent durs et pâteux. Testez-en un dans l'eau avant de tout façonner.",
+      derja:
+        '5ayer batata farineuse w zid a9al farina momkna: kol ma tzid farina, el gnocchi ywaliw jamdin w y3ajnou. Jarreb wa7ed fel ma 9bal ma tchakkel lkol.',
+      ar: 'اختر بطاطا نشوية وأضف أقل كمية ممكنة من الدقيق، فكلما زاد صار النيوكي قاسياً وعجينياً. جرّب قطعة في الماء قبل تشكيل الكل.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_31_soupe_minestrone',
+    slug: 'soupe-minestrone',
+    name_fr: 'Soupe minestrone',
+    name_derja: 'Chorbet minestrone',
+    name_ar: 'شوربة مينستروني',
+    description_fr:
+      'La grande soupe paysanne italienne : légumes du marché, haricots blancs fondants et petites pâtes dans un bouillon tomaté parfumé au basilic.',
+    description_derja:
+      'Chorba taliana mta3 el blad: khodhra mel marché, loubia bidha tdoub fel fom w ma9rouna sghira f mar9a bel tmatem w el 7bag.',
+    description_ar:
+      'الشوربة الريفية الإيطالية: خضر السوق مع الفاصوليا البيضاء الطرية والمعكرونة الصغيرة في مرق بالطماطم معطّر بالريحان.',
+    image_url: '',
+    prep_time_minutes: 25,
+    cook_time_minutes: 80,
+    base_servings: 4,
+    estimated_cost_tnd: 8,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_haricots', quantity_base: 150, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_tomate', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_courgette', quantity_base: 300, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_carotte', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_celeri', quantity_base: 0.5, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_pates', quantity_base: 100, unit: 'g', role: 'secondary', substitutes: ['ing_nwasser'] },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_tomate_concentree', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 3, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_basilic', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+      {
+        ingredient_id: 'ing_parmesan',
+        quantity_base: 40,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_fromage_rape'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "La veille, faites tremper les haricots blancs dans un grand volume d'eau froide. Le jour même, égouttez-les et faites-les cuire 45 minutes dans 1,5 L d'eau non salée.",
+        instruction_derja:
+          'Mel lila, ghattas el loubia f barcha ma bered. Fel nhar, saffiha w tayyebha 45 d9i9a f litre w nos ma bla mel7.',
+        instruction_ar:
+          'في الليلة السابقة انقع الفاصوليا في كمية كبيرة من الماء البارد، ثم صفّها واطبخها 45 دقيقة في لتر ونصف من الماء دون ملح.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Pendant ce temps, coupez oignon, carotte, céleri et courgette en petits dés de 1 cm. Faites revenir oignon, carotte et céleri 8 minutes dans l'huile d'olive à feu moyen, sans coloration.",
+        instruction_derja:
+          'Fel wa9t hedha, 9atta3 el bsal, el sfenneria, el krafess wel courgette dés sghar 9ad sentim. 9allib el bsal, el sfenneria wel krafess 8 d9aye9 f zit zitouna 3la nar mtawsta bla ma yet7armou.',
+        instruction_ar:
+          'خلال ذلك قطّع البصل والجزر والكرفس والكوسة مكعبات صغيرة بحجم سنتيمتر، وقلّب البصل والجزر والكرفس 8 دقائق في زيت الزيتون على نار متوسطة دون تحمير.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Ajoutez l'ail haché, le concentré puis les tomates râpées et laissez compoter 5 minutes. Versez les haricots avec leur eau de cuisson et 500 ml d'eau, salez et laissez mijoter 20 minutes.",
+        instruction_derja:
+          'Zid el thoum mrayyech, el tmatem el m3ajna w ba3d el tmatem m7akka w khalliha t9alleb 5 d9aye9. Sob el loubia b ma tayyebha w nos litre ma, mallah w khalliha tkarkar 20 d9i9a.',
+        instruction_ar:
+          'أضف الثوم المفروم ومعجون الطماطم ثم الطماطم المبشورة واتركها 5 دقائق، ثم اسكب الفاصوليا بماء طبخها ونصف لتر ماء، ملّح واتركها تغلي بهدوء 20 دقيقة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Ajoutez la courgette et les petites pâtes, puis prolongez la cuisson 10 à 12 minutes : les pâtes doivent être tendres et la soupe épaisse mais encore liquide.',
+        instruction_derja:
+          'Zid el courgette wel ma9rouna sghira w zid tayyeb 10 7atta 12 d9i9a: el ma9rouna lazem tkoun rtiba wel chorba ghlidha ama mezelet sayla.',
+        instruction_ar:
+          'أضف الكوسة والمعكرونة الصغيرة واطبخ 10 إلى 12 دقيقة حتى تنضج المعكرونة وتصبح الشوربة كثيفة مع بقائها سائلة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Hors du feu, ajoutez le basilic ciselé et un filet d'huile d'olive crue. Servez avec du parmesan râpé.",
+        instruction_derja: 'Ta7tha mel nar, zid el 7bag m9atta3 w chwaya zit zitouna 7ay. Sobha w rach 3liha parmesan.',
+        instruction_ar: 'بعد رفعها عن النار أضف الريحان المقطّع ورشة زيت زيتون، وقدّمها مع جبن البارميزان المبشور.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Gardez une croûte de parmesan et plongez-la dans la soupe pendant la cuisson : elle donne un goût profond, retirez-la avant de servir.',
+      derja:
+        'Ki yfoutlek ter7 parmesan, 7ott 9ochrtou fel chorba w heya tetayyeb: ta3tiha bnina kbira, w na7iha 9bal ma tsob.',
+      ar: 'إذا بقيت لديك قشرة جبن البارميزان ضعها في الشوربة أثناء الطبخ فهي تمنحها نكهة عميقة، وأزلها قبل التقديم.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_32_soupe_a_l_oignon_gratinee',
+    slug: 'soupe-a-l-oignon-gratinee',
+    name_fr: "Soupe à l'oignon gratinée",
+    name_derja: 'Chorbet bsal gratinée',
+    name_ar: 'شوربة البصل بالغراتان',
+    description_fr:
+      'Le classique des bistrots parisiens : des oignons caramélisés lentement au beurre, un bouillon doux et sucré, et une tranche de pain couverte de fromage fondu et gratiné.',
+    description_derja:
+      'El chorba mta3 el bistrot fi Paris: bsal m7ammer bel chwaya fel zebda, mar9a 7lowa, w fo9ha tranche khobz b fromage dheyeb w m7ammer.',
+    description_ar:
+      'طبق مقاهي باريس الشهير: بصل مكرمل ببطء في الزبدة ومرق حلو المذاق، تعلوه شريحة خبز مغطاة بجبن ذائب ومحمّر.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 70,
+    base_servings: 4,
+    estimated_cost_tnd: 8.5,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 50, unit: 'g', role: 'secondary' },
+      {
+        ingredient_id: 'ing_fromage_rape',
+        quantity_base: 120,
+        unit: 'g',
+        role: 'key',
+        substitutes: ['ing_parmesan', 'ing_mozzarella'],
+      },
+      {
+        ingredient_id: 'ing_pain_baguette',
+        quantity_base: 1,
+        unit: 'pièce',
+        role: 'secondary',
+        substitutes: ['ing_toast'],
+      },
+      { ingredient_id: 'ing_farine', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Émincez les oignons en fines lamelles. Faites-les fondre dans le beurre à feu moyen-doux, couvercle fermé, pendant 15 minutes en remuant de temps en temps.',
+        instruction_derja:
+          '9os el bsal chrayi7 r9a9. Dawwbou fel zebda 3la nar tay7a, m8atti, 15 d9i9a w 9allbou mara mara.',
+        instruction_ar:
+          'قطّع البصل شرائح رفيعة وذوّبه في الزبدة على نار هادئة مع الغطاء لمدة 15 دقيقة مع التحريك من حين لآخر.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Retirez le couvercle, ajoutez le sucre et poursuivez 25 minutes en grattant le fond : les oignons doivent devenir brun doré et très fondants, sans brûler.',
+        instruction_derja:
+          'Na77i el ghta, zid el sokkar w kammel 25 d9i9a w enti t7okk el 9a3a: el bsal lazem yweli kaki dhahbi w ytayyeb barcha, ama ma yet79ach.',
+        instruction_ar:
+          'ارفع الغطاء وأضف السكر وواصل 25 دقيقة مع كشط القاع حتى يصبح البصل بنياً ذهبياً وطرياً جداً دون أن يحترق.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Saupoudrez de farine, mélangez 1 minute, puis versez 1,2 L d'eau chaude petit à petit en grattant les sucs. Salez, poivrez et laissez mijoter 20 minutes.",
+        instruction_derja:
+          'Rach el farina, 9allib d9i9a, w ba3d sob litre w 200 ml ma skhoun chwaya b chwaya w enti t7okk el 9a3a. Mallah, zid filfel w khalliha tkarkar 20 d9i9a.',
+        instruction_ar:
+          'رشّ الطحين وقلّب دقيقة، ثم اسكب لتراً ومئتي مليلتر من الماء الساخن تدريجياً مع كشط القاع، ملّح وأضف الفلفل واتركها تغلي بهدوء 20 دقيقة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Coupez la baguette en tranches, faites-les griller au four et frottez-les avec la gousse d'ail.",
+        instruction_derja: '9os el baguette tranchet, 7ammarhom fel four w 7okkhom bel sinna mta3 el thoum.',
+        instruction_ar: 'قطّع الخبز شرائح وحمّصها في الفرن ثم افركها بفص الثوم.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Versez la soupe dans des bols allant au four, posez les croûtons dessus, couvrez généreusement de fromage et passez sous le gril 5 minutes jusqu'à ce que ce soit bouillonnant et doré.",
+        instruction_derja:
+          'Sob el chorba f zlayef ynajmou yodkhlou lel four, 7ott el khobz fo9ha, ghattih b barcha fromage w 7ottha ta7t el gril 5 d9aye9 7atta yfour w y7ammer.',
+        instruction_ar:
+          'اسكب الشوربة في أوعية تتحمل الفرن، ضع الخبز فوقها وغطّه بكمية وافرة من الجبن، ثم ضعها تحت الشواية 5 دقائق حتى يغلي الجبن ويحمرّ.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Tout le goût vient de la caramélisation : ne montez jamais le feu pour aller plus vite, des oignons brûlés rendent la soupe amère.',
+      derja:
+        'El bnina lkol fel bsal ki y7ammer bel chwaya: ma tkabbarch el nar bech tfasse5, el bsal el ma7rou9 ymarrar el chorba.',
+      ar: 'كل النكهة تأتي من تكرمل البصل ببطء، فلا ترفع النار لتسرع لأن البصل المحروق يجعل الشوربة مُرّة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_33_soupe_thai_au_lait_de_coco',
+    slug: 'soupe-thai-au-lait-de-coco-et-poulet-tom-kha-kai',
+    name_fr: 'Soupe thaï au lait de coco et poulet (tom kha kai)',
+    name_derja: 'Chorba thai bel djej w 7lib coco',
+    name_ar: 'شوربة تايلاندية بالدجاج وحليب جوز الهند',
+    description_fr:
+      'Une soupe veloutée et parfumée, à la fois acidulée, légèrement piquante et douce, où le poulet et les champignons pochent dans un bouillon coco-gingembre.',
+    description_derja:
+      'Chorba nayma w fay7a, 7amedh w 7arra chwaya w 7lowa, fiha djej w champignon yetayybou f mar9a bel coco wel zanjabil.',
+    description_ar:
+      'شوربة ناعمة وعطرة تجمع الحموضة والحرارة الخفيفة والحلاوة، يُطهى فيها الدجاج والفطر في مرق جوز الهند والزنجبيل.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 25,
+    base_servings: 4,
+    estimated_cost_tnd: 18.5,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_lait_coco', quantity_base: 400, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_poulet', quantity_base: 400, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_gingembre', quantity_base: 30, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_champignon', quantity_base: 200, unit: 'g', role: 'secondary' },
+      {
+        ingredient_id: 'ing_citron_vert',
+        quantity_base: 2,
+        unit: 'pièces',
+        role: 'secondary',
+        substitutes: ['ing_citron'],
+      },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 2, unit: 'c.à.s', role: 'secondary' },
+      {
+        ingredient_id: 'ing_piment',
+        quantity_base: 1,
+        unit: 'pièce',
+        role: 'secondary',
+        substitutes: ['ing_piment_moulu'],
+      },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_coriandre', quantity_base: 0.5, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Pelez le gingembre et coupez-le en fines rondelles, écrasez l'ail et fendez le piment. Coupez le poulet (blanc ou haut de cuisse désossé) en fines lanières et les champignons en lamelles.",
+        instruction_derja:
+          '9echcher el zanjabil w 9assou rondelles r9a9, farkess el thoum w a7lel el filfel. 9os el djej (blanc walla cuisse bla 3dham) chrayi7 r9a9 wel champignon lamelles.',
+        instruction_ar:
+          'قشّر الزنجبيل وقطّعه شرائح رقيقة، اهرس الثوم وافتح الفلفل الحار، وقطّع الدجاج أشرطة رفيعة والفطر شرائح.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans une casserole, portez à frémissement le lait de coco avec 500 ml d'eau, le gingembre, l'ail et le piment. Laissez infuser 10 minutes à feu doux sans faire bouillir fort.",
+        instruction_derja:
+          'F casserole, 7ott 7lib el coco m3a nos litre ma, el zanjabil, el thoum wel filfel 7atta yebda ykarkar. Khallih 10 d9aye9 3la nar tay7a bech ya3ti ri7tou, bla ma ytayyech barcha.',
+        instruction_ar:
+          'في قدر سخّن حليب جوز الهند مع نصف لتر ماء والزنجبيل والثوم والفلفل حتى يبدأ بالارتعاش، واتركه 10 دقائق على نار هادئة دون غليان قوي.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Ajoutez le poulet et les champignons et laissez pocher 8 à 10 minutes : le poulet doit être blanc à cœur et tendre.',
+        instruction_derja:
+          'Zid el djej wel champignon w khallihom ytayybou 8 7atta 10 d9aye9: el djej lazem yweli abyadh men dakhel w rtib.',
+        instruction_ar: 'أضف الدجاج والفطر واتركهما يُطهيان 8 إلى 10 دقائق حتى يصبح الدجاج أبيض من الداخل وطرياً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Hors du feu, assaisonnez avec la sauce soja, le jus des citrons verts et le sucre. Goûtez : la soupe doit être salée, acide et douce à la fois, ajustez si besoin.',
+        instruction_derja:
+          'Ta7tha mel nar, zid el sauce soja, 3sir el 9ares el akhdhar wel sokkar. Dou9ha: lazem tkoun mmal7a, 7amdha w 7lowa f nafs el wa9t, 3addel ki yelzem.',
+        instruction_ar:
+          'بعد رفعها عن النار تبّلها بصلصة الصويا وعصير الليمون الأخضر والسكر، وتذوّقها لتكون مالحة وحامضة وحلوة معاً وعدّل حسب الحاجة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Servez bien chaud, parsemé de feuilles de coriandre fraîche.',
+        instruction_derja: 'Sobha skhouna barcha w rach 3liha wra9 tabel akhdhar.',
+        instruction_ar: 'قدّمها ساخنة جداً مع أوراق الكزبرة الطازجة.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Ajoutez toujours le citron vert hors du feu : cuit, il perd sa fraîcheur et peut faire trancher le lait de coco.',
+      derja:
+        'Dima zid el 9ares el akhdhar ki tna77i el chorba mel nar: ki yetayyeb yodhya3 ri7tou w ynajjem y9atta3 7lib el coco.',
+      ar: 'أضف الليمون الأخضر دائماً بعد رفع القدر عن النار، فالطبخ يفقده نضارته وقد يفصل حليب جوز الهند.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_34_rouleaux_de_printemps',
+    slug: 'rouleaux-croustillants-aux-crevettes-version-brick',
+    name_fr: 'Rouleaux croustillants aux crevettes (version brick)',
+    name_derja: 'Rouleaux bel crevettes f malsouka',
+    name_ar: 'لفائف مقرمشة بالقمبري في الملسوقة',
+    description_fr:
+      "L'esprit des rouleaux asiatiques avec ce qu'on trouve ici : crevettes, carotte et chou sautés au gingembre, roulés dans la feuille de brick et dorés, à tremper dans une sauce soja-citron vert.",
+    description_derja:
+      'Rou7 el rouleaux el asiatique b 7ajet bledna: crevettes, sfenneria w kromb m9allbin bel zanjabil, mlaffin f malsouka w m7ammrin, w tghattes fi sauce soja bel 9ares el akhdhar.',
+    description_ar:
+      'روح اللفائف الآسيوية بمكونات محلية: قمبري وجزر وكرنب مقلّبة بالزنجبيل، ملفوفة في الملسوقة ومحمّرة، تُغمس في صلصة الصويا والليمون الأخضر.',
+    image_url: '',
+    prep_time_minutes: 35,
+    cook_time_minutes: 20,
+    base_servings: 4,
+    estimated_cost_tnd: 18,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_crevettes', quantity_base: 300, unit: 'g', role: 'key', substitutes: ['ing_poulet_hache'] },
+      { ingredient_id: 'ing_malsouka', quantity_base: 1, unit: 'paquet', role: 'key' },
+      { ingredient_id: 'ing_carotte', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_chou', quantity_base: 0.25, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_gingembre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sauce_soja', quantity_base: 4, unit: 'c.à.s', role: 'secondary' },
+      {
+        ingredient_id: 'ing_citron_vert',
+        quantity_base: 1,
+        unit: 'pièce',
+        role: 'secondary',
+        substitutes: ['ing_citron'],
+      },
+      { ingredient_id: 'ing_oeuf', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 8, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_laitue', quantity_base: 1, unit: 'pièce', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Décortiquez les crevettes et coupez-les en morceaux. Râpez les carottes, émincez le chou très finement, hachez l'ail et râpez le gingembre.",
+        instruction_derja:
+          '9echcher el crevettes w 9asshom 9at3at. A7akk el sfenneria, 9os el kromb r9i9 barcha, rayyech el thoum w a7akk el zanjabil.',
+        instruction_ar: 'قشّر القمبري وقطّعه قطعاً، ابشر الجزر وقطّع الكرنب رفيعاً جداً، وافرم الثوم وابشر الزنجبيل.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans une poêle très chaude avec 1 c.à.s d'huile, saisissez ail et gingembre 30 secondes, ajoutez chou et carotte 3 minutes puis les crevettes 2 minutes et 2 c.à.s de sauce soja. Laissez refroidir dans une passoire pour éliminer le jus.",
+        instruction_derja:
+          'F poêle skhouna barcha b mgharfa zit, 9allib el thoum wel zanjabil 30 thanya, zid el kromb wel sfenneria 3 d9aye9 w ba3d el crevettes 2 d9aye9 w zouz mgharef sauce soja. Khalli el 7achwa tobred f passoire bech yetsaffa el ma.',
+        instruction_ar:
+          'في مقلاة ساخنة جداً بملعقة زيت قلّب الثوم والزنجبيل 30 ثانية، أضف الكرنب والجزر 3 دقائق ثم القمبري دقيقتين وملعقتي صلصة صويا، واترك الحشوة تبرد في مصفاة لتتخلص من السائل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Coupez chaque feuille de brick en deux. Posez 2 c.à.s de farce sur le bord arrondi, rabattez les côtés et roulez serré. Collez l'extrémité avec un peu d'œuf battu.",
+        instruction_derja:
+          '9os kol war9a malsouka 3la jouj. 7ott zouz mgharef 7achwa 3al jenb el medawer, tawwi el jnab w laff b9wa. Lsa9 el tarf b chwaya 3dham madhroub.',
+        instruction_ar:
+          'قطّع كل ورقة ملسوقة إلى نصفين، ضع ملعقتين من الحشوة على الحافة المستديرة، اطوِ الجانبين ولفّ بإحكام، وألصق الطرف بقليل من البيض المخفوق.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Faites dorer les rouleaux dans l'huile chaude, 2 minutes par face, côté soudure en premier. Égouttez sur du papier absorbant.",
+        instruction_derja:
+          '7ammar el rouleaux fel zit skhoun, 2 d9aye9 kol jiha, w ebda bel jiha elli fiha el lsa9. Na77ihom 3la papier.',
+        instruction_ar: 'حمّر اللفائف في الزيت الساخن دقيقتين لكل جهة بدءاً بجهة اللصق، ثم صفّها على ورق ماص.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Pour la sauce, mélangez le reste de sauce soja avec le jus du citron vert, le sucre et 2 c.à.s d'eau. Servez les rouleaux chauds dans des feuilles de laitue avec la sauce.",
+        instruction_derja:
+          'Lel sauce, khallat el sauce soja elli 9a3det m3a 3sir el 9ares el akhdhar, el sokkar w zouz mgharef ma. Kol el rouleau skhoun mlaffef f war9et salade w ghattsou fel sauce.',
+        instruction_ar:
+          'للصلصة اخلط باقي صلصة الصويا مع عصير الليمون الأخضر والسكر وملعقتي ماء، وقدّم اللفائف ساخنة في أوراق الخس مع الصلصة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Une farce bien égouttée et froide est le secret : humide ou chaude, elle ramollit la brick qui se déchire et boit l'huile.",
+      derja:
+        'El sirr fel 7achwa: lazem tkoun mtsaffya w barda. Ki tkoun mbalwa walla skhouna, trattab el malsouka, tetgatta3 w techrob el zit.',
+      ar: 'السر في حشوة مصفاة وباردة، فالحشوة الرطبة أو الساخنة تليّن الملسوقة فتتمزق وتمتص الزيت.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_35_houmous_maison',
+    slug: 'houmous-maison',
+    name_fr: 'Houmous maison',
+    name_derja: '7oummos dar',
+    name_ar: 'حمص منزلي',
+    description_fr:
+      "Une crème de pois chiches ultra lisse, relevée au citron, à l'ail et au cumin, servie avec un puits d'huile d'olive et une pointe de paprika.",
+    description_derja:
+      'Krima 7oummos nayma barcha, b 9ares, thoum w kammoun, w fo9ha zit zitouna w chwaya felfel 7lou.',
+    description_ar: 'كريمة حمص ناعمة جداً بالليمون والثوم والكمون، تُقدّم مع زيت الزيتون ورشة من الفلفل الحلو.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 90,
+    base_servings: 4,
+    estimated_cost_tnd: 7.5,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pois_chiches', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_citron', quantity_base: 2, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 5, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_paprika', quantity_base: 0.5, unit: 'c.à.c', is_optional: true, role: 'staple' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.25, unit: 'botte', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_tahina', quantity_base: 3, unit: 'c.à.s', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites tremper les pois chiches secs 12 heures dans trois fois leur volume d'eau. Égouttez, couvrez d'eau fraîche et faites cuire 1 h 30 à petits bouillons, jusqu'à ce qu'ils s'écrasent facilement entre deux doigts.",
+        instruction_derja:
+          'Ghattas el 7oummos el yabes 12 sa3a f thletha marat 9addou ma. Saffih, ghattih b ma jdid w tayybou sa3a w nos 3la nar tay7a 7atta yetfarkess bel sahel bin sba3ek.',
+        instruction_ar:
+          'انقع الحمص الجاف 12 ساعة في ثلاثة أضعاف حجمه من الماء، ثم صفّه وغطّه بماء جديد واطبخه ساعة ونصف على نار هادئة حتى يُهرس بسهولة بين الأصابع.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Égouttez en gardant un verre d'eau de cuisson. Pendant qu'ils sont encore tièdes, frottez-les dans un torchon pour retirer un maximum de peaux.",
+        instruction_derja:
+          'Saffih w khalli kés men ma tayyibou. W howa mezel dafi, farkou f fouta bech tna77i a9al 9adr men el 9chour.',
+        instruction_ar: 'صفّه مع الاحتفاظ بكأس من ماء الطبخ، وافركه وهو دافئ في منشفة لإزالة أكبر قدر من القشور.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Mixez les pois chiches avec l'ail, le jus des citrons, le cumin et le sel pendant 2 minutes. Ajoutez 3 c.à.s d'huile et l'eau de cuisson tiède cuillère par cuillère jusqu'à obtenir une crème lisse et onctueuse.",
+        instruction_derja:
+          'Ra7i el 7oummos m3a el thoum, 3sir el 9ares, el kammoun wel mel7 2 d9aye9. Zid 3 mgharef zit w ma el tayyib dafi mgharfa b mgharfa 7atta tweli krima nayma w ghlidha.',
+        instruction_ar:
+          'اخلط الحمص مع الثوم وعصير الليمون والكمون والملح دقيقتين، ثم أضف 3 ملاعق زيت وماء الطبخ الدافئ ملعقة بملعقة حتى تحصل على كريمة ناعمة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr: 'Pour plus de rondeur, incorporez le yaourt en fin de mixage. Rectifiez sel et citron.',
+        instruction_derja: 'Ki t7ebou ykoun anaa3am, zid el yaourt fel ekher. 3addel el mel7 wel 9ares.',
+        instruction_ar: 'لمزيد من النعومة أضف اللبن في آخر الخلط، ثم عدّل الملح والليمون.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Étalez dans une assiette creuse en formant un creux avec le dos d'une cuillère, versez-y le reste d'huile, saupoudrez de paprika et de persil haché.",
+        instruction_derja:
+          'Ferrach el 7oummos f sa7fa w a3mel 7ofra fel woust b dhar el mgharfa, sob fiha el zit elli 9a3ed w rach el felfel el 7lou wel ma3dnous mrayyech.',
+        instruction_ar:
+          'افرده في صحن عميق واصنع تجويفاً بظهر الملعقة، واسكب فيه باقي الزيت ورشّ الفلفل الحلو والبقدونس المفروم.',
+      },
+    ],
+    chef_tip: {
+      fr: "Si vous trouvez de la tahina (crème de sésame), ajoutez-en 3 c.à.s : c'est elle qui donne le goût libanais authentique. Et mixez toujours les pois chiches tièdes, jamais froids.",
+      derja:
+        'Ki tal9a ta7ina (krima jaljlen), zid menha 3 mgharef: hiya elli ta3ti el ta3m el lebnani el 7a9. W dima ra7i el 7oummos w howa dafi, mouch bered.',
+      ar: 'إن وجدت الطحينة فأضف منها 3 ملاعق فهي سر النكهة اللبنانية الأصيلة، واخلط الحمص دائماً وهو دافئ لا بارد.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_36_guacamole',
+    slug: 'guacamole-et-chips-de-tortilla',
+    name_fr: 'Guacamole et chips de tortilla',
+    name_derja: 'Guacamole m3a chips tortilla',
+    name_ar: 'غواكامولي مع رقائق التورتيلا',
+    description_fr:
+      "La purée d'avocat mexicaine, écrasée à la fourchette avec citron vert, tomate, oignon, piment et coriandre, servie avec des chips de tortilla maison croustillantes.",
+    description_derja:
+      'Pirée avocat mexicaine, mfarkssa bel fourchette m3a 9ares akhdhar, tmatem, bsal, filfel w tabel akhdhar, w m3aha chips tortilla mta3 dar t9arma9.',
+    description_ar:
+      'هريس الأفوكادو المكسيكي المهروس بالشوكة مع الليمون الأخضر والطماطم والبصل والفلفل الحار والكزبرة، يُقدّم مع رقائق تورتيلا منزلية مقرمشة.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 8,
+    base_servings: 4,
+    estimated_cost_tnd: 17.5,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_avocat', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_citron_vert', quantity_base: 2, unit: 'pièces', role: 'key', substitutes: ['ing_citron'] },
+      { ingredient_id: 'ing_tomate', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      {
+        ingredient_id: 'ing_piment',
+        quantity_base: 1,
+        unit: 'pièce',
+        role: 'secondary',
+        substitutes: ['ing_piment_moulu'],
+      },
+      {
+        ingredient_id: 'ing_coriandre',
+        quantity_base: 0.5,
+        unit: 'botte',
+        role: 'secondary',
+        substitutes: ['ing_persil'],
+      },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 1, unit: 'c.à.s', is_optional: true, role: 'staple' },
+      { ingredient_id: 'ing_tortilla', quantity_base: 4, unit: 'pièces', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Pour les chips, coupez les tortillas en 8 triangles, badigeonnez-les légèrement d'huile, salez et enfournez 7 à 8 minutes à 200 °C jusqu'à ce qu'elles soient dorées et cassantes.",
+        instruction_derja:
+          'Lel chips, 9os kol tortilla 8 mthallthet, adhhenhom chwaya bel zit, mallah w 7ottom fel four 7 7atta 8 d9aye9 3la 200 daraja 7atta y7ammrou w yweliw yetkassrou.',
+        instruction_ar:
+          'لتحضير الرقائق قطّع كل تورتيلا إلى 8 مثلثات، ادهنها بقليل من الزيت، ملّحها واخبزها 7 إلى 8 دقائق على 200 درجة حتى تتحمّر وتصبح مقرمشة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Hachez finement l'oignon et le piment épépiné, coupez la tomate en petits dés sans les graines et ciselez la coriandre.",
+        instruction_derja:
+          'Rayyech el bsal r9i9 wel filfel ba3d ma tna77i zrari3ou, 9os el tmatem dés sghar bla 7abb w 9atta3 el tabel el akhdhar.',
+        instruction_ar:
+          'افرم البصل والفلفل الحار منزوع البذور فرماً ناعماً، وقطّع الطماطم مكعبات صغيرة دون بذور، وقطّع الكزبرة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Ouvrez les avocats bien mûrs (ils cèdent sous le doigt), retirez le noyau et écrasez la chair à la fourchette avec le jus des citrons verts et le sel, en gardant quelques morceaux.',
+        instruction_derja:
+          'A7lel el avocat (lazem ykoun tayeb, yatla3 ki tedghtou b sab3ek), na77i el 3dhma w farkess el lbab bel fourchette m3a 3sir el 9ares el akhdhar wel mel7, w khalli chwaya 9at3at.',
+        instruction_ar:
+          'افتح حبات الأفوكادو الناضجة التي تلين تحت الإصبع، أزل النواة واهرس اللب بالشوكة مع عصير الليمون الأخضر والملح مع ترك بعض القطع.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Incorporez oignon, piment, tomate et coriandre, goûtez et ajustez citron et sel. Servez aussitôt avec les chips.',
+        instruction_derja:
+          'Zid el bsal, el filfel, el tmatem wel tabel, dou9 w 3addel el 9ares wel mel7. Kouluh toul m3a el chips.',
+        instruction_ar: 'أضف البصل والفلفل والطماطم والكزبرة، تذوّق وعدّل الليمون والملح، وقدّمه فوراً مع الرقائق.',
+      },
+    ],
+    chef_tip: {
+      fr: "Pour le conserver quelques heures, tassez-le dans un bol et collez un film alimentaire directement sur la surface : sans contact avec l'air, il ne noircit pas.",
+      derja:
+        'Ki t7eb tkhallih chwaya swaye3, dezzou f zlafa w lsa9 el film directement 3la woujhou: ki ma ymessouch el hwa, ma yesswedch.',
+      ar: 'لحفظه بضع ساعات اضغطه في وعاء والصق غلافاً بلاستيكياً مباشرة على سطحه، فدون ملامسة الهواء لا يسودّ.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_37_bruschetta_tomate_basilic',
+    slug: 'bruschetta-tomate-basilic',
+    name_fr: 'Bruschetta tomate-basilic',
+    name_derja: 'Bruschetta bel tmatem wel 7bag',
+    name_ar: 'بروشيتا بالطماطم والريحان',
+    description_fr:
+      "L'antipasto italien par excellence : du pain grillé frotté à l'ail, couvert de tomates juteuses au basilic et à l'huile d'olive.",
+    description_derja:
+      'El antipasto el talyani el ma3rouf: khobz m7ammer m7akkouk bel thoum, w fo9ou tmatem fiha el ma bel 7bag w zit zitouna.',
+    description_ar: 'المقبلات الإيطالية الشهيرة: خبز محمّص مفروك بالثوم تعلوه طماطم عصيرية بالريحان وزيت الزيتون.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 5,
+    base_servings: 4,
+    estimated_cost_tnd: 4.5,
+    category: 'entree',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_tomate', quantity_base: 500, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_pain_baguette', quantity_base: 1, unit: 'pièce', role: 'key', substitutes: ['ing_toast'] },
+      { ingredient_id: 'ing_basilic', quantity_base: 1, unit: 'botte', role: 'key' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_ail', quantity_base: 2, unit: 'gousses', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_vinaigre', quantity_base: 1, unit: 'c.à.c', is_optional: true, role: 'staple' },
+      { ingredient_id: 'ing_origan', quantity_base: 0.5, unit: 'c.à.c', is_optional: true, role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Coupez les tomates en deux, retirez les graines et le jus, puis taillez la chair en petits dés. Mettez-les dans une passoire avec une pincée de sel 10 minutes pour qu'elles rendent leur eau.",
+        instruction_derja:
+          '9os el tmatem 3la jouj, na77i el 7abb wel ma, w 9os el lbab dés sghar. 7otthom f passoire b chwaya mel7 10 d9aye9 bech ykharjou el ma.',
+        instruction_ar:
+          'اقسم الطماطم إلى نصفين وأزل البذور والعصير، ثم قطّع اللب مكعبات صغيرة وضعها في مصفاة مع رشة ملح 10 دقائق لتُخرج ماءها.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Mélangez les tomates avec le basilic ciselé au dernier moment, 3 c.à.s d'huile d'olive, le poivre, l'origan et quelques gouttes de vinaigre.",
+        instruction_derja:
+          'Khallat el tmatem m3a el 7bag m9atta3 fel ekher, 3 mgharef zit zitouna, el filfel, el za3tar el talyani w chwaya 9tar khal.',
+        instruction_ar:
+          'اخلط الطماطم مع الريحان المقطّع في آخر لحظة و3 ملاعق زيت زيتون والفلفل والأوريغانو وقطرات من الخل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Coupez la baguette en biais en tranches de 1,5 cm, arrosez d'un filet d'huile et faites griller 2 à 3 minutes par face au four ou à la poêle-gril.",
+        instruction_derja:
+          '9os el baguette bel mayel tranchet 9ad sentim w nos, rach 3lihom chwaya zit w 7ammarhom 2 7atta 3 d9aye9 kol jiha fel four walla fel poêle.',
+        instruction_ar:
+          'قطّع الخبز بشكل مائل شرائح بسمك سنتيمتر ونصف، رشّ عليها قليلاً من الزيت وحمّصها دقيقتين إلى ثلاث لكل جهة في الفرن أو المقلاة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Frottez chaque tranche encore chaude avec une gousse d'ail coupée en deux, garnissez de tomates et servez immédiatement pour que le pain reste croquant.",
+        instruction_derja:
+          '7okk kol tranche w hiya skhouna b sinnet thoum ma9souma, 7ott fo9ha el tmatem w kouluha toul bech yob9a el khobz y9arma9.',
+        instruction_ar: 'افرك كل شريحة وهي ساخنة بفص ثوم مقسوم، ضع فوقها الطماطم وقدّمها فوراً ليبقى الخبز مقرمشاً.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Le pain rassis de la veille est idéal : il grille mieux et absorbe moins le jus des tomates. Ne mettez pas les tomates au réfrigérateur, elles perdent leur parfum.',
+      derja:
+        'El khobz mta3 el bera7 howa el a7sen: y7ammer khir w ma yechrabch barcha ma el tmatem. W ma t7ottech el tmatem fel frigo, todhya3 ri7etha.',
+      ar: 'خبز البارحة مثالي فهو يتحمّص أفضل ويمتص عصير الطماطم أقل، ولا تضع الطماطم في الثلاجة لأنها تفقد عطرها.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_38_omelette_aux_champignons',
+    slug: 'omelette-baveuse-aux-champignons',
+    name_fr: 'Omelette baveuse aux champignons',
+    name_derja: 'Omelette bel champignon',
+    name_ar: 'عجة بالفطر',
+    description_fr:
+      'Une omelette à la française, dorée dehors et crémeuse dedans, garnie de champignons poêlés au beurre, oignon et persil.',
+    description_derja:
+      'Omelette 3al tari9a el fransawiya, m7ammra men barra w krimeuse men dakhel, fiha champignon m9allib fel zebda m3a bsal w ma3dnous.',
+    description_ar:
+      'عجة على الطريقة الفرنسية، ذهبية من الخارج وكريمية من الداخل، محشوة بالفطر المقلي في الزبدة مع البصل والبقدونس.',
+    image_url: '',
+    prep_time_minutes: 10,
+    cook_time_minutes: 15,
+    base_servings: 4,
+    estimated_cost_tnd: 10.5,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_oeuf', quantity_base: 8, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_champignon', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 30, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.5, unit: 'botte', role: 'secondary' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      {
+        ingredient_id: 'ing_fromage_rape',
+        quantity_base: 50,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_parmesan'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Essuyez les champignons avec un papier humide (ne les lavez pas à grande eau) et coupez-les en lamelles. Émincez finement l'oignon.",
+        instruction_derja:
+          'Ems7 el champignon b papier mfaddi (ma taghsalhomch b barcha ma) w 9asshom lamelles. 9os el bsal r9i9.',
+        instruction_ar: 'امسح الفطر بورق مبلل دون غسله بالكثير من الماء وقطّعه شرائح، وقطّع البصل رفيعاً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Faites fondre la moitié du beurre dans une grande poêle, faites revenir l'oignon 3 minutes puis les champignons à feu vif 5 minutes, jusqu'à ce que leur eau s'évapore et qu'ils dorent. Salez à la fin et ajoutez le persil haché.",
+        instruction_derja:
+          'Dawweb nos el zebda f poêle kbira, 9allib el bsal 3 d9aye9 w ba3d el champignon 3la nar 9wiya 5 d9aye9 7atta yensaf ma-hom w y7ammrou. Mallah fel ekher w zid el ma3dnous mrayyech.',
+        instruction_ar:
+          'ذوّب نصف الزبدة في مقلاة كبيرة، قلّب البصل 3 دقائق ثم الفطر على نار قوية 5 دقائق حتى يتبخر ماؤه ويتحمّر، ملّح في النهاية وأضف البقدونس المفروم.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Battez les œufs à la fourchette avec sel et poivre, juste assez pour mélanger blancs et jaunes. Cuisez en deux omelettes de 4 œufs.',
+        instruction_derja:
+          'Odhrob el 3dham bel fourchette m3a mel7 w filfel, 9ad ma yetkhaltou el abyadh wel asfer barka. Tayyeb zouz omelettes, kol wa7da b 4 3dhmat.',
+        instruction_ar:
+          'اخفق البيض بالشوكة مع الملح والفلفل فقط حتى يمتزج البياض بالصفار، واطبخه على دفعتين في عجتين من 4 بيضات.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Dans la poêle bien chaude avec un peu de beurre mousseux, versez les œufs, remuez 30 secondes en ramenant les bords vers le centre, puis laissez prendre sans toucher 1 minute : le dessus doit rester légèrement baveux.',
+        instruction_derja:
+          'Fel poêle skhouna b chwaya zebda tfour, sob el 3dham, 9allib 30 thanya w rajja3 el jnab lel woust, w ba3d khalliha d9i9a bla ma tmessha: el woujh lazem yob9a chwaya rtib.',
+        instruction_ar:
+          'في المقلاة الساخنة مع قليل من الزبدة الفوّارة اسكب البيض، حرّكه 30 ثانية بإرجاع الأطراف نحو الوسط، ثم اتركه دقيقة دون لمس حتى يبقى سطحه طرياً قليلاً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          "Répartissez la moitié des champignons et du fromage sur une moitié, repliez l'omelette et faites-la glisser sur l'assiette. Recommencez pour la seconde.",
+        instruction_derja:
+          '7ott nos el champignon wel fromage 3la nos el omelette, tawwiha w zle99ha lel sa7fa. 3awed nafs el 7aja lel thenya.',
+        instruction_ar: 'وزّع نصف الفطر والجبن على نصف العجة، اطوها وانزلقها إلى الصحن، ثم كرّر مع العجة الثانية.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Ne salez jamais les champignons au début : le sel leur fait rendre leur eau et ils bouillent au lieu de dorer.',
+      derja: 'Ma tmalla7ch el champignon fel loul: el mel7 ykharrej ma-hom w yweliw ytayybou fel ma 3oudh ma y7ammrou.',
+      ar: 'لا تملّح الفطر في البداية لأن الملح يُخرج ماءه فيُسلق بدل أن يتحمّر.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_39_wrap_au_poulet_et_crudites',
+    slug: 'wrap-au-poulet-grille-et-crudites',
+    name_fr: 'Wrap au poulet grillé et crudités',
+    name_derja: 'Wrap bel djej mchwi w khodhra',
+    name_ar: 'راب بالدجاج المشوي والخضار',
+    description_fr:
+      "Des tortillas roulées autour de lanières de poulet mariné aux épices et grillé, de crudités croquantes et d'une sauce yaourt-citron à l'ail.",
+    description_derja:
+      'Tortilla mlaffa 3la chrayi7 djej mchermel bel 3atriya w mchwi, khodhra fraîche t9arma9 w sauce yaourt bel 9ares wel thoum.',
+    description_ar: 'تورتيلا ملفوفة حول أشرطة دجاج متبّل ومشوي مع خضار طازجة مقرمشة وصلصة اللبن بالليمون والثوم.',
+    image_url: '',
+    prep_time_minutes: 25,
+    cook_time_minutes: 12,
+    base_servings: 4,
+    estimated_cost_tnd: 15,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_tortilla', quantity_base: 4, unit: 'pièces', role: 'key', substitutes: ['ing_malsouka'] },
+      { ingredient_id: 'ing_poulet', quantity_base: 500, unit: 'g', role: 'key', substitutes: ['ing_thon_boite'] },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', role: 'secondary' },
+      { ingredient_id: 'ing_laitue', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_tomate', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_concombre', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_cumin', quantity_base: 0.5, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Coupez les blancs de poulet en lanières et mélangez-les avec l'huile, le paprika, le cumin, la moitié du jus de citron, sel et poivre. Laissez mariner au moins 15 minutes.",
+        instruction_derja:
+          '9os blanc el djej chrayi7 w khallthom m3a el zit, el felfel el 7lou, el kammoun, nos 3sir el 9ares, mel7 w filfel. Khallih yetchermel 15 d9i9a 3al a9al.',
+        instruction_ar:
+          'قطّع صدور الدجاج أشرطة واخلطها مع الزيت والفلفل الحلو والكمون ونصف عصير الليمون والملح والفلفل، واتركها تتبّل 15 دقيقة على الأقل.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Préparez la sauce : yaourt, ail râpé, le reste du jus de citron et une pincée de sel. Lavez et émincez la laitue, coupez tomates et concombre en fines tranches.',
+        instruction_derja:
+          '7adher el sauce: yaourt, thoum m7akkouk, ba9i 3sir el 9ares w chwaya mel7. Aghsel el salade w 9assha r9i9a, w 9os el tmatem wel fa99ous tranchet r9a9.',
+        instruction_ar:
+          'حضّر الصلصة من اللبن والثوم المبشور وباقي عصير الليمون ورشة ملح، ثم اغسل الخس وقطّعه رفيعاً وقطّع الطماطم والخيار شرائح رقيقة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Saisissez le poulet dans une poêle-gril bien chaude 6 à 8 minutes en le retournant, jusqu'à ce qu'il soit doré et cuit à cœur sans être sec.",
+        instruction_derja:
+          'Echwi el djej f poêle skhouna barcha 6 7atta 8 d9aye9 w 9allbou, 7atta y7ammer w ytayyeb men dakhel bla ma yochref.',
+        instruction_ar:
+          'اشوِ الدجاج في مقلاة شواء ساخنة جداً 6 إلى 8 دقائق مع التقليب حتى يتحمّر وينضج من الداخل دون أن يجف.',
+      },
+      {
+        step_number: 4,
+        instruction_fr: 'Réchauffez chaque tortilla 20 secondes par face dans une poêle sèche pour la rendre souple.',
+        instruction_derja:
+          'Sakhkhen kol tortilla 20 thanya kol jiha f poêle bla zit bech tweli rtiba w ma tetkassarch.',
+        instruction_ar: 'سخّن كل تورتيلا 20 ثانية لكل جهة في مقلاة دون زيت لتصبح لينة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Étalez 2 c.à.s de sauce au centre, ajoutez laitue, tomate, concombre et poulet, rabattez le bas puis roulez serré. Coupez en deux en biais et servez.',
+        instruction_derja:
+          'Ferrach zouz mgharef sauce fel woust, zid el salade, el tmatem, el fa99ous wel djej, tawwi el louta w laff b9wa. 9os el wrap 3la jouj bel mayel w kouluh.',
+        instruction_ar:
+          'افرد ملعقتين من الصلصة في الوسط، أضف الخس والطماطم والخيار والدجاج، اطوِ الطرف السفلي ثم لفّ بإحكام، واقسمه بشكل مائل وقدّمه.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Pour un wrap à emporter, mettez la laitue en premier contre la tortilla : elle fait barrière et empêche la sauce et la tomate de la détremper.',
+      derja:
+        'Ki t7eb thezz el wrap m3ak, 7ott el salade loul 7dha el tortilla: t7mi-ha w ma tkhallich el sauce wel tmatem ybalwouha.',
+      ar: 'إذا أردت حمل الراب معك ضع الخس أولاً ملاصقاً للتورتيلا، فهو يحميها من رطوبة الصلصة والطماطم.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_40_burger_maison_au_buf',
+    slug: 'burger-maison-au-boeuf-et-pain-brioche',
+    name_fr: 'Burger maison au bœuf et pain brioché',
+    name_derja: 'Burger dar bel la7m w khobz brioché',
+    name_ar: 'برغر منزلي باللحم وخبز البريوش',
+    description_fr:
+      'Un vrai burger de A à Z : petits pains briochés faits maison, steak haché juteux saisi à la poêle, cheddar fondu et garniture fraîche.',
+    description_derja:
+      'Burger 7a9 men el loul lel ekher: khobz brioché mta3 dar, steak la7m mfaroum fih el ma, m7ammer fel poêle, cheddar dheyeb w khodhra fraîche.',
+    description_ar:
+      'برغر حقيقي من البداية إلى النهاية: خبز بريوش منزلي وقطعة لحم مفروم عصيرية محمّرة في المقلاة مع جبن الشيدر الذائب وخضار طازجة.',
+    image_url: '',
+    prep_time_minutes: 100,
+    cook_time_minutes: 30,
+    base_servings: 4,
+    estimated_cost_tnd: 26,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      {
+        ingredient_id: 'ing_viande_hachee',
+        quantity_base: 500,
+        unit: 'g',
+        role: 'key',
+        substitutes: ['ing_poulet_hache'],
+      },
+      { ingredient_id: 'ing_farine', quantity_base: 400, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_levure', quantity_base: 1, unit: 'sachet', role: 'secondary' },
+      { ingredient_id: 'ing_lait', quantity_base: 200, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      {
+        ingredient_id: 'ing_cheddar',
+        quantity_base: 80,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_mozzarella'],
+      },
+      { ingredient_id: 'ing_tomate', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_laitue', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_oignon', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_moutarde', quantity_base: 2, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sucre', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 1, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Pains : mélangez farine, levure, sucre et 1 c.à.c de sel. Ajoutez le lait tiède, 1 œuf et 60 ml d'eau tiède, pétrissez 8 minutes puis incorporez le beurre mou et pétrissez encore 5 minutes jusqu'à ce que la pâte soit lisse et élastique.",
+        instruction_derja:
+          'Lel khobz: khallat el farina, el khmira, el sokkar w mgharfa sghira mel7. Zid el 7lib dafi, 3dhma w 60 ml ma dafi, 3ajjen 8 d9aye9 w ba3d zid el zebda rtiba w 3ajjen 5 d9aye9 okhrin 7atta tweli el 3jina nayma w tetmadd.',
+        instruction_ar:
+          'للخبز اخلط الطحين والخميرة والسكر وملعقة صغيرة ملح، أضف الحليب الدافئ وبيضة و60 مليلتر ماء دافئ واعجن 8 دقائق، ثم أدخل الزبدة الطرية واعجن 5 دقائق أخرى حتى يصبح العجين أملس ومرناً.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Laissez lever 1 heure au chaud. Divisez en 4 boules (8 pour des mini), aplatissez-les légèrement sur une plaque et laissez gonfler encore 30 minutes.',
+        instruction_derja:
+          'Khalliha tetkhammer sa3a f blasa skhouna. 9assamha 4 kwar, ratta7hom chwaya 3la plaque w khallihom ynfkhou nos sa3a okhra.',
+        instruction_ar:
+          'اتركه يتخمّر ساعة في مكان دافئ، ثم قسّمه إلى 4 كرات وافردها قليلاً على صينية واتركها تنتفخ نصف ساعة أخرى.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Dorez les pains à l'œuf battu et enfournez 15 minutes à 190 °C, jusqu'à ce qu'ils soient bien dorés et sonnent creux dessous. Laissez refroidir sur une grille.",
+        instruction_derja:
+          'Adhhen el khobz bel 3dhma madhrouba w 7ottou fel four 15 d9i9a 3la 190 daraja, 7atta y7ammer mli7 w ki tnokkrou men ta7t ysawwet fergh. Khallih yobred 3la grille.',
+        instruction_ar:
+          'ادهن الخبز بالبيض المخفوق واخبزه 15 دقيقة على 190 درجة حتى يتحمّر جيداً ويصدر صوتاً أجوف عند النقر على قاعه، ثم اتركه يبرد على شبكة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Divisez la viande en 4 boules sans trop la travailler, aplatissez en steaks de 1,5 cm un peu plus larges que les pains et creusez légèrement le centre avec le pouce. Salez et poivrez juste avant la cuisson.',
+        instruction_derja:
+          '9assam el la7m 4 kwar bla ma t3ajnou barcha, ratta7hom steaks 9ad sentim w nos, chwaya akbar mel khobz, w a3mel 7ofra sghira fel woust b sab3ek. Mallah w filfel 9bal el tayyib toul.',
+        instruction_ar:
+          'قسّم اللحم إلى 4 كرات دون عجنه كثيراً، وافردها أقراصاً بسمك سنتيمتر ونصف أعرض قليلاً من الخبز مع تجويف خفيف في الوسط، وملّحها مع الفلفل قبل الطهي مباشرة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Saisissez les steaks dans une poêle très chaude légèrement huilée 3 minutes, retournez, posez le cheddar et couvrez 2 à 3 minutes pour le faire fondre.',
+        instruction_derja:
+          '7ammar el steaks f poêle skhouna barcha b chwaya zit 3 d9aye9, 9allibhom, 7ott el cheddar fo9hom w ghatti 2 7atta 3 d9aye9 bech ydhoub.',
+        instruction_ar:
+          'حمّر الأقراص في مقلاة ساخنة جداً مدهونة قليلاً 3 دقائق، اقلبها وضع الشيدر فوقها وغطّها دقيقتين إلى ثلاث ليذوب.',
+      },
+      {
+        step_number: 6,
+        instruction_fr:
+          "Toastez les pains coupés côté mie, tartinez de moutarde et montez : laitue, steak au fromage, tomate et rondelles d'oignon.",
+        instruction_derja:
+          '7ammar el khobz ma9souma men jiha el lbab, adhhen bel moutarde w rakkeb: salade, steak bel fromage, tmatem w rondelles bsal.',
+        instruction_ar:
+          'حمّص الخبز المقسوم من جهة اللب، ادهنه بالخردل ثم ركّب البرغر: خس ثم قرص اللحم بالجبن ثم الطماطم وحلقات البصل.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le petit creux au centre du steak l'empêche de gonfler en boule à la cuisson. Et ne l'écrasez jamais avec la spatule : vous perdriez tout son jus.",
+      derja:
+        'El 7ofra sghira fel woust el steak tkhallih ma yentfekhch w yweli koura ki yetayyeb. W ma tedghtouch bel spatule abadan: yokhrej el ma lkol.',
+      ar: 'التجويف الصغير في وسط قرص اللحم يمنعه من الانتفاخ أثناء الطهي، ولا تضغطه أبداً بالملعقة المسطحة كي لا يفقد عصارته.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_41_fish_and_chips_au_four',
+    slug: 'fish-and-chips-au-four',
+    name_fr: 'Fish and chips au four',
+    name_derja: 'Fish and chips fel four',
+    name_ar: 'سمك وبطاطا مقرمشة بالفرن',
+    description_fr:
+      'Le classique britannique en version légère : filets de poisson panés et croustillants, frites rustiques rôties au four et sauce tartare au yaourt.',
+    description_derja:
+      'El makla el inglizia b version khfifa: filets 7out mpanés t9arma9, frites mta3 four w sauce tartare bel yaourt.',
+    description_ar:
+      'الطبق البريطاني الكلاسيكي في نسخة خفيفة: شرائح سمك مغلّفة بالبقسماط ومقرمشة، وبطاطا مشوية في الفرن وصلصة الترتار باللبن.',
+    image_url: '',
+    prep_time_minutes: 25,
+    cook_time_minutes: 40,
+    base_servings: 4,
+    estimated_cost_tnd: 19,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_poisson_frais', quantity_base: 600, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_pomme_de_terre', quantity_base: 1, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_pain_panure', quantity_base: 120, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 50, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_huile_olive', quantity_base: 4, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_paprika', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_yaourt', quantity_base: 1, unit: 'pot', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_capres', quantity_base: 1, unit: 'c.à.s', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_persil', quantity_base: 0.25, unit: 'botte', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Préchauffez le four à 220 °C. Coupez les pommes de terre avec la peau en gros bâtonnets, rincez-les et séchez-les soigneusement. Mélangez avec 3 c.à.s d'huile, le paprika et le sel.",
+        instruction_derja:
+          'Sakhkhen el four 3la 220 daraja. 9os el batata b 9chourha 3ouwed ghladh, aghsel-ha w nachcheffha mli7. Khallatha m3a 3 mgharef zit, el felfel el 7lou wel mel7.',
+        instruction_ar:
+          'سخّن الفرن على 220 درجة، قطّع البطاطا بقشرها أصابع غليظة واغسلها وجففها جيداً، ثم اخلطها مع 3 ملاعق زيت والفلفل الحلو والملح.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Étalez les frites en une seule couche sur une plaque recouverte de papier cuisson et enfournez 20 minutes.',
+        instruction_derja:
+          'Ferrach el frites 3la plaque fiha papier cuisson, couche wa7da bla ma yerkbou 3la ba3dhhom, w 7ottha fel four 20 d9i9a.',
+        instruction_ar: 'افرد البطاطا طبقة واحدة على صينية مغطاة بورق الخبز وأدخلها الفرن 20 دقيقة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Pendant ce temps, coupez le poisson (loup, merlan ou daurade en filets sans arêtes) en 8 morceaux, séchez-les, salez. Passez chaque morceau dans la farine, puis l'œuf battu, puis la chapelure en appuyant bien.",
+        instruction_derja:
+          'Fel wa9t hedha, 9os el 7out (filets loup, merlan walla dourada bla chouk) 8 9at3at, nachchef-hom w mallah. 3addi kol 9at3a fel farina, ba3d fel 3dham madhroub, ba3d fel chapelure w edghot 3liha mli7.',
+        instruction_ar:
+          'خلال ذلك قطّع السمك (شرائح قاروص أو ميرلان أو دنيس دون شوك) إلى 8 قطع، جففها وملّحها، ومرّر كل قطعة في الطحين ثم البيض المخفوق ثم البقسماط مع الضغط جيداً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Retournez les frites, posez le poisson sur une seconde plaque, arrosez d'un filet d'huile et enfournez le tout 15 à 18 minutes : la panure doit être dorée et le poisson se détacher en lamelles nacrées.",
+        instruction_derja:
+          '9allib el frites, 7ott el 7out 3la plaque okhra, rach 3lih chwaya zit w 7ott kollech fel four 15 7atta 18 d9i9a: el chapelure lazem t7ammer wel 7out yetfarrak wra9 abyadh.',
+        instruction_ar:
+          'اقلب البطاطا وضع السمك على صينية ثانية مع رشة زيت، وأدخل الكل الفرن 15 إلى 18 دقيقة حتى يتحمّر البقسماط وينفصل السمك رقائق بيضاء لامعة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Pour la sauce tartare express, mélangez le yaourt avec les câpres hachées, le persil, un trait de citron et du poivre. Servez bien chaud avec des quartiers de citron.',
+        instruction_derja:
+          'Lel sauce tartare express, khallat el yaourt m3a el capres mrayychin, el ma3dnous, chwaya 9ares w filfel. Kouluh skhoun m3a 9at3at 9ares.',
+        instruction_ar:
+          'لصلصة الترتار السريعة اخلط اللبن مع الكبر المفروم والبقدونس وقليل من الليمون والفلفل، وقدّم الطبق ساخناً مع قطع الليمون.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Faites griller la chapelure à sec 2 minutes dans une poêle avant de paner : le poisson sort du four doré et croustillant sans avoir besoin de friture.',
+      derja:
+        '7ammar el chapelure 2 d9aye9 f poêle bla zit 9bal ma tpaniy: el 7out yokhrej mel four m7ammer w y9arma9 bla ma t9lih.',
+      ar: 'حمّص البقسماط دقيقتين في مقلاة دون زيت قبل التغليف، فيخرج السمك من الفرن ذهبياً ومقرمشاً دون قلي.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_42_pancakes_moelleux',
+    slug: 'pancakes-moelleux',
+    name_fr: 'Pancakes moelleux',
+    name_derja: 'Pancakes ykhoufou',
+    name_ar: 'بان كيك هش',
+    description_fr:
+      "De gros pancakes épais et aériens à l'américaine, grâce aux blancs montés en neige, à napper de miel pour le petit-déjeuner ou le goûter.",
+    description_derja:
+      'Pancakes kbar w khfaf 3al tari9a el amrikaniya, bel abyadh mta3 el 3dham madhroub neige, tetkla bel 3sal fel ftour walla fel 9ahwa.',
+    description_ar: 'فطائر أمريكية سميكة وهشة بفضل بياض البيض المخفوق، تُغطى بالعسل للفطور أو اللمجة.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 20,
+    base_servings: 4,
+    estimated_cost_tnd: 5.5,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_farine', quantity_base: 250, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_lait', quantity_base: 300, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 40, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      {
+        ingredient_id: 'ing_miel',
+        quantity_base: 3,
+        unit: 'c.à.s',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_rob_tmar'],
+      },
+      {
+        ingredient_id: 'ing_fraise',
+        quantity_base: 150,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_banane'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr: 'Faites fondre le beurre et laissez-le tiédir. Séparez les blancs des jaunes.',
+        instruction_derja: 'Dawweb el zebda w khalliha tbarred chwaya. Farre9 el abyadh 3al asfer.',
+        instruction_ar: 'ذوّب الزبدة واتركها تفتر، وافصل البياض عن الصفار.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans un saladier, fouettez les jaunes avec le sucre, le lait et le beurre fondu. Ajoutez la farine en pluie en fouettant jusqu'à obtenir une pâte épaisse et sans grumeaux.",
+        instruction_derja:
+          'F zlafa kbira, odhrob el asfer m3a el sokkar, el 7lib wel zebda mdawba. Zid el farina chwaya b chwaya w enti todhrob 7atta tweli 3jina ghlidha bla kwiwrat.',
+        instruction_ar:
+          'في وعاء كبير اخفق الصفار مع السكر والحليب والزبدة الذائبة، ثم أضف الطحين تدريجياً مع الخفق حتى تحصل على عجينة كثيفة دون كتل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Montez les blancs en neige ferme avec la pincée de sel, puis incorporez-les délicatement à la pâte en soulevant à la spatule, sans les casser.',
+        instruction_derja:
+          'Odhrob el abyadh neige 9wiya m3a chwaya mel7, w ba3d dakhalhom lel 3jina bechwaya bel spatule men louta lel fou9, bla ma tkassarhom.',
+        instruction_ar:
+          'اخفق البياض مع رشة الملح حتى يتماسك بقوة، ثم أدخله في العجينة بلطف بالملعقة المسطحة من الأسفل إلى الأعلى دون كسره.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Chauffez une poêle antiadhésive à feu moyen-doux, graissez-la légèrement et versez une petite louche de pâte. Retournez quand des bulles éclatent à la surface (environ 2 minutes), puis cuisez 1 minute de l'autre côté.",
+        instruction_derja:
+          'Sakhkhen poêle antiadhésive 3la nar tay7a, adhhenha chwaya w sob mgharfa kbira sghira 3jina. 9allibha ki tbda el fa9a3at tet9a33 fel woujh (9rib 2 d9aye9), w tayyeb el jiha el okhra d9i9a.',
+        instruction_ar:
+          'سخّن مقلاة غير لاصقة على نار متوسطة إلى هادئة، ادهنها قليلاً واسكب مغرفة صغيرة من العجين، واقلبها عندما تنفجر الفقاعات على السطح بعد دقيقتين تقريباً، ثم اطبخ الجهة الأخرى دقيقة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Empilez les pancakes au chaud sous un torchon et servez nappés de miel avec des fraises.',
+        instruction_derja:
+          'Rakkeb el pancakes fo9 ba3dhhom w ghatthom b fouta bech yob9aw skhounin, w kouluhom bel 3sal wel fraise.',
+        instruction_ar: 'رصّ الفطائر فوق بعضها تحت منشفة لتبقى ساخنة، وقدّمها مع العسل والفراولة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le feu trop fort est l'ennemi : le dessus brûle avant que le cœur ne cuise. Sacrifiez le premier pancake pour régler la température.",
+      derja:
+        'El nar el 9wiya hiya el 3dou: el woujh yet79 9bal ma ytayyeb el woust. Awwel pancake khallih lel tajriba bech t3addel el nar.',
+      ar: 'النار القوية عدوّ الفطائر، إذ يحترق السطح قبل أن ينضج الوسط، فاجعل الفطيرة الأولى للتجربة لضبط الحرارة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_43_crepes_sucrees',
+    slug: 'crepes-sucrees',
+    name_fr: 'Crêpes sucrées',
+    name_derja: 'Crêpes 7lowin',
+    name_ar: 'كريب حلو',
+    description_fr:
+      "Des crêpes fines et souples à la française, légèrement parfumées à la fleur d'oranger, à garnir de sucre, de miel ou de chocolat fondu.",
+    description_derja:
+      'Crêpes r9a9 w rtab 3al tari9a el fransawiya, fihom chwaya ri7et ma zhar, tetkla bel sokkar, bel 3sal walla bel chocolat mdawweb.',
+    description_ar:
+      'كريب رقيق ولين على الطريقة الفرنسية معطّر قليلاً بماء الزهر، يُحشى بالسكر أو العسل أو الشوكولاتة الذائبة.',
+    image_url: '',
+    prep_time_minutes: 40,
+    cook_time_minutes: 30,
+    base_servings: 4,
+    estimated_cost_tnd: 4.5,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_farine', quantity_base: 250, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_lait', quantity_base: 500, unit: 'ml', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 30, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 2, unit: 'c.à.s', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_fleur_oranger', quantity_base: 1, unit: 'c.à.s', is_optional: true, role: 'staple' },
+      {
+        ingredient_id: 'ing_chocolat',
+        quantity_base: 50,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_miel'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Mettez la farine, le sucre et le sel dans un saladier, creusez un puits et cassez-y les œufs. Fouettez en incorporant petit à petit la moitié du lait jusqu'à obtenir une pâte épaisse et lisse.",
+        instruction_derja:
+          '7ott el farina, el sokkar wel mel7 f zlafa, a3mel 7ofra fel woust w kassar fiha el 3dham. Odhrob w zid nos el 7lib chwaya b chwaya 7atta tweli 3jina ghlidha w nayma.',
+        instruction_ar:
+          'ضع الطحين والسكر والملح في وعاء، اصنع حفرة في الوسط واكسر فيها البيض، ثم اخفق مع إضافة نصف الحليب تدريجياً حتى تحصل على عجينة كثيفة وناعمة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Versez le reste du lait, le beurre fondu et la fleur d'oranger : la pâte doit avoir la consistance d'une crème liquide. Laissez reposer 30 minutes à température ambiante.",
+        instruction_derja:
+          'Sob ba9i el 7lib, el zebda mdawba w ma el zhar: el 3jina lazem tkoun kima krima sayla. Khalliha tertah nos sa3a.',
+        instruction_ar:
+          'اسكب باقي الحليب والزبدة الذائبة وماء الزهر حتى يصبح قوام العجينة مثل الكريمة السائلة، واتركها ترتاح نصف ساعة في حرارة الغرفة.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Chauffez une poêle à crêpes, graissez-la avec un papier imbibé de beurre. Versez une petite louche de pâte en inclinant la poêle pour couvrir tout le fond en couche fine.',
+        instruction_derja:
+          'Sakhkhen poêle el crêpes w adhhenha b papier fih zebda. Sob mgharfa kbira sghira 3jina w mayyel el poêle bech tghatti el 9a3a lkol b couche r9i9a.',
+        instruction_ar:
+          'سخّن مقلاة الكريب وادهنها بورق مبلل بالزبدة، اسكب مغرفة صغيرة من العجين وأمِل المقلاة لتغطي القاع كله بطبقة رقيقة.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Quand les bords se décollent et dorent (environ 1 minute), retournez la crêpe et cuisez 30 secondes. Empilez-les sur une assiette.',
+        instruction_derja:
+          'Ki yebdew el jnab yetna77aw w y7ammrou (9rib d9i9a), 9allib el crêpe w tayyebha 30 thanya. Rakkebhom fo9 ba3dhhom f sa7fa.',
+        instruction_ar:
+          'عندما تنفصل الأطراف وتتحمّر بعد دقيقة تقريباً اقلب الكريب واطبخه 30 ثانية، ثم رصّها فوق بعضها في صحن.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Garnissez au choix de sucre, de miel ou de chocolat fondu, pliez en quatre et servez tiède.',
+        instruction_derja:
+          '7ott fiha kima t7eb sokkar, 3sal walla chocolat mdawweb, tawwiha 3la arb3a w kouluha dafya.',
+        instruction_ar: 'احشها حسب الرغبة بالسكر أو العسل أو الشوكولاتة الذائبة، واطوها إلى أربع وقدّمها دافئة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le repos de la pâte n'est pas facultatif : il détend le gluten et donne des crêpes souples qui ne se déchirent pas. La première crêpe sert toujours de test, ne vous découragez pas.",
+      derja:
+        'Raht el 3jina mouch zeyda: trattab el farina w ta3tik crêpes rtab ma yetgatt3ouch. W awwel crêpe dima tkharej khayba, ma tetkalla9ch.',
+      ar: 'راحة العجينة ليست اختيارية، فهي تُرخي الغلوتين وتعطي كريب ليناً لا يتمزق، والكريب الأول للتجربة دائماً فلا تيأس.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_44_tiramisu_classique',
+    slug: 'tiramisu-classique',
+    name_fr: 'Tiramisu classique',
+    name_derja: 'Tiramisu',
+    name_ar: 'تيراميسو',
+    description_fr:
+      'Le dessert italien culte : des biscuits imbibés de café fort, une crème légère et onctueuse, et un voile de cacao amer, à préparer la veille.',
+    description_derja:
+      'El ma7lia el taliana el mechhoura: biscuit mchroub bel 9ahwa, krima khfifa w nayma, w fo9ha cacao mor, t7addherha mel bera7.',
+    description_ar:
+      'الحلوى الإيطالية الشهيرة: بسكويت مشبع بالقهوة القوية وكريمة خفيفة وناعمة وطبقة من الكاكاو المر، تُحضّر من اليوم السابق.',
+    image_url: '',
+    prep_time_minutes: 45,
+    cook_time_minutes: 12,
+    base_servings: 4,
+    estimated_cost_tnd: 13.3,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_ricotta', quantity_base: 2, unit: 'pots', role: 'key' },
+      { ingredient_id: 'ing_cacao', quantity_base: 2, unit: 'c.à.s', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 5, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_creme', quantity_base: 200, unit: 'ml', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 90, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 150, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_cafe', quantity_base: 2, unit: 'c.à.s', role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Biscuits : fouettez 3 œufs avec 90 g de sucre pendant 8 minutes jusqu'à ce que le mélange blanchisse, triple de volume et forme un ruban. Incorporez la farine tamisée à la spatule, sans faire retomber.",
+        instruction_derja:
+          'Lel biscuit: odhrob 3 3dhmat m3a 90 g sokkar 8 d9aye9 7atta yebyedh, yetla3 thletha marat 9addou w yweli yenzel kima chrit. Dakhal el farina mghorbla bel spatule bechwaya bla ma ytey7.',
+        instruction_ar:
+          'للبسكويت اخفق 3 بيضات مع 90 غراماً من السكر 8 دقائق حتى يبيضّ الخليط ويتضاعف ثلاث مرات وينساب كالشريط، ثم أدخل الطحين المنخول بالملعقة المسطحة بلطف.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Avec une poche ou une cuillère, formez des bâtonnets de 10 cm sur une plaque couverte de papier cuisson. Enfournez 10 à 12 minutes à 180 °C : ils doivent être blonds et secs au toucher. Laissez refroidir.',
+        instruction_derja:
+          'B poche walla b mgharfa, a3mel 3ouwed 9ad 10 sentim 3la plaque fiha papier cuisson. 7ottha fel four 10 7atta 12 d9i9a 3la 180 daraja: lazem ykounou safrin w yebsin ki tmesshom. Khallihom yobrdou.',
+        instruction_ar:
+          'بكيس حلواني أو بملعقة شكّل أصابع بطول 10 سنتيمترات على صينية مغطاة بورق الخبز، واخبزها 10 إلى 12 دقيقة على 180 درجة حتى تصبح شقراء وجافة الملمس، ثم اتركها تبرد.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Crème : fouettez 2 jaunes avec 60 g de sucre jusqu'à ce qu'ils blanchissent, puis ajoutez la ricotta bien égouttée et lissez. Montez la crème fraîche très froide en chantilly et incorporez-la délicatement.",
+        instruction_derja:
+          'Lel krima: odhrob zouz sfour m3a 60 g sokkar 7atta yebydhou, zid el ricotta mtsaffya mli7 w khaddemha 7atta tweli nayma. Odhrob el crème fraîche barda barcha chantilly w dakhalha bechwaya.',
+        instruction_ar:
+          'للكريمة اخفق صفارين مع 60 غراماً من السكر حتى يبيضّا، أضف الريكوتا المصفاة جيداً واخلط حتى تصبح ناعمة، ثم اخفق القشدة الباردة جداً حتى تصبح شانتيي وأدخلها بلطف.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Préparez 300 ml de café très fort, sucré à votre goût et refroidi. Trempez rapidement chaque biscuit (1 seconde par face) et tapissez le fond d'un plat.",
+        instruction_derja:
+          '7adher 300 ml 9ahwa 9wiya barcha, b sokkar 3la ka3dek w barda. Ghattas kol biscuit bel fesse5 (thanya kol jiha) w ferrach-hom f 9a3 el plat.',
+        instruction_ar:
+          'حضّر 300 مليلتر من القهوة القوية جداً محلاة حسب الذوق ومبرّدة، اغمس كل بسكويتة بسرعة لثانية في كل جهة وافرشها في قاع الطبق.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Couvrez de la moitié de la crème, refaites une couche de biscuits imbibés puis le reste de crème. Lissez, filmez et laissez prendre au réfrigérateur au moins 6 heures, idéalement une nuit.',
+        instruction_derja:
+          'Ghatti b nos el krima, 3awed couche biscuit mchroub w ba3d el krima elli 9a3det. Saw-wi el woujh, ghatti bel film w khalli fel frigo 6 swaye3 3al a9al, w el a7sen lila kamla.',
+        instruction_ar:
+          'غطِّ بنصف الكريمة، ثم ضع طبقة ثانية من البسكويت المشبع وباقي الكريمة، سوِّ السطح وغطّه واتركه في الثلاجة 6 ساعات على الأقل ويُفضّل ليلة كاملة.',
+      },
+      {
+        step_number: 6,
+        instruction_fr: 'Au moment de servir, saupoudrez généreusement de cacao à travers une petite passoire.',
+        instruction_derja: 'Ki bech tsob, rach barcha cacao b ghorbal sghir.',
+        instruction_ar: 'عند التقديم رشّ الكاكاو بسخاء من خلال مصفاة صغيرة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le mascarpone est cher et rare ici : la ricotta (sicilien) bien égouttée une heure dans un torchon, allégée de chantilly, donne une crème presque identique. Ne saupoudrez le cacao qu'au dernier moment, sinon il prend l'humidité.",
+      derja:
+        'El mascarpone ghali w ma tal9ahch dima: el ricotta (sicilien) tsaffiha sa3a f fouta w tkhaffefha bel chantilly, ta3tik krima 9riba barcha. W ma terrachech el cacao ken fel ekher, sinon yechrob el rtouba.',
+      ar: 'الماسكاربوني غالٍ ونادر، والريكوتا المصفاة ساعة في منشفة والمخففة بالشانتيي تعطي كريمة قريبة جداً، ولا ترشّ الكاكاو إلا في آخر لحظة كي لا يمتص الرطوبة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_45_mousse_au_chocolat',
+    slug: 'mousse-au-chocolat',
+    name_fr: 'Mousse au chocolat',
+    name_derja: 'Mousse chocolat',
+    name_ar: 'موس الشوكولاتة',
+    description_fr:
+      "La mousse de grand-mère française : du chocolat noir fondu, des œufs et rien d'autre ou presque, pour une texture aérienne et un goût intense.",
+    description_derja:
+      'Mousse mta3 jadda fransawiya: chocolat ak7el mdawweb w 3dham w taw ma fama chay ekher, khfifa kima el s7ab w ta3mha 9wi.',
+    description_ar: 'موس الجدّة الفرنسية: شوكولاتة داكنة ذائبة وبيض تقريباً لا غير، بقوام هوائي ونكهة قوية.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 5,
+    base_servings: 4,
+    estimated_cost_tnd: 10,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'moyen',
+    ingredients: [
+      { ingredient_id: 'ing_chocolat', quantity_base: 200, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 6, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 20, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 40, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      { ingredient_id: 'ing_fruits_secs', quantity_base: 30, unit: 'g', is_optional: true, role: 'secondary' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Faites fondre le chocolat cassé en morceaux avec le beurre au bain-marie, sans que l'eau touche le bol. Lissez et laissez tiédir 5 minutes.",
+        instruction_derja:
+          'Dawweb el chocolat mkassar m3a el zebda bain-marie, bla ma yemess el ma el zlafa. Khaddmou 7atta yweli nayem w khallih ybarred 5 d9aye9.',
+        instruction_ar:
+          'ذوّب الشوكولاتة المكسّرة مع الزبدة في حمام مائي دون أن يلمس الماء الوعاء، حرّكها حتى تصبح ناعمة واتركها تفتر 5 دقائق.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Séparez les œufs. Incorporez les jaunes un à un dans le chocolat tiède en mélangeant vivement : le mélange doit rester brillant.',
+        instruction_derja:
+          'Farre9 el 3dham. Zid el sfour wa7ed wa7ed lel chocolat el dafi w khallat bel fesse5: lazem yob9a yelma3.',
+        instruction_ar:
+          'افصل البيض وأضف الصفار واحداً تلو الآخر إلى الشوكولاتة الدافئة مع الخلط السريع حتى يبقى الخليط لامعاً.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Montez les blancs avec la pincée de sel. Quand ils deviennent mousseux, ajoutez le sucre en pluie et continuez jusqu'à des pics souples et brillants (pas trop fermes).",
+        instruction_derja:
+          'Odhrob el abyadh m3a chwaya mel7. Ki yebda yrogh, zid el sokkar chwaya b chwaya w kammel 7atta ywalli neige yelma3 w rtib chwaya (mouch 9wi barcha).',
+        instruction_ar:
+          'اخفق البياض مع رشة الملح، وعندما يصبح رغوياً أضف السكر تدريجياً وواصل حتى يتكوّن ثلج لامع لين القمم دون أن يكون صلباً جداً.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Mélangez vivement un tiers des blancs au chocolat pour l'assouplir, puis incorporez le reste très délicatement à la spatule en soulevant, jusqu'à ce qu'il n'y ait plus de traces blanches.",
+        instruction_derja:
+          'Khallat tholth el abyadh m3a el chocolat bel 9wa bech yrattbou, w ba3d dakhal el ba9i bechwaya barcha bel spatule men louta lel fou9, 7atta ma yob9ach 7atta khat abyadh.',
+        instruction_ar:
+          'اخلط ثلث البياض بقوة مع الشوكولاتة لتليينها، ثم أدخل الباقي بلطف شديد بالملعقة المسطحة من الأسفل إلى الأعلى حتى تختفي الخطوط البيضاء.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Répartissez dans des verrines et laissez prendre au réfrigérateur au moins 4 heures. Décorez de fruits secs concassés au moment de servir.',
+        instruction_derja:
+          '9assamha f verrines w khalliha fel frigo 4 swaye3 3al a9al bech tchedd. Zayyenha bel fakia mrayycha ki bech tsob.',
+        instruction_ar:
+          'وزّعها في كؤوس صغيرة واتركها في الثلاجة 4 ساعات على الأقل حتى تتماسك، وزيّنها بالمكسرات المجروشة عند التقديم.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Utilisez des œufs très frais et un chocolat à au moins 50 % de cacao. Si le chocolat est trop chaud, il cuit les jaunes ; trop froid, il fait des grains au contact des blancs.',
+      derja:
+        'Esta3mel 3dham jdod barcha w chocolat fih 50 bel mia cacao 3al a9al. Ki ykoun el chocolat skhoun barcha ytayyeb el sfour, w ki ykoun bered yweli 7abb 7abb ki yet9abel m3a el abyadh.',
+      ar: 'استعمل بيضاً طازجاً جداً وشوكولاتة بنسبة كاكاو خمسين بالمئة على الأقل، فالشوكولاتة الساخنة جداً تطبخ الصفار والباردة جداً تتحبّب عند لقاء البياض.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_46_crumble_aux_pommes',
+    slug: 'crumble-aux-pommes-et-noix',
+    name_fr: 'Crumble aux pommes et noix',
+    name_derja: 'Crumble bel toffe7 wel jouz',
+    name_ar: 'كرامبل التفاح والجوز',
+    description_fr:
+      'Des pommes fondantes à la cannelle sous une couche dorée et croustillante de pâte sablée émiettée aux noix, à servir tiède.',
+    description_derja:
+      'Toffe7 ydoub bel 9erfa, w fo9ou couche m7ammra t9arma9 mel 3jina mfarkssa bel jouz, yetkla dafi.',
+    description_ar: 'تفاح طري بالقرفة تحت طبقة ذهبية مقرمشة من العجين المفتّت بالجوز، يُقدّم دافئاً.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 35,
+    base_servings: 4,
+    estimated_cost_tnd: 12,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_pomme', quantity_base: 1, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_beurre', quantity_base: 100, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 150, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 120, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_cannelle', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_citron', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      {
+        ingredient_id: 'ing_noix',
+        quantity_base: 60,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_amandes'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Préchauffez le four à 190 °C. Épluchez les pommes, coupez-les en cubes de 2 cm et mélangez-les avec le jus du demi-citron, 40 g de sucre et la cannelle. Étalez-les dans un plat beurré.',
+        instruction_derja:
+          'Sakhkhen el four 3la 190 daraja. 9echcher el toffe7, 9assou mka3bet 9ad 2 sentim w khallthom m3a 3sir nos 9ares, 40 g sokkar wel 9erfa. Ferrach-hom f plat madhoun bel zebda.',
+        instruction_ar:
+          'سخّن الفرن على 190 درجة، قشّر التفاح وقطّعه مكعبات بحجم سنتيمترين واخلطه مع عصير نصف ليمونة و40 غراماً من السكر والقرفة، ثم افرده في طبق مدهون بالزبدة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Dans un saladier, mélangez la farine et 80 g de sucre, puis ajoutez le beurre bien froid coupé en dés. Frottez du bout des doigts jusqu'à obtenir un sable grossier avec quelques grumeaux.",
+        instruction_derja:
+          'F zlafa, khallat el farina w 80 g sokkar, w zid el zebda barda barcha m9atta3a dés. Farkess b ras sba3ek 7atta tweli kima ramla ghlidha fiha chwaya kwiwrat.',
+        instruction_ar:
+          'في وعاء اخلط الطحين و80 غراماً من السكر، ثم أضف الزبدة الباردة جداً مقطعة مكعبات وافركها بأطراف الأصابع حتى تحصل على رمل خشن مع بعض الكتل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr: 'Ajoutez les noix grossièrement concassées et parsemez cette pâte sur les pommes, sans tasser.',
+        instruction_derja: 'Zid el jouz mrayyech ghlidh w rach el 3jina 3la el toffe7 bla ma tedghtha.',
+        instruction_ar: 'أضف الجوز المجروش جرشاً خشناً ووزّع العجين المفتّت على التفاح دون ضغطه.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Enfournez 30 à 35 minutes, jusqu'à ce que le dessus soit bien doré et que le jus des pommes bouillonne sur les bords. Laissez tiédir 10 minutes avant de servir.",
+        instruction_derja:
+          '7ottou fel four 30 7atta 35 d9i9a, 7atta y7ammer el woujh mli7 w ma el toffe7 yebda yfour 3al jnab. Khallih ybarred 10 d9aye9 9bal ma tsobou.',
+        instruction_ar:
+          'اخبزه 30 إلى 35 دقيقة حتى يتحمّر السطح جيداً ويبدأ عصير التفاح بالغليان على الأطراف، واتركه يفتر 10 دقائق قبل التقديم.',
+      },
+    ],
+    chef_tip: {
+      fr: "Le beurre doit sortir du réfrigérateur au dernier moment : s'il ramollit, vous obtenez une pâte compacte au lieu de miettes croustillantes. Servi avec un yaourt nature bien froid, c'est parfait.",
+      derja:
+        'El zebda lazem tokhrej mel frigo fel ekher: ki trattab, tweli 3jina 9a7la 3oudh ma tkoun ferkass y9arma9. W ki tkoulou m3a yaourt bered, yji behi barcha.',
+      ar: 'أخرج الزبدة من الثلاجة في آخر لحظة، فإذا لانت حصلت على عجين متماسك بدل الفتات المقرمش، ويُقدّم بشكل رائع مع لبن بارد.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_47_banana_bread',
+    slug: 'banana-bread',
+    name_fr: 'Banana bread',
+    name_derja: 'Cake bel banane',
+    name_ar: 'كعكة الموز',
+    description_fr:
+      'Le cake américain qui sauve les bananes trop mûres : une mie dense et moelleuse, parfumée à la cannelle, avec des noix croquantes.',
+    description_derja:
+      'El cake el amrikani elli ynajji el banane elli tayba barcha: lbab mtakkel w rtib, fih ri7et el 9erfa w jouz y9arma9.',
+    description_ar: 'الكعكة الأمريكية التي تنقذ الموز الناضج جداً: لب كثيف وطري معطّر بالقرفة مع الجوز المقرمش.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 55,
+    base_servings: 4,
+    estimated_cost_tnd: 10,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_banane', quantity_base: 3, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_farine', quantity_base: 220, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 100, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 120, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_cannelle', quantity_base: 1, unit: 'c.à.c', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      {
+        ingredient_id: 'ing_noix',
+        quantity_base: 60,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_fruits_secs'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          'Préchauffez le four à 175 °C et beurrez un moule à cake. Écrasez les bananes à la fourchette en purée presque lisse. Faites fondre le beurre.',
+        instruction_derja:
+          'Sakhkhen el four 3la 175 daraja w adhhen moule cake bel zebda. Farkess el banane bel fourchette 7atta tweli pirée 9riba lel nayma. Dawweb el zebda.',
+        instruction_ar:
+          'سخّن الفرن على 175 درجة وادهن قالب كعك بالزبدة، اهرس الموز بالشوكة حتى يصبح هريساً شبه ناعم، وذوّب الزبدة.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Fouettez les œufs avec le sucre 5 minutes au batteur, jusqu'à ce que le mélange soit pâle et mousseux : c'est lui qui fera lever le cake. Ajoutez le beurre fondu tiède et la purée de bananes.",
+        instruction_derja:
+          'Odhrob el 3dham m3a el sokkar 5 d9aye9 bel batteur 7atta yebyedh w yrogh: hedha elli ykhalli el cake yetla3. Zid el zebda mdawba dafya w pirée el banane.',
+        instruction_ar:
+          'اخفق البيض مع السكر 5 دقائق بالخفاقة الكهربائية حتى يصبح الخليط فاتحاً ورغوياً فهو الذي يرفع الكعكة، ثم أضف الزبدة الذائبة الدافئة وهريس الموز.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Incorporez la farine, la cannelle et le sel à la spatule, sans trop mélanger : arrêtez dès qu'il n'y a plus de farine visible. Ajoutez les noix concassées.",
+        instruction_derja:
+          'Dakhal el farina, el 9erfa wel mel7 bel spatule bla ma tkhallat barcha: 7ebs ki ma tetbanech el farina. Zid el jouz mrayyech.',
+        instruction_ar:
+          'أدخل الطحين والقرفة والملح بالملعقة المسطحة دون إفراط في الخلط، وتوقف بمجرد اختفاء الطحين، ثم أضف الجوز المجروش.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Versez dans le moule et enfournez 50 à 55 minutes. Le cake est cuit quand une lame plantée au centre ressort sèche ; couvrez d'aluminium s'il dore trop vite.",
+        instruction_derja:
+          'Sob fel moule w 7ottou fel four 50 7atta 55 d9i9a. Yabda tayeb ki tghazzou b sekkina fel woust w tokhrej nadhifa; ghattih b papier aluminium ki y7ammer bel fesse5.',
+        instruction_ar:
+          'اسكب الخليط في القالب واخبزه 50 إلى 55 دقيقة، ويكون جاهزاً عندما تخرج سكين مغروسة في الوسط نظيفة، وغطّه بورق الألمنيوم إن تحمّر بسرعة.',
+      },
+      {
+        step_number: 5,
+        instruction_fr:
+          'Laissez refroidir 15 minutes dans le moule puis démoulez sur une grille. Il est encore meilleur le lendemain.',
+        instruction_derja: 'Khallih ybarred 15 d9i9a fel moule w ba3d 9allbou 3la grille. Ghodwa yweli ab7a.',
+        instruction_ar: 'اتركه يبرد 15 دقيقة في القالب ثم اقلبه على شبكة، ويكون ألذّ في اليوم التالي.',
+      },
+    ],
+    chef_tip: {
+      fr: 'Plus les bananes sont noires, plus le cake est sucré et parfumé. Si vous avez un sachet de levure chimique, ajoutez-le avec la farine pour une mie plus légère.',
+      derja:
+        'Kol ma el banane tkoun ka7la akthar, kol ma el cake ykoun a7la w fay7. W ki 3andek sachet levure chimique, zidou m3a el farina bech yji el lbab akhaf.',
+      ar: 'كلما كان الموز أسود أكثر كانت الكعكة أحلى وأعطر، وإن توفر لديك كيس خميرة كيميائية فأضفه مع الطحين للحصول على لب أخف.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_48_salade_de_fruits_frais',
+    slug: 'salade-de-fruits-frais-a-l-orange',
+    name_fr: "Salade de fruits frais à l'orange",
+    name_derja: 'Slatet ghalla bel bordgen',
+    name_ar: 'سلطة فواكه طازجة بالبرتقال',
+    description_fr:
+      "Un mélange de fruits de saison coupés minute, baigné dans un jus d'orange au miel et à la fleur d'oranger, frais et léger.",
+    description_derja:
+      'Ghalla mta3 el wa9t m9att3a fel wa9t, mghatssa f 3sir bordgen bel 3sal w ma el zhar, berda w khfifa.',
+    description_ar: 'مزيج من فواكه الموسم المقطعة في الحين، مغمورة في عصير البرتقال بالعسل وماء الزهر، منعشة وخفيفة.',
+    image_url: '',
+    prep_time_minutes: 20,
+    cook_time_minutes: 0,
+    base_servings: 4,
+    estimated_cost_tnd: 9,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_orange', quantity_base: 4, unit: 'pièces', role: 'key' },
+      { ingredient_id: 'ing_fraise', quantity_base: 250, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_pomme', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_banane', quantity_base: 2, unit: 'pièces', role: 'secondary' },
+      { ingredient_id: 'ing_citron', quantity_base: 0.5, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_miel', quantity_base: 2, unit: 'c.à.s', role: 'staple', substitutes: ['ing_sucre'] },
+      { ingredient_id: 'ing_fleur_oranger', quantity_base: 1, unit: 'c.à.c', is_optional: true, role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Pressez 2 oranges et mélangez le jus avec le miel, le jus du demi-citron et la fleur d'oranger jusqu'à ce que le miel soit dissous.",
+        instruction_derja:
+          'A3sor zouz bordgenat w khallat el 3sir m3a el 3sal, 3sir nos 9ares w ma el zhar 7atta ydhoub el 3sal.',
+        instruction_ar: 'اعصر برتقالتين واخلط العصير مع العسل وعصير نصف ليمونة وماء الزهر حتى يذوب العسل.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Pelez à vif les 2 autres oranges au couteau en retirant toute la peau blanche, puis prélevez les suprêmes entre les membranes au-dessus du saladier pour récupérer le jus.',
+        instruction_derja:
+          '9echcher el zouz bordgenat lokhrin bel sekkina w na77i el jeld el abyadh lkol, w ba3d 9os el chrayi7 bin el ghcha fo9 el zlafa bech ma yodhya3ch el 3sir.',
+        instruction_ar:
+          'قشّر البرتقالتين الأخريين بالسكين مع إزالة كل الجلد الأبيض، ثم استخرج الفصوص من بين الأغشية فوق الوعاء لجمع العصير.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Coupez les fraises équeutées en quatre, les pommes non pelées en petits dés et les bananes en rondelles. Mettez les pommes et les bananes directement dans le jus pour qu'elles ne noircissent pas.",
+        instruction_derja:
+          '9os el fraise ba3d ma tna77i el 3rou9 3la arb3a, el toffe7 b 9chourou dés sghar wel banane rondelles. 7ott el toffe7 wel banane toul fel 3sir bech ma yesswedouch.',
+        instruction_ar:
+          'قطّع الفراولة بعد نزع أعناقها إلى أربع، والتفاح بقشره مكعبات صغيرة والموز حلقات، وضع التفاح والموز مباشرة في العصير كي لا يسودّا.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Mélangez délicatement tous les fruits avec le jus et réservez 30 minutes au réfrigérateur avant de servir bien frais.',
+        instruction_derja:
+          'Khallat el ghalla lkol m3a el 3sir bechwaya w khalliha nos sa3a fel frigo 9bal ma tsobha barda.',
+        instruction_ar: 'اخلط كل الفواكه مع العصير بلطف واتركها نصف ساعة في الثلاجة قبل تقديمها باردة.',
+      },
+    ],
+    chef_tip: {
+      fr: "Ne la préparez pas plus de 2 heures à l'avance : les fraises et la banane ramollissent vite. Selon la saison, remplacez par du melon, des pêches ou des grenades.",
+      derja:
+        'Ma t7adherhech 9bal akthar men zouz swaye3: el fraise wel banane yrattbou bel fesse5. 7asb el wa9t, badel b batti5, khou5 walla rommen.',
+      ar: 'لا تحضّرها قبل أكثر من ساعتين لأن الفراولة والموز يلينان بسرعة، وحسب الموسم عوّضها بالبطيخ أو الخوخ أو الرمان.',
+    },
+    is_published: true,
+    is_healthy: true,
+  },
+  {
+    id: 'rec_int_49_cookies_chocolat',
+    slug: 'cookies-aux-pepites-de-chocolat',
+    name_fr: 'Cookies aux pépites de chocolat',
+    name_derja: 'Cookies bel chocolat',
+    name_ar: 'كوكيز بقطع الشوكولاتة',
+    description_fr:
+      "Des cookies à l'américaine, dorés et croustillants sur les bords, tendres au cœur et généreusement garnis de gros morceaux de chocolat noir.",
+    description_derja:
+      'Cookies amrikaniya, m7ammrin w y9arm9ou men el jnab, rtab fel woust w fihom barcha 9at3at chocolat ak7el.',
+    description_ar:
+      'كوكيز على الطريقة الأمريكية، ذهبية ومقرمشة من الأطراف وطرية في الوسط، مليئة بقطع كبيرة من الشوكولاتة الداكنة.',
+    image_url: '',
+    prep_time_minutes: 50,
+    cook_time_minutes: 12,
+    base_servings: 4,
+    estimated_cost_tnd: 10.5,
+    category: 'dessert',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_farine', quantity_base: 250, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_beurre', quantity_base: 125, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_chocolat', quantity_base: 150, unit: 'g', role: 'key' },
+      { ingredient_id: 'ing_oeuf', quantity_base: 1, unit: 'pièce', role: 'secondary' },
+      { ingredient_id: 'ing_sucre', quantity_base: 150, unit: 'g', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+      {
+        ingredient_id: 'ing_noix',
+        quantity_base: 50,
+        unit: 'g',
+        is_optional: true,
+        role: 'secondary',
+        substitutes: ['ing_fruits_secs'],
+      },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Travaillez le beurre mou avec le sucre à la spatule ou au batteur 2 minutes, jusqu'à obtenir une crème. Ajoutez l'œuf et mélangez.",
+        instruction_derja:
+          'Khaddem el zebda rtiba m3a el sokkar bel spatule walla bel batteur 2 d9aye9 7atta tweli krima. Zid el 3dhma w khallat.',
+        instruction_ar: 'اخلط الزبدة الطرية مع السكر بالملعقة أو الخفاقة دقيقتين حتى تصبح كريمة، ثم أضف البيضة واخلط.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          'Ajoutez la farine et le sel et mélangez juste assez pour former une pâte. Incorporez le chocolat haché grossièrement au couteau et les noix.',
+        instruction_derja:
+          'Zid el farina wel mel7 w khallat 9ad ma tetlamm el 3jina barka. Zid el chocolat m9atta3 ghlidh bel sekkina wel jouz.',
+        instruction_ar:
+          'أضف الطحين والملح واخلط فقط حتى تتجمع العجينة، ثم أدخل الشوكولاتة المقطعة قطعاً خشنة بالسكين والجوز.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          "Formez 16 boules de la taille d'une noix et réservez-les 30 minutes au réfrigérateur pour qu'elles ne s'étalent pas trop à la cuisson.",
+        instruction_derja:
+          'A3mel 16 koura 9ad el jouza w 7otthom nos sa3a fel frigo bech ma yetfarchouch barcha fel four.',
+        instruction_ar: 'شكّل 16 كرة بحجم الجوزة وضعها نصف ساعة في الثلاجة كي لا تتمدد كثيراً عند الخبز.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          'Préchauffez le four à 180 °C. Disposez les boules espacées de 5 cm sur une plaque couverte de papier cuisson et enfournez 10 à 12 minutes : les bords doivent être dorés et le centre encore pâle et mou.',
+        instruction_derja:
+          'Sakhkhen el four 3la 180 daraja. 7ott el kwar b 5 sentim bin wa7da w okhra 3la plaque fiha papier cuisson w 7ottha 10 7atta 12 d9i9a: el jnab lazem y7ammrou wel woust yob9a abyadh w rtib.',
+        instruction_ar:
+          'سخّن الفرن على 180 درجة، رتّب الكرات بمسافة 5 سنتيمترات على صينية مغطاة بورق الخبز واخبزها 10 إلى 12 دقيقة حتى تتحمّر الأطراف ويبقى الوسط فاتحاً وطرياً.',
+      },
+      {
+        step_number: 5,
+        instruction_fr: 'Laissez-les 10 minutes sur la plaque avant de les déplacer : ils durcissent en refroidissant.',
+        instruction_derja: 'Khallihom 10 d9aye9 3la el plaque 9bal ma t7arrekhom: yechddou ki yobrdou.',
+        instruction_ar: 'اتركها 10 دقائق على الصينية قبل نقلها لأنها تتماسك عندما تبرد.',
+      },
+    ],
+    chef_tip: {
+      fr: "Sortez-les quand ils semblent encore pas assez cuits : c'est le secret du cœur fondant. Une tablette hachée au couteau donne de plus beaux éclats que des pépites.",
+      derja:
+        'Kharrejhom ki tetsawwer elli mezelou ma tayybouch: hedha sirr el woust el rtib. W tablette chocolat t9assha bel sekkina ta3tik 9at3at a7la mel pépites.',
+      ar: 'أخرجها عندما تبدو غير ناضجة تماماً فهذا سر الوسط الطري، ولوح شوكولاتة مقطّع بالسكين يعطي قطعاً أجمل من الحبيبات الجاهزة.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+  {
+    id: 'rec_int_50_gratin_de_brocoli',
+    slug: 'gratin-de-brocoli-a-la-bechamel',
+    name_fr: 'Gratin de brocoli à la béchamel',
+    name_derja: 'Gratin brocoli bel béchamel',
+    name_ar: 'غراتان البروكلي بالبشاميل',
+    description_fr:
+      "Des bouquets de brocoli juste tendres nappés d'une béchamel crémeuse et gratinés sous une croûte de fromage dorée.",
+    description_derja:
+      'Brocoli metayyeb 9ad 9ad, mghatti b béchamel krimeuse w m7ammer fel four ta7t 9echra fromage dhahbiya.',
+    description_ar: 'زهرات بروكلي مطهوة قليلاً مغطاة بصلصة بشاميل كريمية ومحمّرة في الفرن تحت قشرة ذهبية من الجبن.',
+    image_url: '',
+    prep_time_minutes: 15,
+    cook_time_minutes: 35,
+    base_servings: 4,
+    estimated_cost_tnd: 11,
+    category: 'plat_principal',
+    cuisine_type: 'internationale',
+    difficulty: 'facile',
+    ingredients: [
+      { ingredient_id: 'ing_brocoli', quantity_base: 1, unit: 'kg', role: 'key' },
+      { ingredient_id: 'ing_lait', quantity_base: 500, unit: 'ml', role: 'key' },
+      {
+        ingredient_id: 'ing_fromage_rape',
+        quantity_base: 100,
+        unit: 'g',
+        role: 'secondary',
+        substitutes: ['ing_parmesan', 'ing_cheddar'],
+      },
+      { ingredient_id: 'ing_beurre', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_farine', quantity_base: 40, unit: 'g', role: 'secondary' },
+      { ingredient_id: 'ing_creme', quantity_base: 100, unit: 'ml', is_optional: true, role: 'secondary' },
+      { ingredient_id: 'ing_ail', quantity_base: 1, unit: 'gousse', role: 'staple' },
+      { ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée', role: 'staple' },
+    ],
+    steps: [
+      {
+        step_number: 1,
+        instruction_fr:
+          "Détaillez le brocoli en bouquets et pelez la tige avant de la couper en rondelles. Plongez le tout 4 minutes dans une grande casserole d'eau bouillante salée, puis égouttez et passez sous l'eau froide pour garder la couleur.",
+        instruction_derja:
+          '9os el brocoli bou9et w 9echcher el 3oud 9bal ma t9assou rondelles. Ghattsou 4 d9aye9 f casserole kbira ma tfour mmal7a, saffih w 3addih ta7t el ma el bered bech yob9a akhdhar.',
+        instruction_ar:
+          'قطّع البروكلي زهرات وقشّر الساق قبل تقطيعها حلقات، واسلق الكل 4 دقائق في قدر كبير من الماء المغلي المملح، ثم صفّه ومرّره تحت الماء البارد ليحتفظ بلونه.',
+      },
+      {
+        step_number: 2,
+        instruction_fr:
+          "Béchamel : faites fondre le beurre avec l'ail écrasé, ajoutez la farine et remuez 1 minute sans colorer. Versez le lait froid d'un coup en fouettant et laissez épaissir 5 minutes à feu moyen. Hors du feu, ajoutez la crème, la moitié du fromage, sel et poivre.",
+        instruction_derja:
+          'Lel béchamel: dawweb el zebda m3a el thoum mfarkess, zid el farina w 9allib d9i9a bla ma t7ammer. Sob el 7lib bered mara wa7da w enti todhrob w khalliha teghladh 5 d9aye9 3la nar mtawsta. Ta7tha mel nar, zid el crème, nos el fromage, mel7 w filfel.',
+        instruction_ar:
+          'للبشاميل ذوّب الزبدة مع الثوم المهروس، أضف الطحين وقلّب دقيقة دون تحمير، ثم اسكب الحليب البارد دفعة واحدة مع الخفق واتركه يتكثف 5 دقائق على نار متوسطة، وبعد رفعه أضف القشدة ونصف الجبن والملح والفلفل.',
+      },
+      {
+        step_number: 3,
+        instruction_fr:
+          'Disposez le brocoli bien égoutté dans un plat beurré, nappez de béchamel et parsemez du reste de fromage.',
+        instruction_derja:
+          'Ferrach el brocoli mtsaffi mli7 f plat madhoun bel zebda, ghattih bel béchamel w rach fo9ou ba9i el fromage.',
+        instruction_ar: 'افرد البروكلي المصفّى جيداً في طبق مدهون بالزبدة، وغطّه بالبشاميل ورشّ فوقه باقي الجبن.',
+      },
+      {
+        step_number: 4,
+        instruction_fr:
+          "Enfournez 20 minutes à 200 °C, puis 3 minutes sous le gril jusqu'à ce que le dessus soit doré et bouillonnant. Laissez reposer 5 minutes avant de servir.",
+        instruction_derja:
+          '7ottou fel four 20 d9i9a 3la 200 daraja, w ba3d 3 d9aye9 ta7t el gril 7atta y7ammer el woujh w yfour. Khallih yertah 5 d9aye9 9bal ma tsobou.',
+        instruction_ar:
+          'اخبزه 20 دقيقة على 200 درجة ثم 3 دقائق تحت الشواية حتى يتحمّر السطح ويغلي، واتركه يرتاح 5 دقائق قبل التقديم.',
+      },
+    ],
+    chef_tip: {
+      fr: "Égouttez le brocoli très soigneusement, même en le pressant dans un torchon : l'eau restante détrempe la béchamel et donne un gratin liquide.",
+      derja:
+        'Saffi el brocoli mli7 barcha, w ken lazem 3asrou b chwaya f fouta: el ma elli yob9a fih ytayyech el béchamel w yweli el gratin mbalwel.',
+      ar: 'صفِّ البروكلي جيداً جداً ولو بعصره قليلاً في منشفة، فالماء المتبقي يميّع البشاميل ويجعل الغراتان سائلاً.',
+    },
+    is_published: true,
+    is_healthy: false,
+  },
+];

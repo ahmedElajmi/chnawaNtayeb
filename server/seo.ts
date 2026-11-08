@@ -1,12 +1,11 @@
-import type { Recipe, Ingredient } from '../src/types';
-import { initialRecipes } from '../src/data/initialRecipes';
-import { initialIngredients } from '../src/data/initialIngredients';
-import { normalizeCategory } from '../src/services/mealCourse';
-import { slugify } from '../src/services/textNormalize';
+import type { Recipe, Ingredient } from '../src/core/catalog';
+import { initialRecipes, initialIngredients, normalizeCategory } from '../src/core/catalog';
+import { slugify } from '../src/core/shared';
+import { recipePath as recipeAddress } from '../src/shared/paths';
 import { getAdminFirestore } from './firebaseAdmin';
 
 /**
- * Server-side SEO for the single-page app:
+ * Server-side SEO (the client router has one address per screen, see src/shared/paths.ts):
  * - every recipe has its own address /recette/<slug>
  * - the HTML sent for /, /recettes and /recette/<slug> already contains the
  *   right title, description, canonical URL, social cards, schema.org data
@@ -40,7 +39,7 @@ export async function getCatalog(): Promise<{ recipes: Recipe[]; ingredients: In
 }
 
 export function recipePath(r: Pick<Recipe, 'slug'>): string {
-  return `/recette/${r.slug}`;
+  return recipeAddress(r.slug);
 }
 
 // ---------------------------------------------------------------------------
@@ -68,10 +67,14 @@ function truncate(s: string, max: number): string {
 }
 
 const COURSE_FR: Record<string, string> = { entree: 'Entrée', plat_principal: 'Plat principal', dessert: 'Dessert' };
-const COURSE_PLURAL: Record<string, string> = { entree: 'Entrées', plat_principal: 'Plats principaux', dessert: 'Desserts' };
+const COURSE_PLURAL: Record<string, string> = {
+  entree: 'Entrées',
+  plat_principal: 'Plats principaux',
+  dessert: 'Desserts',
+};
 
 function absoluteImage(r: Recipe, base: string): string {
-  return r.image_url && /^https:\/\//.test(r.image_url) ? r.image_url : `${base}/og-image.png`;
+  return r.image_url && r.image_url.startsWith('https://') ? r.image_url : `${base}/og-image.png`;
 }
 
 function ingredientLines(r: Recipe, ingredients: Ingredient[]): string[] {
@@ -150,7 +153,12 @@ export function homePage(base: string, recipes: Recipe[], path: '/' | '/recettes
   const list = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: recipes.map((r, i) => ({ '@type': 'ListItem', position: i + 1, url: `${base}${recipePath(r)}`, name: r.name_fr })),
+    itemListElement: recipes.map((r, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${base}${recipePath(r)}`,
+      name: r.name_fr,
+    })),
   };
   const body = `<main class="seo-fallback">
 <h1>${isList ? 'Toutes les recettes Chnowa Ntayeb' : 'Chnowa Ntayeb ? Qu\u2019est-ce qu\u2019on cuisine aujourd\u2019hui ?'}</h1>
@@ -194,7 +202,13 @@ export function recipePage(base: string, r: Recipe, recipes: Recipe[], ingredien
     recipeYield: `${r.base_servings} portions`,
     recipeCategory: course,
     recipeCuisine: r.cuisine_type === 'internationale' ? 'Internationale' : 'Tunisienne',
-    keywords: [r.name_fr, r.name_derja, course, r.cuisine_type === 'internationale' ? 'cuisine du monde' : 'cuisine tunisienne', r.is_healthy ? 'healthy' : '']
+    keywords: [
+      r.name_fr,
+      r.name_derja,
+      course,
+      r.cuisine_type === 'internationale' ? 'cuisine du monde' : 'cuisine tunisienne',
+      r.is_healthy ? 'healthy' : '',
+    ]
       .filter(Boolean)
       .join(', '),
     recipeIngredient: lines,

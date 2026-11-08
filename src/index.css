@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
@@ -8,21 +8,21 @@
  * by the admin), so utilities like `bg-brand` or `text-ink` follow the theme.
  */
 @theme {
-  --color-brand: #2D5A27;
-  --color-brand-strong: #23471E;
-  --color-brand-text: #2D5A27;
-  --color-on-brand: #FFFFFF;
-  --color-accent: #C75128;
-  --color-accent-strong: #A8401D;
-  --color-accent-text: #B4461F;
-  --color-on-accent: #FFFFFF;
-  --color-highlight: #D99B26;
-  --color-surface: #FBF9F5;
-  --color-card: #FFFFFF;
-  --color-line: #E8E4DC;
-  --color-ink: #0F172A;
-  --color-ink-muted: #64748B;
-  --color-hero-from: #2D5A27;
+  --color-brand: #2d5a27;
+  --color-brand-strong: #23471e;
+  --color-brand-text: #2d5a27;
+  --color-on-brand: #ffffff;
+  --color-accent: #c75128;
+  --color-accent-strong: #a8401d;
+  --color-accent-text: #b4461f;
+  --color-on-accent: #ffffff;
+  --color-highlight: #d99b26;
+  --color-surface: #fbf9f5;
+  --color-card: #ffffff;
+  --color-line: #e8e4dc;
+  --color-ink: #0f172a;
+  --color-ink-muted: #64748b;
+  --color-hero-from: #2d5a27;
   --color-hero-to: #183315;
 
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -46,9 +46,15 @@
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 
-  [dir="rtl"] {
+  [dir='rtl'] {
     --font-sans: 'Cairo', system-ui, -apple-system, sans-serif;
     font-family: var(--font-sans);
+  }
+
+  /* Safety net: nothing may widen the page on a phone (clip, unlike hidden, keeps the sticky header working) */
+  html,
+  body {
+    overflow-x: clip;
   }
 
   body {
@@ -73,14 +79,14 @@
 /* ---------------------------------------------------------------------------
  * Card shapes (data-card-shape on <html>)
  * ------------------------------------------------------------------------- */
-[data-card-shape="arch"] .recipe-media {
+[data-card-shape='arch'] .recipe-media {
   margin: 0.5rem 0.5rem 0;
   width: calc(100% - 1rem);
   border-radius: 999px 999px 0.75rem 0.75rem;
 }
 
-[data-card-shape="square"] .theme-card,
-[data-card-shape="square"] .theme-card .recipe-media {
+[data-card-shape='square'] .theme-card,
+[data-card-shape='square'] .theme-card .recipe-media {
   border-radius: 0.375rem;
 }
 
@@ -100,23 +106,23 @@
   opacity: 0.85;
 }
 
-[data-pattern="zellige"] .pattern-band,
-[data-pattern="dots"] .pattern-band,
-[data-pattern="waves"] .pattern-band {
+[data-pattern='zellige'] .pattern-band,
+[data-pattern='dots'] .pattern-band,
+[data-pattern='waves'] .pattern-band {
   display: block;
 }
 
-[data-pattern="zellige"] .pattern-band {
+[data-pattern='zellige'] .pattern-band {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 L6 0 L12 6 L6 12Z'/%3E%3Ccircle cx='18' cy='6' r='2'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 L6 0 L12 6 L6 12Z'/%3E%3Ccircle cx='18' cy='6' r='2'/%3E%3C/svg%3E");
 }
 
-[data-pattern="dots"] .pattern-band {
+[data-pattern='dots'] .pattern-band {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5'/%3E%3C/svg%3E");
 }
 
-[data-pattern="waves"] .pattern-band {
+[data-pattern='waves'] .pattern-band {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E");
 }
