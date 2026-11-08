@@ -1,9 +1,10 @@
-import { CatalogStore, KitchenStore, MatchingSettingsStore, PatronStore } from '@/application';
+import { CatalogStore, KitchenStore, MatchingScenariosStore, MatchingSettingsStore, PatronStore } from '@/application';
 import { localCatalogRepository, localKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
 import { firestoreCatalogSource } from '@/infrastructure/firebase/firestoreCatalogSource';
 import { firestoreCatalogAdmin } from '@/infrastructure/firebase/catalogSync';
+import { firestoreMatchingScenarios } from '@/infrastructure/firebase/firestoreMatchingScenarios';
 import { firestoreMatchingSettings } from '@/infrastructure/firebase/firestoreMatchingSettings';
 import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
 import { firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
@@ -21,6 +22,10 @@ export function createContainer() {
     kitchen: new KitchenStore(localKitchenRepository),
     patron: new PatronStore(patronHttpGateway),
     matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),
+    matchingScenarios: new MatchingScenariosStore(firestoreMatchingScenarios, {
+      randomSuffix: () => crypto.randomUUID().slice(0, 6),
+      now: () => new Date().toISOString(),
+    }),
     // Services (ports used directly by a screen)
     preferences: localPreferences,
     themes: firestoreThemeRepository,

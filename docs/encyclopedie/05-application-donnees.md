@@ -45,6 +45,7 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 | `themes/{id}`                     | Thèmes créés dans le backoffice          | thèmes publiés : publique | patron (validés champ par champ) |
 | `settings/matching`               | Réglages actifs du moteur                | publique                  | patron                           |
 | `matching_settings_versions/v<n>` | Historique des réglages (jamais modifié) | patron                    | patron (création seulement)      |
+| `matching_scenarios/{id}`         | Scénarios du chef                        | patron                    | patron (enveloppe validée)       |
 | `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron          | lui-même (champs limités)        |
 | `admins/{uid}`                    | Comptes administrateurs supplémentaires  | patron                    | patron                           |
 

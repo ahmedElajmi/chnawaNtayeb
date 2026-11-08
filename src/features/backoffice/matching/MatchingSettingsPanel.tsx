@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Download, Upload } from 'lucide-react';
 import {
   DEFAULT_MATCHING_CONFIG,
@@ -8,11 +8,11 @@ import {
 } from '@/core/matching';
 import { DEFAULT_PANTRY_STAPLES } from '@/core/preferences';
 import type { StoredMatchingSettings } from '@/application';
-import { useCatalog, useMatchingSettings } from '@/app/ContainerContext';
+import { useCatalog, useMatchingScenarios, useMatchingSettings } from '@/app/ContainerContext';
 import { BoostsEditor } from './BoostsEditor';
 import { MatchingSimulator } from './MatchingSimulator';
 import { RankingEditor } from './RankingEditor';
-import { ScenarioChecks } from './ScenarioChecks';
+import { ScenariosManager } from './ScenariosManager';
 import { SubstitutionsEditor } from './SubstitutionsEditor';
 import { TuningEditor } from './TuningEditor';
 import { VersionHistory } from './VersionHistory';
@@ -38,6 +38,12 @@ export function MatchingSettingsPanel({ onNotify }: { onNotify: (message: string
   const [acceptFailures, setAcceptFailures] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const { scenarios, matchingScenarios } = useMatchingScenarios();
+
+  // The chef's scenarios are read from the database each time the tab opens
+  useEffect(() => {
+    void matchingScenarios.load();
+  }, [matchingScenarios]);
 
   // A new published version (here or elsewhere) becomes the starting point of the draft
   const [draftBase, setDraftBase] = useState(published);
@@ -48,12 +54,13 @@ export function MatchingSettingsPanel({ onNotify }: { onNotify: (message: string
 
   const isDirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(published), [draft, published]);
   const draftResults = useMemo(
-    () => evaluateScenarios({ recipes, ingredients, defaultPantry: DEFAULT_PANTRY_STAPLES, config: draft }),
-    [draft, recipes, ingredients]
+    () => evaluateScenarios({ recipes, ingredients, defaultPantry: DEFAULT_PANTRY_STAPLES, config: draft }, scenarios),
+    [draft, recipes, ingredients, scenarios]
   );
   const publishedResults = useMemo(
-    () => evaluateScenarios({ recipes, ingredients, defaultPantry: DEFAULT_PANTRY_STAPLES, config: published }),
-    [published, recipes, ingredients]
+    () =>
+      evaluateScenarios({ recipes, ingredients, defaultPantry: DEFAULT_PANTRY_STAPLES, config: published }, scenarios),
+    [published, recipes, ingredients, scenarios]
   );
   const failures = draftResults.filter((r) => !r.passed).length;
   const listVersions = useCallback(() => matchingSettings.listVersions(), [matchingSettings]);
@@ -167,8 +174,21 @@ export function MatchingSettingsPanel({ onNotify }: { onNotify: (message: string
         )}
       </div>
 
-      <MatchingSimulator published={published} draft={draft} recipes={recipes} ingredients={ingredients} />
-      <ScenarioChecks results={draftResults} publishedResults={publishedResults} />
+      <MatchingSimulator
+        published={published}
+        draft={draft}
+        recipes={recipes}
+        ingredients={ingredients}
+        presets={scenarios}
+      />
+      <ScenariosManager
+        results={draftResults}
+        publishedResults={publishedResults}
+        recipes={recipes}
+        ingredients={ingredients}
+        config={draft}
+        onNotify={onNotify}
+      />
       <BoostsEditor config={draft} recipes={recipes} onChange={setDraft} />
       <SubstitutionsEditor config={draft} ingredients={ingredients} onChange={setDraft} />
       <TuningEditor config={draft} onChange={setDraft} />

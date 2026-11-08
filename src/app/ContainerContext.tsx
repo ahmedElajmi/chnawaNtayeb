@@ -36,6 +36,11 @@ export const useMatchingSettings = () => {
   return { ...useStore(matchingSettings), matchingSettings };
 };
 
+export const useMatchingScenarios = () => {
+  const { matchingScenarios } = useContainer();
+  return { ...useStore(matchingScenarios), matchingScenarios };
+};
+
 export const usePatron = () => {
   const { patron } = useContainer();
   return { ...useStore(patron), patron };

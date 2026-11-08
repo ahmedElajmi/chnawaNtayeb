@@ -1,14 +1,16 @@
 import type { Ingredient, Recipe } from '@/core/catalog';
 import type { DayPlan } from '@/core/planning';
 import type { GroceryItem } from '@/core/grocery';
-import type { MatchingConfig } from '@/core/matching';
+import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
 
 /**
  * Ports: what the application needs from the outside world.
  * Implementations (adapters) live in src/infrastructure and are wired in src/app/container.ts.
- * Replacing localStorage or Firestore means writing a new adapter for one of these interfaces.
+ * Ports speak the language of the domain only: no database, SDK or storage type or term.
+ * Changing the database means writing new adapters for these interfaces (each one must pass
+ * its contract test in src/infrastructure/contracts) and swapping them in src/app/container.ts.
  */
 
 /** Catalog copy kept on the device (works offline). */
@@ -64,6 +66,17 @@ export interface MatchingSettingsRepository {
 export interface MatchingSettingsCache {
   read(): StoredMatchingSettings | null;
   write(settings: StoredMatchingSettings): void;
+}
+
+/** The chef's quality scenarios, managed in the backoffice (database = source of truth). */
+export interface MatchingScenarioRepository {
+  /** Every scenario, oldest first, as stored (read through `parseScenario`); null when unreachable. */
+  list(): Promise<unknown[] | null>;
+  /** Creates or replaces one scenario. */
+  save(scenario: MatchingScenario): Promise<WriteResult>;
+  remove(scenarioId: string): Promise<WriteResult>;
+  /** Replaces the whole list (restoring an export), keeping its order. */
+  replaceAll(scenarios: MatchingScenario[]): Promise<WriteResult>;
 }
 
 /** User preferences kept on the device (language, theme, pantry...). */
