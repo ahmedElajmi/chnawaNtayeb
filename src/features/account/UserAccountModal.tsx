@@ -81,7 +81,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             <div>
               <h3 className="font-extrabold text-base text-ink">{currentUser ? 'Mon Compte' : 'Espace Utilisateur'}</h3>
               <p className="text-[11px] text-slate-400">
-                {currentUser ? 'Synchronisé avec Firebase' : 'Sauvegardez vos favoris'}
+                {currentUser ? 'Synchronisé avec votre compte' : 'Sauvegardez vos favoris'}
               </p>
             </div>
           </div>

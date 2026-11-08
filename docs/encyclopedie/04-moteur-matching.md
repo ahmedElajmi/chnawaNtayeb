@@ -11,16 +11,17 @@ recettes ─▶ filters ─▶ analysis ─▶ scoring ─▶ tiers ─▶ ranki
                    frigo + placard                 réglages (config.ts)
 ```
 
-| Fichier        | Rôle                                                                                                         |
-| -------------- | ------------------------------------------------------------------------------------------------------------ |
-| `filters.ts`   | Filtres de l'utilisateur : publiée, catégorie, cuisine, healthy, budget, temps, recherche                    |
-| `analysis.ts`  | Pour chaque ingrédient non facultatif : disponible, remplacé ou manquant                                     |
-| `scoring.ts`   | Score de 0 à 100                                                                                             |
-| `tiers.ts`     | Niveau : prête, presque prête, idée, ou non affichée                                                         |
-| `ranking.ts`   | Ordre dans chaque niveau, par une liste de critères                                                          |
-| `config.ts`    | Tous les réglages, en JSON validé                                                                            |
-| `engine.ts`    | Enchaîne les étapes : `matchRecipes` (suggestions), `browseRecipes` (catalogue), `analyzeRecipe` (une fiche) |
-| `scenarios.ts` | Scénarios du chef et leur évaluation                                                                         |
+| Fichier             | Rôle                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `filters.ts`        | Filtres de l'utilisateur : publiée, catégorie, cuisine, healthy, budget, temps, recherche                    |
+| `analysis.ts`       | Pour chaque ingrédient non facultatif : disponible, remplacé ou manquant                                     |
+| `scoring.ts`        | Score de 0 à 100                                                                                             |
+| `tiers.ts`          | Niveau : prête, presque prête, idée, ou non affichée                                                         |
+| `ranking.ts`        | Ordre dans chaque niveau, par une liste de critères                                                          |
+| `config.ts`         | Tous les réglages, en JSON validé                                                                            |
+| `engine.ts`         | Enchaîne les étapes : `matchRecipes` (suggestions), `browseRecipes` (catalogue), `analyzeRecipe` (une fiche) |
+| `scenarios.ts`      | Scénarios du chef : types et évaluation                                                                      |
+| `scenarioSchema.ts` | Validation des scénarios lus en base ou importés (`parseScenario`, `validateScenario`)                       |
 
 ## Disponibilité (`analysis.ts`)
 
@@ -83,17 +84,23 @@ casser l'application.
 Les réglages actifs sont stockés en base et modifiables depuis l'onglet **Moteur** du backoffice
 (voir [07](07-backoffice.md) et [05](05-application-donnees.md)).
 
-## Scénarios du chef (`scenarios.ts`)
+## Scénarios du chef (`scenarios.ts`, `scenarioSchema.ts`)
 
 Des règles de qualité écrites comme des données : « avec ce frigo (et ce placard), cette recette
 doit être en tête des prêtes », « aucun dessert ne doit être proposé », « le concentré ne doit pas
 remplacer les tomates d'une salade »… Types de vérification : `tier`, `first`, `contains`, `top`,
 `noCourse`, `toBuy`, `fridgeUsed`, `substitution`, `minScore`.
 
-Ils sont rejoués :
+Les scénarios sont des **données en base** (collection `matching_scenarios`), gérés par le patron dans
+/patron › Moteur › Scénarios du chef : ajout, modification, test, suppression, export / import JSON.
+Le code ne contient plus aucune liste de scénarios : il fournit les types, l'évaluation
+(`evaluateScenario`) et la validation (`parseScenario` pour toute donnée lue, `validateScenario`
+pour le formulaire). Les tests (`scenarios.test.ts`, `scenarioSchema.test.ts`) vérifient chaque type
+de vérification, pas une liste figée.
 
-- par les tests (`scenarios.test.ts`) avec les réglages par défaut ;
-- dans le backoffice avec le brouillon de réglages, avant toute publication.
+Ils sont rejoués dans le backoffice avec le brouillon de réglages, avant toute publication.
+La liste de départ (13 scénarios) est dans `docs/encyclopedie/donnees/scenarios-initiaux.json`,
+à importer une fois depuis le backoffice.
 
 **À relire et compléter par le chef** : ajouter un scénario chaque fois qu'une suggestion paraît fausse.
 

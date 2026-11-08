@@ -55,9 +55,11 @@ Une recette ajoutée depuis le backoffice n'a besoin d'aucune de ces étapes.
 
 ## Ajouter un scénario du chef
 
-Ajouter une entrée à `MATCHING_SCENARIOS` (`core/matching/scenarios.ts`) : un titre clair, le frigo,
-éventuellement un placard ou des filtres, et les vérifications attendues. Il est automatiquement
-testé et rejoué dans le backoffice.
+Dans /patron › Moteur › Scénarios du chef › Ajouter : un titre clair, le frigo, éventuellement un
+placard ou des filtres, et les vérifications attendues. Il est enregistré en base et rejoué avec le
+brouillon avant chaque publication. Un nouveau **type** de vérification se code dans
+`core/matching/scenarios.ts` (évaluation), `scenarioSchema.ts` (lecture, validation, valeur par
+défaut, tests) et `ScenarioEditorModal.tsx` (champs).
 
 ## Ajouter une langue
 

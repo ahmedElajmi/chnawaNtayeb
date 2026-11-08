@@ -4,3 +4,4 @@ export * from './catalog/CatalogStore';
 export * from './kitchen/KitchenStore';
 export * from './patron/PatronStore';
 export * from './matching/MatchingSettingsStore';
+export * from './matching/MatchingScenariosStore';

@@ -79,9 +79,9 @@ export function BackofficeView({ onLogout }: { onLogout: () => void }) {
           <div className="text-xs leading-relaxed">
             <p className="font-bold text-sm">Mode local uniquement</p>
             <p>
-              Le serveur n'a pas pu relier ta session patron à Firebase (variable <code>FIREBASE_SERVICE_ACCOUNT</code>{' '}
-              absente ou invalide). Tes modifications sont enregistrées sur cet appareil mais ne sont pas publiées pour
-              les autres utilisateurs.
+              Le serveur n'a pas pu relier ta session patron à la base de données (configuration du serveur absente ou
+              invalide, voir la documentation d'exploitation). Tes modifications sont enregistrées sur cet appareil mais
+              ne sont pas publiées pour les autres utilisateurs.
             </p>
           </div>
         </div>
@@ -97,7 +97,7 @@ export function BackofficeView({ onLogout }: { onLogout: () => void }) {
             <h2 className="text-lg sm:text-xl font-extrabold text-ink">{t.boTitle}</h2>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Gestionnaire central des recettes tunisiennes & synchronisation Firebase (/patron)
+            Gestionnaire central des recettes tunisiennes & synchronisation avec la base de données (/patron)
           </p>
         </div>
         <button

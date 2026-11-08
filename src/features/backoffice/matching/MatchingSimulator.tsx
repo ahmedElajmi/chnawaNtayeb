@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Ingredient, Recipe } from '@/core/catalog';
 import {
-  MATCHING_SCENARIOS,
   matchRecipes,
   type MatchingConfig,
+  type MatchingScenario,
   type MatchResults,
   type MatchTier,
 } from '@/core/matching';
@@ -56,13 +56,16 @@ export function MatchingSimulator({
   draft,
   recipes,
   ingredients,
+  presets,
 }: {
   published: MatchingConfig;
   draft: MatchingConfig;
   recipes: Recipe[];
   ingredients: Ingredient[];
+  /** The chef's scenarios, used as ready-made fridges */
+  presets: MatchingScenario[];
 }) {
-  const [fridge, setFridge] = useState<string[]>(MATCHING_SCENARIOS[0].fridge);
+  const [fridge, setFridge] = useState<string[]>([]);
   const run = useCallback(
     (config: MatchingConfig) =>
       matchRecipes(recipes, fridge, undefined, { pantryIds: DEFAULT_PANTRY_STAPLES, catalog: ingredients, config }),
@@ -79,16 +82,16 @@ export function MatchingSimulator({
     >
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className={cls.input}
+          className={`${cls.input} max-w-full`}
           value=""
           onChange={(e) => {
-            const s = MATCHING_SCENARIOS.find((x) => x.id === e.target.value);
+            const s = presets.find((x) => x.id === e.target.value);
             if (s) setFridge(s.fridge);
           }}
           aria-label="Frigo type"
         >
           <option value="">Frigo type…</option>
-          {MATCHING_SCENARIOS.map((s) => (
+          {presets.map((s) => (
             <option key={s.id} value={s.id}>
               {s.title}
             </option>

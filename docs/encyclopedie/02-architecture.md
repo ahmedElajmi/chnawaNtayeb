@@ -43,7 +43,10 @@ son `index.ts` (`import { matchRecipes } from '@/core/matching'`), jamais par un
 
 ## Ce que ça permet
 
-- **Changer de base de données** (quitter Firestore ou localStorage) : écrire un nouvel adapter
+- **Changer de base de données** (quitter Firestore ou localStorage) : les ports ne nomment aucune base
+  (garde : `architecture.test.ts`) ; chaque port de données a un test de contrat
+  (`src/infrastructure/contracts/`) et une implémentation en mémoire de référence
+  (`src/infrastructure/memory/`). Écrire un nouvel adapter
   pour le port concerné, le brancher dans `container.ts`. Ni le domaine ni l'interface ne changent.
 - **Changer de framework d'interface** : domaine et stores sont en TypeScript pur ; un autre
   framework se branche sur `store.subscribe()` / `store.getState()`.

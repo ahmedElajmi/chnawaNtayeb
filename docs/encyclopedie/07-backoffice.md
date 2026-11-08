@@ -38,8 +38,13 @@ Permet de régler le moteur « Warini chnowa ntayeb » sans toucher au code
 1. **Brouillon** : chaque modification reste un brouillon tant qu'elle n'est pas publiée.
 2. **Simulateur** : un frigo (ou un frigo type), et côte à côte les suggestions publiées et celles
    du brouillon ; ce qui change est en couleur.
-3. **Scénarios du chef** : rejoués avec le brouillon ; un scénario cassé par le brouillon est
-   signalé, et la publication est bloquée tant que « publier malgré tout » n'est pas coché.
+3. **Scénarios du chef** (enregistrés en base, `matching_scenarios`) : rejoués avec le brouillon ;
+   un scénario cassé par le brouillon est signalé, et la publication est bloquée tant que « publier
+   malgré tout » n'est pas coché. Le patron peut **ajouter**, **modifier** (formulaire guidé : frigo,
+   placard, filtres, vérifications par type, résultat en direct), **tester** (suggestions du scénario
+   avec le brouillon), **supprimer**, **lancer les tests** (relecture de la base et nouveau passage),
+   **exporter / importer** (JSON de sauvegarde ; un import remplace la liste en base). Fichier de
+   départ : `docs/encyclopedie/donnees/scenarios-initiaux.json`.
 4. **Mises en avant** : recette, priorité (1 à 10), date de fin facultative.
 5. **Remplacements** : règles « X peut être remplacé par Y », sauf pour certaines catégories,
    sauf quand c'est l'ingrédient principal.

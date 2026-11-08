@@ -3,7 +3,8 @@ import type { MatchTier } from './types';
 
 /**
  * Every setting of the matching engine, as plain JSON.
- * The defaults below are the reference behaviour (protected by scenarios.test.ts);
+ * The defaults below are the reference behaviour (checked by the engine tests and by the
+ * chef's scenarios replayed in the backoffice);
  * the admin can override any part of it (stored settings are merged with the defaults
  * and validated by `resolveMatchingConfig`, so a bad value can never break the engine).
  */

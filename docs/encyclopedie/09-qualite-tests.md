@@ -20,20 +20,21 @@ Les tests sont à côté du code (`*.test.ts`).
 | Type                     | Exemples                                                                                            |
 | ------------------------ | --------------------------------------------------------------------------------------------------- |
 | Règles métier            | `core/matching/engine.test.ts`, `core/planning/planner.test.ts`, `core/grocery/groceryList.test.ts` |
-| Scénarios du chef        | `core/matching/scenarios.test.ts` (données dans `scenarios.ts`)                                     |
+| Scénarios du chef        | `core/matching/scenarios.test.ts`, `scenarioSchema.test.ts` (données en base, rejouées en /patron)  |
 | Réglages du moteur       | `core/matching/config.test.ts` (validation, mises en avant datées, effets)                          |
 | Catalogue intégré        | `core/catalog/seed/catalog.test.ts` (cohérence des recettes et ingrédients)                         |
-| Stores                   | `application/matching/MatchingSettingsStore.test.ts` (avec de faux adapters)                        |
+| Stores                   | `application/matching/MatchingSettingsStore.test.ts`, `MatchingScenariosStore.test.ts`              |
 | Interface (logique pure) | `features/recipes/recipeFilters.test.ts`, `features/backoffice/recipes/recipeDraft.test.ts`         |
 | Serveur                  | `server/vision/scanValidation.test.ts`                                                              |
 | Architecture             | `core/architecture.test.ts` (règles d'imports entre couches)                                        |
+| Contrats d'adapters      | `infrastructure/contracts/*.contract.ts`, joués par chaque adapter (ex. `memory/`)                  |
 
 Principes :
 
 - Le domaine est pur : on le teste sans navigateur ni base.
 - Les stores se testent avec de faux adapters qui implémentent les ports.
 - Horloge, aléatoire et ids sont injectés pour des tests déterministes.
-- Une suggestion jugée fausse dans l'application devient d'abord un scénario du chef.
+- Une suggestion jugée fausse dans l'application devient d'abord un scénario du chef (backoffice).
 
 ## Lint
 

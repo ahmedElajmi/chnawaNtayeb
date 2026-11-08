@@ -120,6 +120,20 @@ describe('architecture: the UI only talks to ports', () => {
   });
 });
 
+describe('architecture: the database can be replaced at any time', () => {
+  it('no database vendor is named outside src/infrastructure and src/app/container.ts (code, comments or texts)', () => {
+    const VENDOR = /firebase|firestore/i;
+    const files = ['core', 'application', 'features', 'shared', 'app'].flatMap((dir) =>
+      listFiles(path.join(SRC_DIR, dir), isSource)
+    );
+    const offenders = files
+      .filter((file) => rel(file) !== 'app/container.ts' && !file.endsWith('.test.tsx'))
+      .filter((file) => VENDOR.test(fs.readFileSync(file, 'utf8')))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('architecture: modules are used through their public API', () => {
   it('code outside src/core imports core modules only via their index (e.g. @/core/catalog)', () => {
     const outside = listFiles(SRC_DIR, (f) => /\.tsx?$/.test(f) && !f.startsWith(CORE_DIR));

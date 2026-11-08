@@ -24,6 +24,37 @@ Détails : `docs/encyclopedie/02-architecture.md`. Vérifiées par `src/core/arc
 - `src/app/container.ts` : le seul endroit qui relie ports et adapters.
 - Serveur : `server/app.ts` reçoit ses dépendances ; l'IA passe par `VisionProvider`.
 
+## Checklist de chaque évolution (obligatoire)
+
+Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni court-circuiter une couche.
+
+1. **Règle métier / validation** → `src/core/<module>`, TypeScript pur, exportée par `index.ts`, avec son
+   `*.test.ts` à côté. Horloge, aléatoire et ids injectés. Toute donnée externe (base, fichier importé)
+   est relue par une fonction de validation du core (`resolveMatchingConfig`, `parseScenario`…).
+2. **Besoin du monde extérieur** → un **port** dans `src/application/ports.ts`, écrit avec les mots du
+   domaine (aucun type, terme ou nom de base / SDK), + un **store** (ou service) dans `src/application`
+   qui n'importe que `src/core`, testé avec de faux adapters.
+3. **Implémentation** → un **adapter** par technologie dans `src/infrastructure/<techno>/` (base = source de
+   vérité, localStorage = copie hors ligne seulement), branché **uniquement** dans `src/app/container.ts`,
+   exposé par un hook dans `src/app/ContainerContext.tsx`. Chaque port de données a un **test de contrat**
+   (`src/infrastructure/contracts/*.contract.ts`) que tout adapter doit passer, et une implémentation en
+   mémoire (`src/infrastructure/memory/`) qui sert de référence.
+4. **Spécificités de la base actuelle** (Firestore : règles `firestore.rules`, `npm run deploy:rules`,
+   transactions, ordre, ids) → restent dans l'adapter et sa configuration, jamais dans le domaine,
+   les stores ou l'interface.
+5. **Interface** → `src/features/<écran>`, sans logique métier, n'importe jamais `src/infrastructure` ni
+   un SDK de base, et ne nomme jamais la base dans ses textes ; fenêtres avec `useCloseOnBack` ; vérifiée à 375 px et 320 px ; textes publics dans les trois
+   langues, backoffice en français.
+6. **JSON** uniquement pour exporter / restaurer, jamais comme source de données de l'application.
+7. **Documentation** `docs/encyclopedie/` mise à jour, puis `npm run check` vert avant le commit.
+
+### Changer de base de données
+
+Aucun nom de base n'apparaît hors de `src/infrastructure` et `src/app/container.ts` (vérifié par
+`src/core/architecture.test.ts`). Changer de base = écrire de nouveaux adapters dans
+`src/infrastructure/<nouvelle-techno>/`, leur faire passer les tests de contrat, puis remplacer les
+adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas.
+
 ## Conventions
 
 - Pas de duplication : une règle métier vit à un seul endroit dans `src/core`, avec ses tests à côté (`*.test.ts`).
@@ -32,7 +63,8 @@ Détails : `docs/encyclopedie/02-architecture.md`. Vérifiées par `src/core/arc
 - **Base de données d'abord** : données partagées et réglages en Firestore ; localStorage seulement
   comme copie hors ligne ; fichiers JSON seulement pour exporter / restaurer.
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
-  suggestion jugée fausse devient d'abord un scénario dans `src/core/matching/scenarios.ts`.
+  suggestion jugée fausse devient d'abord un scénario du chef, créé dans /patron › Moteur (stocké
+  en base, collection `matching_scenarios` ; aucune liste de scénarios dans le code).
 - Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx`.
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
   dans `/patron` : aucun formulaire de création dans l'interface publique.

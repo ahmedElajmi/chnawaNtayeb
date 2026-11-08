@@ -51,7 +51,12 @@ export function IngredientSelect({
   exclude?: string[];
 }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className={cls.input} aria-label={placeholder}>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${cls.input} max-w-full`}
+      aria-label={placeholder}
+    >
       <option value="">{placeholder}</option>
       {ingredients
         .filter((i) => !exclude.includes(i.id) || i.id === value)
@@ -69,15 +74,25 @@ export function RecipeSelect({
   recipes,
   value,
   onChange,
+  placeholder = 'Choisir une recette',
+  exclude = [],
 }: {
   recipes: Recipe[];
   value: string;
   onChange: (id: string) => void;
+  placeholder?: string;
+  exclude?: string[];
 }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className={cls.input} aria-label="Recette">
-      <option value="">Choisir une recette</option>
-      {[...recipes]
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${cls.input} max-w-full`}
+      aria-label={placeholder}
+    >
+      <option value="">{placeholder}</option>
+      {recipes
+        .filter((r) => !exclude.includes(r.id) || r.id === value)
         .sort((a, b) => a.name_fr.localeCompare(b.name_fr))
         .map((r) => (
           <option key={r.id} value={r.id}>
@@ -123,6 +138,45 @@ export function IngredientChips({
         value=""
         exclude={ids}
         placeholder={addLabel}
+        onChange={(id) => id && onChange([...ids, id])}
+      />
+    </div>
+  );
+}
+
+/** Recipe chips with a remove button, plus a select to add one. */
+export function RecipeChips({
+  ids,
+  recipes,
+  onChange,
+}: {
+  ids: string[];
+  recipes: Recipe[];
+  onChange: (ids: string[]) => void;
+}) {
+  const name = (id: string) => recipes.find((r) => r.id === id)?.name_fr ?? id;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+      {ids.map((id) => (
+        <span
+          key={id}
+          className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-accent/10 text-accent-text text-[11px] font-semibold max-w-full"
+        >
+          <span className="truncate">{name(id)}</span>
+          <button
+            onClick={() => onChange(ids.filter((x) => x !== id))}
+            aria-label={`Retirer ${name(id)}`}
+            className="px-1 hover:text-rose-600"
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <RecipeSelect
+        recipes={recipes}
+        value=""
+        exclude={ids}
+        placeholder="Ajouter une recette…"
         onChange={(id) => id && onChange([...ids, id])}
       />
     </div>
