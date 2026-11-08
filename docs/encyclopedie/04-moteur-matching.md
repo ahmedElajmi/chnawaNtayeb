@@ -11,16 +11,16 @@ recettes ─▶ filters ─▶ analysis ─▶ scoring ─▶ tiers ─▶ ranki
                    frigo + placard                 réglages (config.ts)
 ```
 
-| Fichier        | Rôle                                                                                      |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `filters.ts`   | Filtres de l'utilisateur : publiée, catégorie, cuisine, healthy, budget, temps, recherche |
-| `analysis.ts`  | Pour chaque ingrédient non facultatif : disponible, remplacé ou manquant                  |
-| `scoring.ts`   | Score de 0 à 100                                                                          |
-| `tiers.ts`     | Niveau : prête, presque prête, idée, ou non affichée                                      |
-| `ranking.ts`   | Ordre dans chaque niveau, par une liste de critères                                       |
-| `config.ts`    | Tous les réglages, en JSON validé                                                         |
-| `engine.ts`    | Enchaîne les étapes : `matchRecipes` (liste) et `analyzeRecipe` (une fiche)               |
-| `scenarios.ts` | Scénarios du chef et leur évaluation                                                      |
+| Fichier        | Rôle                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------ |
+| `filters.ts`   | Filtres de l'utilisateur : publiée, catégorie, cuisine, healthy, budget, temps, recherche                    |
+| `analysis.ts`  | Pour chaque ingrédient non facultatif : disponible, remplacé ou manquant                                     |
+| `scoring.ts`   | Score de 0 à 100                                                                                             |
+| `tiers.ts`     | Niveau : prête, presque prête, idée, ou non affichée                                                         |
+| `ranking.ts`   | Ordre dans chaque niveau, par une liste de critères                                                          |
+| `config.ts`    | Tous les réglages, en JSON validé                                                                            |
+| `engine.ts`    | Enchaîne les étapes : `matchRecipes` (suggestions), `browseRecipes` (catalogue), `analyzeRecipe` (une fiche) |
+| `scenarios.ts` | Scénarios du chef et leur évaluation                                                                         |
 
 ## Disponibilité (`analysis.ts`)
 
@@ -49,6 +49,11 @@ pas dans cette part ; chaque épice manquante retire `staplePenalty` points (2),
 | Non affichée  | Aucun ingrédient clé disponible (sauf recherche par nom)                                                                                                       |
 
 Frigo vide : toutes les recettes sont des idées (mode découverte).
+
+`matchRecipes` ne renvoie que les recettes classées (écran `/suggestions`). `browseRecipes` analyse
+les mêmes recettes filtrées mais les garde toutes (écran `/recettes`) : d'abord les prêtes, presque
+prêtes et idées dans l'ordre de `matchRecipes`, puis les recettes « non affichées », triées avec les
+critères des idées et marquées `ideas`.
 
 ## Ordre (`ranking.ts`)
 

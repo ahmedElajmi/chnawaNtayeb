@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useMatch, useNavigate } from 'react-router';
 import { Palette, Globe, User, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { Language } from '@/core/shared';
@@ -27,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const recipesHref = useRecipesHref();
+  const onSuggestions = useMatch(PATHS.suggestions) !== null;
   const goHome = useGoHome();
   const [logoClicks, setLogoClicks] = useState(0);
 
@@ -87,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
               to={to}
               className={({ isActive }) =>
                 `whitespace-nowrap shrink-0 transition-colors py-1 ${
-                  isActive
+                  isActive || (label === t.navRecipes && onSuggestions)
                     ? 'text-brand-text font-bold border-b-2 border-brand-text'
                     : 'hover:text-slate-900 dark:hover:text-white'
                 }`

@@ -1,5 +1,4 @@
-import type { Ingredient, IngredientCategory, Recipe } from '@/core/catalog';
-import { createId } from '@/core/shared';
+import type { Ingredient, Recipe } from '@/core/catalog';
 import type { CatalogRepository, RemoteCatalogSource } from '../ports';
 import { Store } from '../store';
 
@@ -38,22 +37,5 @@ export class CatalogStore extends Store<CatalogState> {
 
   findPublishedBySlug(slug: string): Recipe | undefined {
     return this.getState().recipes.find((r) => r.slug === slug && r.is_published !== false);
-  }
-
-  /** Ingredient typed by the user that is not in the catalog. */
-  addCustomIngredient(name: string, category: IngredientCategory): Ingredient {
-    const ingredient: Ingredient = {
-      id: createId('custom_ing'),
-      name_fr: name,
-      name_derja: name,
-      name_ar: name,
-      category,
-      unit_default: 'pièce',
-      default_price_tnd: 2.0,
-    };
-    const ingredients = [...this.getState().ingredients, ingredient];
-    this.local.saveIngredients(ingredients);
-    this.setState({ ingredients });
-    return ingredient;
   }
 }

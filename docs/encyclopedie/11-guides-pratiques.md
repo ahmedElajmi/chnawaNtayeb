@@ -51,7 +51,7 @@ Une recette ajoutée depuis le backoffice n'a besoin d'aucune de ces étapes.
 
 1. Ajouter le champ dans `FilterOptions` et sa règle dans `predicates` (`core/matching/filters.ts`).
 2. L'ajouter à `RecipeFilters` et à sa lecture/écriture dans l'adresse (`features/recipes/recipeFilters.ts`, + test).
-3. L'afficher dans `RecipesPage.tsx`.
+3. L'afficher dans `features/recipes/components/RecipeFilterBar.tsx` (commune au catalogue et aux suggestions).
 
 ## Ajouter un scénario du chef
 

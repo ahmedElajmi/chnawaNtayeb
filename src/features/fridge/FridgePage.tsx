@@ -5,12 +5,13 @@ import { useLanguage } from '@/app/providers/LanguageContext';
 import { FridgeSelector } from '@/features/fridge/components/FridgeSelector';
 import { useCatalog, useKitchen } from '@/app/ContainerContext';
 import { useRecipesHref } from '@/features/recipes/filterMemory';
+import { PATHS } from '@/shared/paths';
 
 export function FridgePage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const recipesHref = useRecipesHref();
-  const { recipes, ingredients, catalog } = useCatalog();
+  const suggestionsHref = useRecipesHref(PATHS.suggestions);
+  const { recipes, ingredients } = useCatalog();
   const { fridge, pantry, kitchen } = useKitchen();
   // Ingredients used by at least one published recipe, directly or as a substitute
   const usedIngredientIds = useMemo(() => getUsedIngredientIds(recipes), [recipes]);
@@ -30,10 +31,7 @@ export function FridgePage() {
         usedIngredientIds={usedIngredientIds}
         onToggleIngredient={(id) => kitchen.toggleFridgeItem(id)}
         onClearAll={() => kitchen.clearFridge()}
-        onAddCustomIngredient={(name, category) =>
-          kitchen.toggleFridgeItem(catalog.addCustomIngredient(name, category).id)
-        }
-        onSearchRecipes={() => navigate(recipesHref())}
+        onSearchRecipes={() => navigate(suggestionsHref())}
       />
     </div>
   );

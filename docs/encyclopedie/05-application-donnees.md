@@ -8,7 +8,7 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 
 | Store                   | État                                                   | Rôle                                                                             |
 | ----------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non | Copie locale d'abord, puis catalogue partagé ; ingrédient personnalisé           |
+| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non | Copie locale d'abord, puis catalogue partagé (modifié seulement par le patron)   |
 | `KitchenStore`          | frigo, placard, favoris, menu, liste de courses        | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement |
 | `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud  | Session patron, toujours confirmée par le serveur                                |
 | `MatchingSettingsStore` | réglages du moteur, version, source                    | Base = référence, copie locale hors ligne, valeurs du code par défaut            |

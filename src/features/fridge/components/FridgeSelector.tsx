@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Sparkles, Trash2, Check, ArrowRight, Package } from 'lucide-react';
+import { Search, Sparkles, Trash2, Check, ArrowRight, Package, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { Ingredient, IngredientCategory, STAPLE_INGREDIENT_IDS } from '@/core/catalog';
+import { Ingredient, STAPLE_INGREDIENT_IDS } from '@/core/catalog';
 import { PhotoScannerModal } from '@/features/fridge/components/PhotoScannerModal';
 import confetti from 'canvas-confetti';
 
@@ -13,9 +13,11 @@ interface FridgeSelectorProps {
   usedIngredientIds: Set<string>;
   onToggleIngredient: (id: string) => void;
   onClearAll: () => void;
-  onAddCustomIngredient: (name: string, category: IngredientCategory) => void;
   onSearchRecipes: () => void;
 }
+
+/** Selected ingredients shown before "show all" in the summary. */
+const SELECTED_PREVIEW_COUNT = 12;
 
 export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
   allIngredients,
@@ -25,19 +27,21 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
   usedIngredientIds,
   onToggleIngredient,
   onClearAll,
-  onAddCustomIngredient,
   onSearchRecipes,
 }) => {
   const { t, getIngredientName } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customCategory, setCustomCategory] = useState<IngredientCategory>('vegetables');
-  const [showAddCustom, setShowAddCustom] = useState(false);
+  const [showAllSelected, setShowAllSelected] = useState(false);
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const pantrySet = useMemo(() => new Set(pantryIds), [pantryIds]);
+  const selectedIngredients = useMemo(() => {
+    const byId = new Map(allIngredients.map((i) => [i.id, i]));
+    return selectedIds.map((id) => byId.get(id)).filter((i): i is Ingredient => !!i);
+  }, [allIngredients, selectedIds]);
+  const visibleSelected = showAllSelected ? selectedIngredients : selectedIngredients.slice(0, SELECTED_PREVIEW_COUNT);
   // Pantry candidates: usual staples + anything the user already put in the pantry
   const pantryCandidates = useMemo(
     () => allIngredients.filter((i) => STAPLE_INGREDIENT_IDS.has(i.id) || pantrySet.has(i.id)),
@@ -75,14 +79,6 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
     });
   }, [allIngredients, activeCategory, searchQuery]);
 
-  const handleCreateCustom = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customName.trim()) return;
-    onAddCustomIngredient(customName.trim(), customCategory);
-    setCustomName('');
-    setShowAddCustom(false);
-  };
-
   const handleTriggerSearch = () => {
     try {
       confetti({
@@ -97,6 +93,55 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
 
   return (
     <div className="w-full space-y-6">
+      {/* Everything selected so far, at a glance (the grid below can be long) */}
+      {selectedIngredients.length > 0 && (
+        <section className="p-3 sm:p-4 rounded-2xl bg-card border border-line shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-ink">
+              {t.selectedIngredientsTitle}{' '}
+              <span className="text-ink-muted font-semibold">({selectedIngredients.length})</span>
+            </h2>
+            <button
+              onClick={onClearAll}
+              className="shrink-0 inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-accent-text transition"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>{t.clearSelection}</span>
+            </button>
+          </div>
+          <ul className="flex flex-wrap gap-1.5">
+            {visibleSelected.map((ing) => {
+              const name = getIngredientName(ing);
+              return (
+                <li key={ing.id} className="max-w-full">
+                  <button
+                    type="button"
+                    onClick={() => onToggleIngredient(ing.id)}
+                    aria-label={`${t.removeIngredientLabel} ${name}`}
+                    className="max-w-full inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-brand/10 border border-brand-text/40 text-brand-text text-xs font-semibold hover:bg-brand/20 transition"
+                  >
+                    <span className="truncate">{name}</span>
+                    <X className="w-3 h-3 shrink-0" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {selectedIngredients.length > SELECTED_PREVIEW_COUNT && (
+            <button
+              onClick={() => setShowAllSelected(!showAllSelected)}
+              aria-expanded={showAllSelected}
+              className="inline-flex items-center gap-1 text-xs font-bold text-brand-text hover:underline"
+            >
+              {showAllSelected
+                ? t.showLessLabel
+                : `${t.showAllLabel} (+${selectedIngredients.length - SELECTED_PREVIEW_COUNT})`}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllSelected ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+        </section>
+      )}
+
       {/* Top Controls & AI Button */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search Input */}
@@ -119,7 +164,7 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
           )}
         </div>
 
-        {/* Scan Button & Custom Ingredient Toggle */}
+        {/* Scan Button */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsScannerOpen(true)}
@@ -128,56 +173,8 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span className="whitespace-nowrap">{t.btnScanPhoto}</span>
           </button>
-
-          <button
-            onClick={() => setShowAddCustom(!showAddCustom)}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-card border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:border-slate-300 transition"
-          >
-            <Plus className="w-4 h-4 text-accent-text" />
-            <span className="hidden sm:inline">{t.addCustomIngredient}</span>
-          </button>
         </div>
       </div>
-
-      {/* Add Custom Ingredient Drawer / Form */}
-      {showAddCustom && (
-        <form
-          onSubmit={handleCreateCustom}
-          className="p-4 rounded-xl bg-card border border-line space-y-3 animate-fade-in"
-        >
-          <p className="text-xs font-bold text-ink uppercase tracking-wider">{t.addCustomIngredient}</p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="Ex: Câpres de Kerkennah, Poudre de fenouil..."
-              className="flex-1 px-3 py-2 text-xs sm:text-sm rounded-lg bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
-              autoFocus
-            />
-            <select
-              value={customCategory}
-              onChange={(e) => setCustomCategory(e.target.value as IngredientCategory)}
-              className="px-3 py-2 text-xs sm:text-sm rounded-lg bg-surface border border-slate-200 dark:border-slate-700"
-            >
-              <option value="vegetables">{t.catVegetables}</option>
-              <option value="dairy_eggs">{t.catDairyEggs}</option>
-              <option value="grains_pasta">{t.catGrainsPasta}</option>
-              <option value="spices_condiments">{t.catSpicesCondiments}</option>
-              <option value="meats">{t.catMeats}</option>
-              <option value="fish">{t.catFish}</option>
-              <option value="canned_pantry">{t.catCannedPantry}</option>
-              <option value="other">{t.catOther}</option>
-            </select>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg bg-accent text-on-accent text-xs sm:text-sm font-bold hover:bg-accent-strong transition"
-            >
-              {t.addBtn}
-            </button>
-          </div>
-        </form>
-      )}
 
       {/* Pantry: always-available items, never counted as missing */}
       <details

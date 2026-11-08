@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router';
-import { PATHS } from '@/shared/paths';
+import { isRecipeListPath, PATHS, type RecipeListPath } from '@/shared/paths';
 import {
   DEFAULT_RECIPE_FILTERS,
   parseRecipeFilters,
@@ -19,11 +19,16 @@ export function rememberRecipeFilters(filters: RecipeFilters): void {
 }
 
 /**
- * Builds the address of the recipe list with the current filters (those of the address
- * when the list is on screen, the remembered ones otherwise), optionally changing some.
+ * Builds the address of a recipe list (the catalog by default, or the suggestions) with the
+ * current filters (those of the address when a list is on screen, the remembered ones otherwise),
+ * optionally changing some. The tier filter only exists on the suggestions screen.
  */
-export function useRecipesHref(): (patch?: Partial<RecipeFilters>) => string {
+export function useRecipesHref(target: RecipeListPath = PATHS.recipes): (patch?: Partial<RecipeFilters>) => string {
   const { pathname, search } = useLocation();
-  const current = pathname === PATHS.recipes ? parseRecipeFilters(search) : remembered;
-  return (patch: Partial<RecipeFilters> = {}) => PATHS.recipes + serializeRecipeFilters({ ...current, ...patch });
+  const current = isRecipeListPath(pathname) ? parseRecipeFilters(search) : remembered;
+  return (patch: Partial<RecipeFilters> = {}) => {
+    const next = { ...current, ...patch };
+    if (target === PATHS.recipes) next.tier = 'all';
+    return target + serializeRecipeFilters(next);
+  };
 }

@@ -34,10 +34,15 @@ Détails : `docs/encyclopedie/02-architecture.md`. Vérifiées par `src/core/arc
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
   suggestion jugée fausse devient d'abord un scénario dans `src/core/matching/scenarios.ts`.
 - Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx`.
+- Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
+  dans `/patron` : aucun formulaire de création dans l'interface publique.
 - Textes affichés dans les trois langues (`src/shared/i18n/translations.ts`) ; backoffice en français.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
-- Comportements à conserver : filtres de recettes gardés entre les écrans ; « appuyez encore pour
-  quitter » sur l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`).
+- Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
+  = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).
+- Comportements à conserver : filtres de recettes gardés entre les écrans (et entre les deux listes) ;
+  récapitulatif des ingrédients choisis en haut du frigo ; « appuyez encore pour quitter » sur
+  l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`).
 - Code et commentaires en anglais ; documentation en français.
 
 ## Git
