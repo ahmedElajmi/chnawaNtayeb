@@ -4,6 +4,7 @@ import { PATHS } from '@/shared/paths';
 import { HomePage } from '@/features/home/HomePage';
 import { FridgePage } from '@/features/fridge/FridgePage';
 import { RecipesPage } from '@/features/recipes/RecipesPage';
+import { SuggestionsPage } from '@/features/suggestions/SuggestionsPage';
 import { RecipeDetailRoute } from '@/features/recipes/RecipeDetailRoute';
 import type { RecipeOverlayState } from '@/features/recipes/hooks';
 import { PlannerPage } from '@/features/planner/PlannerPage';
@@ -33,6 +34,7 @@ export function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route path={PATHS.fridge} element={<FridgePage />} />
           <Route path={PATHS.recipes} element={<RecipesPage />} />
+          <Route path={PATHS.suggestions} element={<SuggestionsPage />} />
           <Route path={PATHS.planner} element={<PlannerPage />} />
           <Route path={PATHS.grocery} element={<GroceryPage />} />
           <Route

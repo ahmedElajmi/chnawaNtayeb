@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { matchRecipes, analyzeRecipe } from './engine';
+import { matchRecipes, analyzeRecipe, browseRecipes } from './engine';
 import { findByName, normalizeText } from '../shared/text';
 import { inferRole } from '../catalog/roles';
 import { initialRecipes } from '../catalog/seed/initialRecipes';
@@ -152,5 +152,29 @@ describe('text normalization (photo scanner / search)', () => {
 
   it('returns nothing for unknown items', () => {
     expect(findByName('Kiwi', initialIngredients)).toBeUndefined();
+  });
+});
+
+describe('browseRecipes – full catalog', () => {
+  const published = initialRecipes.filter((r) => r.is_published);
+
+  it('keeps every published recipe, even those unrelated to the fridge', () => {
+    const list = browseRecipes(initialRecipes, ['ing_oeuf', 'ing_merguez', 'ing_tomate', 'ing_piment'], undefined, ctx);
+    expect(list).toHaveLength(published.length);
+    expect(new Set(list.map((r) => r.recipe.id)).size).toBe(published.length);
+  });
+
+  it('lists the fridge suggestions first, in the same order as matchRecipes', () => {
+    const fridge = ['ing_oeuf', 'ing_merguez', 'ing_tomate', 'ing_piment'];
+    const res = matchRecipes(initialRecipes, fridge, undefined, ctx);
+    const suggested = [...res.ready, ...res.almost, ...res.ideas].map((r) => r.recipe.id);
+    const list = browseRecipes(initialRecipes, fridge, undefined, ctx);
+    expect(list.slice(0, suggested.length).map((r) => r.recipe.id)).toEqual(suggested);
+  });
+
+  it('applies the filters', () => {
+    const list = browseRecipes(initialRecipes, [], { category: 'dessert' }, ctx);
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.length).toBeLessThan(published.length);
   });
 });

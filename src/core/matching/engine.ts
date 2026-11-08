@@ -55,25 +55,33 @@ export function analyzeRecipe(recipe: Recipe, fridgeIds: Iterable<string>, ctx: 
   return { ...facts, score: scoreRecipe(facts, config) };
 }
 
-export function matchRecipes(
+interface Analyzed {
+  related: MatchingResult[];
+  /** Recipes kept by the filters but unrelated to the fridge (classified as no tier) */
+  unrelated: MatchingResult[];
+  config: MatchingConfig;
+  today: string;
+}
+
+function analyzeAll(
   recipes: Recipe[],
   fridgeIds: string[],
-  filters?: FilterOptions,
-  ctx: MatchContext = {}
-): MatchResults {
+  filters: FilterOptions | undefined,
+  ctx: MatchContext
+): Analyzed {
   const config = ctx.config ?? DEFAULT_MATCHING_CONFIG;
   const availability = createAvailability(fridgeIds, ctx.pantryIds);
   const ingredientsById = indexCatalog(ctx.catalog);
   const keep = createRecipeFilter(filters);
   const situation = { fridgeIsEmpty: fridgeIds.length === 0, isSearching: !!filters?.searchQuery?.trim() };
 
-  const results: MatchingResult[] = [];
+  const related: MatchingResult[] = [];
+  const unrelated: MatchingResult[] = [];
   for (const recipe of recipes) {
     if (!keep(recipe)) continue;
     const facts = analyzeAvailability(recipe, availability, ingredientsById, config);
     const tier = classifyRecipe(facts, situation, config);
-    if (!tier) continue;
-    results.push({
+    (tier ? related : unrelated).push({
       recipe,
       score: scoreRecipe(facts, config),
       matched_ingredients: facts.matched,
@@ -83,17 +91,52 @@ export function matchRecipes(
       substitutions: facts.substitutions,
       missing_cost_tnd: facts.missingCost,
       fridge_used: facts.fridgeUsed,
-      tier,
+      tier: tier ?? 'ideas',
     });
   }
+  return { related, unrelated, config, today: ctx.today ?? new Date().toISOString().slice(0, 10) };
+}
 
-  const today = ctx.today ?? new Date().toISOString().slice(0, 10);
+/** Suggestions for the fridge: only the recipes related to it, grouped by tier. */
+export function matchRecipes(
+  recipes: Recipe[],
+  fridgeIds: string[],
+  filters?: FilterOptions,
+  ctx: MatchContext = {}
+): MatchResults {
+  const { related, config, today } = analyzeAll(recipes, fridgeIds, filters, ctx);
   const byTier = (tier: MatchingResult['tier']) =>
     rankTier(
-      results.filter((r) => r.tier === tier),
+      related.filter((r) => r.tier === tier),
       tier,
       config,
       today
     );
-  return { ready: byTier('ready'), almost: byTier('almost'), ideas: byTier('ideas'), totalMatches: results.length };
+  return { ready: byTier('ready'), almost: byTier('almost'), ideas: byTier('ideas'), totalMatches: related.length };
+}
+
+/**
+ * The whole catalog (with the filters applied), each recipe analyzed against the fridge:
+ * the fridge suggestions first (ready → almost → ideas), then every other recipe.
+ * Unrelated recipes are returned with the "ideas" tier.
+ */
+export function browseRecipes(
+  recipes: Recipe[],
+  fridgeIds: string[],
+  filters?: FilterOptions,
+  ctx: MatchContext = {}
+): MatchingResult[] {
+  const { related, unrelated, config, today } = analyzeAll(recipes, fridgeIds, filters, ctx);
+  const tiers: MatchingResult['tier'][] = ['ready', 'almost', 'ideas'];
+  return [
+    ...tiers.flatMap((tier) =>
+      rankTier(
+        related.filter((r) => r.tier === tier),
+        tier,
+        config,
+        today
+      )
+    ),
+    ...rankTier(unrelated, 'ideas', config, today),
+  ];
 }

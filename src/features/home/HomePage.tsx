@@ -24,6 +24,7 @@ export function HomePage() {
   const { recipes } = useCatalog();
   const { ready } = useRecipeMatches(DEFAULT_RECIPE_FILTERS);
   const recipesWith = useRecipesHref();
+  const suggestionsWith = useRecipesHref(PATHS.suggestions);
 
   const shortcuts: Shortcut[] = [
     {
@@ -140,7 +141,7 @@ export function HomePage() {
             </h2>
             <p className="text-xs text-slate-500">{ready.length} recettes réalisables immédiatement avec votre frigo</p>
           </div>
-          <Link to={recipesWith({ tier: 'ready' })} className="text-xs font-bold text-brand-text hover:underline">
+          <Link to={suggestionsWith({ tier: 'ready' })} className="text-xs font-bold text-brand-text hover:underline">
             Voir tout ({ready.length})
           </Link>
         </div>

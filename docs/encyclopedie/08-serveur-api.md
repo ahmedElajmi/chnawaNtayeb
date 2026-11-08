@@ -52,5 +52,6 @@ l'application (Vite en développement, `dist/` en production).
 
 Les adresses `/`, `/recettes` et `/recette/<slug>` sont envoyées avec leur titre, leur description,
 l'adresse canonique, les cartes de partage, les données schema.org (recette) et un contenu lisible ;
-l'application remplace ensuite ce contenu. Une recette inconnue renvoie une page 404. Le catalogue
+l'application remplace ensuite ce contenu. `/suggestions` dépend du frigo de chacun : pas de page SEO.
+Une recette inconnue renvoie une page 404. Le catalogue
 utilisé est celui de Firestore si le serveur y a accès (cache de 10 minutes), sinon le catalogue intégré.

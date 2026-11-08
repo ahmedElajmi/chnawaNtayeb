@@ -24,7 +24,6 @@ export interface TranslationDictionary {
   searchPlaceholder: string;
   selectedCount: string;
   clearSelection: string;
-  addCustomIngredient: string;
   addBtn: string;
   cookNowAction: string;
   // Categories
@@ -180,6 +179,17 @@ export interface TranslationDictionary {
   videoWatch: string;
   videoOpenYoutube: string;
   videoBadge: string;
+  recipesAllTab: string;
+  recipesSuggestionsTab: string;
+  selectedIngredientsTitle: string;
+  showAllLabel: string;
+  showLessLabel: string;
+  removeIngredientLabel: string;
+  suggestionsEmptyTitle: string;
+  suggestionsEmptyDesc: string;
+  catalogEmptyTitle: string;
+  catalogEmptyDesc: string;
+  resetFiltersLabel: string;
 }
 
 export const translations: Record<Language, TranslationDictionary> = {
@@ -205,7 +215,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     searchPlaceholder: 'Lawwej 3la ingrédient (tmatem, 3dham, batata...)',
     selectedCount: 'ingrédient ekhtarthom',
     clearSelection: 'Fasakh el kol',
-    addCustomIngredient: 'Zid 7aja okhra',
     addBtn: 'Zid',
     cookNowAction: ' ورّيني شنوة نطيب !',
     catVegetables: 'Khdhra',
@@ -352,6 +361,17 @@ export const translations: Record<Language, TranslationDictionary> = {
     videoWatch: 'Chouf el vidéo',
     videoOpenYoutube: 'Fta7 3la YouTube',
     videoBadge: 'Vidéo',
+    recipesAllTab: 'Maklet el kol',
+    recipesSuggestionsTab: 'Ekhtiyarati',
+    selectedIngredientsTitle: 'Frigo mte3i',
+    showAllLabel: 'Warini el kol',
+    showLessLabel: 'Na9es',
+    removeIngredientLabel: 'Na7i',
+    suggestionsEmptyTitle: 'El frigo fera8',
+    suggestionsEmptyDesc: 'Ekhtar chwaya ingrédients bech nwarrik chnowa tnajem ttayeb.',
+    catalogEmptyTitle: 'Ma fama 7atta makla b had el filtres',
+    catalogEmptyDesc: 'Na7i filtre walla badel el recherche.',
+    resetFiltersLabel: 'Fasakh el filtres',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -375,7 +395,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     searchPlaceholder: 'Rechercher un ingrédient (tomates, œufs, oignons...)',
     selectedCount: 'ingrédients sélectionnés',
     clearSelection: 'Tout effacer',
-    addCustomIngredient: 'Ajouter un ingrédient personnalisé',
     addBtn: 'Ajouter',
     cookNowAction: 'Trouver mes recettes !',
     catVegetables: 'Légumes',
@@ -523,6 +542,17 @@ export const translations: Record<Language, TranslationDictionary> = {
     videoWatch: 'Regarder',
     videoOpenYoutube: 'Ouvrir sur YouTube',
     videoBadge: 'Vidéo',
+    recipesAllTab: 'Toutes les recettes',
+    recipesSuggestionsTab: 'Mes suggestions',
+    selectedIngredientsTitle: 'Mon frigo',
+    showAllLabel: 'Tout voir',
+    showLessLabel: 'Réduire',
+    removeIngredientLabel: 'Retirer',
+    suggestionsEmptyTitle: 'Votre frigo est vide',
+    suggestionsEmptyDesc: 'Sélectionnez quelques ingrédients pour voir les recettes que vous pouvez cuisiner.',
+    catalogEmptyTitle: 'Aucune recette ne correspond à ces filtres',
+    catalogEmptyDesc: 'Retirez un filtre ou modifiez la recherche.',
+    resetFiltersLabel: 'Effacer les filtres',
   },
   ar: {
     appName: 'شنوة نطيب؟',
@@ -545,7 +575,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     searchPlaceholder: 'لوّج على مكوّن (طماطم، عظام، بطاطا...)',
     selectedCount: 'مكوّنات مختارة',
     clearSelection: 'فسّخ الكل',
-    addCustomIngredient: 'زيد مكوّن مخصص',
     addBtn: 'زيد',
     cookNowAction: 'ورّيني شنوة نطيب !',
     catVegetables: 'خضرة',
@@ -692,5 +721,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     videoWatch: 'شاهد',
     videoOpenYoutube: 'افتح على يوتيوب',
     videoBadge: 'فيديو',
+    recipesAllTab: 'كل الوصفات',
+    recipesSuggestionsTab: 'اقتراحاتي',
+    selectedIngredientsTitle: 'شنوة عندي في الفريجيدار',
+    showAllLabel: 'ورّيني الكل',
+    showLessLabel: 'نقّص',
+    removeIngredientLabel: 'نحّي',
+    suggestionsEmptyTitle: 'الفريجيدار فارغ',
+    suggestionsEmptyDesc: 'اختار شوية مكوّنات باش نورّيك شنوة تنجم تطيب.',
+    catalogEmptyTitle: 'ما فماش وصفة بهالفلاتر',
+    catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
+    resetFiltersLabel: 'فسّخ الفلاتر',
   },
 };

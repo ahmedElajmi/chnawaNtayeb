@@ -19,15 +19,16 @@ React 19, Vite, Tailwind CSS 4, react-router 7, icônes lucide-react.
 
 Toutes les adresses sont définies dans `src/shared/paths.ts` (aussi utilisé par le serveur pour le SEO).
 
-| Adresse          | Page                                     |
-| ---------------- | ---------------------------------------- |
-| `/`              | `features/home/HomePage.tsx`             |
-| `/frigo`         | `features/fridge/FridgePage.tsx`         |
-| `/recettes`      | `features/recipes/RecipesPage.tsx`       |
-| `/recette/:slug` | `features/recipes/RecipeDetailRoute.tsx` |
-| `/semaine`       | `features/planner/PlannerPage.tsx`       |
-| `/courses`       | `features/grocery/GroceryPage.tsx`       |
-| `/patron`        | `features/backoffice/BackofficePage.tsx` |
+| Adresse          | Page                                       |
+| ---------------- | ------------------------------------------ |
+| `/`              | `features/home/HomePage.tsx`               |
+| `/frigo`         | `features/fridge/FridgePage.tsx`           |
+| `/recettes`      | `features/recipes/RecipesPage.tsx`         |
+| `/suggestions`   | `features/suggestions/SuggestionsPage.tsx` |
+| `/recette/:slug` | `features/recipes/RecipeDetailRoute.tsx`   |
+| `/semaine`       | `features/planner/PlannerPage.tsx`         |
+| `/courses`       | `features/grocery/GroceryPage.tsx`         |
+| `/patron`        | `features/backoffice/BackofficePage.tsx`   |
 
 Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie à `/patron`.
 
@@ -35,8 +36,16 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
 
 - **Filtres de recettes dans l'adresse** : `?q=&budget=&temps=&cuisine=&plat=&healthy=1&niveau=&favoris=1`
   (`features/recipes/recipeFilters.ts`). Une recherche se partage et survit au rechargement.
-- **Filtres conservés entre les écrans** : tout lien vers la liste reprend les derniers filtres ;
-  un raccourci de l'accueil ne change que son propre filtre (`filterMemory.ts`).
+- **Deux listes de recettes** : `/recettes` (catalogue complet, `useRecipeCatalog`) et
+  `/suggestions` (niveaux du frigo, `useRecipeMatches`), reliées par les onglets `RecipeListTabs`.
+  La barre de filtres est commune (`recipes/components/RecipeFilterBar.tsx`) ; le filtre de niveau
+  (`niveau`) n'existe que sur les suggestions. L'onglet « Recettes » du menu reste actif sur les deux.
+- **Filtres conservés entre les écrans** : tout lien vers une liste reprend les derniers filtres
+  (`useRecipesHref(PATHS.recipes | PATHS.suggestions)`) ; un raccourci de l'accueil ne change que
+  son propre filtre (`filterMemory.ts`). Le bouton du frigo et « Voir tout » de l'accueil mènent
+  aux suggestions, les autres liens au catalogue.
+- **Récapitulatif du frigo** : en haut de `/frigo`, les ingrédients choisis (retrait d'un clic,
+  « Tout effacer », repli au-delà de 12 avec « Tout voir »). Pas d'ajout d'ingrédient : réservé au patron.
 - **Fiche recette par-dessus l'écran d'origine** : ouvrir une recette garde l'écran derrière ;
   retour la ferme. Une adresse ouverte directement s'affiche par-dessus la liste.
 - **Accueil en bas de l'historique** : aller à l'accueil revient au début de l'historique ; une
