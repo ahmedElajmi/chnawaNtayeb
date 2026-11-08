@@ -1,0 +1,61 @@
+import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import firebaseConfig from '../firebase-applet-config.json';
+
+/**
+ * Bridges the /patron login with Firebase:
+ * after a successful patron login, the server mints a Firebase custom token
+ * carrying the `patron: true` claim. The browser signs in with it, and the
+ * Firestore rules (isAdmin) accept writes from that identity.
+ *
+ * Needs FIREBASE_SERVICE_ACCOUNT: the service-account JSON downloaded from
+ * Firebase console → Project settings → Service accounts. It can be given as
+ * raw JSON or base64-encoded JSON. Never commit this value.
+ */
+
+export const PATRON_FIREBASE_UID = 'patron-admin';
+
+let app: App | null | undefined;
+
+function loadServiceAccount(): Record<string, string> | null {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+  if (!raw) return null;
+  try {
+    const json = raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
+    const parsed = JSON.parse(json);
+    if (!parsed.project_id || !parsed.client_email || !parsed.private_key) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function getAdminApp(): App | null {
+  if (app !== undefined) return app;
+  const account = loadServiceAccount();
+  if (!account) {
+    app = null;
+    return app;
+  }
+  app = getApps()[0] ?? initializeApp({ credential: cert(account as any) });
+  return app;
+}
+
+/** Firestore with admin rights, or null when the service account is not configured. */
+export function getAdminFirestore(): Firestore | null {
+  const adminApp = getAdminApp();
+  // Same database as the web client (firebase-applet-config.json), whether it is "(default)" or a named one
+  return adminApp ? getFirestore(adminApp, firebaseConfig.firestoreDatabaseId || '(default)') : null;
+}
+
+export function isFirebaseAdminConfigured(): boolean {
+  return getAdminApp() !== null;
+}
+
+/** Returns a Firebase custom token for the patron, or null when the service account is not configured. */
+export async function createPatronFirebaseToken(): Promise<string | null> {
+  const adminApp = getAdminApp();
+  if (!adminApp) return null;
+  return getAuth(adminApp).createCustomToken(PATRON_FIREBASE_UID, { patron: true });
+}

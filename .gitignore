@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output and caches
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Environment and secrets (keep only the example)
+.env*
+!.env.example
+*service-account*.json
+*firebase-adminsdk*.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Lockfiles of other package managers (npm and package-lock.json are the reference)
+bun.lock
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
+# Local tools and editors
+.claude/
+.aistudio/
+.vscode/
+.idea/
+*.swp
+
+# Python caches (brand script)
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

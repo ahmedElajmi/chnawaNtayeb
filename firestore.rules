@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Admin = patron session bridged by the server (custom token with the `patron` claim),
+    // the owner's verified Google account, or a uid listed in /admins.
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.patron == true ||
+        (request.auth.token.email == 'ahmedlajmi123@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function optionalString(data, field, maxSize) {
+      return !(field in data) || (data[field] is string && data[field].size() <= maxSize);
+    }
+
+    function optionalList(data, field, maxSize) {
+      return !(field in data) || (data[field] is list && data[field].size() <= maxSize);
+    }
+
+    // ------------------------------------------------------------------
+    // Catalog: public read, admin-only write
+    // ------------------------------------------------------------------
+
+    match /recipes/{recipeId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(recipeId);
+    }
+
+    match /ingredients/{ingredientId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(ingredientId);
+    }
+
+    // ------------------------------------------------------------------
+    // Themes created in the backoffice
+    // Every value is checked so a theme can never carry arbitrary CSS or URLs.
+    // ------------------------------------------------------------------
+
+    function isHex(v) {
+      return v is string && v.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function isValidColors(c) {
+      return c is map
+        && c.keys().hasOnly(['brand', 'brandStrong', 'brandText', 'onBrand', 'accent', 'accentStrong', 'accentText',
+                             'onAccent', 'highlight', 'surface', 'card', 'line', 'ink', 'inkMuted', 'heroFrom', 'heroTo'])
+        && isHex(c.brand) && isHex(c.brandStrong) && isHex(c.brandText) && isHex(c.onBrand)
+        && isHex(c.accent) && isHex(c.accentStrong) && isHex(c.accentText) && isHex(c.onAccent)
+        && isHex(c.highlight) && isHex(c.surface) && isHex(c.card) && isHex(c.line)
+        && isHex(c.ink) && isHex(c.inkMuted) && isHex(c.heroFrom) && isHex(c.heroTo);
+    }
+
+    function isName(v) {
+      return v is string && v.size() > 0 && v.size() <= 60;
+    }
+
+    function isValidTheme(d) {
+      return d.keys().hasOnly(['name_fr', 'name_derja', 'name_ar', 'light', 'dark', 'displayFont',
+                               'cardShape', 'pattern', 'is_published', 'updated_at'])
+        && isName(d.name_fr) && isName(d.name_derja) && isName(d.name_ar)
+        && isValidColors(d.light) && isValidColors(d.dark)
+        && d.displayFont in ['plus-jakarta', 'fraunces', 'reem-kufi', 'cairo', 'playfair', 'baloo']
+        && d.cardShape in ['rounded', 'arch', 'square']
+        && d.pattern in ['none', 'zellige', 'dots', 'waves']
+        && d.is_published is bool
+        && optionalString(d, 'updated_at', 40);
+    }
+
+    match /themes/{themeId} {
+      // Visitors only see published themes (the app queries `where is_published == true`)
+      allow read: if resource.data.is_published == true || isAdmin();
+      allow create, update: if isAdmin() && isValidId(themeId)
+        && !(themeId in ['classique', 'fkhar'])
+        && isValidTheme(request.resource.data);
+      allow delete: if isAdmin() && isValidId(themeId);
+    }
+
+    // ------------------------------------------------------------------
+    // User profiles: a user only touches their own profile, with a fixed
+    // set of fields. `role` can never be written by the client.
+    // ------------------------------------------------------------------
+
+    function isValidUserProfile(userId, d) {
+      return d.keys().hasOnly(['uid', 'email', 'displayName', 'isAnonymous', 'favorites', 'savedFridge', 'lastLogin'])
+        && d.uid == userId
+        && optionalString(d, 'email', 254)
+        && optionalString(d, 'displayName', 60)
+        && (!('isAnonymous' in d) || d.isAnonymous is bool)
+        && optionalList(d, 'favorites', 300)
+        && optionalList(d, 'savedFridge', 300)
+        && optionalString(d, 'lastLogin', 40);
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow create, update: if isSignedIn() && isValidId(userId) && (
+        isAdmin() || (request.auth.uid == userId && isValidUserProfile(userId, request.resource.data))
+      );
+      allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Admins collection (super user control)
+    match /admins/{adminId} {
+      allow read, write: if isAdmin() && isValidId(adminId);
+    }
+  }
+}

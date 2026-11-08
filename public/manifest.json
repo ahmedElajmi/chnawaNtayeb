@@ -1,0 +1,37 @@
+{
+  "id": "/",
+  "name": "Chnowa Ntayeb - شنوة نطيب؟",
+  "short_name": "ChnowaNtayeb",
+  "description": "Application culinaire tunisienne by Chef Souhed : trouvez des idées repas en 30 secondes avec les ingrédients de votre frigo !",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF4E6",
+  "theme_color": "#2D5A27",
+  "categories": [
+    "food",
+    "lifestyle",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

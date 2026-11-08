@@ -1,0 +1,428 @@
+{
+  "entities": {
+    "Recipe": {
+      "title": "Recipe",
+      "description": "Authentic Tunisian recipe item",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "name_fr": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "name_derja": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "name_ar": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "description_fr": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "description_derja": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "description_ar": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "image_url": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "prep_time_minutes": {
+          "type": "number"
+        },
+        "cook_time_minutes": {
+          "type": "number"
+        },
+        "base_servings": {
+          "type": "number"
+        },
+        "estimated_cost_tnd": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "entree",
+            "plat_principal",
+            "dessert"
+          ]
+        },
+        "cuisine_type": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "difficulty": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "is_published": {
+          "type": "boolean"
+        },
+        "is_healthy": {
+          "type": "boolean"
+        },
+        "video_url": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional YouTube link (how to cook the dish)"
+        }
+      },
+      "required": [
+        "slug",
+        "name_fr",
+        "prep_time_minutes",
+        "cook_time_minutes",
+        "is_published"
+      ]
+    },
+    "Ingredient": {
+      "title": "Ingredient",
+      "description": "Market ingredient with Tunisian market price in DT",
+      "type": "object",
+      "properties": {
+        "name_fr": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "name_derja": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "name_ar": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "unit_default": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "default_price_tnd": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "name_fr",
+        "category",
+        "unit_default",
+        "default_price_tnd"
+      ]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile. No role field: admin rights come from the patron custom claim or the admins collection.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "isAnonymous": {
+          "type": "boolean"
+        },
+        "favorites": {
+          "type": "array",
+          "maxItems": 300,
+          "items": {
+            "type": "string"
+          }
+        },
+        "savedFridge": {
+          "type": "array",
+          "maxItems": 300,
+          "items": {
+            "type": "string"
+          }
+        },
+        "lastLogin": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "uid"
+      ]
+    },
+    "Theme": {
+      "title": "Theme",
+      "description": "Visual theme created in the backoffice and selectable by every user once published",
+      "type": "object",
+      "properties": {
+        "name_fr": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "name_derja": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "name_ar": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "light": {
+          "type": "object",
+          "properties": {
+            "brand": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "brandStrong": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "brandText": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "onBrand": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accentStrong": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accentText": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "onAccent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "highlight": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "surface": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "card": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "line": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "ink": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "inkMuted": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "heroFrom": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "heroTo": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            }
+          },
+          "required": [
+            "brand",
+            "brandStrong",
+            "brandText",
+            "onBrand",
+            "accent",
+            "accentStrong",
+            "accentText",
+            "onAccent",
+            "highlight",
+            "surface",
+            "card",
+            "line",
+            "ink",
+            "inkMuted",
+            "heroFrom",
+            "heroTo"
+          ],
+          "additionalProperties": false
+        },
+        "dark": {
+          "type": "object",
+          "properties": {
+            "brand": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "brandStrong": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "brandText": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "onBrand": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accentStrong": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "accentText": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "onAccent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "highlight": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "surface": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "card": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "line": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "ink": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "inkMuted": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "heroFrom": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "heroTo": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            }
+          },
+          "required": [
+            "brand",
+            "brandStrong",
+            "brandText",
+            "onBrand",
+            "accent",
+            "accentStrong",
+            "accentText",
+            "onAccent",
+            "highlight",
+            "surface",
+            "card",
+            "line",
+            "ink",
+            "inkMuted",
+            "heroFrom",
+            "heroTo"
+          ],
+          "additionalProperties": false
+        },
+        "displayFont": {
+          "type": "string",
+          "enum": [
+            "plus-jakarta",
+            "fraunces",
+            "reem-kufi",
+            "cairo",
+            "playfair",
+            "baloo"
+          ]
+        },
+        "cardShape": {
+          "type": "string",
+          "enum": [
+            "rounded",
+            "arch",
+            "square"
+          ]
+        },
+        "pattern": {
+          "type": "string",
+          "enum": [
+            "none",
+            "zellige",
+            "dots",
+            "waves"
+          ]
+        },
+        "is_published": {
+          "type": "boolean"
+        },
+        "updated_at": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "name_fr",
+        "name_derja",
+        "name_ar",
+        "light",
+        "dark",
+        "displayFont",
+        "cardShape",
+        "pattern",
+        "is_published"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "firestore": {
+    "/recipes/{recipeId}": {
+      "schema": "#/entities/Recipe",
+      "description": "Tunisian recipes collection (public read, admin write)"
+    },
+    "/ingredients/{ingredientId}": {
+      "schema": "#/entities/Ingredient",
+      "description": "Tunisian market ingredients catalogue (public read, admin write)"
+    },
+    "/users/{userId}": {
+      "schema": "#/entities/User",
+      "description": "User account profiles (owner read/write, admin manage)"
+    },
+    "/themes/{themeId}": {
+      "schema": "#/entities/Theme",
+      "description": "Themes (public read when published, admin write, every value validated by the rules)"
+    }
+  }
+}

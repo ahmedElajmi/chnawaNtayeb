@@ -1,0 +1,156 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Theme tokens.
+ * Default values = "Classique" light theme. ThemeContext overrides every
+ * variable on <html> at runtime with the active theme (built-in or created
+ * by the admin), so utilities like `bg-brand` or `text-ink` follow the theme.
+ */
+@theme {
+  --color-brand: #2D5A27;
+  --color-brand-strong: #23471E;
+  --color-brand-text: #2D5A27;
+  --color-on-brand: #FFFFFF;
+  --color-accent: #C75128;
+  --color-accent-strong: #A8401D;
+  --color-accent-text: #B4461F;
+  --color-on-accent: #FFFFFF;
+  --color-highlight: #D99B26;
+  --color-surface: #FBF9F5;
+  --color-card: #FFFFFF;
+  --color-line: #E8E4DC;
+  --color-ink: #0F172A;
+  --color-ink-muted: #64748B;
+  --color-hero-from: #2D5A27;
+  --color-hero-to: #183315;
+
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --animate-fade-in: fade-in 0.25s ease-out both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  [dir="rtl"] {
+    --font-sans: 'Cairo', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Card shapes (data-card-shape on <html>)
+ * ------------------------------------------------------------------------- */
+[data-card-shape="arch"] .recipe-media {
+  margin: 0.5rem 0.5rem 0;
+  width: calc(100% - 1rem);
+  border-radius: 999px 999px 0.75rem 0.75rem;
+}
+
+[data-card-shape="square"] .theme-card,
+[data-card-shape="square"] .theme-card .recipe-media {
+  border-radius: 0.375rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Decorative pattern band (data-pattern on <html>)
+ * The SVG is used as a mask so the band takes the theme's brand color.
+ * ------------------------------------------------------------------------- */
+.pattern-band {
+  display: none;
+  height: 12px;
+  width: 100%;
+  background-color: var(--color-brand);
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: auto 100%;
+  mask-size: auto 100%;
+  opacity: 0.85;
+}
+
+[data-pattern="zellige"] .pattern-band,
+[data-pattern="dots"] .pattern-band,
+[data-pattern="waves"] .pattern-band {
+  display: block;
+}
+
+[data-pattern="zellige"] .pattern-band {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 L6 0 L12 6 L6 12Z'/%3E%3Ccircle cx='18' cy='6' r='2'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 L6 0 L12 6 L6 12Z'/%3E%3Ccircle cx='18' cy='6' r='2'/%3E%3C/svg%3E");
+}
+
+[data-pattern="dots"] .pattern-band {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5'/%3E%3C/svg%3E");
+}
+
+[data-pattern="waves"] .pattern-band {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E");
+}
+
+/* Custom scrollbar for mobile touch & web */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 150, 140, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 150, 140, 0.5);
+}
+
+/* Safe area insets for notched mobile devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}

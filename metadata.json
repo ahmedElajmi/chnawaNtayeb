@@ -1,0 +1,6 @@
+{
+  "name": "Chnowa Ntayeb",
+  "description": "Application culinaire tunisienne (PWA) pour trouver quoi cuisiner en 30 secondes avec ce qui reste dans le frigo, planificateur hebdomadaire et backoffice de gestion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

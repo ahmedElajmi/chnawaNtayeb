@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Planche marque Chnowa Ntayeb</title>
+    <style>
+      :root { --bg: #f6f3ee; --card: #fff; --ink: #1f2933; --muted: #6b7280; --line: #e5e0d8; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--ink); padding: 24px 16px 64px; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      h2 { font-size: 16px; margin: 32px 0 12px; }
+      p.note { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+      .card h3 { font-size: 13px; margin: 0 0 10px; color: var(--muted); font-weight: 600; }
+      .card img { max-width: 100%; display: block; margin: 0 auto; }
+      .checker { background-color: #fff; background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; }
+      .sizes { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+      .sizes figure { margin: 0; text-align: center; font-size: 11px; color: var(--muted); }
+      .mask { width: 160px; height: 160px; border-radius: 50%; overflow: hidden; }
+      .mask img { width: 100%; height: 100%; }
+      .tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px 10px 0 0; background: #dee1e6; font-size: 13px; }
+      .tab.dark { background: #35363a; color: #e8eaed; }
+      .bg-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .bg-row div { border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+      .bg-row img { height: 40px; width: auto; }
+      .hdr { display: flex; flex-direction: column; line-height: 1.1; }
+      .hdr small { font-size: 10px; font-weight: 700; margin-top: 2px; }
+    </style>
+  </head>
+  <body>
+    <h1>Marque « Chnowa Ntayeb? »</h1>
+    <p class="note">
+      Tous les fichiers sont tirés de <code>brand/reference/logo-reference.png</code>, sans redessin :
+      agrandissement ×4 (Real-ESRGAN), recadrages et redimensionnements. Régénérer : <code>npm run brand</code>.
+    </p>
+
+    <h2>Image de référence et logo</h2>
+    <div class="grid">
+      <div class="card checker"><h3>Référence (logo-reference.png)</h3><img src="reference/logo-reference.png" alt="Référence" /></div>
+      <div class="card checker"><h3>Logo complet (logo-full.png, 1024 px)</h3><img src="../public/logo-full.png" alt="Logo" /></div>
+      <div class="card" style="background: #14183a"><h3 style="color: #c7c9e0">Logo sur fond sombre</h3><img src="../public/logo.png" alt="" /></div>
+    </div>
+
+    <h2>Icône de l'application</h2>
+    <div class="grid">
+      <div class="card"><h3>icon-512.png</h3><img src="../public/icon-512.png" alt="" style="max-width: 300px; border-radius: 64px" /></div>
+      <div class="card">
+        <h3>Android maskable (masque rond) · iPhone 180 px</h3>
+        <div class="sizes">
+          <figure><div class="mask"><img src="../public/icon-512-maskable.png" alt="" /></div>maskable</figure>
+          <figure><img src="../public/apple-touch-icon.png" alt="" style="width: 120px; border-radius: 27px" />apple-touch-icon</figure>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Écran d'accueil (taille réelle approximative)</h3>
+        <div class="sizes">
+          <figure><img src="../public/icon-192.png" width="96" height="96" alt="" style="border-radius: 22px" /><br />96 px</figure>
+          <figure><img src="../public/icon-192.png" width="60" height="60" alt="" style="border-radius: 14px" /><br />60 px</figure>
+          <figure><img src="../public/icon-192.png" width="48" height="48" alt="" style="border-radius: 11px" /><br />48 px</figure>
+        </div>
+      </div>
+    </div>
+
+    <h2>Favicon (toque + cloche de la référence dans un badge rond crème)</h2>
+    <div class="card">
+      <div class="sizes">
+        <figure><img src="../public/favicon-16.png" width="16" height="16" alt="" /><br />16 px</figure>
+        <figure><img src="../public/favicon-32.png" width="32" height="32" alt="" /><br />32 px</figure>
+        <figure><img src="../public/favicon-48.png" width="48" height="48" alt="" /><br />48 px</figure>
+        <figure><img src="../public/favicon-48.png" width="128" height="128" alt="" style="image-rendering: auto" /><br />agrandi</figure>
+      </div>
+      <p class="note" style="margin-top: 16px">Dans un onglet :</p>
+      <span class="tab"><img src="../public/favicon-32.png" width="16" height="16" alt="" />Chnowa Ntayeb</span>
+      <span class="tab dark"><img src="../public/favicon-32.png" width="16" height="16" alt="" />Chnowa Ntayeb</span>
+    </div>
+
+    <h2>Symbole de l'en-tête (illustration sans le texte, bas fondu)</h2>
+    <div class="bg-row">
+      <div style="background: #fbf9f5; color: #0f172a"><img src="../public/mark.png" alt="" /><span class="hdr">Chnowa Ntayeb<small style="color: #b4461f">شنوة نطيب؟ · by Chef Souhed</small></span></div>
+      <div style="background: #151a16; color: #f1f5f9"><img src="../public/mark.png" alt="" /><span class="hdr">Chnowa Ntayeb<small style="color: #f08a63">شنوة نطيب؟ · by Chef Souhed</small></span></div>
+      <div style="background: #f6eedf; color: #14183a"><img src="../public/mark.png" alt="" /><span class="hdr">Chnowa Ntayeb<small style="color: #b23019">شنوة نطيب؟ · by Chef Souhed</small></span></div>
+      <div style="background: #14183a; color: #f6eedf"><img src="../public/mark.png" alt="" /><span class="hdr">Chnowa Ntayeb<small style="color: #f08470">شنوة نطيب؟ · by Chef Souhed</small></span></div>
+    </div>
+
+    <h2>Image de partage WhatsApp / Facebook (og-image.png, 1200 × 630)</h2>
+    <div class="card"><img src="../public/og-image.png" alt="" style="max-width: 720px; width: 100%; border-radius: 12px" /></div>
+  </body>
+</html>
