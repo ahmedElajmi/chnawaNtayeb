@@ -328,9 +328,12 @@ Trois façons de faire, comparées :
 
 - **Fabrication** : au build (`npm run build`), un script lit le catalogue avec le compte de service
   (une seule lecture complète par déploiement) et écrit `dist/catalog/start.<empreinte>.json` :
-  recettes, ingrédients (et plus tard étiquettes) et la **révision la plus récente** qu'il contient. Le
-  bouton « Publier » de `/patron` peut relancer un déploiement Render (« deploy hook », à vérifier) pour
-  le rafraîchir ; sinon il se met à jour au déploiement suivant.
+  recettes, ingrédients (et plus tard étiquettes) et la **révision la plus récente** qu'il contient. Il
+  se met à jour **tout seul à chaque déploiement** : aucun nouveau bouton n'est nécessaire, et les
+  modifications faites entre deux déploiements arrivent de toute façon par la synchronisation en direct.
+  Option ultérieure, seulement si l'écart devient grand : une action « Mettre à jour le fichier de
+  démarrage » dans `/patron` › Données (section « Base de données en ligne », à côté d'« Envoyer vers le
+  cloud »), qui relance un déploiement Render (« deploy hook », à vérifier).
 - **Première visite** (ou copie de plus de 30 jours, ou navigateur sans IndexedDB) : l'application
   télécharge le fichier, le **relit par le domaine** (`parseStoredRecipes` / `parseStoredIngredients`,
   éléments invalides ignorés), le range dans IndexedDB avec sa révision, puis suit `revision >=` celle du
