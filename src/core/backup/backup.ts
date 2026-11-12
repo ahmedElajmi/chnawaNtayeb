@@ -1,12 +1,14 @@
 import {
-  migrateIngredients,
+  INGREDIENT_CATEGORIES,
   migrateRecipes,
+  parseStoredIngredient,
   parseStoredRecipe,
   type Ingredient,
   type IngredientCategory,
   type Recipe,
 } from '../catalog';
 import type { GroceryItem } from '../grocery';
+import type { DayPlan } from '../planning';
 
 /** Content of a backup file once read: only the sections present and valid, plus what was skipped. */
 export interface ParsedBackup {
@@ -20,28 +22,8 @@ export interface ParsedBackup {
   skipped: number;
 }
 
-const CATEGORIES: IngredientCategory[] = [
-  'vegetables',
-  'fruits',
-  'meats',
-  'fish',
-  'dairy_eggs',
-  'grains_pasta',
-  'spices_condiments',
-  'canned_pantry',
-  'other',
-];
-
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const isText = (v: unknown): v is string => typeof v === 'string';
-
-function isStoredIngredient(raw: unknown): boolean {
-  return (
-    isObject(raw) &&
-    ['id', 'name_fr', 'unit_default'].every((k) => isText(raw[k]) && (raw[k] as string).trim() !== '') &&
-    CATEGORIES.includes(raw.category as IngredientCategory)
-  );
-}
 
 function parseGroceryItem(raw: unknown): GroceryItem | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.name) || typeof raw.quantity !== 'number') return null;
@@ -50,7 +32,9 @@ function parseGroceryItem(raw: unknown): GroceryItem | null {
     name: raw.name,
     quantity: raw.quantity,
     unit: isText(raw.unit) ? raw.unit : '',
-    category: CATEGORIES.includes(raw.category as IngredientCategory) ? (raw.category as IngredientCategory) : 'other',
+    category: INGREDIENT_CATEGORIES.includes(raw.category as IngredientCategory)
+      ? (raw.category as IngredientCategory)
+      : 'other',
     is_checked: raw.is_checked === true,
     ...(isText(raw.ingredient_id) ? { ingredient_id: raw.ingredient_id } : {}),
     ...(raw.is_custom === true ? { is_custom: true } : {}),
@@ -80,12 +64,36 @@ export function parseBackup(raw: unknown): ParsedBackup | null {
   const result: ParsedBackup = { skipped: 0 };
   if (Array.isArray(raw.recipes)) result.recipes = migrateRecipes(keep(raw.recipes, parseStoredRecipe));
   if (Array.isArray(raw.ingredients)) {
-    const valid = keep(raw.ingredients, (x) => (isStoredIngredient(x) ? x : null));
-    result.ingredients = migrateIngredients(valid as Parameters<typeof migrateIngredients>[0]);
+    result.ingredients = keep(raw.ingredients, parseStoredIngredient);
   }
   if (Array.isArray(raw.weekly_plan)) result.weeklyPlan = raw.weekly_plan.filter(isObject);
   if (Array.isArray(raw.favorites)) result.favorites = keep(raw.favorites, (x) => (isText(x) ? x : null));
   if (Array.isArray(raw.grocery_list)) result.groceryList = keep(raw.grocery_list, parseGroceryItem);
   result.skipped = skipped;
   return result;
+}
+
+export interface BackupContent {
+  recipes: Recipe[];
+  ingredients: Ingredient[];
+  weeklyPlan: DayPlan[];
+  favorites: string[];
+  groceryList: GroceryItem[];
+}
+
+/**
+ * Backup file content (JSON dump): complete objects, every language and every field,
+ * read back by parseBackup. Sync revisions are left out (they belong to one database).
+ */
+export function createBackup(content: BackupContent, exportedAt: string) {
+  const strip = <T extends { revision?: number }>(list: T[]) => list.map(({ revision: _revision, ...rest }) => rest);
+  return {
+    version: 1,
+    exported_at: exportedAt,
+    recipes: strip(content.recipes),
+    ingredients: strip(content.ingredients),
+    weekly_plan: content.weeklyPlan,
+    favorites: content.favorites,
+    grocery_list: content.groceryList,
+  };
 }

@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { RecipeDetailModal } from '@/features/recipes/components/RecipeDetailModal';
 import { useCatalog, useKitchen, useMatchingSettings } from '@/app/ContainerContext';
 import { PATHS } from '@/shared/paths';
+import { useLanguage } from '@/app/providers/LanguageContext';
 import type { RecipeOverlayState } from './hooks';
 
 /**
@@ -16,17 +17,18 @@ export function RecipeDetailRoute({ slug }: { slug: string }) {
   const { catalog, ingredients, remoteChecked } = useCatalog();
   const { fridge, pantry, favorites, kitchen } = useKitchen();
   const { config } = useMatchingSettings();
+  const { getRecipeName } = useLanguage();
   const recipe = catalog.findPublishedBySlug(slug);
   const openedInApp = Boolean((location.state as RecipeOverlayState | null)?.background);
 
   useEffect(() => {
     if (!recipe) return;
     const previous = document.title;
-    document.title = `${recipe.name_fr} | Chnowa Ntayeb by Chef Souhed`;
+    document.title = `${getRecipeName(recipe)} | Chnowa Ntayeb by Chef Souhed`;
     return () => {
       document.title = previous;
     };
-  }, [recipe]);
+  }, [recipe, getRecipeName]);
 
   // Unknown address: wait for the shared catalog (the recipe may be new), then show the list
   if (!recipe) return remoteChecked ? <Navigate to={PATHS.recipes} replace /> : null;

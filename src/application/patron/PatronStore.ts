@@ -9,7 +9,11 @@ export interface PatronState {
 
 /** Admin (patron) session, always confirmed by the server. */
 export class PatronStore extends Store<PatronState> {
-  constructor(private readonly gateway: PatronGateway) {
+  constructor(
+    private readonly gateway: PatronGateway,
+    /** Called once the admin can write to the database (e.g. seeds an empty catalog) */
+    private readonly onCloudConnected: () => Promise<void> = async () => {}
+  ) {
     super({ status: gateway.hasStoredSession() ? 'checking' : 'signed-out', cloudStatus: 'local-only' });
   }
 
@@ -21,7 +25,7 @@ export class PatronStore extends Store<PatronState> {
     }
     const valid = await this.gateway.verifySession();
     this.setState({ status: valid ? 'signed-in' : 'signed-out' });
-    if (valid) this.setState({ cloudStatus: await this.gateway.connectCloud() });
+    if (valid) this.signedIn(await this.gateway.connectCloud());
   }
 
   /** Checks the credentials with the server; signs in on success. */
@@ -34,7 +38,7 @@ export class PatronStore extends Store<PatronState> {
   /** The login succeeded (credentials checked by the server). */
   signedIn(cloudStatus: CloudStatus): void {
     this.setState({ status: 'signed-in', cloudStatus });
-    if (cloudStatus === 'connected') this.gateway.onCloudConnected().catch(() => {});
+    if (cloudStatus === 'connected') this.onCloudConnected().catch(() => {});
   }
 
   async logout(): Promise<void> {

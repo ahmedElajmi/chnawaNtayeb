@@ -8,6 +8,7 @@ import {
 } from '@/core/catalog';
 import type { MatchingConfig } from '@/core/matching';
 import { cls, IngredientChips, IngredientSelect, Section } from './ui';
+import { useLanguage } from '@/app/providers/LanguageContext';
 
 const COURSE_LABEL: Record<MealCategory, string> = { entree: 'Entrées', plat_principal: 'Plats', dessert: 'Desserts' };
 
@@ -22,7 +23,9 @@ function RuleRow({
   onChange: (r: SubstitutionRule) => void;
   onRemove: () => void;
 }) {
-  const name = ingredients.find((i) => i.id === rule.ingredient)?.name_fr ?? rule.ingredient;
+  const { getIngredientName } = useLanguage();
+  const found = ingredients.find((i) => i.id === rule.ingredient);
+  const name = found ? getIngredientName(found) : rule.ingredient;
   const toggleCourse = (course: MealCategory) => {
     const current = rule.notForCourses ?? [];
     const next = current.includes(course) ? current.filter((c) => c !== course) : [...current, course];

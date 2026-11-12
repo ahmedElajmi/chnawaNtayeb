@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Ingredient, Recipe } from '@/core/catalog';
+import { useLanguage } from '@/app/providers/LanguageContext';
 
 /** Shared look of the "Moteur" tab. */
 export const cls = {
@@ -50,6 +51,7 @@ export function IngredientSelect({
   placeholder?: string;
   exclude?: string[];
 }) {
+  const { getIngredientName, compareNames } = useLanguage();
   return (
     <select
       value={value}
@@ -60,10 +62,10 @@ export function IngredientSelect({
       <option value="">{placeholder}</option>
       {ingredients
         .filter((i) => !exclude.includes(i.id) || i.id === value)
-        .sort((a, b) => a.name_fr.localeCompare(b.name_fr))
+        .sort(compareNames)
         .map((i) => (
           <option key={i.id} value={i.id}>
-            {i.name_fr}
+            {getIngredientName(i)}
           </option>
         ))}
     </select>
@@ -83,6 +85,7 @@ export function RecipeSelect({
   placeholder?: string;
   exclude?: string[];
 }) {
+  const { getRecipeName, compareNames } = useLanguage();
   return (
     <select
       value={value}
@@ -93,10 +96,10 @@ export function RecipeSelect({
       <option value="">{placeholder}</option>
       {recipes
         .filter((r) => !exclude.includes(r.id) || r.id === value)
-        .sort((a, b) => a.name_fr.localeCompare(b.name_fr))
+        .sort(compareNames)
         .map((r) => (
           <option key={r.id} value={r.id}>
-            {r.name_fr}
+            {getRecipeName(r)}
           </option>
         ))}
     </select>
@@ -115,7 +118,11 @@ export function IngredientChips({
   onChange: (ids: string[]) => void;
   addLabel?: string;
 }) {
-  const name = (id: string) => ingredients.find((i) => i.id === id)?.name_fr ?? id;
+  const { getIngredientName } = useLanguage();
+  const name = (id: string) => {
+    const found = ingredients.find((i) => i.id === id);
+    return found ? getIngredientName(found) : id;
+  };
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {ids.map((id) => (
@@ -154,7 +161,11 @@ export function RecipeChips({
   recipes: Recipe[];
   onChange: (ids: string[]) => void;
 }) {
-  const name = (id: string) => recipes.find((r) => r.id === id)?.name_fr ?? id;
+  const { getRecipeName } = useLanguage();
+  const name = (id: string) => {
+    const found = recipes.find((r) => r.id === id);
+    return found ? getRecipeName(found) : id;
+  };
   return (
     <div className="flex flex-wrap items-center gap-1.5 min-w-0">
       {ids.map((id) => (

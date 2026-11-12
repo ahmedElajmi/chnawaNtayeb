@@ -35,7 +35,7 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <ModalShell backdropClassName="bg-black/70">
+    <ModalShell onDismiss={onClose} backdropClassName="bg-black/70">
       <div className="w-full max-w-sm rounded-3xl bg-surface border border-line p-6 shadow-2xl text-ink">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">

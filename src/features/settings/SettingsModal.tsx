@@ -82,7 +82,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <>
-      <ModalShell mobile="bottom" onBackdropClick={onClose}>
+      <ModalShell mobile="bottom" onDismiss={onClose}>
         <div
           role="dialog"
           aria-modal="true"

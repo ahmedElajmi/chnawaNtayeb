@@ -15,6 +15,7 @@ import {
 import { DEFAULT_PANTRY_STAPLES } from '@/core/preferences';
 import type { WriteResult } from '@/application';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
+import { useGuardedClose } from '@/shared/hooks/useGuardedClose';
 import { cls, IngredientChips, IngredientSelect, RecipeChips, RecipeSelect } from './ui';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
@@ -305,6 +306,11 @@ export function ScenarioEditorModal({
   const [newKind, setNewKind] = useState<ScenarioCheckKind>('first');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dismiss = useGuardedClose(
+    JSON.stringify(draft) !== JSON.stringify(scenario),
+    onClose,
+    'Abandonner les modifications de ce scénario ?'
+  );
   const set = (patch: Partial<MatchingScenario>) => setDraft((d) => ({ ...d, ...patch }));
   const setChecks = (checks: ScenarioCheck[]) => set({ checks });
 
@@ -334,7 +340,7 @@ export function ScenarioEditorModal({
   };
 
   return (
-    <ModalShell>
+    <ModalShell onDismiss={dismiss}>
       <div
         role="dialog"
         aria-modal="true"
