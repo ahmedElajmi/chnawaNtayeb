@@ -10,6 +10,7 @@ import {
   type MealCategory,
   type Recipe,
 } from '@/core/catalog';
+import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
@@ -84,7 +85,9 @@ export function RecipeEditorModal({
   onClose,
 }: RecipeEditorModalProps) {
   const [draft, setDraft] = useState<Recipe>(recipe);
-  const [lang, setLang] = useState<EditorLanguage>('fr');
+  const { language, getRecipeName, getIngredientName } = useLanguage();
+  // The fields open in the language of the site (French stays required, see submit)
+  const [lang, setLang] = useState<EditorLanguage>(language);
   const [error, setError] = useState<{ message: string; field?: CheckedField } | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
   const [preview, setPreview] = useState(false);
@@ -106,10 +109,10 @@ export function RecipeEditorModal({
   // Middle of the range, to the half dinar
   const suggestedCost = Math.round(((cost.range.min + cost.range.max) / 2) * 2) / 2;
   const title = isNew
-    ? draft.name_fr.trim()
-      ? `Nouvelle recette : ${draft.name_fr}`
+    ? getRecipeName(draft).trim()
+      ? `Nouvelle recette : ${getRecipeName(draft)}`
       : 'Nouvelle recette'
-    : `Modifier : ${recipe.name_fr}`;
+    : `Modifier : ${getRecipeName(recipe)}`;
 
   const requestClose = () => (autosave.dirty ? setConfirmClose(true) : onClose());
 
@@ -129,7 +132,7 @@ export function RecipeEditorModal({
   };
 
   return (
-    <ModalShell mobile="full">
+    <ModalShell mobile="full" onDismiss={requestClose}>
       <div
         role="dialog"
         aria-modal="true"
@@ -267,6 +270,19 @@ export function RecipeEditorModal({
                       )}
                     </div>
                   )}
+                  {cost.suspicious.length > 0 && (
+                    <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                      Unité à vérifier (prix donné pour une autre unité, ex. « g » au lieu de « 100 g ») :{' '}
+                      {cost.suspicious
+                        .map((id) => {
+                          const found = byId.get(id);
+                          return found ? getIngredientName(found) : id;
+                        })
+                        .join(', ')}
+                      . Le public voit l'estimation saisie tant que ce n'est pas corrigé (Ingrédients › Unité à
+                      vérifier).
+                    </p>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Catégorie">
                       <select
@@ -316,12 +332,12 @@ export function RecipeEditorModal({
                 <EditorSection id="media" title="Photo & vidéo">
                   <RecipeImageField
                     value={draft.image_url}
-                    title={draft.name_fr}
+                    title={getRecipeName(draft)}
                     onChange={(image_url) => set({ image_url })}
                   />
                   <RecipeVideoField
                     value={draft.video_url ?? ''}
-                    title={draft.name_fr}
+                    title={getRecipeName(draft)}
                     onChange={(video_url) => set({ video_url })}
                   />
                 </EditorSection>

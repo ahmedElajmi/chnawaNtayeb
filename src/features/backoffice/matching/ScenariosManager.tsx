@@ -13,6 +13,7 @@ import { useMatchingScenarios } from '@/app/ContainerContext';
 import { downloadTextFile } from '@/shared/ui/download';
 import { ScenarioEditorModal } from './ScenarioEditorModal';
 import { cls, Section } from './ui';
+import { useLanguage } from '@/app/providers/LanguageContext';
 
 const TIERS: { id: MatchTier; label: string }[] = [
   { id: 'ready', label: 'Prêtes' },
@@ -32,6 +33,7 @@ function ScenarioPreview({
   ingredients: Ingredient[];
   config: MatchingConfig;
 }) {
+  const { getRecipeName } = useLanguage();
   const results = useMemo(
     () =>
       matchRecipes(recipes, scenario.fridge, scenario.filters, {
@@ -51,7 +53,7 @@ function ScenarioPreview({
           <ol className="text-[11px] text-ink">
             {results[id].slice(0, 5).map((r, i) => (
               <li key={r.recipe.id} className="truncate">
-                {i + 1}. {r.recipe.name_fr} <span className="text-ink-muted">· {r.score}%</span>
+                {i + 1}. {getRecipeName(r.recipe)} <span className="text-ink-muted">· {r.score}%</span>
               </li>
             ))}
             {results[id].length === 0 && <li className="text-ink-muted">—</li>}

@@ -63,6 +63,17 @@ export class KitchenStore extends Store<KitchenState> {
     this.setState({ favorites });
   }
 
+  /** Replaces the favorites (backup restored). */
+  setFavorites(favorites: string[]): void {
+    this.repo.saveFavorites(favorites);
+    this.setState({ favorites });
+  }
+
+  /** Replaces the shopping list (backup restored). */
+  setGroceryList(groceryList: GroceryItem[]): void {
+    this.updateGroceryList(groceryList);
+  }
+
   // --- Weekly menu ---
   setWeeklyPlan(weeklyPlan: DayPlan[]): void {
     this.repo.saveWeeklyPlan(weeklyPlan);

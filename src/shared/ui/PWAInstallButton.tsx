@@ -4,12 +4,13 @@ import { usePWAInstall } from '@/shared/hooks/usePWAInstall';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { ModalShell } from './ModalShell';
+import { BoldText } from './BoldText';
 
 /** Step-by-step guide, for browsers that cannot install with one tap (iOS Safari, Firefox...). */
 export const InstallGuideModal: React.FC<{ isIOS: boolean; onClose: () => void }> = ({ isIOS, onClose }) => {
   const { t } = useLanguage();
   return (
-    <ModalShell>
+    <ModalShell onDismiss={onClose}>
       <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-5 sm:p-6 shadow-2xl text-ink max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -37,11 +38,8 @@ export const InstallGuideModal: React.FC<{ isIOS: boolean; onClose: () => void }
         <div className="mt-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5">
           <WifiOff className="w-4 h-4 shrink-0 text-brand-text mt-0.5" />
           <div>
-            <p className="font-bold">Mode Hors-Ligne & Accès Instantané</p>
-            <p className="mt-0.5 opacity-90">
-              Le Service Worker dédié met en cache vos recettes et listes de courses pour fonctionner même sans 4G ou
-              Wi-Fi.
-            </p>
+            <p className="font-bold">{t.pwaOfflineTitle}</p>
+            <p className="mt-0.5 opacity-90">{t.pwaOfflineText}</p>
           </div>
         </div>
 
@@ -50,49 +48,31 @@ export const InstallGuideModal: React.FC<{ isIOS: boolean; onClose: () => void }
           {isIOS ? (
             /* iOS Instructions */
             <div className="space-y-2.5">
-              <p className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                Installation sur iPhone & iPad (Safari) :
-              </p>
+              <p className="font-bold text-xs uppercase tracking-wider text-slate-500">{t.pwaIosTitle}</p>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-slate-200 dark:border-slate-700">
                 <Share className="w-5 h-5 text-brand-text shrink-0 mt-0.5" />
-                <span>
-                  1. Appuyez sur le bouton <strong>Partager</strong> en bas de Safari (l'icône avec la flèche vers le
-                  haut).
-                </span>
+                <BoldText text={t.pwaIosStep1} />
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-slate-200 dark:border-slate-700">
                 <PlusSquare className="w-5 h-5 text-accent-text shrink-0 mt-0.5" />
-                <span>
-                  2. Faites défiler le menu et sélectionnez <strong>Sur l'écran d'accueil</strong>.
-                </span>
+                <BoldText text={t.pwaIosStep2} />
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-slate-200 dark:border-slate-700">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <span>
-                  3. Appuyez sur <strong>Ajouter</strong> en haut à droite. L'icône apparaîtra sur votre écran !
-                </span>
+                <BoldText text={t.pwaIosStep3} />
               </div>
             </div>
           ) : (
             /* Android / Desktop Instructions */
             <div className="space-y-2.5">
-              <p className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                Installation sur Android & Ordinateur :
-              </p>
+              <p className="font-bold text-xs uppercase tracking-wider text-slate-500">{t.pwaOtherTitle}</p>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-slate-200 dark:border-slate-700">
                 <Smartphone className="w-5 h-5 text-brand-text shrink-0 mt-0.5" />
-                <span>
-                  <strong>Sur Android (Chrome) :</strong> Appuyez sur les trois points verticaux <strong>(⋮)</strong> en
-                  haut à droite, puis sélectionnez <strong>« Installer l'application »</strong> ou{' '}
-                  <strong>« Ajouter à l'écran d'accueil »</strong>.
-                </span>
+                <BoldText text={t.pwaAndroidStep} />
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-slate-200 dark:border-slate-700">
                 <Monitor className="w-5 h-5 text-accent-text shrink-0 mt-0.5" />
-                <span>
-                  <strong>Sur PC / Mac (Chrome / Edge) :</strong> Cliquez sur l'icône d'installation{' '}
-                  <strong>(⊕)</strong> située à droite de la barre d'adresse web.
-                </span>
+                <BoldText text={t.pwaDesktopStep} />
               </div>
             </div>
           )}
@@ -104,7 +84,7 @@ export const InstallGuideModal: React.FC<{ isIOS: boolean; onClose: () => void }
             onClick={onClose}
             className="w-full py-2.5 rounded-xl bg-brand text-on-brand font-bold text-sm hover:bg-brand-strong transition-colors"
           >
-            C'est compris !
+            {t.pwaGotIt}
           </button>
         </div>
       </div>

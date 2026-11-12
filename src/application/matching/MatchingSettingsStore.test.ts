@@ -6,7 +6,13 @@ import { MatchingSettingsStore } from './MatchingSettingsStore';
 function fakes(active: StoredMatchingSettings | null | 'offline', cached: StoredMatchingSettings | null = null) {
   const published: StoredMatchingSettings[] = active && active !== 'offline' ? [active] : [];
   let cacheValue = cached;
+  const followers = new Set<(s: StoredMatchingSettings | null) => void>();
   const repo: MatchingSettingsRepository = {
+    followActive: (onChange) => {
+      if (active !== 'offline') onChange(published.at(-1) ?? null);
+      followers.add(onChange);
+      return () => followers.delete(onChange);
+    },
     loadActive: async () => {
       if (active === 'offline') throw new Error('offline');
       return published.at(-1) ?? null;
@@ -14,12 +20,18 @@ function fakes(active: StoredMatchingSettings | null | 'offline', cached: Stored
     publish: async (config, note) => {
       const version = published.length + 1;
       published.push({ version, config, note, updatedAt: 'now' });
+      followers.forEach((f) => f(published.at(-1)!));
       return { ok: true, version };
     },
     listVersions: async (limit) => [...published].reverse().slice(0, limit),
   };
   const cache: MatchingSettingsCache = { read: () => cacheValue, write: (s) => void (cacheValue = s) };
-  return { repo, cache, published, readCache: () => cacheValue };
+  /** Another device publishes */
+  const publishElsewhere = (s: StoredMatchingSettings) => {
+    published.push(s);
+    followers.forEach((f) => f(s));
+  };
+  return { repo, cache, published, readCache: () => cacheValue, publishElsewhere };
 }
 
 const stored = (version: number, almostMaxToBuy: number): StoredMatchingSettings => ({
@@ -66,5 +78,20 @@ describe('MatchingSettingsStore', () => {
     expect(store.getState().version).toBe(3);
     expect(store.getState().config.tiers.almostMaxToBuy).toBe(2);
     expect(published).toHaveLength(3);
+  });
+});
+
+describe('MatchingSettingsStore live', () => {
+  it('applies settings published on another device at once, and stops when asked', () => {
+    const { repo, cache, publishElsewhere } = fakes(stored(1, 1));
+    const store = new MatchingSettingsStore(repo, cache);
+    const stop = store.start();
+    expect(store.getState().version).toBe(1);
+    publishElsewhere(stored(2, 3));
+    expect(store.getState()).toMatchObject({ source: 'database', version: 2 });
+    expect(store.getState().config.tiers.almostMaxToBuy).toBe(3);
+    stop();
+    publishElsewhere(stored(3, 2));
+    expect(store.getState().version).toBe(2);
   });
 });

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Recipe } from '@/core/catalog';
 import type { MatchingConfig, RecipeBoost } from '@/core/matching';
 import { cls, RecipeSelect, Section } from './ui';
+import { useLanguage } from '@/app/providers/LanguageContext';
 
 export function BoostsEditor({
   config,
@@ -12,9 +13,13 @@ export function BoostsEditor({
   recipes: Recipe[];
   onChange: (c: MatchingConfig) => void;
 }) {
+  const { getRecipeName } = useLanguage();
   const [recipeId, setRecipeId] = useState('');
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
-  const name = (id: string) => recipes.find((r) => r.id === id)?.name_fr ?? id;
+  const name = (id: string) => {
+    const recipe = recipes.find((r) => r.id === id);
+    return recipe ? getRecipeName(recipe) : id;
+  };
   const setBoosts = (recipeBoosts: RecipeBoost[]) => onChange({ ...config, recipeBoosts });
   const update = (i: number, patch: Partial<RecipeBoost>) =>
     setBoosts(config.recipeBoosts.map((b, k) => (k === i ? { ...b, ...patch } : b)));

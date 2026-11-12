@@ -1,5 +1,6 @@
 import { Coins, Download, Plus } from 'lucide-react';
-import { getUsedIngredientIds, type Ingredient, type Recipe } from '@/core/catalog';
+import { getUsedIngredientIds, middleOfRange, type Ingredient, type Recipe } from '@/core/catalog';
+import { getRecipeCost } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 
 interface DashboardTabProps {
@@ -47,7 +48,11 @@ export function DashboardTab({
   const unused = ingredients.filter((i) => !usedIds.has(i.id)).length;
   const total = recipes.length;
   const published = recipes.filter((r) => r.is_published).length;
-  const avgCost = total > 0 ? (recipes.reduce((acc, r) => acc + r.estimated_cost_tnd, 0) / total).toFixed(1) : '0';
+  // Middle of each recipe's cost range (computed from the ingredient prices)
+  const avgCost =
+    total > 0
+      ? (recipes.reduce((acc, r) => acc + middleOfRange(getRecipeCost(r, ingredients)), 0) / total).toFixed(1)
+      : '0';
   const avgTime =
     total > 0 ? Math.round(recipes.reduce((acc, r) => acc + r.prep_time_minutes + r.cook_time_minutes, 0) / total) : 0;
 

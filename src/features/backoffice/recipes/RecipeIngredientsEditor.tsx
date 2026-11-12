@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Repeat, Trash2, X } from 'lucide-react';
 import { Ingredient, IngredientRole, RecipeIngredient, getRole } from '@/core/catalog';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
+import { useLanguage } from '@/app/providers/LanguageContext';
 import { IngredientSearch } from '@/features/backoffice/ui/IngredientSearch';
 import { NumberField } from '@/features/backoffice/ui/NumberField';
 import { UnitInput } from '@/features/backoffice/ui/UnitInput';
@@ -39,6 +40,7 @@ interface RecipeIngredientsEditorProps {
 
 /** Ingredient list of a recipe, with the role and substitutes used by the matching engine. */
 export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = false }: RecipeIngredientsEditorProps) {
+  const { getIngredientName } = useLanguage();
   const byId = useMemo(() => new Map(catalog.map((i) => [i.id, i])), [catalog]);
   const [replacing, setReplacing] = useState<number | null>(null);
   const [addingSubstituteTo, setAddingSubstituteTo] = useState<number | null>(null);
@@ -129,7 +131,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                     className="flex-1 min-w-0 text-left"
                   >
                     <span className="block text-sm font-bold text-ink truncate">
-                      {ingredient?.name_fr ?? `Ingrédient inconnu (${item.ingredient_id})`}
+                      {ingredient ? getIngredientName(ingredient) : `Ingrédient inconnu (${item.ingredient_id})`}
                     </span>
                     <span className="block text-[10px] text-ink-muted">Toucher pour changer</span>
                   </button>
@@ -137,7 +139,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                 <button
                   type="button"
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
-                  aria-label={`Retirer ${ingredient?.name_fr ?? 'l’ingrédient'}`}
+                  aria-label={`Retirer ${ingredient ? getIngredientName(ingredient) : 'l’ingrédient'}`}
                   className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -205,7 +207,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                       className="inline-flex items-center gap-1 ps-0.5 pe-1 py-0.5 rounded-full bg-brand/10 text-brand-text text-[11px] font-semibold max-w-full"
                     >
                       {sub && <IngredientThumb ingredient={sub} size="xs" round />}
-                      <span className="truncate">{sub?.name_fr ?? id}</span>
+                      <span className="truncate">{sub ? getIngredientName(sub) : id}</span>
                       <button
                         type="button"
                         onClick={() =>
@@ -215,7 +217,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                               : undefined,
                           })
                         }
-                        aria-label={`Retirer le remplaçant ${sub?.name_fr ?? id}`}
+                        aria-label={`Retirer le remplaçant ${sub ? getIngredientName(sub) : id}`}
                         className="p-0.5 hover:text-rose-600"
                       >
                         <X className="w-3 h-3" />

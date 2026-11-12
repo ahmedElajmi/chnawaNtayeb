@@ -7,10 +7,21 @@ Chaque guide se termine par `npm run check`.
 1. Ajouter la recette dans `src/core/catalog/seed/` (tunisienne, internationale ou dessert),
    avec un **rôle sur chaque ingrédient** (`key`, `secondary`, `staple`) et un `slug` unique.
 2. Ajouter les ingrédients nouveaux dans `seed/initialIngredients.ts`.
-3. Augmenter `SEED_VERSION` dans `src/core/catalog/migrations.ts` pour que les utilisateurs la reçoivent.
+3. Après le déploiement, « Envoyer vers le cloud » dans /patron la publie (la base est la référence).
 4. Ajouter un scénario du chef si la recette doit sortir pour un frigo précis.
 
 Une recette ajoutée depuis le backoffice n'a besoin d'aucune de ces étapes.
+
+## Ajouter une collection partagée (ex. textes du CMS)
+
+Un seul mécanisme pour toutes les données partagées (voir [05](05-application-donnees.md)) :
+
+1. Domaine : le type (avec `revision?`) et sa fonction de lecture `parse…(raw: unknown[])` dans `src/core`.
+2. Application : un `SyncedCollectionStore<T>` (rien à écrire, il est générique).
+3. Infrastructure : `createFirestoreSharedCollection<T>('<collection>')` et une copie
+   `createIndexedDbCollectionCache` (ajouter le nom dans `COLLECTIONS`, monter `DB_VERSION`).
+4. `firestore.rules` : lecture, écriture patron avec `isVersionedWrite`, schéma strict ; `npm run deploy:rules`.
+5. Brancher dans `src/app/container.ts`, démarrer le suivi dans `App.tsx`.
 
 ## Ajouter un écran
 
@@ -20,6 +31,7 @@ Une recette ajoutée depuis le backoffice n'a besoin d'aucune de ces étapes.
 3. Déclarer la route dans `src/app/AppRoutes.tsx` ; ajouter le lien dans `Header` et `BottomNav` si besoin.
 4. Textes : ajouter les clés dans les trois langues de `src/shared/i18n/translations.ts`.
 5. Vérifier l'affichage à 375 px et 320 px de large.
+6. Une liste qui peut devenir longue : `usePagedList` + `ShowMore`, compteurs sur `total`.
 
 ## Ajouter une règle métier
 

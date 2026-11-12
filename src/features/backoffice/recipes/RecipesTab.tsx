@@ -3,6 +3,10 @@ import { Copy, Eye, EyeOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import type { Recipe } from '@/core/catalog';
 import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { usePagedList } from '@/shared/hooks/usePagedList';
+import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 
@@ -16,18 +20,20 @@ interface RecipesTabProps {
 }
 
 export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplicateRecipe }: RecipesTabProps) {
-  const { t } = useLanguage();
+  const { t, getRecipeName, getSecondaryName } = useLanguage();
+  const { ingredients } = useCatalog();
   const [search, setSearch] = useState('');
   const q = normalizeText(search.trim());
   const filtered = q
     ? recipes.filter((r) => [r.name_fr, r.name_derja, r.name_ar].some((n) => normalizeText(n).includes(q)))
     : recipes;
+  const page = usePagedList(filtered, q);
 
   const togglePublish = (recipe: Recipe) => {
     const updated = { ...recipe, is_published: !recipe.is_published };
     admin.saveRecipe(
       updated,
-      `Recette "${recipe.name_fr}" ${updated.is_published ? 'publiée' : 'passée en brouillon'}`
+      `Recette "${getRecipeName(recipe)}" ${updated.is_published ? 'publiée' : 'passée en brouillon'}`
     );
   };
 
@@ -55,7 +61,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
       </div>
 
       <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {filtered.map((r) => (
+        {page.visible.map((r) => (
           <div
             key={r.id}
             className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
@@ -65,7 +71,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 {r.image_url ? (
                   <img
                     src={r.image_url}
-                    alt={r.name_fr}
+                    alt={getRecipeName(r)}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
@@ -77,8 +83,10 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-ink">{r.name_fr}</span>
-                  {r.name_derja && <span className="text-xs text-accent-text font-semibold">({r.name_derja})</span>}
+                  <span className="text-sm font-bold text-ink">{getRecipeName(r)}</span>
+                  {getSecondaryName(r) && (
+                    <span className="text-xs text-accent-text font-semibold">({getSecondaryName(r)})</span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1 mt-1">
                   <RecipeBadges recipe={r} />
@@ -91,7 +99,9 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                   <span>{r.prep_time_minutes + r.cook_time_minutes} min</span>
                   <span>·</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">{r.estimated_cost_tnd} DT</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {formatPriceRange(getRecipeCost(r, ingredients), 'DT')}
+                  </span>
                   <span>·</span>
                   <span className="capitalize">{r.cuisine_type}</span>
                 </div>
@@ -122,7 +132,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 onClick={() => onDuplicateRecipe(r)}
                 className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                 title="Dupliquer : nouvelle recette à partir de celle-ci"
-                aria-label={`Dupliquer ${r.name_fr}`}
+                aria-label={`Dupliquer ${getRecipeName(r)}`}
               >
                 <Copy className="w-4 h-4" />
               </button>
@@ -138,6 +148,11 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
           </div>
         ))}
       </div>
+      <ShowMore
+        list={page}
+        progressLabel={(shown, total) => `${shown} recette(s) affichée(s) sur ${total}`}
+        buttonLabel="Afficher plus"
+      />
     </div>
   );
 }

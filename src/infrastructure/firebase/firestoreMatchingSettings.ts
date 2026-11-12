@@ -1,4 +1,14 @@
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, runTransaction } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+} from 'firebase/firestore';
 import type { MatchingSettingsRepository, StoredMatchingSettings } from '@/application';
 import { db, handleFirestoreError, OperationType } from '@/infrastructure/firebase/client';
 
@@ -34,6 +44,18 @@ export const firestoreMatchingSettings: MatchingSettingsRepository = {
   async loadActive() {
     const snap = await getDoc(ACTIVE);
     return snap.exists() ? toStored(snap.data() as SettingsDoc) : null;
+  },
+
+  followActive(onChange) {
+    // One document: every new publication arrives live (one read per device)
+    return onSnapshot(
+      ACTIVE,
+      (snap) => {
+        if (snap.metadata.fromCache && !snap.exists()) return;
+        onChange(snap.exists() ? toStored(snap.data() as SettingsDoc) : null);
+      },
+      (error) => handleFirestoreError(error, OperationType.GET, 'settings/matching')
+    );
   },
 
   async publish(config, note) {

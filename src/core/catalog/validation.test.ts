@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { initialIngredients, initialRecipes } from './index';
-import { normalizeSteps, parseImageUrl, parseStoredRecipe, validateIngredient, validateRecipe } from './validation';
+import {
+  normalizeSteps,
+  parseImageUrl,
+  parseStoredIngredient,
+  parseStoredRecipe,
+  validateIngredient,
+  validateRecipe,
+} from './validation';
 
 const recipe = initialRecipes[0];
 const step = (fr: string, derja = '', ar = '') => ({
@@ -97,5 +104,46 @@ describe('parseStoredRecipe', () => {
     expect(parseStoredRecipe({ ...recipe, ingredients: 'x' })).toBeNull();
     expect(parseStoredRecipe({ ...recipe, steps: [{}] })).toBeNull();
     expect(parseStoredRecipe({ ...recipe, base_servings: '4' })).toBeNull();
+  });
+});
+
+describe('validateRecipe: cleared optional fields', () => {
+  it('removes keys left undefined by the editor (the database refuses them)', () => {
+    const edited = {
+      ...recipe,
+      video_url: undefined,
+      ingredients: recipe.ingredients.map((i) => ({
+        ...i,
+        role: undefined,
+        is_optional: undefined,
+        substitutes: undefined,
+      })),
+    };
+    const checked = validateRecipe(edited);
+    expect(checked.ok).toBe(true);
+    if (!checked.ok) return;
+    expect('video_url' in checked.value).toBe(false);
+    const item = checked.value.ingredients[0];
+    expect(['role', 'is_optional', 'substitutes'].some((k) => k in item)).toBe(false);
+  });
+});
+
+describe('parseStoredIngredient', () => {
+  it('reads a valid ingredient and refuses a broken one', () => {
+    expect(parseStoredIngredient({ ...initialIngredients[0] })).toEqual(initialIngredients[0]);
+    expect(parseStoredIngredient({ id: 'x', name_fr: 'X', unit_default: 'kg', category: 'nope' })).toBeNull();
+    expect(parseStoredIngredient({ id: 'x', deleted: true })).toBeNull();
+  });
+});
+
+describe('validateIngredient: unit and price must fit', () => {
+  it('refuses a pack price for a single gram', () => {
+    const checked = validateIngredient({
+      ...initialIngredients[0],
+      unit_default: 'g',
+      price_min_tnd: 2,
+      price_max_tnd: 3,
+    });
+    expect(checked).toMatchObject({ ok: false, field: 'unit' });
   });
 });

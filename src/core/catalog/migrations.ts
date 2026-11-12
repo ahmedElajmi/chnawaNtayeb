@@ -1,6 +1,7 @@
 import type { Ingredient, Recipe } from './types';
 import { normalizeRecipe } from './course';
 import { initialRecipes } from './seed/initialRecipes';
+import { initialIngredients } from './seed/initialIngredients';
 
 /**
  * Version of the built-in catalog (seed/). Bump it when initialRecipes / initialIngredients
@@ -60,16 +61,30 @@ const toPrice = (v: unknown): number | undefined => {
   return typeof n === 'number' && Number.isFinite(n) && n >= 0 ? n : undefined;
 };
 
+const seedIngredientsById = new Map(initialIngredients.map((i) => [i.id, i]));
+
 /**
  * Brings a stored ingredient up to date: the old fixed price (`default_price_tnd`)
- * becomes a range min = max, an inverted range is put back in order and an empty
- * photo link is removed. Ingredients already up to date come back unchanged.
+ * becomes a range, an inverted range is put back in order and an empty photo link is
+ * removed. A built-in ingredient still at a single price that lies within the built-in
+ * market range takes that range (prices were single values before ranges existed); a
+ * price set by the chef outside of it is kept. Ingredients already up to date come back unchanged.
  */
-export function migrateIngredient(stored: StoredIngredient): Ingredient {
+export function migrateIngredient(
+  stored: StoredIngredient,
+  seedById: ReadonlyMap<string, Ingredient> = seedIngredientsById
+): Ingredient {
   const { default_price_tnd, price_min_tnd, price_max_tnd, image_url, ...rest } = stored;
   const legacy = toPrice(default_price_tnd);
-  const min = toPrice(price_min_tnd) ?? toPrice(price_max_tnd) ?? legacy ?? 0;
-  const max = toPrice(price_max_tnd) ?? toPrice(price_min_tnd) ?? legacy ?? 0;
+  let min = toPrice(price_min_tnd) ?? toPrice(price_max_tnd) ?? legacy ?? 0;
+  let max = toPrice(price_max_tnd) ?? toPrice(price_min_tnd) ?? legacy ?? 0;
+  const seed = seedById.get(stored.id);
+  if (min === max && seed && seed.price_min_tnd < seed.price_max_tnd) {
+    if (min >= seed.price_min_tnd && min <= seed.price_max_tnd) {
+      min = seed.price_min_tnd;
+      max = seed.price_max_tnd;
+    }
+  }
   const photo = typeof image_url === 'string' ? image_url.trim() : '';
   return {
     ...rest,
@@ -80,7 +95,7 @@ export function migrateIngredient(stored: StoredIngredient): Ingredient {
 }
 
 export function migrateIngredients(list: StoredIngredient[]): Ingredient[] {
-  return list.map(migrateIngredient);
+  return list.map((i) => migrateIngredient(i));
 }
 
 /** Adds the seed items that are not in `list` yet (matched by id), keeping existing ones untouched. */

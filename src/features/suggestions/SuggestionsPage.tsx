@@ -88,7 +88,7 @@ export function SuggestionsPage() {
                       </h2>
                       <span className="text-xs text-slate-400">· {tier.desc}</span>
                     </div>
-                    <RecipeGrid results={tier.list} />
+                    <RecipeGrid results={tier.list} resetKey={`${tier.id}:${JSON.stringify(filters)}`} />
                   </section>
                 ))}
             </div>

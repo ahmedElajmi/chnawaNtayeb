@@ -9,6 +9,7 @@ import {
 } from '@/core/matching';
 import { DEFAULT_PANTRY_STAPLES } from '@/core/preferences';
 import { cls, IngredientChips, Section } from './ui';
+import { useLanguage } from '@/app/providers/LanguageContext';
 
 const TIERS: { id: MatchTier; label: string }[] = [
   { id: 'ready', label: 'Prêtes' },
@@ -18,6 +19,7 @@ const TIERS: { id: MatchTier; label: string }[] = [
 const SHOWN = 5;
 
 function Column({ title, results, other }: { title: string; results: MatchResults; other?: MatchResults }) {
+  const { getRecipeName } = useLanguage();
   return (
     <div className="flex-1 min-w-0 space-y-3">
       <h4 className="text-xs font-extrabold text-ink">{title}</h4>
@@ -33,7 +35,7 @@ function Column({ title, results, other }: { title: string; results: MatchResult
                 const changed = otherIds && otherIds[i] !== r.recipe.id;
                 return (
                   <li key={r.recipe.id} className={changed ? 'font-bold text-accent-text' : 'text-ink'}>
-                    {i + 1}. {r.recipe.name_fr}
+                    {i + 1}. {getRecipeName(r.recipe)}
                     <span className="text-ink-muted font-normal">
                       {' '}
                       · {r.score}%{r.missing_ingredients.length > 0 && ` · ${r.missing_ingredients.length} à acheter`}

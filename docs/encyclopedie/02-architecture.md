@@ -61,13 +61,16 @@ son `index.ts` (`import { matchRecipes } from '@/core/matching'`), jamais par un
 src/
   main.tsx                   Démarrage : service worker, historique, rendu
   core/                      Domaine métier pur (voir 03 et 04)
-    shared/                  texte, YouTube, collections, ids, langue
+    shared/                  texte, YouTube, collections, ids, langue, withoutUndefined
+    sync/                    synchronisation incrémentale (révisions, marques de suppression)
     catalog/                 types, rôles, substitutions, catégories, migrations, seed/
     matching/                moteur « Warini chnowa ntayeb » + scénarios du chef
     planning/  grocery/  preferences/  theme/
   application/               Stores observables + ports (voir 05)
   infrastructure/            Adapters (voir 05)
-    local/                   localStorage
+    local/                   localStorage (données personnelles, préférences)
+    indexeddb/               copie hors ligne des collections partagées (gros volumes)
+    memory/  contracts/      implémentations de référence + tests de contrat des ports
     firebase/                Firestore, Firebase Auth
     http/                    API de notre serveur
   app/                       App, container, routes, layout/, providers/, navigation (voir 06)
@@ -87,7 +90,7 @@ docs/encyclopedie/           Cette documentation
   se fait en ajoutant du code, sans modifier l'existant.
 - **Substitution de Liskov** : tout adapter respecte le contrat de son port (mêmes garanties, mêmes
   résultats `{ ok, error }`).
-- **Ségrégation des interfaces** : des ports petits et ciblés (`CatalogRepository`,
+- **Ségrégation des interfaces** : des ports petits et ciblés (`SharedCollectionSource`,
   `KitchenRepository`, `ThemeRepository`, `VisionGateway`…) plutôt qu'un gros service.
 - **Inversion des dépendances** : l'application dépend des ports ; les implémentations sont
   injectées par `container.ts` (et `server/app.ts` côté serveur).
@@ -99,5 +102,7 @@ docs/encyclopedie/           Cette documentation
   (`random`, `createId`, `today`).
 - **Composants sans logique métier** : ils appellent le domaine ou un store.
 - **Base de données d'abord** : les données partagées et les réglages vivent en base (Firestore) ;
-  localStorage ne sert que de copie hors ligne ; un fichier JSON sert uniquement à exporter ou restaurer.
+  IndexedDB / localStorage ne servent que de copie hors ligne ; un fichier JSON sert uniquement à exporter ou restaurer.
+- **Évolutivité** : voir les « Réflexes de conception » de `CLAUDE.md` (milliers d'éléments, lectures
+  incrémentales, listes par pages avec totaux justes, mécanisme commun, sécurité, confort).
 - **Toute nouvelle règle métier arrive avec ses tests** (`*.test.ts` à côté du fichier).

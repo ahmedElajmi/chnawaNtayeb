@@ -36,15 +36,23 @@ export class MatchingSettingsStore extends Store<MatchingSettingsState> {
     super(cached ? fromStored(cached, 'cache') : DEFAULT_STATE);
   }
 
+  /** Follows the published settings live (a new version applies at once); returns the stop function. */
+  start(): () => void {
+    return this.repo.followActive((active) => this.receive(active));
+  }
+
+  private receive(active: StoredMatchingSettings | null): void {
+    if (!active) {
+      this.setState(DEFAULT_STATE);
+      return;
+    }
+    this.cache.write(active);
+    this.setState(fromStored(active, 'database'));
+  }
+
   async load(): Promise<void> {
     try {
-      const active = await this.repo.loadActive();
-      if (!active) {
-        this.setState(DEFAULT_STATE);
-        return;
-      }
-      this.cache.write(active);
-      this.setState(fromStored(active, 'database'));
+      this.receive(await this.repo.loadActive());
     } catch {
       // Offline or unreachable: keep the cached copy (or the defaults)
     }
