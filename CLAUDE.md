@@ -153,6 +153,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode patron, le badge
   et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
+- **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) ;
+  normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ;
+  sans réponse du moteur, l'ancien filtre par nom sert de repli. Un nouveau champ texte localisé
+  (`<champ>_<langue>`) est indexé automatiquement. Détails : `docs/encyclopedie/12-recherche.md`.
 - Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).
 - Comportements à conserver : filtres de recettes gardés entre les écrans (et entre les deux listes) ;

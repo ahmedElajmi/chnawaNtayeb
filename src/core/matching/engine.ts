@@ -6,6 +6,7 @@ import { classifyRecipe } from './tiers';
 import { rankTier } from './ranking';
 import { createRecipeFilter, type FilterOptions } from './filters';
 import type { MatchingResult } from './types';
+import { sortBySearchScore } from '../search/documents';
 
 /**
  * "Warini chnowa ntayeb": which recipes can I cook with my fridge?
@@ -128,7 +129,7 @@ export function browseRecipes(
 ): MatchingResult[] {
   const { related, unrelated, config, today } = analyzeAll(recipes, fridgeIds, filters, ctx);
   const tiers: MatchingResult['tier'][] = ['ready', 'almost', 'ideas'];
-  return [
+  const list = [
     ...tiers.flatMap((tier) =>
       rankTier(
         related.filter((r) => r.tier === tier),
@@ -139,4 +140,7 @@ export function browseRecipes(
     ),
     ...rankTier(unrelated, 'ideas', config, today),
   ];
+  // A text search orders the catalog by relevance (same relevance: the usual order)
+  const matches = filters?.searchQuery?.trim() ? filters.searchMatches : undefined;
+  return matches ? sortBySearchScore(list, (r) => r.recipe.id, matches) : list;
 }

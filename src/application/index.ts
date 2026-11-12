@@ -8,3 +8,4 @@ export * from './kitchen/KitchenStore';
 export * from './patron/PatronStore';
 export * from './matching/MatchingSettingsStore';
 export * from './matching/MatchingScenariosStore';
+export * from './search/CatalogSearch';

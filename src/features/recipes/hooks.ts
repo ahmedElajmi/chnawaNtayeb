@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, type Location } from 'react-router';
 import { browseRecipes, matchRecipes, type FilterOptions, type MatchingResult } from '@/core/matching';
-import { useCatalog, useKitchen, useMatchingSettings } from '@/app/ContainerContext';
+import { useCatalog, useKitchen, useMatchingSettings, useSearchMatches } from '@/app/ContainerContext';
 import { recipePath, type RecipeListPath } from '@/shared/paths';
 import { parseRecipeFilters, serializeRecipeFilters, type RecipeFilters } from './recipeFilters';
 import { rememberRecipeFilters } from './filterMemory';
@@ -12,13 +12,14 @@ export interface RecipeMatches {
   ideas: MatchingResult[];
 }
 
-const toFilterOptions = (filters: RecipeFilters): FilterOptions => ({
+const toFilterOptions = (filters: RecipeFilters, searchMatches?: ReadonlyMap<string, number>): FilterOptions => ({
   maxBudget: filters.maxBudget,
   maxTotalTime: filters.maxTime,
   cuisineType: filters.cuisine,
   category: filters.course,
   healthyOnly: filters.healthyOnly,
   searchQuery: filters.query,
+  searchMatches,
 });
 
 /** Shared inputs of the two recipe lists. */
@@ -26,12 +27,13 @@ function useMatchingInputs(filters: RecipeFilters) {
   const { recipes, ingredients } = useCatalog();
   const { fridge, pantry, favorites } = useKitchen();
   const { config } = useMatchingSettings();
+  const searchMatches = useSearchMatches('recipes', filters.query ?? '');
   return useMemo(() => {
     const keep = (list: MatchingResult[]) =>
       filters.favoritesOnly ? list.filter((r) => favorites.includes(r.recipe.id)) : list;
     const ctx = { pantryIds: pantry, catalog: ingredients, config };
-    return { recipes, fridge, options: toFilterOptions(filters), ctx, keep };
-  }, [recipes, ingredients, fridge, pantry, favorites, filters, config]);
+    return { recipes, fridge, options: toFilterOptions(filters, searchMatches), ctx, keep };
+  }, [recipes, ingredients, fridge, pantry, favorites, filters, config, searchMatches]);
 }
 
 /** Recipes the user can cook with their fridge, grouped by tier, with the given filters applied. */

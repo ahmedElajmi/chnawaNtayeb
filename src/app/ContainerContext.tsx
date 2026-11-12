@@ -1,5 +1,5 @@
-import { createContext, useContext, useSyncExternalStore, type ReactNode } from 'react';
-import type { Store } from '@/application';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import type { SearchKind, Store } from '@/application';
 import { recipeCostRange, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
 import type { Container } from './container';
 
@@ -26,6 +26,28 @@ export const useCatalog = () => {
   const { catalog } = useContainer();
   return { ...useStore(catalog), catalog };
 };
+
+/**
+ * Search results for a query (`id → relevance`), following catalog changes. `undefined` while there is
+ * no query or no answer yet: the lists then keep their simple filtering.
+ */
+export function useSearchMatches(kind: SearchKind, query: string): ReadonlyMap<string, number> | undefined {
+  const { search } = useContainer();
+  const { revision } = useStore(search);
+  const [answer, setAnswer] = useState<{ query: string; matches: ReadonlyMap<string, number> | null } | null>(null);
+  const active = query.trim();
+  useEffect(() => {
+    if (!active) return;
+    let current = true;
+    search.search(kind, active).then((matches) => {
+      if (current) setAnswer({ query: active, matches });
+    });
+    return () => {
+      current = false;
+    };
+  }, [search, kind, active, revision]);
+  return active && answer?.query === active && answer.matches ? answer.matches : undefined;
+}
 
 export const useKitchen = () => {
   const { kitchen } = useContainer();
