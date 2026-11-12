@@ -32,24 +32,29 @@ intégré (`seedIfEmpty`, une seule lecture).
 
 **Langue** : les noms (recettes, ingrédients, thèmes, catégories) suivent la langue du site, et
 l'éditeur de recette s'ouvre sur l'onglet de cette langue (il revient au français si un champ
-obligatoire en français manque). Les libellés du backoffice restent en français.
+obligatoire en français manque). Les libellés du backoffice sont encore en français (traduction prévue
+avec la refonte).
 
-**Champs en trois langues** : tout texte affiché au public se saisit en français, derja (lettres
-latines, 3 / 7 / 9) et arabe, avec le composant `ui/LocalizedField.tsx` (arabe de droite à gauche).
-Le français est la langue de référence : derja ou arabe vide → le français est affiché.
+**Champs dans toutes les langues et variantes** : tout texte affiché au public se saisit en français,
+derja en lettres latines (3 / 7 / 9), derja en lettres arabes (دارجة) et arabe littéraire, avec le
+composant `ui/LocalizedField.tsx` (écritures arabes de droite à gauche). La liste vient de `LANGUAGES` :
+une nouvelle variante apparaît d'elle-même. Le français est obligatoire ; une langue laissée vide affiche
+celle de sa liste de repli, et le champ vide l'indique (« Vide : « … » est affiché »).
 
 **Éditeur de recette** (`recipes/RecipeEditorModal.tsx`, plein écran sur téléphone) : nom, description,
-**étapes de préparation** et astuce du chef dans les trois langues ; temps, coût, portions, image,
+**étapes de préparation** et astuce du chef dans toutes les langues et variantes ; temps, coût, portions, image,
 vidéo YouTube (vérifiée), catégorie, type de cuisine, healthy, ingrédients avec leur **rôle** et leurs
 remplaçants propres à la recette.
 
 - **Sections** (Infos · Photo & vidéo · Ingrédients · Étapes · Astuce) avec des raccourcis en haut et
   leur état : complet, à compléter, à vérifier (aucun ingrédient clé, étape sans français), facultatif
   (`recipeSectionStatus`, `RecipeEditorChrome.tsx`).
-- **Une langue à la fois** : onglets FR / Derja / عربي (`ui/editorLanguage.tsx`) ; chaque champ
-  `LocalizedField` n'affiche que la langue choisie, avec le texte français en rappel pendant la
-  traduction. Un compteur sur chaque onglet indique les textes encore à traduire (`missingTranslations`).
-  Hors de l'éditeur de recette (éditeur d'ingrédient), les trois langues restent côte à côte.
+- **Une langue à la fois** : onglets FR | Derja · دارجة · عربي (`ui/editorLanguage.tsx`, la famille arabe
+  séparée du français ; flèches du clavier pour changer d'onglet, dans le sens de lecture) ; chaque
+  champ `LocalizedField` n'affiche que la langue choisie, avec en rappel les textes d'où l'on traduit
+  (français ; plus la derja latine pour la دارجة, la دارجة pour l'arabe). Un compteur sur chaque onglet
+  indique les textes encore à traduire (`missingTranslations`, toutes variantes). Hors de l'éditeur de
+  recette (éditeur d'ingrédient), toutes les langues restent côte à côte (deux colonnes).
 - **Barre d'enregistrement toujours visible** en bas. Une erreur s'affiche au-dessus, ramène à la
   section concernée (onglet FR pour un texte obligatoire) et entoure le champ en rouge.
 - **Rien ne se perd** : le contenu est gardé en brouillon sur l'appareil pendant la saisie
@@ -83,7 +88,7 @@ YouTube reconnue s'affiche avec le lecteur même de la fiche recette (`RecipeVid
 avec « Retirer la vidéo ».
 
 **Éditeur d'ingrédient** (`ingredients/IngredientEditorModal.tsx`) : création (bouton « Ajouter un
-ingrédient ») et modification (bouton crayon). Noms dans les trois langues, catégorie, unité d'achat,
+ingrédient ») et modification (bouton crayon). Noms dans toutes les langues et variantes, catégorie, unité d'achat,
 **prix minimum et maximum**, **lien de la photo** avec aperçu en direct de la vignette publique
 (`IngredientThumb`, taille `lg`) : photo, ou pastille de la catégorie si vide / lien cassé ; « Retirer
 la photo ». Vérifié par `validateIngredient` avant l'enregistrement.

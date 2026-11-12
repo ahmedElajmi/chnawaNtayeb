@@ -1,3 +1,4 @@
+import { localizedField, withLocalizedField } from '@/core/shared';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import type { RecipeStep } from '@/core/catalog';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
@@ -76,13 +77,9 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
               multiline
               rows={3}
               invalid={invalid && !step.instruction_fr.trim()}
-              value={{ fr: step.instruction_fr, derja: step.instruction_derja, ar: step.instruction_ar }}
+              value={localizedField(step, 'instruction')}
               onChange={(v) =>
-                onChange(
-                  steps.map((s, i) =>
-                    i === index ? { ...s, instruction_fr: v.fr, instruction_derja: v.derja, instruction_ar: v.ar } : s
-                  )
-                )
+                onChange(steps.map((s, i) => (i === index ? withLocalizedField(s, 'instruction', v) : s)))
               }
             />
           </li>

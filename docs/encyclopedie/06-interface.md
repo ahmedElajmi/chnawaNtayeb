@@ -92,16 +92,19 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
 
 ## Langues (`shared/i18n/translations.ts`)
 
-Un dictionnaire typé par langue (`derja`, `fr`, `ar`). `useLanguage()` fournit `t` (les textes),
+Un dictionnaire typé par langue (`derja`, `derja_ar`, `fr`, `ar`) ; la derja en lettres arabes reprend
+l'arabe littéraire et remplace ce qui existe en derja (`derjaArabic.ts`). Sélecteurs (en-tête,
+Réglages › Langue) : Derja, دارجة, Français, العربية الفصحى (`SELECTOR_ORDER`). `useLanguage()` fournit `t` (les textes),
 `language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
 `getStepText`, `getChefTip`, `getSecondaryName`, `compareNames`) qui passent toutes par `pickLocalized` du
-domaine : texte de la langue choisie, sinon le français. Aucun écran ne code un ordre de langues en dur,
+domaine : texte de la langue choisie, sinon sa liste de repli (`LANGUAGES`) ; `getLocalized(item, champ)`
+lit n'importe quel champ localisé. Aucun écran ne code un ordre de langues en dur,
 ni n'affiche `name_fr` directement (backoffice compris : listes, recherche d'ingrédients, moteur, thèmes,
 messages) ; les tris de noms suivent la langue (`compareNames`) ; les catégories d'ingrédients viennent
 de `useIngredientCategories` (`shared/i18n`). Les phrases avec des mots en gras passent par `BoldText`
 (`**gras**`, jamais de HTML). Sous le titre d'une
 recette, les noms dans les autres langues ne sont affichés que s'ils diffèrent du titre (pas de nom
-en double). L'arabe passe la page de droite à gauche. Les textes du backoffice sont en français.
+en double). L'arabe et la دارجة passent la page de droite à gauche (`dir` et `lang` viennent de `LANGUAGES`).
 
 ## Thèmes (`app/providers/ThemeContext.tsx`)
 

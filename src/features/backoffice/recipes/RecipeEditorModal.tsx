@@ -22,6 +22,7 @@ import { RecipeIngredientsEditor } from './RecipeIngredientsEditor';
 import { RecipeStepsEditor } from './RecipeStepsEditor';
 import { RecipeImageField, RecipeVideoField } from './RecipeMediaFields';
 import { EditorSection, SectionNav, sectionDomId } from './RecipeEditorChrome';
+import { localizedField, withLocalizedField } from '@/core/shared';
 import { finalizeRecipeDraft, missingTranslations, recipeSectionStatus, type SectionId } from './recipeDraft';
 import { useRecipeDraftAutosave } from './useRecipeDraftAutosave';
 
@@ -206,14 +207,14 @@ export function RecipeEditorModal({
                     label="Nom de la recette"
                     frenchRequired
                     invalid={error?.field === 'name'}
-                    value={{ fr: draft.name_fr, derja: draft.name_derja, ar: draft.name_ar }}
-                    onChange={(v) => set({ name_fr: v.fr, name_derja: v.derja, name_ar: v.ar })}
+                    value={localizedField(draft, 'name')}
+                    onChange={(v) => setDraft((d) => withLocalizedField(d, 'name', v))}
                   />
                   <LocalizedField
                     label="Description"
                     multiline
-                    value={{ fr: draft.description_fr, derja: draft.description_derja, ar: draft.description_ar }}
-                    onChange={(v) => set({ description_fr: v.fr, description_derja: v.derja, description_ar: v.ar })}
+                    value={localizedField(draft, 'description')}
+                    onChange={(v) => setDraft((d) => withLocalizedField(d, 'description', v))}
                   />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <Field label="Préparation (min)">
