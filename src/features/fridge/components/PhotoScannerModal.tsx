@@ -133,7 +133,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
   };
 
   return (
-    <ModalShell>
+    <ModalShell onDismiss={isLoading ? null : onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-surface border border-line p-5 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col text-ink">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">

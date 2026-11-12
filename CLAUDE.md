@@ -12,6 +12,24 @@ react-router 7, Express, Firebase). Documentation complète : `docs/encyclopedie
 - `npm run diagnose:matching` : rapport du moteur de suggestions sur des frigos types
 - `npm run deploy:rules` (après `npm run firebase:login`) : déploie `firestore.rules`
 
+## Réflexes de conception (chaque évolution, chaque brique)
+
+Valables pour toutes les données et briques (recettes, ingrédients, thèmes, scénarios, réglages, planning,
+courses, textes, comptes), pas seulement les recettes. Chaque plan dit en une ligne comment il respecte chaque point.
+
+1. **Évolutif et performant** : la solution doit tenir avec des milliers d'éléments, puis bien plus. Coût en lectures
+   de la base maîtrisé ; synchronisation incrémentale (`updated_at` + marques de suppression), jamais de relecture
+   complète à chaque ouverture ; IndexedDB pour les gros volumes ; listes affichées par pages avec des **totaux
+   justes** (compteurs calculés sur le résultat complet, jamais sur la page affichée) ; pas de calcul lourd ni de
+   rendu d'une liste entière d'un coup.
+2. **Organisé et maintenable** : architecture hexagonale respectée, une responsabilité par module, noms clairs.
+3. **Factorisé, sans duplication** : un mécanisme générique réutilisé par toutes les collections plutôt qu'une
+   copie par type de données.
+4. **Sûr** : règles de la base au plus strict, toute donnée externe relue par le core, aucun secret côté client,
+   pas d'injection (HTML, liens), droits patron vérifiés côté serveur et base.
+5. **Agréable** : retour immédiat, états de chargement et d'erreur clairs, mobile 320 px, fenêtres qui se ferment
+   comme attendu, aucune perte de saisie.
+
 ## Architecture (hexagonale) — règles à respecter
 
 Détails : `docs/encyclopedie/02-architecture.md`. Vérifiées par `src/core/architecture.test.ts`.

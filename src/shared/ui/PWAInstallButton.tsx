@@ -9,7 +9,7 @@ import { ModalShell } from './ModalShell';
 export const InstallGuideModal: React.FC<{ isIOS: boolean; onClose: () => void }> = ({ isIOS, onClose }) => {
   const { t } = useLanguage();
   return (
-    <ModalShell>
+    <ModalShell onDismiss={onClose}>
       <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-5 sm:p-6 shadow-2xl text-ink max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">

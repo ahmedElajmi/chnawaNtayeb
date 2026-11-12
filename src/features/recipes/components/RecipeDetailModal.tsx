@@ -131,7 +131,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   };
 
   return (
-    <ModalShell mobile="full">
+    <ModalShell mobile="full" onDismiss={onClose}>
       <div className="w-full max-w-2xl bg-surface sm:rounded-3xl border border-line shadow-2xl overflow-hidden h-dvh sm:h-auto sm:max-h-[92vh] flex flex-col text-ink">
         {/* Header Photo & Controls */}
         <div className="relative aspect-16/9 max-h-[38vh] w-full bg-slate-900 shrink-0">

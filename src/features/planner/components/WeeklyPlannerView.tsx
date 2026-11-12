@@ -320,7 +320,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
 
       {/* Choose Recipe Modal (only recipes of the slot's course) */}
       {editingSlot && (
-        <ModalShell>
+        <ModalShell onDismiss={() => setEditingSlot(null)}>
           <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-5 shadow-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>

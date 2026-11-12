@@ -9,6 +9,7 @@ import {
 } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
+import { useGuardedClose } from '@/shared/hooks/useGuardedClose';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
@@ -53,6 +54,11 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
   const [maxText, setMaxText] = useState(String(ingredient.price_max_tnd));
   const [error, setError] = useState<string | null>(null);
   useCloseOnBack(true, onClose);
+  const dirty =
+    JSON.stringify(draft) !== JSON.stringify(ingredient) ||
+    minText !== String(ingredient.price_min_tnd) ||
+    maxText !== String(ingredient.price_max_tnd);
+  const dismiss = useGuardedClose(dirty, onClose, 'Abandonner les modifications de cet ingrédient ?');
   const set = (patch: Partial<Ingredient>) => setDraft((d) => ({ ...d, ...patch }));
 
   const title = isNew ? 'Nouvel ingrédient' : `Modifier : ${ingredient.name_fr}`;
@@ -74,7 +80,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
   };
 
   return (
-    <ModalShell>
+    <ModalShell onDismiss={dismiss}>
       <div
         role="dialog"
         aria-modal="true"

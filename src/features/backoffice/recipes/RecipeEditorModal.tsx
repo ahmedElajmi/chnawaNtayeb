@@ -129,7 +129,7 @@ export function RecipeEditorModal({
   };
 
   return (
-    <ModalShell mobile="full">
+    <ModalShell mobile="full" onDismiss={requestClose}>
       <div
         role="dialog"
         aria-modal="true"
