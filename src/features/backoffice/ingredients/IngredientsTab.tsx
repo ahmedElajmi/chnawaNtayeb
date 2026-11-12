@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Pencil, Search } from 'lucide-react';
 import type { Ingredient, IngredientCategory } from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
-import { useLanguage } from '@/app/providers/LanguageContext';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
+import { IngredientEditorModal } from './IngredientEditorModal';
+import { useIngredientCategories } from './categories';
 
 const FIELD = 'px-3 py-2 text-xs sm:text-sm rounded-xl bg-surface border border-slate-200 dark:border-slate-700';
 
 function NewIngredientForm({ admin }: { admin: CatalogAdminActions }) {
-  const { t } = useLanguage();
   const [nameFr, setNameFr] = useState('');
   const [nameDerja, setNameDerja] = useState('');
   const [nameAr, setNameAr] = useState('');
@@ -16,17 +16,7 @@ function NewIngredientForm({ admin }: { admin: CatalogAdminActions }) {
   const [unit, setUnit] = useState('kg');
   const [price, setPrice] = useState(2.0);
 
-  const categories: [IngredientCategory, string][] = [
-    ['vegetables', t.catVegetables],
-    ['fruits', t.catFruits],
-    ['meats', t.catMeats],
-    ['fish', t.catFish],
-    ['dairy_eggs', t.catDairyEggs],
-    ['grains_pasta', t.catGrainsPasta],
-    ['spices_condiments', t.catSpicesCondiments],
-    ['canned_pantry', t.catCannedPantry],
-    ['other', t.catOther],
-  ];
+  const categories = useIngredientCategories();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +105,7 @@ function NewIngredientForm({ admin }: { admin: CatalogAdminActions }) {
 function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: CatalogAdminActions }) {
   const [search, setSearch] = useState('');
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [editing, setEditing] = useState<Ingredient | null>(null);
   const q = normalizeText(search.trim());
   const filtered = q
     ? ingredients.filter((i) => [i.name_fr, i.name_derja, i.name_ar].some((n) => normalizeText(n).includes(q)))
@@ -154,7 +145,7 @@ function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: C
             key={ing.id}
             className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-xs sm:text-sm font-bold text-ink">
                 {ing.name_fr}
                 {ing.name_derja && (
@@ -165,7 +156,7 @@ function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: C
                 {ing.category} · Unité : {ing.unit_default}
               </p>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <input
                 type="number"
                 step="0.1"
@@ -178,10 +169,30 @@ function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: C
                 className="w-20 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700"
               />
               <span className="text-xs font-bold text-slate-500">DT</span>
+              <button
+                type="button"
+                onClick={() => setEditing(ing)}
+                aria-label={`Modifier ${ing.name_fr}`}
+                title="Modifier les noms, l'unité et la catégorie"
+                className="ml-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      {editing && (
+        <IngredientEditorModal
+          ingredient={editing}
+          onClose={() => setEditing(null)}
+          onSave={async (ingredient) => {
+            setEditing(null);
+            await admin.saveIngredient(ingredient);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -5,7 +5,10 @@ import { parseYouTubeId, youTubeThumbnail } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { RecipeIngredientsEditor } from './RecipeIngredientsEditor';
+import { RecipeStepsEditor } from './RecipeStepsEditor';
 import { finalizeRecipeDraft } from './recipeDraft';
+import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 interface RecipeEditorModalProps {
   recipe: Recipe;
@@ -90,7 +93,10 @@ function VideoField({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-/** Create / edit a recipe (names, times, price, image, video, course, ingredients with their role, chef tip). */
+/**
+ * Create / edit a recipe: names, description, preparation steps and chef tip in the three languages,
+ * times, price, image, video, course, ingredients with their role.
+ */
 export function RecipeEditorModal({ recipe, recipes, ingredients, onSave, onClose }: RecipeEditorModalProps) {
   const { t } = useLanguage();
   const [draft, setDraft] = useState<Recipe>(recipe);
@@ -107,7 +113,7 @@ export function RecipeEditorModal({ recipe, recipes, ingredients, onSave, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <ModalShell>
       <div
         role="dialog"
         aria-modal="true"
@@ -132,42 +138,19 @@ export function RecipeEditorModal({ recipe, recipes, ingredients, onSave, onClos
               {error}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Field label="Nom Français *">
-              <input
-                type="text"
-                value={draft.name_fr}
-                onChange={(e) => set({ name_fr: e.target.value })}
-                className={INPUT}
-                required
-              />
-            </Field>
-            <Field label="Nom Derja Arabizi (3, 7, 9)">
-              <input
-                type="text"
-                value={draft.name_derja}
-                onChange={(e) => set({ name_derja: e.target.value })}
-                className={INPUT}
-              />
-            </Field>
-            <Field label="Nom Arabe">
-              <input
-                type="text"
-                value={draft.name_ar}
-                onChange={(e) => set({ name_ar: e.target.value })}
-                className={INPUT}
-              />
-            </Field>
-          </div>
+          <LocalizedField
+            label="Nom de la recette"
+            frenchRequired
+            value={{ fr: draft.name_fr, derja: draft.name_derja, ar: draft.name_ar }}
+            onChange={(v) => set({ name_fr: v.fr, name_derja: v.derja, name_ar: v.ar })}
+          />
 
-          <Field label="Description">
-            <textarea
-              value={draft.description_fr}
-              onChange={(e) => set({ description_fr: e.target.value })}
-              rows={2}
-              className={INPUT}
-            />
-          </Field>
+          <LocalizedField
+            label="Description"
+            multiline
+            value={{ fr: draft.description_fr, derja: draft.description_derja, ar: draft.description_ar }}
+            onChange={(v) => set({ description_fr: v.fr, description_derja: v.derja, description_ar: v.ar })}
+          />
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Field label="Préparation (min)">
@@ -268,15 +251,15 @@ export function RecipeEditorModal({ recipe, recipes, ingredients, onSave, onClos
             onChange={(items) => set({ ingredients: items })}
           />
 
-          <Field label="Astuce du Chef Tounsi">
-            <input
-              type="text"
-              value={draft.chef_tip.fr}
-              onChange={(e) => set({ chef_tip: { ...draft.chef_tip, fr: e.target.value } })}
-              className={INPUT}
-              placeholder="Ex: Ne jamais battre les œufs dans une vraie ojja !"
-            />
-          </Field>
+          <RecipeStepsEditor steps={draft.steps} onChange={(steps) => set({ steps })} />
+
+          <LocalizedField
+            label="Astuce du Chef Tounsi (optionnelle)"
+            multiline
+            value={draft.chef_tip ?? { fr: '', derja: '', ar: '' }}
+            onChange={(chef_tip) => set({ chef_tip })}
+            placeholder="Ex : Ne jamais battre les œufs dans une vraie ojja !"
+          />
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
             <button
@@ -295,6 +278,6 @@ export function RecipeEditorModal({ recipe, recipes, ingredients, onSave, onClos
           </div>
         </form>
       </div>
-    </div>
+    </ModalShell>
   );
 }

@@ -49,6 +49,12 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 | `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron          | lui-même (champs limités)        |
 | `admins/{uid}`                    | Comptes administrateurs supplémentaires  | patron                    | patron                           |
 
+**Écriture d'une recette ou d'un ingrédient** : le document est **remplacé en entier** (pas de
+fusion). Un champ retiré par le patron (vidéo, « healthy », substitut…) disparaît donc aussi de la
+base, et les autres appareils ne le voient plus à leur prochaine synchronisation (ouverture de
+l'application ou « récupérer depuis le cloud » ; il n'y a pas d'écoute en direct). Avec une fusion,
+le champ supprimé restait dans la base et revenait sur les autres appareils.
+
 Les règles sont dans `firestore.rules` (tout est refusé par défaut). « Patron » = session ouverte
 par le serveur (jeton Firebase avec le droit `patron`), compte propriétaire vérifié, ou uid listé
 dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).

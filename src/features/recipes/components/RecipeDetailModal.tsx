@@ -17,6 +17,7 @@ import { useLanguage } from '@/app/providers/LanguageContext';
 import { scaleIngredients, analyzeRecipe, type MatchingConfig } from '@/core/matching';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -44,7 +45,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   onAddMissingToGrocery,
   matchingConfig,
 }) => {
-  const { t, getRecipeName, getRecipeDesc, getIngredientName } = useLanguage();
+  const { t, language, getRecipeName, getRecipeDesc, getIngredientName, getStepText, getChefTip } = useLanguage();
   const [servings, setServings] = useState<number>(recipe?.base_servings || 4);
   const [addedGroceryToast, setAddedGroceryToast] = useState(false);
 
@@ -53,6 +54,11 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const scaledList = scaleIngredients(recipe, servings);
   const name = getRecipeName(recipe);
   const desc = getRecipeDesc(recipe);
+  const tip = getChefTip(recipe.chef_tip);
+  // Names in the other languages, shown once under the title (never the title again)
+  const otherNames = [language !== 'derja' && recipe.name_derja, language !== 'ar' && recipe.name_ar]
+    .filter((n): n is string => !!n && !!n.trim() && n.trim() !== name)
+    .join(' · ');
 
   // Same analysis as the suggestions (fridge + pantry + substitutes + ingredient roles)
   const analysis = analyzeRecipe(recipe, selectedFridgeIds, {
@@ -102,9 +108,10 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
       })
       .join('\n');
 
-    const message = `🇹🇳 *Recette Chnowa Ntayeb : ${name}* (${recipe.name_derja})\n⏱ Temps : ${
+    const tipBlock = tip ? `💡 *Astuce Tounsiya :*\n${tip}\n\n` : '';
+    const message = `🇹🇳 *Recette Chnowa Ntayeb : ${name}*${otherNames ? ` (${otherNames})` : ''}\n⏱ Temps : ${
       recipe.prep_time_minutes + recipe.cook_time_minutes
-    } min | 💰 Budget : ~${recipe.estimated_cost_tnd} DT | 👥 ${servings} personnes\n\n🛒 *Ingrédients :*\n${ingList}\n\n💡 *Astuce Tounsiya :*\n${recipe.chef_tip.fr}\n\n👩‍🍳 Recette Chnowa Ntayeb, by Chef Souhed\n📱 Découvre plus d'idées repas sur Chnowa Ntayeb !`;
+    } min | 💰 Budget : ~${recipe.estimated_cost_tnd} DT | 👥 ${servings} personnes\n\n🛒 *Ingrédients :*\n${ingList}\n\n${tipBlock}👩‍🍳 Recette Chnowa Ntayeb, by Chef Souhed\n📱 Découvre plus d'idées repas sur Chnowa Ntayeb !`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
@@ -122,8 +129,8 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl bg-surface sm:rounded-3xl border border-line shadow-2xl overflow-hidden min-h-screen sm:min-h-0 sm:max-h-[92vh] flex flex-col text-ink animate-in fade-in zoom-in-95">
+    <ModalShell mobile="full">
+      <div className="w-full max-w-2xl bg-surface sm:rounded-3xl border border-line shadow-2xl overflow-hidden h-dvh sm:h-auto sm:max-h-[92vh] flex flex-col text-ink">
         {/* Header Photo & Controls */}
         <div className="relative aspect-16/9 max-h-[38vh] w-full bg-slate-900 shrink-0">
           <div className="absolute inset-0 flex items-start justify-center pt-16 bg-gradient-to-br from-brand-strong via-brand to-accent">
@@ -173,16 +180,12 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           <div className="absolute bottom-4 left-4 right-4">
             <RecipeBadges recipe={recipe} size="md" className="mb-2" />
             <h2 className="font-display text-xl sm:text-2xl font-extrabold text-white leading-tight">{name}</h2>
-            {recipe.name_derja && (
-              <p className="text-xs sm:text-sm text-amber-200 font-semibold mt-0.5">
-                {recipe.name_derja} · {recipe.name_ar}
-              </p>
-            )}
+            {otherNames && <p className="text-xs sm:text-sm text-amber-200 font-semibold mt-0.5">{otherNames}</p>}
           </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-6">
           {/* Key Metrics Bar */}
           <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-card border border-line text-center">
             <div className="flex flex-col items-center justify-center p-1">
@@ -339,7 +342,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
 
             <div className="space-y-3">
               {recipe.steps.map((step) => {
-                const instruction = step.instruction_derja || step.instruction_fr || step.instruction_ar;
+                const instruction = getStepText(step);
                 return (
                   <div
                     key={step.step_number}
@@ -358,16 +361,14 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           </div>
 
           {/* Astuce Tounsiya */}
-          {recipe.chef_tip && (
+          {tip && (
             <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3">
               <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1">
                   {t.chefTipTitle}
                 </h4>
-                <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 italic">
-                  « {recipe.chef_tip.derja || recipe.chef_tip.fr} »
-                </p>
+                <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 italic">« {tip} »</p>
               </div>
             </div>
           )}
@@ -384,6 +385,6 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };

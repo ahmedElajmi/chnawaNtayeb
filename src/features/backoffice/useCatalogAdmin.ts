@@ -57,6 +57,12 @@ export function useCatalogAdmin(notify: Notify) {
       report(failure ?? { ok: true }, 'Prix du marché mis à jour');
     },
 
+    async saveIngredient(ingredient: Ingredient) {
+      const result = await catalogAdmin.saveIngredient(ingredient);
+      refresh();
+      report(result, 'Ingrédient enregistré et synchronisé');
+    },
+
     async addIngredient(data: Omit<Ingredient, 'id'>) {
       const created = catalogAdmin.createIngredient(data);
       const result = await catalogAdmin.saveIngredient(created);

@@ -5,6 +5,7 @@ import { Ingredient } from '@/core/catalog';
 import { findByName } from '@/core/shared';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { useContainer } from '@/app/ContainerContext';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 const MAX_SIDE_PX = 1280;
 
@@ -132,7 +133,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+    <ModalShell>
       <div className="w-full max-w-lg rounded-2xl bg-surface border border-line p-5 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col text-ink">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -336,6 +337,6 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </ModalShell>
   );
 };

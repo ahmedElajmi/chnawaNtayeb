@@ -31,6 +31,15 @@ Les substitutions propres à une recette (`RecipeIngredient.substitutes`) passen
 générales. Les règles par défaut sont dans `DEFAULT_SUBSTITUTION_RULES` ; le patron peut les
 modifier (voir [04](04-moteur-matching.md)).
 
+**Validation** (`catalog/validation.ts`, testé) : règles appliquées avant d'enregistrer ce que le
+patron a saisi.
+
+- `validateRecipe` : nom français obligatoire, au moins un ingrédient, au moins une étape écrite en
+  français. Les étapes vides sont retirées, les autres renumérotées de 1 à n (`normalizeSteps`), les
+  textes nettoyés. Derja et arabe peuvent rester vides : l'affichage reprend alors le français.
+- `validateIngredient` : nom français et unité obligatoires, prix positif ; un nom derja ou arabe
+  vide prend le nom français.
+
 **Catégories** (`catalog/course.ts`) : `normalizeCategory` convertit les anciennes valeurs
 (`express`, `kaskrout`, `soupe`) vers les trois catégories ; `isExpress` = 20 minutes ou moins.
 
@@ -83,3 +92,7 @@ qui répare les préférences anciennes ou invalides.
 - `collections.ts` : `toggleInList`, `upsertById`.
 - `id.ts` : `createId(prefix)`.
 - `language.ts` : `Language` (`derja`, `fr`, `ar`).
+- `localized.ts` : `LocalizedText` (`{ fr, derja, ar }`) et `pickLocalized(language, text)`, qui
+  rend le texte de la langue choisie, sinon le français, sinon la langue restante. C'est la seule
+  règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
+  descriptions, étapes, astuce du chef).

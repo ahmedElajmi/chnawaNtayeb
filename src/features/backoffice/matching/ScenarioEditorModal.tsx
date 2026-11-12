@@ -16,6 +16,7 @@ import { DEFAULT_PANTRY_STAPLES } from '@/core/preferences';
 import type { WriteResult } from '@/application';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { cls, IngredientChips, IngredientSelect, RecipeChips, RecipeSelect } from './ui';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 export const CHECK_LABEL: Record<ScenarioCheckKind, string> = {
   first: 'Recette en tête d’un niveau',
@@ -333,7 +334,7 @@ export function ScenarioEditorModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
+    <ModalShell>
       <div
         role="dialog"
         aria-modal="true"
@@ -522,6 +523,6 @@ export function ScenarioEditorModal({
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 }

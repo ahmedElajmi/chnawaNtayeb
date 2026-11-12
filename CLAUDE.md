@@ -30,7 +30,8 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
 
 1. **Règle métier / validation** → `src/core/<module>`, TypeScript pur, exportée par `index.ts`, avec son
    `*.test.ts` à côté. Horloge, aléatoire et ids injectés. Toute donnée externe (base, fichier importé)
-   est relue par une fonction de validation du core (`resolveMatchingConfig`, `parseScenario`…).
+   est relue par une fonction de validation du core (`resolveMatchingConfig`, `parseScenario`…) ; ce que le
+   patron saisit est vérifié avant l'enregistrement (`validateRecipe`, `validateIngredient`).
 2. **Besoin du monde extérieur** → un **port** dans `src/application/ports.ts`, écrit avec les mots du
    domaine (aucun type, terme ou nom de base / SDK), + un **store** (ou service) dans `src/application`
    qui n'importe que `src/core`, testé avec de faux adapters.
@@ -38,13 +39,14 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
    vérité, localStorage = copie hors ligne seulement), branché **uniquement** dans `src/app/container.ts`,
    exposé par un hook dans `src/app/ContainerContext.tsx`. Chaque port de données a un **test de contrat**
    (`src/infrastructure/contracts/*.contract.ts`) que tout adapter doit passer, et une implémentation en
-   mémoire (`src/infrastructure/memory/`) qui sert de référence.
+   mémoire (`src/infrastructure/memory/`) qui sert de référence. Un objet modifié est **écrit en entier,
+   sans fusion** : un champ retiré (vidéo…) doit disparaître de la base, sinon il revient sur les autres appareils.
 4. **Spécificités de la base actuelle** (Firestore : règles `firestore.rules`, `npm run deploy:rules`,
    transactions, ordre, ids) → restent dans l'adapter et sa configuration, jamais dans le domaine,
    les stores ou l'interface.
 5. **Interface** → `src/features/<écran>`, sans logique métier, n'importe jamais `src/infrastructure` ni
-   un SDK de base, et ne nomme jamais la base dans ses textes ; fenêtres avec `useCloseOnBack` ; vérifiée à 375 px et 320 px ; textes publics dans les trois
-   langues, backoffice en français.
+   un SDK de base, et ne nomme jamais la base dans ses textes ; fenêtres avec `ModalShell` + `useCloseOnBack` ;
+   vérifiée à 375 px et 320 px ; textes publics dans les trois langues, backoffice en français.
 6. **JSON** uniquement pour exporter / restaurer, jamais comme source de données de l'application.
 7. **Documentation** `docs/encyclopedie/` mise à jour, puis `npm run check` vert avant le commit.
 
@@ -69,6 +71,23 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
   dans `/patron` : aucun formulaire de création dans l'interface publique.
 - Textes affichés dans les trois langues (`src/shared/i18n/translations.ts`) ; backoffice en français.
+- **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : modifiable dans
+  /patron dans les trois langues avec `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
+  `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext`), jamais avec un ordre de
+  langues codé en dur. Le français est la langue de référence (derja / arabe vide → français).
+- Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
+  `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
+- **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`) ; jamais de
+  `fixed inset-0` directement dans une page (une page animée ou floutée le capture : fenêtre hors écran, écran
+  gris). Une animation ne laisse aucune `transform` une fois finie.
+- Pas de nom affiché deux fois : un sous-titre dans une autre langue n'apparaît que s'il diffère du titre.
+- Installation : toujours via `useInstallApp()` ; bandeau `InstallBanner` sous l'en-tête (dès la première page
+  d'une visite, reste jusqu'à fermeture, revient à la visite suivante) + Réglages › Application. Application
+  installée : aucune mention « installée », tout disparaît.
+- Réglages en onglets courts (Affichage, Langue, Application) : un nouveau réglage va dans l'onglet qui lui
+  correspond plutôt que d'allonger la fenêtre ; icône d'en-tête = roue dentée.
+- En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode patron, le badge
+  et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
 - Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).

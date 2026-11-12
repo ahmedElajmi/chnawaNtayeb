@@ -27,7 +27,7 @@
 
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
 
-  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-fade-in: fade-in 0.25s ease-out backwards; /* no transform left once finished: a transformed ancestor would capture position: fixed */
 
   @keyframes fade-in {
     from {
@@ -36,7 +36,7 @@
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: none;
     }
   }
 }
