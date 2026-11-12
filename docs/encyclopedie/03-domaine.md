@@ -69,14 +69,30 @@ ignorés).
 
 - Le catalogue livré avec l'application : 119 recettes (tunisiennes, internationales, desserts)
   et leurs ingrédients. Un test (`seed/catalog.test.ts`) vérifie sa cohérence.
-- `SEED_VERSION` : à augmenter quand le catalogue intégré change. Au prochain lancement, les
-  utilisateurs reçoivent les nouvelles recettes et les rôles manquants, sans perdre les
-  modifications du patron (`migrateRecipes`, `mergeMissingById`).
-- `migrateIngredient(s)` : tout ingrédient relu (base, copie locale, sauvegarde JSON importée) passe
-  par cette fonction. L'ancien prix unique `default_price_tnd` devient une fourchette min = max (le
-  champ ancien disparaît), une fourchette inversée est remise dans l'ordre, une photo vide est retirée.
-  Rien à faire dans la base : les documents anciens sont convertis à la lecture, puis réécrits au
-  prochain enregistrement par le patron.
+- Le catalogue intégré n'est affiché que tant que la base n'a pas répondu (ou si elle est vide) : la base
+  est la source de vérité. Pour publier une recette ajoutée au catalogue intégré : « Envoyer vers le
+  cloud » dans /patron. (`SEED_VERSION` / `mergeMissingById` ne servent plus à la copie de l'appareil.)
+- Toute donnée venue de l'extérieur (base, copie de l'appareil, sauvegarde JSON) est relue par
+  `parseStoredRecipe(s)` / `parseStoredIngredient(s)` (`catalog/validation.ts`) : forme vérifiée,
+  éléments invalides ignorés, puis mise à jour (`migrateRecipes`, `migrateIngredient`).
+- `migrateIngredient(s)` : l'ancien prix unique `default_price_tnd` devient une fourchette, une
+  fourchette inversée est remise dans l'ordre, une photo vide est retirée. **Prix de marché** : chaque
+  ingrédient intégré a une vraie fourchette (environ −15 % / +20 % autour de l'ancien prix unique) ; un
+  ingrédient intégré encore à prix unique compris dans cette fourchette la reçoit à la lecture, un prix
+  fixé par le patron hors de la fourchette est gardé. Rien à faire dans la base : la conversion se fait
+  à la lecture, puis le document est réécrit au prochain enregistrement par le patron.
+- **Coût d'une recette** (`catalog/costEstimate.ts`) : `recipeCostRange` = somme des fourchettes de prix
+  des ingrédients (quantité convertie dans l'unité d'achat, ingrédients facultatifs exclus) ;
+  l'estimation saisie par le patron (`estimated_cost_tnd`) ne sert que si aucun ingrédient n'est chiffrable.
+  Affiché partout avec `formatPriceRange` (carte, fiche, partage, menu, backoffice) ; calculé une fois par
+  version de recette et de liste d'ingrédients (`getRecipeCost`, `src/app/ContainerContext.tsx`).
+
+## `sync` : synchronisation des collections partagées
+
+`Versioned` (`id`, `revision`, `deleted`), `applyChanges` (applique en une passe les éléments changés,
+les marques de suppression et les ids retirés, sans modifier la liste reçue), `latestRevision`,
+`isDeletionMarker`, `withoutDeleted`. Testé, y compris sur 20 000 éléments. Voir
+[05 Application et données](05-application-donnees.md).
 
 ## `matching` : le moteur de suggestions
 

@@ -61,6 +61,16 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
   qu'elle tient dans l'écran ; plus haute, elle commence en haut et le fond défile, rien n'est coupé.
   Variantes : `mobile="bottom"` (Réglages, collée en bas sur téléphone), `mobile="full"` (fiche
   recette en plein écran sur téléphone, son contenu défile à l'intérieur).
+- **Fermer une fenêtre** : `ModalShell` exige `onDismiss` (propriété obligatoire), appelé par un clic en
+  dehors de la fenêtre et par Échap (seule la fenêtre du dessus se ferme). Les fenêtres simples passent
+  leur `onClose` ; un éditeur passe une fonction qui demande avant de perdre une saisie
+  (`useGuardedClose`, ou la confirmation de l'éditeur de recette) ; `null` seulement pour une fenêtre
+  qui ne doit pas se fermer ainsi (le scan photo pendant l'analyse).
+- **Listes longues** (`shared/hooks/usePagedList.ts`, `shared/ui/ShowMore.tsx`) : les listes de
+  recettes, du catalogue et du backoffice n'affichent que les premières pages (24 éléments), la suite
+  arrive en défilant ou avec « Voir plus ». Tout compteur (onglets, niveaux, filtres, « 24 sur 312 »)
+  vient de la liste complète (`total`), jamais du nombre affiché. Une nouvelle recherche ou de nouveaux
+  filtres repartent du début ; une mise à jour en direct ne change pas la page affichée.
 - **Bouton « haut de page »** (`shared/ui/ScrollToTopButton.tsx`, monté une fois dans `AppLayout`) :
   apparaît après 1,5 hauteur d'écran de défilement (`shared/hooks/useScrolledPast.ts`), remonte en
   douceur (instantané si l'appareil demande moins d'animations). En bas à droite, au-dessus de la barre
@@ -84,8 +94,12 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
 
 Un dictionnaire typé par langue (`derja`, `fr`, `ar`). `useLanguage()` fournit `t` (les textes),
 `language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
-`getStepText`, `getChefTip`) qui passent toutes par `pickLocalized` du domaine : texte de la langue
-choisie, sinon le français. Aucun écran ne code un ordre de langues en dur. Sous le titre d'une
+`getStepText`, `getChefTip`, `getSecondaryName`, `compareNames`) qui passent toutes par `pickLocalized` du
+domaine : texte de la langue choisie, sinon le français. Aucun écran ne code un ordre de langues en dur,
+ni n'affiche `name_fr` directement (backoffice compris : listes, recherche d'ingrédients, moteur, thèmes,
+messages) ; les tris de noms suivent la langue (`compareNames`) ; les catégories d'ingrédients viennent
+de `useIngredientCategories` (`shared/i18n`). Les phrases avec des mots en gras passent par `BoldText`
+(`**gras**`, jamais de HTML). Sous le titre d'une
 recette, les noms dans les autres langues ne sont affichés que s'ils diffèrent du titre (pas de nom
 en double). L'arabe passe la page de droite à gauche. Les textes du backoffice sont en français.
 

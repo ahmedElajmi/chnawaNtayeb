@@ -58,7 +58,11 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
    exposé par un hook dans `src/app/ContainerContext.tsx`. Chaque port de données a un **test de contrat**
    (`src/infrastructure/contracts/*.contract.ts`) que tout adapter doit passer, et une implémentation en
    mémoire (`src/infrastructure/memory/`) qui sert de référence. Un objet modifié est **écrit en entier,
-   sans fusion** : un champ retiré (vidéo…) doit disparaître de la base, sinon il revient sur les autres appareils.
+   sans fusion** et sans `undefined` : un champ retiré (vidéo…) doit disparaître de la base, sinon il revient sur
+   les autres appareils. **Données partagées = mécanisme commun** : `SyncedCollectionStore` + port
+   `SharedCollectionSource` / `SharedCollectionWriter` (`revision` = heure serveur, suppression = marque
+   `deleted`, suivi en direct) + copie IndexedDB (`LocalCollectionCache`) ; jamais de relecture complète à
+   chaque ouverture (voir `docs/encyclopedie/05-application-donnees.md`).
 4. **Spécificités de la base actuelle** (Firestore : règles `firestore.rules`, `npm run deploy:rules`,
    transactions, ordre, ids) → restent dans l'adapter et sa configuration, jamais dans le domaine,
    les stores ou l'interface.
@@ -93,13 +97,22 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - Textes affichés dans les trois langues (`src/shared/i18n/translations.ts`) ; backoffice en français.
 - **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : modifiable dans
   /patron dans les trois langues avec `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
-  `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext`), jamais avec un ordre de
-  langues codé en dur. Le français est la langue de référence (derja / arabe vide → français).
+  `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext` : `getRecipeName`,
+  `getIngredientName`, `getSecondaryName`, `compareNames`), jamais `name_fr` affiché directement (backoffice
+  compris) ni un ordre de langues codé en dur. Catégories : `useIngredientCategories` (`src/shared/i18n`).
+  L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
+  (derja / arabe vide → français).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
-- **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`) ; jamais de
+- **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
+  **obligatoire** (clic en dehors et Échap ferment ; un éditeur demande avant de perdre une saisie,
+  `useGuardedClose`) ; jamais de
   `fixed inset-0` directement dans une page (une page animée ou floutée le capture : fenêtre hors écran, écran
   gris). Une animation ne laisse aucune `transform` une fois finie.
+- **Coût d'une recette = fourchette** calculée (`recipeCostRange`, via `getRecipeCost` / `useRecipeCost` qui
+  la gardent en cache) et affichée avec `formatPriceRange` ; `estimated_cost_tnd` n'est qu'un secours.
+- **Listes longues** : `usePagedList` + `ShowMore` (24 par page, suite au défilement) ; tout compteur utilise
+  la liste complète (`total`), jamais le nombre affiché.
 - **Prix d'ingrédient = fourchette** (`price_min_tnd` ≤ `price_max_tnd`, aides `src/core/catalog/pricing.ts`,
   coût des courses manquantes = `PriceRange`) ; affichage toujours via `formatPriceRange`
   (`src/shared/i18n/formatPrice.ts`). Un ancien `default_price_tnd` est converti à la lecture par
@@ -114,7 +127,8 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   unités avec `UnitInput` ; long formulaire = sections avec raccourcis + onglets de langue
   (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
-  `RecipeDraftRepository`) et confirmation avant de les perdre. Libellés du backoffice en français en dur
+  `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
+  `parseStoredRecipes` / `parseStoredIngredients`. Libellés du backoffice en français en dur
   (pas `t.bo…`, qui suit la langue du site).
 - **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
   relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
