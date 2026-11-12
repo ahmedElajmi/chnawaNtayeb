@@ -1,7 +1,7 @@
 import { INGREDIENT_CATEGORIES, type Ingredient, type IngredientCategory, type Recipe, type RecipeStep } from './types';
 import { migrateIngredient, migrateRecipes } from './migrations';
 import { normalizeRecipe } from './course';
-import { withoutUndefined } from '../shared';
+import { hasAnyText, localizedField, trimLocalized, withLocalizedField, withoutUndefined } from '../shared';
 import { hasImplausibleUnitPrice } from './costEstimate';
 
 /** Part of the edited object an error is about, so a form can show it next to the right field. */
@@ -14,13 +14,9 @@ const trim = (s: string | undefined) => (s ?? '').trim();
 /** Steps without any text are dropped, the others are trimmed and numbered 1..n. */
 export function normalizeSteps(steps: RecipeStep[]): RecipeStep[] {
   return steps
-    .map((s) => ({
-      instruction_fr: trim(s.instruction_fr),
-      instruction_derja: trim(s.instruction_derja),
-      instruction_ar: trim(s.instruction_ar),
-    }))
-    .filter((s) => s.instruction_fr || s.instruction_derja || s.instruction_ar)
-    .map((s, i) => ({ step_number: i + 1, ...s }));
+    .map((s) => localizedField(s, 'instruction'))
+    .filter(hasAnyText)
+    .map((text, i) => withLocalizedField({ step_number: i + 1 } as RecipeStep, 'instruction', text, true));
 }
 
 /**
@@ -42,18 +38,13 @@ export function validateRecipe(recipe: Recipe): Checked<Recipe> {
   return {
     ok: true,
     value: withoutUndefined({
-      ...recipe,
-      name_fr: trim(recipe.name_fr),
-      name_derja: trim(recipe.name_derja),
-      name_ar: trim(recipe.name_ar),
-      description_fr: trim(recipe.description_fr),
-      description_derja: trim(recipe.description_derja),
-      description_ar: trim(recipe.description_ar),
-      chef_tip: {
-        fr: trim(recipe.chef_tip?.fr),
-        derja: trim(recipe.chef_tip?.derja),
-        ar: trim(recipe.chef_tip?.ar),
-      },
+      ...withLocalizedField(
+        withLocalizedField(recipe, 'name', localizedField(recipe, 'name'), true),
+        'description',
+        localizedField(recipe, 'description'),
+        true
+      ),
+      chef_tip: trimLocalized(recipe.chef_tip ?? { fr: '', derja: '', ar: '' }),
       steps,
     }),
   };
@@ -103,7 +94,7 @@ export function validateIngredient(ingredient: Ingredient): Checked<Ingredient> 
       field: 'photo',
       error: 'Le lien de la photo doit être une adresse complète commençant par https://',
     };
-  const { image_url: _previous, ...rest } = ingredient;
+  const { image_url: _previous, name_derja_ar: _variant, ...rest } = ingredient;
   return {
     ok: true,
     value: {
@@ -111,6 +102,8 @@ export function validateIngredient(ingredient: Ingredient): Checked<Ingredient> 
       name_fr,
       name_derja: trim(ingredient.name_derja) || name_fr,
       name_ar: trim(ingredient.name_ar) || name_fr,
+      // Optional variants stay empty (they fall back to their family, see LANGUAGES)
+      ...(trim(ingredient.name_derja_ar) ? { name_derja_ar: trim(ingredient.name_derja_ar) } : {}),
       unit_default,
       price_min_tnd: min,
       price_max_tnd: max,

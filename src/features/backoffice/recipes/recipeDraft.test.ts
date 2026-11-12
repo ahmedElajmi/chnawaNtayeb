@@ -93,7 +93,7 @@ describe('editor helpers', () => {
         { step_number: 2, instruction_fr: 'Servir.', instruction_derja: '', instruction_ar: '' },
       ],
     };
-    expect(missingTranslations(draft)).toEqual({ derja: 1, ar: 3 });
+    expect(missingTranslations(draft)).toEqual({ derja: 1, ar: 3, derja_ar: 3 });
   });
 
   it('tells which sections are complete', () => {

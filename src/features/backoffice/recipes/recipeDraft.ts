@@ -1,3 +1,4 @@
+import { LANGUAGE_CODES, localizedField, REFERENCE_LANGUAGE, type Language } from '@/core/shared';
 import { getRole, validateRecipe, type CheckedField, type Ingredient, type Recipe } from '@/core/catalog';
 import { normalizeYouTubeUrl, parseYouTubeId, slugify } from '@/core/shared';
 
@@ -85,21 +86,25 @@ export function duplicateRecipeDraft(recipe: Recipe, now = Date.now()): Recipe {
   };
 }
 
-export type TranslationLanguage = 'derja' | 'ar';
+export type TranslationLanguage = Exclude<Language, 'fr'>;
 
 /**
- * Texts written in French but still empty in derja or Arabic (name, description,
- * steps, chef tip): what the chef has left to translate in each language.
+ * Texts written in French but still empty in another language or variant (name, description,
+ * steps, chef tip): what the chef has left to translate in each one.
  */
 export function missingTranslations(recipe: Recipe): Record<TranslationLanguage, number> {
   const texts = [
-    { fr: recipe.name_fr, derja: recipe.name_derja, ar: recipe.name_ar },
-    { fr: recipe.description_fr, derja: recipe.description_derja, ar: recipe.description_ar },
-    ...recipe.steps.map((s) => ({ fr: s.instruction_fr, derja: s.instruction_derja, ar: s.instruction_ar })),
+    localizedField(recipe, 'name'),
+    localizedField(recipe, 'description'),
+    ...recipe.steps.map((s) => localizedField(s, 'instruction')),
     recipe.chef_tip ?? { fr: '', derja: '', ar: '' },
   ].filter((t) => t.fr?.trim());
-  const count = (lang: TranslationLanguage) => texts.filter((t) => !t[lang]?.trim()).length;
-  return { derja: count('derja'), ar: count('ar') };
+  const result = {} as Record<TranslationLanguage, number>;
+  for (const lang of LANGUAGE_CODES) {
+    if (lang === REFERENCE_LANGUAGE) continue;
+    result[lang as TranslationLanguage] = texts.filter((t) => !t[lang]?.trim()).length;
+  }
+  return result;
 }
 
 export type SectionId = 'infos' | 'media' | 'ingredients' | 'steps' | 'tip';

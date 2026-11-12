@@ -115,8 +115,8 @@ déplacée une fois dans IndexedDB puis effacée.
 Uniquement pour **exporter** (sauvegarde) et **restaurer** : catalogue complet (onglet Données)
 et réglages du moteur (onglet Moteur). Aucune donnée n'est enregistrée dans un fichier par l'application.
 
-La sauvegarde contient les objets complets : recettes (trois langues des noms, descriptions, étapes et
-astuce ; photo, vidéo, healthy, rôles, remplaçants), ingrédients (trois langues, fourchette de prix,
+La sauvegarde contient les objets complets : recettes (toutes les langues et variantes des noms, descriptions, étapes et
+astuce ; photo, vidéo, healthy, rôles, remplaçants), ingrédients (toutes les langues et variantes, fourchette de prix,
 photo), menu, favoris, liste de courses. La restauration relit tout par `parseBackup` (domaine) : les
 éléments invalides sont ignorés et comptés, les anciennes sauvegardes sont mises à jour (prix unique →
 fourchette, rôles). Elle s'applique **sur l'appareil** ; « Envoyer vers le cloud » la publie ensuite.

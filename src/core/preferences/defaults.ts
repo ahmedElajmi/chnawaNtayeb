@@ -1,3 +1,4 @@
+import { isLanguage } from '../shared/language';
 import type { UserPreferences } from './types';
 import { DEFAULT_THEME_ID } from '../theme/builtinThemes';
 
@@ -30,5 +31,6 @@ export function normalizePreferences(raw: unknown): UserPreferences {
   if (!Array.isArray(prefs.pantryStaples)) prefs.pantryStaples = DEFAULT_PANTRY_STAPLES;
   if (!['light', 'dark', 'system'].includes(prefs.mode)) prefs.mode = 'system';
   if (typeof prefs.themeId !== 'string') prefs.themeId = DEFAULT_THEME_ID;
+  if (!isLanguage(prefs.language)) prefs.language = DEFAULT_PREFERENCES.language;
   return prefs;
 }

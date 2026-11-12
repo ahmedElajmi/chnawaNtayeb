@@ -142,8 +142,11 @@ langues des noms, descriptions, étapes et astuces conservées**), ingrédients 
 - `youtube.ts` : reconnaissance et nettoyage des liens YouTube (miniature, lecteur intégré).
 - `collections.ts` : `toggleInList`, `upsertById`.
 - `id.ts` : `createId(prefix)`.
-- `language.ts` : `Language` (`derja`, `fr`, `ar`).
-- `localized.ts` : `LocalizedText` (`{ fr, derja, ar }`) et `pickLocalized(language, text)`, qui
-  rend le texte de la langue choisie, sinon le français, sinon la langue restante. C'est la seule
+- `language.ts` : `Language` (`fr`, `ar`, `derja`, `derja_ar`) et `LANGUAGES`, la seule liste des
+  langues et variantes (famille, sens d'écriture, `lang`, tri, ordre de repli, langue obligatoire),
+  `SELECTOR_ORDER`, `EDITING_ORDER`, `isLanguage`.
+- `localized.ts` : `LocalizedText` (`fr`, `derja`, `ar` + variantes facultatives), `pickLocalized(language,
+text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
+  `<champ>_<langue>` d'un objet), `trimLocalized`, `hasAnyText`. C'est la seule
   règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
   descriptions, étapes, astuce du chef).

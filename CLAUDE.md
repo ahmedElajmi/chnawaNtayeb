@@ -68,7 +68,7 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
    les stores ou l'interface.
 5. **Interface** → `src/features/<écran>`, sans logique métier, n'importe jamais `src/infrastructure` ni
    un SDK de base, et ne nomme jamais la base dans ses textes ; fenêtres avec `ModalShell` + `useCloseOnBack` ;
-   vérifiée à 375 px et 320 px ; textes publics dans les trois langues, backoffice en français.
+   vérifiée à 375 px et 320 px ; textes dans toutes les langues et variantes (`LANGUAGES`), backoffice compris (il suit la langue courante).
 6. **JSON** uniquement pour exporter / restaurer, jamais comme source de données de l'application.
 7. **Documentation** : après chaque évolution, mettre à jour `docs/encyclopedie/` **et ce `CLAUDE.md`**
    (conventions, comportements à conserver, commandes) avec ce qui a changé, puis `npm run check` vert
@@ -94,14 +94,25 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx`.
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
   dans `/patron` : aucun formulaire de création dans l'interface publique.
-- Textes affichés dans les trois langues (`src/shared/i18n/translations.ts`) ; backoffice en français.
-- **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : modifiable dans
-  /patron dans les trois langues avec `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
+- **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe
+  littéraire, derja en lettres latines (3, 7, 9), derja en lettres arabes (`derja_ar`) ; la derja est une
+  variante de la famille arabe. Chaque entrée donne sens d'écriture, `lang`, tri et **ordre de repli**.
+  Ajouter une langue ou une variante = une entrée dans `LANGUAGES` + ses textes d'interface (une variante
+  ne liste que ce qui diffère de sa famille, ex. `src/shared/i18n/derjaArabic.ts`) : affichage, éditeurs,
+  sauvegarde et recherche la prennent en compte sans autre changement.
+- Textes affichés dans toutes les langues (`src/shared/i18n/translations.ts`). **Le backoffice suit la langue
+  courante** comme le reste du site (contenu, onglet de saisie ; libellés : à traduire avec la refonte du
+  backoffice, encore en français en attendant).
+- **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
+  `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
+  (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
+  facultatives (vides = absentes). Modifiable dans /patron dans toutes les langues et variantes avec
+  `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
   `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext` : `getRecipeName`,
   `getIngredientName`, `getSecondaryName`, `compareNames`), jamais `name_fr` affiché directement (backoffice
   compris) ni un ordre de langues codé en dur. Catégories : `useIngredientCategories` (`src/shared/i18n`).
   L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
-  (derja / arabe vide → français).
+  (une langue vide → sa liste de repli, le français en dernier).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
@@ -128,8 +139,8 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
   `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
-  `parseStoredRecipes` / `parseStoredIngredients`. Libellés du backoffice en français en dur
-  (pas `t.bo…`, qui suit la langue du site).
+  `parseStoredRecipes` / `parseStoredIngredients`. Libellés du backoffice : en français en attendant
+  leur traduction (refonte du backoffice).
 - **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
   relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
   conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`).

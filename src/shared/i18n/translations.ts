@@ -1,4 +1,5 @@
-import { Language } from '@/core/shared';
+import type { Language } from '@/core/shared';
+import { DERJA_ARABIC } from './derjaArabic';
 
 export interface TranslationDictionary {
   appName: string;
@@ -217,7 +218,7 @@ export interface TranslationDictionary {
   resetFiltersLabel: string;
 }
 
-export const translations: Record<Language, TranslationDictionary> = {
+const BASE_TRANSLATIONS = {
   derja: {
     appName: 'Chnowa Ntayeb',
     slogan: 'Elli 3andek fel frigo, na3mlou bih makla !',
@@ -839,4 +840,13 @@ export const translations: Record<Language, TranslationDictionary> = {
     catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
     resetFiltersLabel: 'فسّخ الفلاتر',
   },
+} satisfies Record<Exclude<Language, 'derja_ar'>, TranslationDictionary>;
+
+/**
+ * Interface texts of every language. A language variant only lists what differs from its family:
+ * derja in Arabic letters = literary Arabic texts, replaced by the derja ones that exist.
+ */
+export const translations: Record<Language, TranslationDictionary> = {
+  ...BASE_TRANSLATIONS,
+  derja_ar: { ...BASE_TRANSLATIONS.ar, ...DERJA_ARABIC },
 };
