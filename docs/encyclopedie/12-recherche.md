@@ -8,13 +8,13 @@
 
 ## Ce qui existe aujourd'hui
 
-| Où                                                         | Comment                                                                                                           |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `src/core/shared/text.ts` : `normalizeText`                | minuscules, `œ` → `oe`, accents latins retirés, ponctuation retirée, pluriel français simple (`-s`, `-x`, `-aux`) |
-| `src/core/shared/text.ts` : `nameVariants`, `findByName`   | variantes d'un nom (`/`, `ou`, parenthèses) ; mot entier, jamais une sous-chaîne au hasard (« sel » ≠ « persil ») |
-| `src/core/matching/filters.ts` (`searchQuery`)             | `normalizeText(nom).includes(requête)` sur `name_fr`, `name_derja`, `name_ar`, recette par recette                |
-| `src/features/fridge/components/FridgeSelector.tsx`        | `toLowerCase().includes()` : **n'utilise pas** `normalizeText` (« oeuf » ne trouve pas « Œufs »)                  |
-| Synchronisation (`infrastructure/firebase/catalogSync.ts`) | relecture **complète** des collections `recipes` et `ingredients` ; aucun `updated_at` sur les recettes           |
+| Où                                                                            | Comment                                                                                                                                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/core/shared/text.ts` : `normalizeText`                                   | minuscules, `œ` → `oe`, accents latins retirés, ponctuation retirée, pluriel français simple (`-s`, `-x`, `-aux`)                                       |
+| `src/core/shared/text.ts` : `nameVariants`, `findByName`                      | variantes d'un nom (`/`, `ou`, parenthèses) ; mot entier, jamais une sous-chaîne au hasard (« sel » ≠ « persil »)                                       |
+| `src/core/matching/filters.ts` (`searchQuery`)                                | `normalizeText(nom).includes(requête)` sur `name_fr`, `name_derja`, `name_ar`, recette par recette                                                      |
+| `src/features/fridge/components/FridgeSelector.tsx`                           | `toLowerCase().includes()` : **n'utilise pas** `normalizeText` (« oeuf » ne trouve pas « Œufs »)                                                        |
+| Synchronisation (`application/sync`, `firebase/firestoreSharedCollection.ts`) | incrémentale et en direct (`revision`, marques de suppression), copie IndexedDB : la recherche travaille déjà sur des données à jour, sans lire la base |
 
 Limites :
 
@@ -195,17 +195,16 @@ le frigo et `IngredientSearch` du backoffice.
   stable à score égal…).
 - `src/infrastructure/minisearch/minisearchRecipeSearch.ts` : l'adapter MiniSearch, qui passe le contrat.
   Construction dans un **Web Worker** au-delà de quelques milliers de documents, pour ne pas figer l'écran.
-- Optionnel : cache de l'index sérialisé dans IndexedDB, clé = version du catalogue ; reconstruit si
+- Optionnel : cache de l'index sérialisé dans IndexedDB, clé = révision la plus récente du catalogue ; reconstruit si
   absent ou périmé.
 - Branché uniquement dans `src/app/container.ts`, exposé par un hook dans `ContainerContext.tsx`.
 
 ### 4. Spécificités de la base
 
-- **Mises à jour en direct** : aujourd'hui la synchronisation relit tout, donc `rebuild`. Quand la
-  synchronisation incrémentale par `updated_at` existera, l'adapter Firestore renverra seulement les
-  documents modifiés → `upsert`. Une suppression n'apparaît pas dans une requête `updated_at > x` :
-  il faudra une **marque de suppression** (`deleted_at`) ou une liste d'ids, côté adapter, pour appeler
-  `remove`. Ces détails restent dans l'adapter Firestore, jamais dans le port ni le moteur.
+- **Mises à jour en direct** : le `SyncedCollectionStore` du catalogue applique déjà les changements
+  reçus (`applyChanges`). Le store de recherche suit ces changements : réponse complète (`complete`,
+  première visite) → `rebuild` ; élément changé → `upsert` ; marque de suppression ou élément retiré →
+  `remove`. Aucune lecture de la base en plus : l'index suit la copie de l'appareil.
 - Moteur serveur (plus tard) : l'indexation suit les écritures du patron côté serveur (`server/`), et un
   adapter HTTP implémente `RecipeSearchEngine` ; le moteur local reste le repli hors ligne.
 
@@ -270,79 +269,80 @@ catalogue réel avant la PR.
 ## Moins d'appels à la base : catalogue, navigation, filtres
 
 Objectif : la navigation, la recherche et les filtres ne lisent **jamais** la base ; la base n'est lue
-que pour savoir **si** le catalogue a changé, puis seulement **ce qui** a changé. Tout reste géré depuis
-`/patron`.
+que pour ce qui a changé. Tout reste géré depuis `/patron`.
 
-### Ce qui coûte aujourd'hui
+### Ce qui est déjà en place (`develop`)
 
-| Où                                            | Lectures                                           | Fréquence                                                  |
-| --------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
-| `App.tsx` → `CatalogStore.syncFromRemote`     | **toutes** les recettes + **tous** les ingrédients | à chaque ouverture de l'application                        |
-| `server/seo.ts` → `getCatalog`                | toutes les recettes + tous les ingrédients         | toutes les 10 min d'activité, et à chaque réveil de Render |
-| réglages du moteur, thèmes publiés            | quelques documents                                 | à chaque ouverture                                         |
-| navigation, fiche recette, recherche, filtres | **aucune** (copie locale)                          | — (déjà bien : à conserver)                                |
+La synchronisation incrémentale et en direct décrite dans
+[05 Application et données](05-application-donnees.md#synchronisation-incrémentale-et-en-direct-toutes-les-collections-partagées)
+couvre déjà l'essentiel :
 
-Le quota gratuit de Firestore est de **50 000 lectures par jour** ; une requête qui ne renvoie rien
-compte quand même une lecture. Exemple réaliste : 2 000 recettes + 500 ingrédients, 300 visites par
-jour dont 30 nouveaux appareils, 20 objets modifiés par jour par le chef.
+- chaque écriture porte `revision` = heure du serveur ; une suppression est une marque `deleted` ;
+- au démarrage, l'appareil affiche sa copie IndexedDB puis ne demande que `revision >=` la plus récente
+  qu'il connaît, et reste abonné : une modification du patron arrive sur les appareils connectés en
+  quelques secondes, pour une lecture par appareil ;
+- les pages SEO du serveur se mettent à jour de la même façon (au plus toutes les 60 s) ;
+- navigation, fiche recette, recherche et filtres travaillent sur la copie de l'appareil : **aucune
+  lecture**. À conserver.
 
-| Solution                                  | Lectures par jour (exemple) |
-| ----------------------------------------- | --------------------------: |
-| Aujourd'hui (tout relire à chaque visite) |                   ≈ 750 000 |
-| Étape 1 : version + différences           |                    ≈ 80 000 |
-| Étapes 1 + 2 : + catalogue compacté       |                     ≈ 6 500 |
+### Ce qui coûte encore
 
-Avec l'étape 1 seule, les nouveaux appareils (30 × 2 500 lectures) dépassent encore le quota :
-l'étape 2 est nécessaire dès quelques milliers d'objets.
+| Cas                                                                           | Lectures                                                      |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises     |
+| Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)    |
+| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                |
+| Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer) |
+| Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes      |
 
-### Étape 1 : numéro de version du catalogue et différences
+Le quota gratuit de Firestore est de **50 000 lectures par jour**. Exemple : 2 000 recettes + 500
+ingrédients, 300 visites par jour dont 30 nouveaux appareils, 20 éléments modifiés par jour.
 
-- Un document **manifeste** du catalogue : `version` (entier), version des étiquettes, des réglages du
-  moteur et des thèmes. **Une seule lecture** à l'ouverture : si la version locale est la même, aucune
-  autre lecture.
-- Chaque écriture du patron (recette, ingrédient, étiquette), dans **une même transaction** : la
-  version du manifeste augmente de 1 et l'objet, écrit en entier comme aujourd'hui, reçoit
-  `catalog_version` = cette version. Un numéro plutôt qu'une date : pas de décalage d'horloge.
-- Suppression : l'objet est retiré **et** une marque de suppression (id + version) est écrite dans la
-  même transaction. Les marques de plus de 90 jours sont purgées ; un appareil absent plus longtemps
-  refait une synchronisation complète.
-- Client : « donne-moi ce qui a `catalog_version` > ma version » + les marques de suppression → fusion
-  dans la copie locale par une fonction pure du core, `applyCatalogChanges` (testée).
-- Serveur SEO : même principe, il lit le manifeste toutes les 10 min et ne recharge que si la version a
-  changé.
-- Copie locale déplacée de `localStorage` (≈ 5 Mo maximum, déjà juste pour quelques milliers de
-  recettes) vers **IndexedDB**, toujours comme copie hors ligne.
+| Situation                                       | Lectures par jour (exemple) |
+| ----------------------------------------------- | --------------------------: |
+| Avant la synchronisation incrémentale           |                   ≈ 750 000 |
+| `develop` aujourd'hui                           |                    ≈ 81 000 |
+| `develop` + copie compacte (étape 1 ci-dessous) |                     ≈ 7 500 |
 
-### Étape 2 : catalogue compacté pour les nouveaux appareils
+Le poste restant, ce sont les **nouveaux appareils** : 30 × 2 500 = 75 000 lectures. Il ne compte pas
+tant que le catalogue reste petit, mais il dépasse le quota dès quelques milliers d'éléments.
 
-- À la publication (bouton « Publier le catalogue » de `/patron`, ou automatiquement quand plus de
-  ~200 objets ont changé depuis le dernier), le catalogue publié est compressé et écrit **dans la base**
-  en quelques morceaux (documents de moins de 1 Mo). Le patron a déjà tout le catalogue en mémoire :
-  aucune lecture supplémentaire, seulement quelques écritures.
-- Un nouvel appareil lit le manifeste + 2 à 3 morceaux, puis les différences depuis la version du
-  morceau : **une dizaine de lectures au lieu de 2 500**.
-- La base reste la source de vérité : le catalogue compacté est une copie **dérivée**, reconstruite à
-  partir des objets, jamais modifiée à la main (ce n'est pas un fichier JSON source de données). En cas de
-  doute (morceau manquant, version incohérente, échec de lecture), retour à l'étape 1 ou à la
-  synchronisation complète.
-- Écarté : servir le catalogue depuis le serveur Render (il relirait tout à chaque réveil, plusieurs
-  fois par jour) et les « bundles » Firestore (il faut un stockage permanent pour le fichier, absent de
-  l'offre gratuite de Render).
+### Étape 1 : copie compacte pour les premières visites
 
-### Étape 3 : catégories en filtres, gérées par le patron
+- Sur demande du patron (« Publier une copie compacte » dans `/patron`), ou automatiquement quand
+  beaucoup d'éléments ont changé depuis la dernière, la collection est compressée et écrite **dans la
+  base** en quelques morceaux (documents de moins de 1 Mo), avec la révision la plus récente qu'elle
+  contient. Le patron a déjà la collection à jour sur son appareil : aucune lecture, quelques écritures.
+- Une première visite lit 2 ou 3 morceaux, puis suit les changements `revision >=` celle de la copie
+  compacte : **une dizaine de lectures au lieu de 2 500**. Rien n'est perdu même si la copie compacte
+  a du retard : les changements ultérieurs arrivent par le suivi habituel.
+- Tout se passe **dans l'adapter** : `follow(null)` lit la copie compacte puis s'abonne. Le port
+  `SharedCollectionSource` et son test de contrat ne changent pas ; le domaine relit toujours les
+  données par `parseStoredRecipes` / `parseStoredIngredients`.
+- La base reste la source de vérité : la copie compacte est **dérivée**, reconstruite à partir des
+  éléments, jamais modifiée à la main (ce n'est pas un fichier JSON source de données). Morceau manquant,
+  illisible ou incohérent → lecture complète, comme aujourd'hui.
+- Au passage : purger les marques de suppression plus anciennes que la copie compacte et que la limite de
+  30 jours (aucun appareil ne peut plus en avoir besoin).
+- Écarté : servir le catalogue depuis le serveur Render (il relirait tout à chaque réveil) et les
+  « bundles » Firestore (il faut un stockage permanent pour le fichier, absent de l'offre gratuite).
+
+### Étape 2 : catégories en filtres, gérées par le patron
 
 - Nouveau concept du domaine : l'**étiquette** (`RecipeTag`) : nom dans les trois langues, **groupe**
   (« Occasion », « Saison », « Régime »… le groupe devient une famille de filtres), ordre, publiée ou non.
   Une recette porte `tag_ids`. Validation par `validateRecipeTag` ; `parseStoredRecipe` et `parseBackup`
   conservent les étiquettes (test d'aller-retour).
+- Stockage : une collection partagée de plus, avec le mécanisme générique existant
+  (`SyncedCollectionStore` + `createFirestoreSharedCollection('recipe_tags')` + copie IndexedDB) : suivie
+  en direct, relue seulement quand elle change.
 - `/patron` : onglet « Étiquettes » (création, traduction avec `LocalizedField`, ordre, masquage) ; choix
   des étiquettes dans l'éditeur de recette ; suppression d'une étiquette utilisée refusée ou confirmée
   avec le nombre de recettes concernées.
 - Public : la barre de filtres est **générée** depuis les étiquettes publiées, avec le nombre de recettes
-  par filtre calculé sur la copie locale (`countFacets` dans le core) : **zéro lecture**. Dans un groupe,
-  les choix s'additionnent (OU) ; entre groupes, ils se combinent (ET). Un filtre = une ligne de plus dans
-  `createRecipeFilter`, qui reste la seule règle.
-- Les étiquettes sont peu nombreuses : relues seulement quand leur version change dans le manifeste.
+  par filtre calculé sur la copie de l'appareil (`countFacets` dans le core) : **zéro lecture**. Dans un
+  groupe, les choix s'additionnent (OU) ; entre groupes, ils se combinent (ET). Un filtre = une ligne de
+  plus dans `createRecipeFilter`, qui reste la seule règle.
 
 ### Sans régression
 
@@ -350,21 +350,15 @@ l'étape 2 est nécessaire dès quelques milliers d'objets.
   « Warini » et le menu ; type de cuisine ; sain ; budget ; temps) restent tels quels. Les étiquettes
   s'ajoutent à côté. Faire de `cuisine_type` une étiquette serait une décision séparée, avec
   conversion à la lecture par `migrateRecipes`.
-- **Le pire cas = le comportement actuel** : manifeste absent, version incohérente ou erreur → la
-  synchronisation complète d'aujourd'hui. Catalogue distant vide → la copie locale est gardée, comme
-  aujourd'hui.
-- **Mise en route** : les objets existants n'ont pas de `catalog_version`. Une action « Initialiser la
-  synchronisation » de `/patron` les numérote une fois ; tant qu'elle n'est pas faite, le client
-  continue la synchronisation complète.
-- **Contrat** : le port `RemoteCatalogSource` gagne `fetchVersion`, `fetchChangesSince` et
-  `fetchSnapshot` (mots du domaine), avec un test de contrat et une implémentation en mémoire. Le
-  manifeste, les transactions, les morceaux et les règles `firestore.rules` restent dans l'adapter
-  Firestore.
-- **Tests du core** : `applyCatalogChanges` (ajout, modification, suppression, ordre des versions, objet
-  invalide ignoré), `countFacets`, filtres par étiquette ; tests de caractérisation des filtres actuels
-  avant tout changement.
-- **Ordre des PR** : 1) copie locale en IndexedDB ; 2) manifeste + différences (client et serveur SEO) ; 3) catalogue compacté ; 4) étiquettes (indépendante, peut avancer en parallèle de la recherche).
-  Chacune mesure le nombre de lectures avant / après (console Firebase, onglet Utilisation).
+- **Le pire cas = le comportement actuel** : sans copie compacte, ou en cas d'erreur, la lecture complète
+  d'aujourd'hui. Une base vide ne remplace toujours pas le catalogue intégré.
+- **Contrats** : `sharedCollection.contract.ts` et `localCollectionCache.contract.ts` doivent passer sans
+  modification ; la copie compacte a ses propres tests dans l'adapter (morceaux, révision, repli).
+- **Tests du core** : `countFacets`, filtres par étiquette, validation des étiquettes ; tests de
+  caractérisation des filtres actuels avant tout changement.
+- **Ordre des PR** : 1) étiquettes (utile tout de suite, indépendante) ; 2) copie compacte quand le
+  catalogue dépasse ~1 000 éléments ; 3) thèmes et scénarios sur le mécanisme générique. Chacune mesure
+  le nombre de lectures avant / après (console Firebase, onglet Utilisation).
 
 ## Sources
 
