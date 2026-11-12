@@ -16,7 +16,7 @@ interface RecipesTabProps {
 }
 
 export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplicateRecipe }: RecipesTabProps) {
-  const { t } = useLanguage();
+  const { t, getRecipeName, getSecondaryName } = useLanguage();
   const [search, setSearch] = useState('');
   const q = normalizeText(search.trim());
   const filtered = q
@@ -27,7 +27,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
     const updated = { ...recipe, is_published: !recipe.is_published };
     admin.saveRecipe(
       updated,
-      `Recette "${recipe.name_fr}" ${updated.is_published ? 'publiée' : 'passée en brouillon'}`
+      `Recette "${getRecipeName(recipe)}" ${updated.is_published ? 'publiée' : 'passée en brouillon'}`
     );
   };
 
@@ -65,7 +65,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 {r.image_url ? (
                   <img
                     src={r.image_url}
-                    alt={r.name_fr}
+                    alt={getRecipeName(r)}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
@@ -77,8 +77,10 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-ink">{r.name_fr}</span>
-                  {r.name_derja && <span className="text-xs text-accent-text font-semibold">({r.name_derja})</span>}
+                  <span className="text-sm font-bold text-ink">{getRecipeName(r)}</span>
+                  {getSecondaryName(r) && (
+                    <span className="text-xs text-accent-text font-semibold">({getSecondaryName(r)})</span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1 mt-1">
                   <RecipeBadges recipe={r} />
@@ -122,7 +124,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 onClick={() => onDuplicateRecipe(r)}
                 className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                 title="Dupliquer : nouvelle recette à partir de celle-ci"
-                aria-label={`Dupliquer ${r.name_fr}`}
+                aria-label={`Dupliquer ${getRecipeName(r)}`}
               >
                 <Copy className="w-4 h-4" />
               </button>

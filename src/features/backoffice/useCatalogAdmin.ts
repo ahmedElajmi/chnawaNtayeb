@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { validateIngredient, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
 import type { WriteResult } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
+import { useLanguage } from '@/app/providers/LanguageContext';
 import { downloadTextFile } from '@/shared/ui/download';
 
 export type Notify = (message: string, isError?: boolean) => void;
@@ -12,6 +13,7 @@ export type Notify = (message: string, isError?: boolean) => void;
  */
 export function useCatalogAdmin(notify: Notify) {
   const { catalogAdmin } = useContainer();
+  const { getRecipeName, getIngredientName } = useLanguage();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const report = (result: WriteResult, success: string) => (result.ok ? notify(success) : notify(result.error, true));
@@ -34,7 +36,7 @@ export function useCatalogAdmin(notify: Notify) {
     },
 
     async deleteRecipe(recipe: Recipe) {
-      if (!window.confirm(`Confirmer la suppression de "${recipe.name_fr}" ?`)) return;
+      if (!window.confirm(`Confirmer la suppression de "${getRecipeName(recipe)}" ?`)) return;
       const result = await catalogAdmin.deleteRecipe(recipe.id);
       report(result, 'Recette supprimée');
     },
@@ -47,7 +49,7 @@ export function useCatalogAdmin(notify: Notify) {
         if (!ingredient) continue;
         const checked = validateIngredient({ ...ingredient, price_min_tnd: range.min, price_max_tnd: range.max });
         if (!checked.ok) {
-          notify(`${ingredient.name_fr} : ${checked.error}`, true);
+          notify(`${getIngredientName(ingredient)} : ${checked.error}`, true);
           return false;
         }
         updated.push(checked.value);

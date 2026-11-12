@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Language, pickLocalized } from '@/core/shared';
 import type { ChefTip, RecipeStep } from '@/core/catalog';
 import { translations, TranslationDictionary } from '@/shared/i18n/translations';
@@ -13,9 +13,15 @@ interface LanguageContextType {
   getRecipeName: (recipe: { name_fr: string; name_derja: string; name_ar: string }) => string;
   getRecipeDesc: (recipe: { description_fr: string; description_derja: string; description_ar: string }) => string;
   getThemeName: (theme: { name_fr: string; name_derja: string; name_ar: string }) => string;
+  /** Name in another language, shown under the main one; '' when it would only repeat it */
+  getSecondaryName: (item: LocalizedName) => string;
+  /** Sorts named items (ingredients, recipes...) alphabetically in the current language */
+  compareNames: (a: LocalizedName, b: LocalizedName) => number;
   getStepText: (step: RecipeStep) => string;
   getChefTip: (tip: ChefTip | undefined) => string;
 }
+
+type LocalizedName = { name_fr: string; name_derja: string; name_ar: string };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -54,6 +60,26 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const getThemeName = getRecipeName;
 
+  // French when the page is in derja or Arabic, derja when it is in French
+  const getSecondaryName = (item: LocalizedName) => {
+    const main = getIngredientName(item).trim();
+    const other = (language === 'fr' ? item.name_derja : item.name_fr)?.trim() ?? '';
+    return other && other.toLowerCase() !== main.toLowerCase() ? other : '';
+  };
+
+  const collator = useMemo(
+    () => new Intl.Collator(language === 'ar' ? 'ar' : 'fr', { sensitivity: 'base', numeric: true }),
+    [language]
+  );
+  // Stable while the language does not change (used in memoized sorts of long lists)
+  const compareNames = useCallback(
+    (a: LocalizedName, b: LocalizedName) => {
+      const name = (x: LocalizedName) => pickLocalized(language, { fr: x.name_fr, derja: x.name_derja, ar: x.name_ar });
+      return collator.compare(name(a), name(b));
+    },
+    [collator, language]
+  );
+
   return (
     <LanguageContext.Provider
       value={{
@@ -65,6 +91,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         getRecipeName,
         getRecipeDesc,
         getThemeName,
+        getSecondaryName,
+        compareNames,
         getStepText,
         getChefTip,
       }}

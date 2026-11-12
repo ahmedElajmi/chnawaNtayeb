@@ -13,7 +13,7 @@ import { useGuardedClose } from '@/shared/hooks/useGuardedClose';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
-import { useIngredientCategories } from './categories';
+import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
 
 const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-200 dark:border-slate-700 mt-1';
 const LABEL = 'text-[11px] font-bold text-slate-600 dark:text-slate-300';
@@ -61,7 +61,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
   const dismiss = useGuardedClose(dirty, onClose, 'Abandonner les modifications de cet ingrédient ?');
   const set = (patch: Partial<Ingredient>) => setDraft((d) => ({ ...d, ...patch }));
 
-  const title = isNew ? 'Nouvel ingrédient' : `Modifier : ${ingredient.name_fr}`;
+  const title = isNew ? 'Nouvel ingrédient' : `Modifier : ${getIngredientName(ingredient)}`;
   const photo = parseImageUrl(draft.image_url);
   const preview: Ingredient = { ...draft, image_url: photo ?? undefined };
   // Two ingredients with the same French name would be impossible to tell apart in the recipes

@@ -13,6 +13,7 @@ import {
 } from '@/core/planning';
 import { Recipe, Ingredient, MealCategory, normalizeCategory } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { pickLocalized } from '@/core/shared';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
@@ -85,11 +86,8 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
     updateSlot(dayIndex, mealType, removeFromSlot(slot, course));
   };
 
-  const getDayName = (day: DayPlan) => {
-    if (language === 'ar') return day.day_name_ar;
-    if (language === 'derja') return day.day_name_derja;
-    return day.day_name_fr;
-  };
+  const getDayName = (day: DayPlan) =>
+    pickLocalized(language, { fr: day.day_name_fr, derja: day.day_name_derja, ar: day.day_name_ar });
 
   const pickerRecipes = useMemo(() => {
     if (!editingSlot) return [];

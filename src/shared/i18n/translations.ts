@@ -121,6 +121,25 @@ export interface TranslationDictionary {
   scannerDetected: string;
   scannerAddSelected: string;
   scannerErrorKey: string;
+  pwaOfflineTitle: string;
+  pwaOfflineText: string;
+  pwaIosTitle: string;
+  pwaIosStep1: string;
+  pwaIosStep2: string;
+  pwaIosStep3: string;
+  pwaOtherTitle: string;
+  pwaAndroidStep: string;
+  pwaDesktopStep: string;
+  pwaGotIt: string;
+  scannerIntroTitle: string;
+  scannerIntroText: string;
+  scannerImageAlt: string;
+  scannerAnalyzeBtn: string;
+  scannerNothingFound: string;
+  scannerFailed: string;
+  scannerUnknownMapTo: string;
+  scannerIgnore: string;
+  scannerDishIdeas: string;
   // PWA & Common
   pwaInstall: string;
   pwaInstallIOS: string;
@@ -308,6 +327,27 @@ export const translations: Record<Language, TranslationDictionary> = {
     scannerDetected: 'Ingrédients l9inehom :',
     scannerAddSelected: 'Zidhom lil Frigo',
     scannerErrorKey: 'Lezem t7ott clé Gemini fel secrets bech tekhdem el caméra AI.',
+    pwaOfflineTitle: 'Yekhdem bla internet w yet7al fisa3',
+    pwaOfflineText: 'El application ta7fadh el recettes w lista mta3 el 9adhya bech tekhdem 7atta bla 4G walla Wi-Fi.',
+    pwaIosTitle: 'Installation 3al iPhone w iPad (Safari) :',
+    pwaIosStep1: '1. Enzel 3la **Partager** louta fi Safari (el icône elli fiha flèche tetla3).',
+    pwaIosStep2: '2. Habbet fel menu w ekhtar **Sur l’écran d’accueil**.',
+    pwaIosStep3: '3. Enzel 3la **Ajouter** el fou9 3al imin. El icône tetla3 3al écran mte3ek !',
+    pwaOtherTitle: 'Installation 3al Android w el ordinateur :',
+    pwaAndroidStep:
+      '**Android (Chrome) :** enzel 3al tlath n9at **(⋮)** el fou9, ba3d ekhtar **« Installer l’application »** walla **« Ajouter à l’écran d’accueil »**.',
+    pwaDesktopStep:
+      '**PC / Mac (Chrome / Edge) :** enzel 3al icône d’installation **(⊕)** 3al imin mta3 barre d’adresse.',
+    pwaGotIt: 'Fhemt !',
+    scannerIntroTitle: 'Sawar el frigo walla el tawla mte3 el koujina',
+    scannerIntroText: 'El AI bech ychouf el khodhra, el lham, el 3dham, el conserves w el bharat elli bayna.',
+    scannerImageAlt: 'Taswira mta3 el frigo',
+    scannerAnalyzeBtn: 'Ballech el analyse bel AI',
+    scannerNothingFound: 'Ma l9ina 7atta ingrédient fel taswira. Sawar el ingrédients mte3ek mel 9rib.',
+    scannerFailed: 'Ma najjamnech n7allou el taswira tawa. 3awed ba3d chwaya.',
+    scannerUnknownMapTo: 'ma 3raftouch, 9arnou b :',
+    scannerIgnore: 'Khalli',
+    scannerDishIdeas: 'Afkar mta3 makla :',
     pwaInstall: "Installi l'application",
     pwaInstallIOS: 'Installi 3la iPhone',
     pwaInstallDesc: 'Installi Chnowa Ntayeb 3la talifounek bech testa3melha f ay waqt 7atta hors-ligne !',
@@ -492,6 +532,28 @@ export const translations: Record<Language, TranslationDictionary> = {
     scannerDetected: 'Ingrédients détectés :',
     scannerAddSelected: 'Ajouter au frigo',
     scannerErrorKey: 'Clé API Gemini requise pour la reconnaissance visuelle.',
+    pwaOfflineTitle: 'Mode hors ligne et accès instantané',
+    pwaOfflineText: 'L’application garde vos recettes et listes de courses pour fonctionner même sans 4G ni Wi-Fi.',
+    pwaIosTitle: 'Installation sur iPhone et iPad (Safari) :',
+    pwaIosStep1: '1. Appuyez sur **Partager** en bas de Safari (l’icône avec la flèche vers le haut).',
+    pwaIosStep2: '2. Faites défiler le menu et choisissez **Sur l’écran d’accueil**.',
+    pwaIosStep3: '3. Appuyez sur **Ajouter** en haut à droite. L’icône apparaît sur votre écran !',
+    pwaOtherTitle: 'Installation sur Android et ordinateur :',
+    pwaAndroidStep:
+      '**Android (Chrome) :** appuyez sur les trois points **(⋮)** en haut à droite, puis choisissez **« Installer l’application »** ou **« Ajouter à l’écran d’accueil »**.',
+    pwaDesktopStep:
+      '**PC / Mac (Chrome / Edge) :** cliquez sur l’icône d’installation **(⊕)** à droite de la barre d’adresse.',
+    pwaGotIt: 'C’est compris !',
+    scannerIntroTitle: 'Photographiez votre frigo ou votre plan de travail',
+    scannerIntroText: 'L’IA analysera les légumes, viandes, œufs, conserves et condiments visibles.',
+    scannerImageAlt: 'Frigo scanné',
+    scannerAnalyzeBtn: 'Lancer l’analyse par IA',
+    scannerNothingFound:
+      'Aucun ingrédient n’a été détecté sur cette photo. Photographiez vos ingrédients de plus près.',
+    scannerFailed: 'Impossible d’analyser l’image pour le moment.',
+    scannerUnknownMapTo: 'non reconnu, associer à :',
+    scannerIgnore: 'Ignorer',
+    scannerDishIdeas: 'Idées de plats :',
     pwaInstall: "Installer l'application",
     pwaInstallIOS: 'Installer sur iPhone',
     pwaInstallDesc: "Installez Chnowa Ntayeb sur votre écran d'accueil pour un accès instantané et hors-ligne !",
@@ -676,6 +738,26 @@ export const translations: Record<Language, TranslationDictionary> = {
     scannerDetected: 'المكونات المكتشفة:',
     scannerAddSelected: 'أضف إلى الفريجيدار',
     scannerErrorKey: 'مفتاح Gemini API مطلوب لتشغيل ميزة الكاميرا.',
+    pwaOfflineTitle: 'يعمل دون إنترنت ويفتح فوراً',
+    pwaOfflineText: 'يحتفظ التطبيق بوصفاتك وقوائم مشترياتك ليعمل حتى دون 4G أو Wi-Fi.',
+    pwaIosTitle: 'التثبيت على iPhone وiPad (Safari):',
+    pwaIosStep1: '1. اضغط على **مشاركة** أسفل Safari (الأيقونة ذات السهم المتجه للأعلى).',
+    pwaIosStep2: '2. مرّر القائمة واختر **إضافة إلى الشاشة الرئيسية**.',
+    pwaIosStep3: '3. اضغط على **إضافة** في الأعلى. ستظهر الأيقونة على شاشتك!',
+    pwaOtherTitle: 'التثبيت على Android والحاسوب:',
+    pwaAndroidStep:
+      '**Android (Chrome):** اضغط على النقاط الثلاث **(⋮)** في الأعلى، ثم اختر **« تثبيت التطبيق »** أو **« إضافة إلى الشاشة الرئيسية »**.',
+    pwaDesktopStep: '**PC / Mac (Chrome / Edge):** انقر على أيقونة التثبيت **(⊕)** بجانب شريط العنوان.',
+    pwaGotIt: 'فهمت!',
+    scannerIntroTitle: 'صوّر الفريجيدار أو طاولة المطبخ',
+    scannerIntroText: 'سيحلّل الذكاء الاصطناعي الخضر واللحوم والبيض والمعلّبات والتوابل الظاهرة.',
+    scannerImageAlt: 'صورة الفريجيدار',
+    scannerAnalyzeBtn: 'ابدأ التحليل بالذكاء الاصطناعي',
+    scannerNothingFound: 'لم يتم اكتشاف أي مكوّن في هذه الصورة. صوّر مكوّناتك من مسافة أقرب.',
+    scannerFailed: 'تعذّر تحليل الصورة حالياً. حاول لاحقاً.',
+    scannerUnknownMapTo: 'غير معروف، اربطه بـ:',
+    scannerIgnore: 'تجاهل',
+    scannerDishIdeas: 'أفكار أطباق:',
     pwaInstall: 'تثبيت التطبيق',
     pwaInstallIOS: 'تثبيت على آيفون',
     pwaInstallDesc: 'ثبّت التطبيق على هاتفك للاستخدام السريع والعمل حتى دون إنترنت!',

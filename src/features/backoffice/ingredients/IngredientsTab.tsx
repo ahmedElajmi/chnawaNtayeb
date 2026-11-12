@@ -11,7 +11,8 @@ import { normalizeText } from '@/core/shared';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 import { IngredientEditorModal, NEW_INGREDIENT } from './IngredientEditorModal';
-import { useIngredientCategories } from './categories';
+import { useLanguage } from '@/app/providers/LanguageContext';
+import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
 
 const PRICE_INPUT =
   'w-16 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700';
@@ -42,6 +43,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
   const [editing, setEditing] = useState<Ingredient | null>(null);
   const categories = useIngredientCategories();
   const categoryLabel = new Map(categories);
+  const { getIngredientName, getSecondaryName, compareNames } = useLanguage();
   const q = normalizeText(search.trim());
   const matchesQuick: Record<QuickFilter, (i: Ingredient) => boolean> = {
     all: () => true,
@@ -53,7 +55,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
     .filter((i) => category === 'all' || i.category === category)
     .filter(matchesQuick[quick])
     .filter((i) => !q || [i.name_fr, i.name_derja, i.name_ar].some((n) => normalizeText(n).includes(q)))
-    .sort((a, b) => a.name_fr.localeCompare(b.name_fr, 'fr'));
+    .sort(compareNames);
   const countOf = (f: QuickFilter) => ingredients.filter(matchesQuick[f]).length;
   const edited = Object.keys(prices).length;
   const rangeOf = (ing: Ingredient): PriceRange => prices[ing.id] ?? { min: ing.price_min_tnd, max: ing.price_max_tnd };
@@ -145,9 +147,9 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                 <IngredientThumb ingredient={ing} size="md" />
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm font-bold text-ink truncate">
-                    {ing.name_fr}
-                    {ing.name_derja && (
-                      <span className="text-xs text-accent-text font-semibold ml-1.5">({ing.name_derja})</span>
+                    {getIngredientName(ing)}
+                    {getSecondaryName(ing) && (
+                      <span className="text-xs text-accent-text font-semibold ms-1.5">({getSecondaryName(ing)})</span>
                     )}
                   </p>
                   <p className="text-[11px] text-slate-400 truncate">
@@ -164,7 +166,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                   min="0"
                   value={range.min}
                   onChange={(e) => setBound(ing, 'min', e.target.value)}
-                  aria-label={`Prix minimum de ${ing.name_fr} en DT`}
+                  aria-label={`Prix minimum de ${getIngredientName(ing)} en DT`}
                   aria-invalid={invalid}
                   className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
                 />
@@ -175,7 +177,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                   min="0"
                   value={range.max}
                   onChange={(e) => setBound(ing, 'max', e.target.value)}
-                  aria-label={`Prix maximum de ${ing.name_fr} en DT`}
+                  aria-label={`Prix maximum de ${getIngredientName(ing)} en DT`}
                   aria-invalid={invalid}
                   className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
                 />
@@ -183,7 +185,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                 <button
                   type="button"
                   onClick={() => setEditing(ing)}
-                  aria-label={`Modifier ${ing.name_fr}`}
+                  aria-label={`Modifier ${getIngredientName(ing)}`}
                   title="Modifier les noms, l'unité, la catégorie et la photo"
                   className="ml-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
                 >
