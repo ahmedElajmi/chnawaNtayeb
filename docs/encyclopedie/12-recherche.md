@@ -2,7 +2,8 @@
 
 > **Statut : étude, rien n'est encore implémenté.** Cette page compare des moteurs de recherche
 > gratuits et rapides pour un catalogue qui peut atteindre des milliers de recettes et d'ingrédients
-> en trois langues, puis propose un moteur et un plan d'intégration. L'implémentation se fera sur sa
+> en trois langues, propose un moteur et un plan d'intégration, puis une stratégie pour lire la base le
+> moins possible (navigation, recherche, filtres gérés par le patron). L'implémentation se fera sur sa
 > propre branche (`feature/recipe-search`). Faits vérifiés le 12/11/2026 (sources en fin de page).
 
 ## Ce qui existe aujourd'hui
@@ -266,6 +267,105 @@ catalogue réel avant la PR.
 8. **Petites PR, une par étape** : normalisation, puis port + adapter en mémoire, puis MiniSearch, puis
    l'interface. Chacune est testable et réversible seule.
 
+## Moins d'appels à la base : catalogue, navigation, filtres
+
+Objectif : la navigation, la recherche et les filtres ne lisent **jamais** la base ; la base n'est lue
+que pour savoir **si** le catalogue a changé, puis seulement **ce qui** a changé. Tout reste géré depuis
+`/patron`.
+
+### Ce qui coûte aujourd'hui
+
+| Où                                            | Lectures                                           | Fréquence                                                  |
+| --------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| `App.tsx` → `CatalogStore.syncFromRemote`     | **toutes** les recettes + **tous** les ingrédients | à chaque ouverture de l'application                        |
+| `server/seo.ts` → `getCatalog`                | toutes les recettes + tous les ingrédients         | toutes les 10 min d'activité, et à chaque réveil de Render |
+| réglages du moteur, thèmes publiés            | quelques documents                                 | à chaque ouverture                                         |
+| navigation, fiche recette, recherche, filtres | **aucune** (copie locale)                          | — (déjà bien : à conserver)                                |
+
+Le quota gratuit de Firestore est de **50 000 lectures par jour** ; une requête qui ne renvoie rien
+compte quand même une lecture. Exemple réaliste : 2 000 recettes + 500 ingrédients, 300 visites par
+jour dont 30 nouveaux appareils, 20 objets modifiés par jour par le chef.
+
+| Solution                                  | Lectures par jour (exemple) |
+| ----------------------------------------- | --------------------------: |
+| Aujourd'hui (tout relire à chaque visite) |                   ≈ 750 000 |
+| Étape 1 : version + différences           |                    ≈ 80 000 |
+| Étapes 1 + 2 : + catalogue compacté       |                     ≈ 6 500 |
+
+Avec l'étape 1 seule, les nouveaux appareils (30 × 2 500 lectures) dépassent encore le quota :
+l'étape 2 est nécessaire dès quelques milliers d'objets.
+
+### Étape 1 : numéro de version du catalogue et différences
+
+- Un document **manifeste** du catalogue : `version` (entier), version des étiquettes, des réglages du
+  moteur et des thèmes. **Une seule lecture** à l'ouverture : si la version locale est la même, aucune
+  autre lecture.
+- Chaque écriture du patron (recette, ingrédient, étiquette), dans **une même transaction** : la
+  version du manifeste augmente de 1 et l'objet, écrit en entier comme aujourd'hui, reçoit
+  `catalog_version` = cette version. Un numéro plutôt qu'une date : pas de décalage d'horloge.
+- Suppression : l'objet est retiré **et** une marque de suppression (id + version) est écrite dans la
+  même transaction. Les marques de plus de 90 jours sont purgées ; un appareil absent plus longtemps
+  refait une synchronisation complète.
+- Client : « donne-moi ce qui a `catalog_version` > ma version » + les marques de suppression → fusion
+  dans la copie locale par une fonction pure du core, `applyCatalogChanges` (testée).
+- Serveur SEO : même principe, il lit le manifeste toutes les 10 min et ne recharge que si la version a
+  changé.
+- Copie locale déplacée de `localStorage` (≈ 5 Mo maximum, déjà juste pour quelques milliers de
+  recettes) vers **IndexedDB**, toujours comme copie hors ligne.
+
+### Étape 2 : catalogue compacté pour les nouveaux appareils
+
+- À la publication (bouton « Publier le catalogue » de `/patron`, ou automatiquement quand plus de
+  ~200 objets ont changé depuis le dernier), le catalogue publié est compressé et écrit **dans la base**
+  en quelques morceaux (documents de moins de 1 Mo). Le patron a déjà tout le catalogue en mémoire :
+  aucune lecture supplémentaire, seulement quelques écritures.
+- Un nouvel appareil lit le manifeste + 2 à 3 morceaux, puis les différences depuis la version du
+  morceau : **une dizaine de lectures au lieu de 2 500**.
+- La base reste la source de vérité : le catalogue compacté est une copie **dérivée**, reconstruite à
+  partir des objets, jamais modifiée à la main (ce n'est pas un fichier JSON source de données). En cas de
+  doute (morceau manquant, version incohérente, échec de lecture), retour à l'étape 1 ou à la
+  synchronisation complète.
+- Écarté : servir le catalogue depuis le serveur Render (il relirait tout à chaque réveil, plusieurs
+  fois par jour) et les « bundles » Firestore (il faut un stockage permanent pour le fichier, absent de
+  l'offre gratuite de Render).
+
+### Étape 3 : catégories en filtres, gérées par le patron
+
+- Nouveau concept du domaine : l'**étiquette** (`RecipeTag`) : nom dans les trois langues, **groupe**
+  (« Occasion », « Saison », « Régime »… le groupe devient une famille de filtres), ordre, publiée ou non.
+  Une recette porte `tag_ids`. Validation par `validateRecipeTag` ; `parseStoredRecipe` et `parseBackup`
+  conservent les étiquettes (test d'aller-retour).
+- `/patron` : onglet « Étiquettes » (création, traduction avec `LocalizedField`, ordre, masquage) ; choix
+  des étiquettes dans l'éditeur de recette ; suppression d'une étiquette utilisée refusée ou confirmée
+  avec le nombre de recettes concernées.
+- Public : la barre de filtres est **générée** depuis les étiquettes publiées, avec le nombre de recettes
+  par filtre calculé sur la copie locale (`countFacets` dans le core) : **zéro lecture**. Dans un groupe,
+  les choix s'additionnent (OU) ; entre groupes, ils se combinent (ET). Un filtre = une ligne de plus dans
+  `createRecipeFilter`, qui reste la seule règle.
+- Les étiquettes sont peu nombreuses : relues seulement quand leur version change dans le manifeste.
+
+### Sans régression
+
+- **Rien n'est retiré** : les filtres actuels (plat / entrée / dessert, utilisés aussi par le moteur
+  « Warini » et le menu ; type de cuisine ; sain ; budget ; temps) restent tels quels. Les étiquettes
+  s'ajoutent à côté. Faire de `cuisine_type` une étiquette serait une décision séparée, avec
+  conversion à la lecture par `migrateRecipes`.
+- **Le pire cas = le comportement actuel** : manifeste absent, version incohérente ou erreur → la
+  synchronisation complète d'aujourd'hui. Catalogue distant vide → la copie locale est gardée, comme
+  aujourd'hui.
+- **Mise en route** : les objets existants n'ont pas de `catalog_version`. Une action « Initialiser la
+  synchronisation » de `/patron` les numérote une fois ; tant qu'elle n'est pas faite, le client
+  continue la synchronisation complète.
+- **Contrat** : le port `RemoteCatalogSource` gagne `fetchVersion`, `fetchChangesSince` et
+  `fetchSnapshot` (mots du domaine), avec un test de contrat et une implémentation en mémoire. Le
+  manifeste, les transactions, les morceaux et les règles `firestore.rules` restent dans l'adapter
+  Firestore.
+- **Tests du core** : `applyCatalogChanges` (ajout, modification, suppression, ordre des versions, objet
+  invalide ignoré), `countFacets`, filtres par étiquette ; tests de caractérisation des filtres actuels
+  avant tout changement.
+- **Ordre des PR** : 1) copie locale en IndexedDB ; 2) manifeste + différences (client et serveur SEO) ; 3) catalogue compacté ; 4) étiquettes (indépendante, peut avancer en parallèle de la recherche).
+  Chacune mesure le nombre de lectures avant / après (console Firebase, onglet Utilisation).
+
 ## Sources
 
 - Render, offre gratuite : https://render.com/docs/free ; ressources : https://render.com/docs/compute-plans
@@ -296,6 +396,10 @@ catalogue réel avant la PR.
   https://solr.apache.org/guide/solr/latest/deployment-guide/system-requirements.html ; analyse par langue
   https://solr.apache.org/guide/solr/latest/indexing-guide/language-analysis.html ; normaliseur arabe
   https://lucene.apache.org/core/9_0_0/analysis/common/org/apache/lucene/analysis/ar/ArabicNormalizer.html
+
+- Firestore : quota gratuit https://firebase.google.com/docs/firestore/quotas ; facturation (lecture
+  minimale par requête) https://firebase.google.com/docs/firestore/pricing ; bundles
+  https://firebase.google.com/docs/firestore/bundles
 
 Points non confirmés par une source officielle : offre gratuite et prix actuels d'Orama Cloud et de
 Typesense Cloud ; prise en charge explicite de `ar` / `fr` et des harakat par Typesense ; absence de
