@@ -1,6 +1,13 @@
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, DocumentReference } from 'firebase/firestore';
 import { db, firebaseProjectId, handleFirestoreError, OperationType } from '@/infrastructure/firebase/client';
-import { type Recipe, type Ingredient, initialRecipes, initialIngredients, migrateRecipes } from '@/core/catalog';
+import {
+  type Recipe,
+  type Ingredient,
+  initialRecipes,
+  initialIngredients,
+  migrateIngredients,
+  migrateRecipes,
+} from '@/core/catalog';
 import type { CatalogAdminGateway, CatalogInitStats, WriteResult } from '@/application';
 import { storage } from '@/infrastructure/local/storage';
 
@@ -43,7 +50,8 @@ export async function saveRecipeToFirestore(recipe: Recipe): Promise<CloudWriteR
 
   try {
     const docRef = doc(db, 'recipes', recipe.id);
-    await setDoc(docRef, recipe, { merge: true });
+    // Whole document, no merge: a field removed by the chef (video, healthy flag...) must disappear here too
+    await setDoc(docRef, recipe);
     return { ok: true };
   } catch (error) {
     return writeError(error, OperationType.WRITE, `recipes/${recipe.id}`);
@@ -67,10 +75,12 @@ export async function syncIngredientsFromFirestore(): Promise<Ingredient[]> {
     const colRef = collection(db, 'ingredients');
     const snapshot = await getDocs(colRef);
     if (!snapshot.empty) {
-      const remoteIngredients: Ingredient[] = [];
+      const stored: Ingredient[] = [];
       snapshot.forEach((d) => {
-        remoteIngredients.push({ id: d.id, ...d.data() } as Ingredient);
+        stored.push({ id: d.id, ...d.data() } as Ingredient);
       });
+      // Cloud ingredients saved with a single price become a price range
+      const remoteIngredients = migrateIngredients(stored);
       storage.saveIngredients(remoteIngredients);
       return remoteIngredients;
     }
@@ -89,7 +99,7 @@ export async function saveIngredientToFirestore(ing: Ingredient): Promise<CloudW
 
   try {
     const docRef = doc(db, 'ingredients', ing.id);
-    await setDoc(docRef, ing, { merge: true });
+    await setDoc(docRef, ing); // whole document, no merge (see saveRecipeToFirestore)
     return { ok: true };
   } catch (error) {
     return writeError(error, OperationType.WRITE, `ingredients/${ing.id}`);
@@ -100,10 +110,10 @@ export async function saveIngredientToFirestore(ing: Ingredient): Promise<CloudW
 export async function pushAllToFirestore(): Promise<CloudWriteResult> {
   try {
     for (const rec of storage.getRecipes()) {
-      await setDoc(doc(db, 'recipes', rec.id), rec, { merge: true });
+      await setDoc(doc(db, 'recipes', rec.id), rec);
     }
     for (const ing of storage.getIngredients()) {
-      await setDoc(doc(db, 'ingredients', ing.id), ing, { merge: true });
+      await setDoc(doc(db, 'ingredients', ing.id), ing);
     }
     return { ok: true };
   } catch (error) {

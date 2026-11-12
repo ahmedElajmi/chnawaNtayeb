@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Language } from '@/core/shared';
+import { Language, pickLocalized } from '@/core/shared';
+import type { ChefTip, RecipeStep } from '@/core/catalog';
 import { translations, TranslationDictionary } from '@/shared/i18n/translations';
 import { useContainer } from '@/app/ContainerContext';
 
@@ -12,6 +13,8 @@ interface LanguageContextType {
   getRecipeName: (recipe: { name_fr: string; name_derja: string; name_ar: string }) => string;
   getRecipeDesc: (recipe: { description_fr: string; description_derja: string; description_ar: string }) => string;
   getThemeName: (theme: { name_fr: string; name_derja: string; name_ar: string }) => string;
+  getStepText: (step: RecipeStep) => string;
+  getChefTip: (tip: ChefTip | undefined) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -35,23 +38,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const t = translations[language] || translations.derja;
   const dir = language === 'ar' ? 'rtl' : 'ltr';
 
-  const getIngredientName = (item: { name_fr: string; name_derja: string; name_ar: string }) => {
-    if (language === 'ar') return item.name_ar;
-    if (language === 'fr') return item.name_fr;
-    return item.name_derja || item.name_fr;
-  };
+  // Every content text follows the chosen language, with the fallbacks of pickLocalized
+  const getIngredientName = (item: { name_fr: string; name_derja: string; name_ar: string }) =>
+    pickLocalized(language, { fr: item.name_fr, derja: item.name_derja, ar: item.name_ar });
 
-  const getRecipeName = (recipe: { name_fr: string; name_derja: string; name_ar: string }) => {
-    if (language === 'ar') return recipe.name_ar;
-    if (language === 'fr') return recipe.name_fr;
-    return recipe.name_derja || recipe.name_fr;
-  };
+  const getRecipeName = getIngredientName;
 
-  const getRecipeDesc = (recipe: { description_fr: string; description_derja: string; description_ar: string }) => {
-    if (language === 'ar') return recipe.description_ar;
-    if (language === 'fr') return recipe.description_fr;
-    return recipe.description_derja || recipe.description_fr;
-  };
+  const getRecipeDesc = (recipe: { description_fr: string; description_derja: string; description_ar: string }) =>
+    pickLocalized(language, { fr: recipe.description_fr, derja: recipe.description_derja, ar: recipe.description_ar });
+
+  const getStepText = (step: RecipeStep) =>
+    pickLocalized(language, { fr: step.instruction_fr, derja: step.instruction_derja, ar: step.instruction_ar });
+
+  const getChefTip = (tip: ChefTip | undefined) => (tip ? pickLocalized(language, tip) : '');
 
   const getThemeName = getRecipeName;
 
@@ -66,6 +65,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         getRecipeName,
         getRecipeDesc,
         getThemeName,
+        getStepText,
+        getChefTip,
       }}
     >
       {children}

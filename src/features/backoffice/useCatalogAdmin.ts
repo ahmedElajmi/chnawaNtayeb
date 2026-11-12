@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Ingredient, Recipe } from '@/core/catalog';
+import { validateIngredient, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
 import type { WriteResult } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
 import { downloadTextFile } from '@/shared/ui/download';
@@ -45,16 +45,33 @@ export function useCatalogAdmin(notify: Notify) {
       report(result, 'Recette supprimée');
     },
 
-    async savePrices(ingredients: Ingredient[], prices: Record<string, number>) {
-      let failure: WriteResult | null = null;
-      for (const [id, price] of Object.entries(prices)) {
+    /** Saves the edited price ranges; returns false (nothing saved) when one of them is not valid. */
+    async savePrices(ingredients: Ingredient[], prices: Record<string, PriceRange>): Promise<boolean> {
+      const updated: Ingredient[] = [];
+      for (const [id, range] of Object.entries(prices)) {
         const ingredient = ingredients.find((i) => i.id === id);
         if (!ingredient) continue;
-        const result = await catalogAdmin.saveIngredient({ ...ingredient, default_price_tnd: price });
+        const checked = validateIngredient({ ...ingredient, price_min_tnd: range.min, price_max_tnd: range.max });
+        if (!checked.ok) {
+          notify(`${ingredient.name_fr} : ${checked.error}`, true);
+          return false;
+        }
+        updated.push(checked.value);
+      }
+      let failure: WriteResult | null = null;
+      for (const ingredient of updated) {
+        const result = await catalogAdmin.saveIngredient(ingredient);
         if (!result.ok) failure = result;
       }
       refresh();
       report(failure ?? { ok: true }, 'Prix du marché mis à jour');
+      return true;
+    },
+
+    async saveIngredient(ingredient: Ingredient) {
+      const result = await catalogAdmin.saveIngredient(ingredient);
+      refresh();
+      report(result, 'Ingrédient enregistré et synchronisé');
     },
 
     async addIngredient(data: Omit<Ingredient, 'id'>) {
@@ -106,10 +123,18 @@ export function useCatalogAdmin(notify: Notify) {
     },
 
     async importBackup(file: File) {
-      if (catalogAdmin.importBackup(await file.text())) {
-        refresh();
-        notify('Données importées avec succès !');
-      } else notify('Erreur lors de la lecture du fichier JSON.', true);
+      const result = catalogAdmin.importBackup(await file.text());
+      if (!result.ok) {
+        notify("Ce fichier n'est pas une sauvegarde Chnowa Ntayeb lisible.", true);
+        return;
+      }
+      refresh();
+      const skipped = result.skipped ? ` ${result.skipped} élément(s) illisible(s) ignoré(s).` : '';
+      notify(
+        `Sauvegarde restaurée sur cet appareil : ${result.recipes} recettes, ${result.ingredients} ingrédients.${skipped} ` +
+          'Utilisez « Envoyer vers le cloud » pour la publier.',
+        result.skipped > 0
+      );
     },
 
     resetLocalToDefaults() {

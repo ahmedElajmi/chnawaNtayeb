@@ -54,12 +54,40 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
   second dans les 2 secondes quitte l'application.
 - **Fenêtres et bouton retour** : `useCloseOnBack(isOpen, onClose)` (`shared/hooks/useCloseOnBack.ts`)
   ajoute une entrée d'historique tant qu'une fenêtre est ouverte : retour la ferme au lieu de changer d'écran.
+- **Fond des fenêtres** : toute fenêtre passe par `shared/ui/ModalShell.tsx`. Il affiche le fond grisé
+  dans un portail sur `<body>`, hors de la page. Une page animée (`animate-fade-in`) ou floutée
+  (l'en-tête) capturerait sinon le `position: fixed` : le fond couvrait toute la hauteur de la page
+  et la fenêtre s'ouvrait hors de l'écran (écran gris du scan photo). La fenêtre est centrée tant
+  qu'elle tient dans l'écran ; plus haute, elle commence en haut et le fond défile, rien n'est coupé.
+  Variantes : `mobile="bottom"` (Réglages, collée en bas sur téléphone), `mobile="full"` (fiche
+  recette en plein écran sur téléphone, son contenu défile à l'intérieur).
+- **Bouton « haut de page »** (`shared/ui/ScrollToTopButton.tsx`, monté une fois dans `AppLayout`) :
+  apparaît après 1,5 hauteur d'écran de défilement (`shared/hooks/useScrolledPast.ts`), remonte en
+  douceur (instantané si l'appareil demande moins d'animations). En bas à droite, au-dessus de la barre
+  d'onglets ; remonté au-dessus de la barre « voir les recettes » du frigo quand des ingrédients sont
+  choisis. Libellé traduit (`scrollToTop`).
+- **Vignette d'ingrédient** (`shared/ui/IngredientThumb.tsx`) : toute image d'ingrédient passe par ce
+  composant. Avec photo : image recadrée, chargée à la demande ; si le lien ne répond pas, bascule sur
+  la pastille. Sans photo : pastille en dégradé de la couleur de la catégorie avec son emoji
+  (`shared/ui/ingredientVisuals.ts`, clair et sombre). Même taille dans les deux cas : une grille reste
+  régulière quel que soit le nombre de photos. Tailles `xs` (pastilles du récapitulatif), `sm` (fiche
+  recette, liste de courses), `md` (grille du frigo, backoffice), `lg` (aperçu du backoffice).
+  Utilisée dans : grille et récapitulatif du frigo, ingrédients disponibles / manquants de la fiche
+  recette, liste de courses (article libre = pastille sac, article acheté en gris).
+- **Prix en fourchette** : `formatPriceRange(range, t.currency)` (`shared/i18n/formatPrice.ts`) affiche
+  « 2.5 DT » ou « 2.5 – 4 DT » (« د.ت » en arabe). Sous chaque ingrédient de la grille du frigo
+  (« 2 – 3 DT / kg ») et dans le coût des courses manquantes (`groceryCost`, cartes et fiche recette).
+- **Animation `fade-in`** (`src/index.css`) : elle ne laisse aucune transformation une fois finie
+  (`backwards`, état final `transform: none`). Toute nouvelle animation doit faire de même.
 
 ## Langues (`shared/i18n/translations.ts`)
 
 Un dictionnaire typé par langue (`derja`, `fr`, `ar`). `useLanguage()` fournit `t` (les textes),
-`language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`…). L'arabe passe la
-page de droite à gauche. Les textes du backoffice sont en français.
+`language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
+`getStepText`, `getChefTip`) qui passent toutes par `pickLocalized` du domaine : texte de la langue
+choisie, sinon le français. Aucun écran ne code un ordre de langues en dur. Sous le titre d'une
+recette, les noms dans les autres langues ne sont affichés que s'ils diffèrent du titre (pas de nom
+en double). L'arabe passe la page de droite à gauche. Les textes du backoffice sont en français.
 
 ## Thèmes (`app/providers/ThemeContext.tsx`)
 
@@ -73,13 +101,40 @@ avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèm
 - `public/sw.js` : pages en réseau d'abord (copie hors ligne sinon), fichiers en cache mis à jour
   en arrière-plan, un cache par version déployée.
 - `shared/ui/UpdatePrompt.tsx` : bandeau « nouvelle version » qui active le nouveau service worker.
-- `shared/ui/PWAInstallButton.tsx` : installation (guide pour iOS).
+- **Installation** : tant que l'application n'est pas installée, trois points d'entrée, tous basés sur
+  `useInstallApp()` (`shared/ui/PWAInstallButton.tsx`) : la proposition d'installation du navigateur
+  quand il en offre une, sinon le guide pas à pas (`InstallGuideModal`, iOS et autres navigateurs).
+  - **Bandeau** (`shared/ui/InstallBanner.tsx`, sous l'en-tête, pas dans `/patron`) : affiché dès la
+    première page d'une visite si le navigateur sait installer l'application (proposition disponible, ou
+    iPhone / iPad). Il reste d'une page à l'autre jusqu'à ce que le visiteur le ferme (✕) ; fermé, il ne
+    revient qu'à la visite suivante (rien n'est enregistré).
+  - **Réglages › Application** : bouton « Installer l'application », toujours disponible tant que
+    l'application n'est pas installée.
+  - Bouton de l'accueil (`PWAInstallButton`).
+  - Une fois l'application installée, tout disparaît : aucun badge ni texte « installée ».
+  - L'état d'installation est partagé (`shared/hooks/usePWAInstall.ts`) : le navigateur n'envoie la
+    proposition qu'une fois, au chargement ; elle est gardée pour les composants affichés plus tard.
 - `shared/ui/OfflineIndicator.tsx` : indicateur hors ligne.
+
+## Réglages (`features/settings/SettingsModal.tsx`)
+
+Ouverts par la roue dentée de l'en-tête. Trois onglets courts, pour que chacun tienne sur un écran de
+téléphone :
+
+| Onglet      | Contenu                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| Affichage   | Mode clair / sombre / automatique, choix du thème                                             |
+| Langue      | Derja, Français, العربية                                                                      |
+| Application | Installer l'application (si pas installée) ; section Patron (backoffice, quitter) si connecté |
+
+L'onglet Application n'existe que s'il a quelque chose à proposer.
 
 ## Mobile
 
 - Barre d'onglets en bas sur téléphone, liens dans l'en-tête sur ordinateur.
-- **Aucun élément ne doit élargir la page** : l'en-tête se resserre (nom tronqué, bouton
-  d'installation réduit à l'icône sous 640 px) ; les rangées de filtres défilent dans leur propre
+- **Aucun élément ne doit élargir la page** : l'en-tête se resserre (logo et titre plus petits ; plus
+  de bouton d'installation dans l'en-tête, remplacé par le bandeau) ; en mode patron, le badge
+  « Patron » et « Quitter » ne sont dans l'en-tête qu'à partir de 640 px : sur téléphone ils sont dans
+  Réglages › Application, pour que « Chnowa Ntayeb / by Chef Souhed » reste lisible ; les rangées de filtres défilent dans leur propre
   conteneur ; filet de sécurité `overflow-x: clip` sur `html` et `body` (`src/index.css`).
 - Vérifier à 375 px et 320 px de large avant de livrer un écran.

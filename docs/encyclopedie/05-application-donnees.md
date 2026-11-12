@@ -12,6 +12,7 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `KitchenStore`          | frigo, placard, favoris, menu, liste de courses        | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement |
 | `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud  | Session patron, toujours confirmée par le serveur                                |
 | `MatchingSettingsStore` | réglages du moteur, version, source                    | Base = référence, copie locale hors ligne, valeurs du code par défaut            |
+| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette           | Garde, propose à nouveau et efface les modifications non enregistrées            |
 
 Hooks d'accès : `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
 
@@ -30,6 +31,7 @@ Hooks d'accès : `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSett
 | `UserAuthGateway`            | Comptes visiteurs (invité, e-mail)               | `infrastructure/firebase/userAuth`                  |
 | `PatronGateway`              | Connexion et session patron                      | `infrastructure/http/patronHttpGateway`             |
 | `VisionGateway`              | Scan photo du frigo                              | `infrastructure/http/visionHttpGateway`             |
+| `RecipeDraftRepository`      | Brouillons de recettes non enregistrés           | `infrastructure/local/localRecipeDrafts`            |
 
 Les écritures renvoient `WriteResult` : `{ ok: true }` ou `{ ok: false, error }` (message lisible).
 Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part ailleurs.
@@ -49,6 +51,12 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 | `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron          | lui-même (champs limités)        |
 | `admins/{uid}`                    | Comptes administrateurs supplémentaires  | patron                    | patron                           |
 
+**Écriture d'une recette ou d'un ingrédient** : le document est **remplacé en entier** (pas de
+fusion). Un champ retiré par le patron (vidéo, « healthy », substitut…) disparaît donc aussi de la
+base, et les autres appareils ne le voient plus à leur prochaine synchronisation (ouverture de
+l'application ou « récupérer depuis le cloud » ; il n'y a pas d'écoute en direct). Avec une fusion,
+le champ supprimé restait dans la base et revenait sur les autres appareils.
+
 Les règles sont dans `firestore.rules` (tout est refusé par défaut). « Patron » = session ouverte
 par le serveur (jeton Firebase avec le droit `patron`), compte propriétaire vérifié, ou uid listé
 dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).
@@ -67,6 +75,7 @@ dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).
 | `chnowa_themes_v1`                           | Copie des thèmes publiés                                                         |
 | `chnowa_active_theme_vars_v1`                | Couleurs du thème actif, lues par `index.html` avant le démarrage (pas de flash) |
 | `chnowa_matching_settings_cache_v1`          | Copie des réglages du moteur                                                     |
+| `chnowa_recipe_draft_v1:<id>` / `:new`       | Brouillon de l'éditeur de recette (personnel à l'appareil, jamais partagé)       |
 
 `sessionStorage` : `patron_session_token` (jeton de session patron, 8 heures).
 
@@ -74,6 +83,13 @@ dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).
 
 Uniquement pour **exporter** (sauvegarde) et **restaurer** : catalogue complet (onglet Données)
 et réglages du moteur (onglet Moteur). Aucune donnée n'est enregistrée dans un fichier par l'application.
+
+La sauvegarde contient les objets complets : recettes (trois langues des noms, descriptions, étapes et
+astuce ; photo, vidéo, healthy, rôles, remplaçants), ingrédients (trois langues, fourchette de prix,
+photo), menu, favoris, liste de courses. La restauration relit tout par `parseBackup` (domaine) : les
+éléments invalides sont ignorés et comptés, les anciennes sauvegardes sont mises à jour (prix unique →
+fourchette, rôles). Elle s'applique **sur l'appareil** ; « Envoyer vers le cloud » la publie ensuite.
+Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
 
 ## Chargement au démarrage (`src/app/App.tsx`)
 

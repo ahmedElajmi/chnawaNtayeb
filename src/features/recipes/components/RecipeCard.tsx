@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Heart, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { MatchingResult } from '@/core/matching';
 import { Ingredient } from '@/core/catalog';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { parseYouTubeId } from '@/core/shared';
@@ -22,11 +23,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onSelectRecipe,
   allIngredients,
 }) => {
-  const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost_tnd } = result;
-  const { t, getRecipeName, getIngredientName } = useLanguage();
+  const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost } = result;
+  const { t, language, getRecipeName, getIngredientName } = useLanguage();
 
   const totalTime = recipe.prep_time_minutes + recipe.cook_time_minutes;
   const name = getRecipeName(recipe);
+  // Derja name as a subtitle only when the title is in another language and says something else
+  const derjaName = recipe.name_derja?.trim() ?? '';
+  const derjaSubtitle = language !== 'derja' && derjaName !== name ? derjaName : '';
 
   const nameOf = (id: string) => {
     const ing = allIngredients.find((i) => i.id === id);
@@ -47,7 +51,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {/* Fallback shown when the recipe has no photo yet or the photo cannot load */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand/20 via-accent/15 to-highlight/20 flex flex-col items-center justify-center gap-2 p-4 text-center">
           <img src="/mark.png" alt="" width={94} height={40} className="h-10 w-auto opacity-80" />
-          <span className="text-xs font-bold text-ink line-clamp-2">{name}</span>
         </div>
         {recipe.image_url && (
           <img
@@ -95,7 +98,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <AlertCircle className="w-3.5 h-3.5" />
               <span>
                 {missing_ingredients.length} na9es
-                {missing_cost_tnd > 0 && ` · ${t.groceryCost.replace('{n}', missing_cost_tnd.toFixed(1))}`}
+                {missing_cost.max > 0 &&
+                  ` · ${t.groceryCost.replace('{n}', formatPriceRange(missing_cost, t.currency))}`}
               </span>
             </span>
           )}
@@ -131,9 +135,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             </a>
           </h3>
 
-          {/* Derja Subtitle if viewing in French or Arabic */}
-          {recipe.name_derja && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 italic">{recipe.name_derja}</p>
+          {/* Derja subtitle when viewing in French or Arabic */}
+          {derjaSubtitle && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 italic">{derjaSubtitle}</p>
           )}
         </div>
 

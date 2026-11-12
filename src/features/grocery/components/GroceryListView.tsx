@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Check, Plus, Trash2, Share2 } from 'lucide-react';
 import { GroceryItem } from '@/core/grocery';
+import type { Ingredient } from '@/core/catalog';
+import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { useLanguage } from '@/app/providers/LanguageContext';
 
 interface GroceryListViewProps {
   items: GroceryItem[];
+  /** Catalog ingredients, to show the picture of the items that come from a recipe */
+  ingredientsById: ReadonlyMap<string, Ingredient>;
   onToggleItem: (id: string) => void;
   onAddItem: (name: string, quantity?: number, unit?: string) => void;
   onClearChecked: () => void;
 }
 
-export const GroceryListView: React.FC<GroceryListViewProps> = ({ items, onToggleItem, onAddItem, onClearChecked }) => {
+export const GroceryListView: React.FC<GroceryListViewProps> = ({
+  items,
+  ingredientsById,
+  onToggleItem,
+  onAddItem,
+  onClearChecked,
+}) => {
   const { t } = useLanguage();
   const [newItemName, setNewItemName] = useState('');
 
@@ -30,6 +40,16 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({ items, onToggl
     const msg = `🛒 *Liste de Courses Qadhya (Chnowa Ntayeb)* :\n\n${listText}\n\n📱 Envoyé depuis Chnowa Ntayeb (by Chef Souhed) 🇹🇳`;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
+  };
+
+  // Catalog items show the ingredient picture; free items a neutral bag
+  const thumb = (item: GroceryItem) => {
+    const ing = item.ingredient_id ? ingredientsById.get(item.ingredient_id) : undefined;
+    return ing ? (
+      <IngredientThumb ingredient={ing} size="sm" />
+    ) : (
+      <IngredientThumb ingredient={{ category: item.category ?? 'other', icon: '🛍️' }} size="sm" />
+    );
   };
 
   const pendingItems = items.filter((i) => !i.is_checked);
@@ -107,13 +127,14 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({ items, onToggl
                   <div
                     key={item.id}
                     onClick={() => onToggleItem(item.id)}
-                    className="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition select-none"
+                    className="flex items-center justify-between gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition select-none"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className="w-5 h-5 rounded-md border border-slate-300 dark:border-slate-600 flex items-center justify-center shrink-0" />
-                      <span className="text-xs sm:text-sm font-semibold text-ink">{item.name}</span>
+                      {thumb(item)}
+                      <span className="text-xs sm:text-sm font-semibold text-ink truncate">{item.name}</span>
                     </div>
-                    <span className="text-xs text-slate-400 font-medium">
+                    <span className="text-xs text-slate-400 font-medium shrink-0">
                       {item.quantity} {item.unit}
                     </span>
                   </div>
@@ -133,15 +154,18 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({ items, onToggl
                   <div
                     key={item.id}
                     onClick={() => onToggleItem(item.id)}
-                    className="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition select-none"
+                    className="flex items-center justify-between gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition select-none"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className="w-5 h-5 rounded-md bg-brand text-on-brand flex items-center justify-center shrink-0">
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
-                      <span className="text-xs sm:text-sm font-semibold text-slate-400 line-through">{item.name}</span>
+                      <span className="inline-flex shrink-0 grayscale opacity-70">{thumb(item)}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-slate-400 line-through truncate">
+                        {item.name}
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-400 line-through">
+                    <span className="text-xs text-slate-400 line-through shrink-0">
                       {item.quantity} {item.unit}
                     </span>
                   </div>

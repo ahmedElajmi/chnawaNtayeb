@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Sparkles, Trash2, Check, ArrowRight, Package, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { Ingredient, STAPLE_INGREDIENT_IDS } from '@/core/catalog';
+import { Ingredient, STAPLE_INGREDIENT_IDS, ingredientPriceRange } from '@/core/catalog';
+import { IngredientThumb } from '@/shared/ui/IngredientThumb';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { PhotoScannerModal } from '@/features/fridge/components/PhotoScannerModal';
 import confetti from 'canvas-confetti';
 
@@ -118,8 +120,9 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
                     type="button"
                     onClick={() => onToggleIngredient(ing.id)}
                     aria-label={`${t.removeIngredientLabel} ${name}`}
-                    className="max-w-full inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-brand/10 border border-brand-text/40 text-brand-text text-xs font-semibold hover:bg-brand/20 transition"
+                    className="max-w-full inline-flex items-center gap-1.5 ps-1 pe-1.5 py-1 rounded-full bg-brand/10 border border-brand-text/40 text-brand-text text-xs font-semibold hover:bg-brand/20 transition"
                   >
+                    <IngredientThumb ingredient={ing} size="xs" round />
                     <span className="truncate">{name}</span>
                     <X className="w-3 h-3 shrink-0" />
                   </button>
@@ -245,29 +248,38 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
             <button
               key={ing.id}
               onClick={() => onToggleIngredient(ing.id)}
-              className={`group flex items-center justify-between p-3 rounded-xl border text-left transition relative active:scale-97 min-h-[50px] ${
+              aria-pressed={isChosen}
+              className={`group relative flex items-center gap-2.5 p-2 pe-3 rounded-xl border text-start transition active:scale-97 min-h-[60px] min-w-0 ${
                 isChosen
                   ? 'bg-brand/10 border-brand-text text-brand-text shadow-xs'
-                  : 'bg-card border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
+                  : 'bg-card border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xs'
               } ${isUnused && !isChosen ? 'opacity-55' : ''}`}
               title={isUnused ? t.noRecipeYet : undefined}
             >
-              <div className="flex flex-col pr-2 truncate">
+              <span className="relative shrink-0">
+                <IngredientThumb ingredient={ing} size="md" />
+                {/* Check mark pinned on the picture corner */}
+                <span
+                  className={`absolute -top-1 -end-1 w-[18px] h-[18px] rounded-full flex items-center justify-center ring-2 ring-card transition ${
+                    isChosen
+                      ? 'bg-brand text-on-brand scale-100'
+                      : 'bg-card border border-slate-300 dark:border-slate-600 scale-90 group-hover:border-brand'
+                  }`}
+                >
+                  {isChosen && <Check className="w-3 h-3 stroke-[3]" />}
+                </span>
+              </span>
+
+              <span className="flex flex-col min-w-0">
                 <span className="text-xs sm:text-sm font-semibold truncate">{name}</span>
                 <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                  {isUnused ? t.noRecipeYet : inPantry && !isChosen ? t.inPantry : ing.unit_default}
+                  {isUnused
+                    ? t.noRecipeYet
+                    : inPantry && !isChosen
+                      ? t.inPantry
+                      : `${formatPriceRange(ingredientPriceRange(ing), t.currency)} / ${ing.unit_default}`}
                 </span>
-              </div>
-
-              <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  isChosen
-                    ? 'bg-brand text-on-brand'
-                    : 'border border-slate-300 dark:border-slate-600 group-hover:border-brand'
-                }`}
-              >
-                {isChosen && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-              </div>
+              </span>
             </button>
           );
         })}

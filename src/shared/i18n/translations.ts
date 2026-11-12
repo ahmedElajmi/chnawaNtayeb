@@ -136,8 +136,12 @@ export interface TranslationDictionary {
   modeSystem: string;
   settingsLanguage: string;
   settingsClose: string;
+  settingsTabDisplay: string;
+  settingsTabApp: string;
   themeActive: string;
   backAgainToExit: string;
+  scrollToTop: string;
+  currency: string;
   pantryTitle: string;
   pantryDesc: string;
   inPantry: string;
@@ -318,8 +322,12 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'Auto',
     settingsLanguage: 'Lougha',
     settingsClose: 'Sakker',
+    settingsTabDisplay: 'Chakl',
+    settingsTabApp: "L'application",
     themeActive: 'Mékhtar',
     backAgainToExit: 'Enzel marra okhra bech tokhrej',
+    scrollToTop: 'Erja3 lfou9',
+    currency: 'DT',
     pantryTitle: 'Placard mte3ek',
     pantryDesc: 'Elli dima 3andek fel dar (mel7, zit, twabel...). Ma tet7sebch na9sa.',
     inPantry: 'Fel placard',
@@ -328,7 +336,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     missingLabel: 'Na9sek',
     withSubstitute: 'b',
     insteadOf: 'fi blasset',
-    groceryCost: '~{n} DT 9adhya',
+    groceryCost: '≈ {n} 9adhya',
     updateAvailable: 'Version jdida mawjouda',
     updateReload: 'Rechargi',
     courseAll: 'Kol chay',
@@ -499,8 +507,12 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'Auto',
     settingsLanguage: 'Langue',
     settingsClose: 'Fermer',
+    settingsTabDisplay: 'Affichage',
+    settingsTabApp: 'Application',
     themeActive: 'Actif',
     backAgainToExit: 'Appuie encore une fois pour quitter',
+    scrollToTop: 'Revenir en haut',
+    currency: 'DT',
     pantryTitle: 'Mon placard de base',
     pantryDesc: 'Ce que tu as toujours à la maison (sel, huile, épices…). Jamais compté comme manquant.',
     inPantry: 'Au placard',
@@ -509,7 +521,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     missingLabel: 'Il te manque',
     withSubstitute: 'avec',
     insteadOf: 'au lieu de',
-    groceryCost: '~{n} DT de courses',
+    groceryCost: '≈ {n} de courses',
     updateAvailable: 'Nouvelle version disponible',
     updateReload: 'Recharger',
     courseAll: 'Tous',
@@ -678,8 +690,12 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'تلقائي',
     settingsLanguage: 'اللغة',
     settingsClose: 'إغلاق',
+    settingsTabDisplay: 'العرض',
+    settingsTabApp: 'التطبيق',
     themeActive: 'مُفعّل',
     backAgainToExit: 'اضغط مرة أخرى للخروج',
+    scrollToTop: 'العودة إلى الأعلى',
+    currency: 'د.ت',
     pantryTitle: 'مؤونتي الأساسية',
     pantryDesc: 'ما هو متوفر دائماً في البيت (ملح، زيت، توابل...). لا يُحسب ناقصاً أبداً.',
     inPantry: 'في المؤونة',
@@ -688,7 +704,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     missingLabel: 'ينقصك',
     withSubstitute: 'بـ',
     insteadOf: 'بدلاً من',
-    groceryCost: '~{n} د.ت مشتريات',
+    groceryCost: '≈ {n} مشتريات',
     updateAvailable: 'يتوفر إصدار جديد',
     updateReload: 'تحديث',
     courseAll: 'الكل',

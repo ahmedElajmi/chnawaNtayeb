@@ -64,3 +64,39 @@ Prettier : apostrophes simples, lignes de 120 caractères. Ignorés : `dist`, `p
 - Un composant React = un fichier ; un onglet ou un écran = un dossier.
 - Pas de `any` dans le nouveau code ; préférer des types précis et des unions.
 - Accessibilité : boutons d'icône avec `aria-label`, `aria-pressed` sur les filtres, rôles `dialog`, `tab`.
+
+## Branches et versions
+
+| Branche                     | Rôle                                                       | Part de   | Fusionnée dans                |
+| --------------------------- | ---------------------------------------------------------- | --------- | ----------------------------- |
+| `master`                    | Production. Protégée, aucun commit direct.                 | —         | —                             |
+| `develop`                   | Intégration des développements validés. Branche par défaut | `master`  | `master` (release)            |
+| `feature/<nom>`             | Nouvelle fonctionnalité                                    | `develop` | `develop` (PR)                |
+| `fix/<nom>`                 | Correction                                                 | `develop` | `develop` (PR)                |
+| `docs/<nom>`, `chore/<nom>` | Documentation, outillage                                   | `develop` | `develop` (PR)                |
+| `hotfix/<nom>`              | Correction urgente en production                           | `master`  | `master` (PR), puis `develop` |
+
+Nouvelle demande :
+
+```bash
+git checkout develop && git pull
+git checkout -b feature/nom-court
+# ... développement ...
+npm run check
+git push -u origin feature/nom-court
+gh pr create --base develop
+```
+
+La branche est supprimée après la fusion. `master` et `develop` sont protégées sur GitHub : tout passe par une PR.
+
+**Release** : quand une version est validée, PR `develop` → `master`, puis tag annoté sur `master` :
+
+```bash
+git checkout master && git pull
+git tag -a v2.1.0 -m "Release 2.1.0"
+git push origin v2.1.0
+```
+
+Numérotation semver : majeur = changement incompatible, mineur = nouvelles fonctionnalités, patch = corrections.
+Un hotfix produit une version patch et est ensuite reporté dans `develop` (fusion de `master` dans `develop`).
+La branche de production s'appelait `main` jusqu'au 12/11/2026 (renommée `master`).

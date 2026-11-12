@@ -8,7 +8,11 @@ TypeScript pur, sans React ni Firebase ni navigateur. Chaque module expose son A
 
 - `Ingredient` : id (`ing_tomate`), trois noms, catégorie (`vegetables`, `meats`, `fish`,
   `dairy_eggs`, `grains_pasta`, `spices_condiments`, `canned_pantry`, `fruits`, `other`),
-  unité d'achat et prix d'une unité d'achat en DT (`default_price_tnd`).
+  unité d'achat, **fourchette de prix** d'une unité d'achat en DT (`price_min_tnd` ≤ `price_max_tnd` :
+  les prix du marché varient ; même valeur deux fois = prix fixe) et **photo** facultative (`image_url`,
+  lien https).
+- `PriceRange` : `{ min, max }` en DT. Aides (`catalog/pricing.ts`, testé) : `ingredientPriceRange`,
+  `addPriceRanges`, `roundPriceRange` (au dixième), `isFixedPrice`, `ZERO_PRICE`.
 - `Recipe` : id, `slug` (adresse `/recette/<slug>`), trois noms et descriptions, image, temps de
   préparation et cuisson, portions de base, coût estimé, catégorie (`entree`, `plat_principal`,
   `dessert`), type de cuisine, difficulté, ingrédients, étapes, astuce du chef, `is_published`,
@@ -31,6 +35,33 @@ Les substitutions propres à une recette (`RecipeIngredient.substitutes`) passen
 générales. Les règles par défaut sont dans `DEFAULT_SUBSTITUTION_RULES` ; le patron peut les
 modifier (voir [04](04-moteur-matching.md)).
 
+**Validation** (`catalog/validation.ts`, testé) : règles appliquées avant d'enregistrer ce que le
+patron a saisi.
+
+- `validateRecipe` : nom français obligatoire, au moins un ingrédient, au moins une étape écrite en
+  français. Les étapes vides sont retirées, les autres renumérotées de 1 à n (`normalizeSteps`), les
+  textes nettoyés. Derja et arabe peuvent rester vides : l'affichage reprend alors le français.
+- Chaque refus porte le champ concerné (`field` : `name`, `ingredients`, `steps`, `video`, `price`,
+  `unit`, `photo`) : l'éditeur montre l'erreur sur ce champ et défile jusqu'à lui.
+- `parseStoredRecipe` : relit une recette venue de l'extérieur (brouillon gardé sur l'appareil,
+  fichier de sauvegarde) ; `null` si ce n'est pas une recette (textes, nombres, listes d'ingrédients et
+  d'étapes vérifiés).
+- `validateIngredient` : nom français et unité obligatoires, `0 ≤ prix min ≤ prix max`, photo vide
+  (champ retiré) ou lien `https://` complet (`parseImageUrl`) ; un nom derja ou arabe vide prend le
+  nom français.
+
+**Coût suggéré** (`catalog/costEstimate.ts`, testé) : `suggestRecipeCost` additionne, pour chaque
+ingrédient non facultatif, (quantité convertie en unités d'achat) × (fourchette de prix). Les unités
+sont lues par `parseMeasure` : masses (g, kg, « 100 g », « paquet (500g) »), volumes (ml, cl, L,
+« boîte (400 ml) ») et unités comptées (pièce = pièces, botte…) ; une parenthèse sans quantité est un
+commentaire (« pièces (durs) »). Une quantité dans une autre sorte d'unité (cuillères d'un ingrédient
+vendu au kg) n'est pas comptée et listée dans `unpriced` : la suggestion dit combien d'ingrédients
+sont chiffrés.
+
+**Utilisation** (`catalog/usage.ts`, testé) : `countIngredientUsage` (nombre de recettes par
+ingrédient, remplaçants compris) et `findDuplicateIngredient` (même nom français, casse et accents
+ignorés).
+
 **Catégories** (`catalog/course.ts`) : `normalizeCategory` convertit les anciennes valeurs
 (`express`, `kaskrout`, `soupe`) vers les trois catégories ; `isExpress` = 20 minutes ou moins.
 
@@ -41,6 +72,11 @@ modifier (voir [04](04-moteur-matching.md)).
 - `SEED_VERSION` : à augmenter quand le catalogue intégré change. Au prochain lancement, les
   utilisateurs reçoivent les nouvelles recettes et les rôles manquants, sans perdre les
   modifications du patron (`migrateRecipes`, `mergeMissingById`).
+- `migrateIngredient(s)` : tout ingrédient relu (base, copie locale, sauvegarde JSON importée) passe
+  par cette fonction. L'ancien prix unique `default_price_tnd` devient une fourchette min = max (le
+  champ ancien disparaît), une fourchette inversée est remise dans l'ordre, une photo vide est retirée.
+  Rien à faire dans la base : les documents anciens sont convertis à la lecture, puis réécrits au
+  prochain enregistrement par le patron.
 
 ## `matching` : le moteur de suggestions
 
@@ -75,6 +111,14 @@ qui répare les préférences anciennes ou invalides.
 - `validation.ts` : validation stricte (aucune CSS ni URL arbitraire), contraste des couleurs,
   registre des polices, conversion en variables CSS.
 
+## `backup` : fichiers de sauvegarde
+
+`parseBackup` (testé) relit un fichier exporté par le backoffice. Chaque section passe par les règles
+du domaine : recettes (`parseStoredRecipe` puis `migrateRecipes` : rôles, catégories, **les trois
+langues des noms, descriptions, étapes et astuces conservées**), ingrédients (forme vérifiée puis
+`migrateIngredients` : ancien prix unique → fourchette, photo), menu, favoris, liste de courses. Les
+éléments invalides sont ignorés et comptés (`skipped`) ; `null` si le fichier n'est pas une sauvegarde.
+
 ## `shared`
 
 - `text.ts` : `normalizeText` (minuscules, sans accents, singulier : « Œufs » → « oeuf »),
@@ -83,3 +127,7 @@ qui répare les préférences anciennes ou invalides.
 - `collections.ts` : `toggleInList`, `upsertById`.
 - `id.ts` : `createId(prefix)`.
 - `language.ts` : `Language` (`derja`, `fr`, `ar`).
+- `localized.ts` : `LocalizedText` (`{ fr, derja, ar }`) et `pickLocalized(language, text)`, qui
+  rend le texte de la langue choisie, sinon le français, sinon la langue restante. C'est la seule
+  règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
+  descriptions, étapes, astuce du chef).

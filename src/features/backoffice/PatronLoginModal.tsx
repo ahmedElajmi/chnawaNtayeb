@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, User, X, Loader2, AlertCircle } from 'lucide-react';
 import { useContainer } from '@/app/ContainerContext';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 interface PatronLoginModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-fade-in">
+    <ModalShell backdropClassName="bg-black/70">
       <div className="w-full max-w-sm rounded-3xl bg-surface border border-line p-6 shadow-2xl text-ink">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
@@ -104,6 +105,6 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
           </button>
         </form>
       </div>
-    </div>
+    </ModalShell>
   );
 };
