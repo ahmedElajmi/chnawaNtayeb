@@ -18,6 +18,7 @@ comment chaque partie fonctionne, et comment la faire évoluer.
 | 09  | [Qualité et tests](09-qualite-tests.md)             | Scripts, types de tests, lint, formatage, conventions                    |
 | 10  | [Exploitation](10-exploitation.md)                  | Variables d'environnement, lancement, déploiement, Firebase, dépannage   |
 | 11  | [Guides pratiques](11-guides-pratiques.md)          | Recettes pas à pas : ajouter un écran, un plat, un adapter, un scénario… |
+| 13  | [CMS des textes](13-cms-textes.md)                  | Étude : textes de l'interface modifiables par le patron dans `/patron`   |
 
 ## Démarrage rapide
 
