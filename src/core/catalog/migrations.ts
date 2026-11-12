@@ -1,4 +1,4 @@
-import type { Recipe } from './types';
+import type { Ingredient, Recipe } from './types';
 import { normalizeRecipe } from './course';
 import { initialRecipes } from './seed/initialRecipes';
 
@@ -46,6 +46,41 @@ export function migrateRecipes(recipes: Recipe[], seed: Recipe[] = initialRecipe
     }
     return normalized;
   });
+}
+
+/** Shape of an ingredient as it may still be stored: before price ranges it had one fixed price. */
+type StoredIngredient = Omit<Ingredient, 'price_min_tnd' | 'price_max_tnd'> & {
+  price_min_tnd?: number;
+  price_max_tnd?: number;
+  default_price_tnd?: number;
+};
+
+const toPrice = (v: unknown): number | undefined => {
+  const n = typeof v === 'string' ? parseFloat(v) : v;
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 ? n : undefined;
+};
+
+/**
+ * Brings a stored ingredient up to date: the old fixed price (`default_price_tnd`)
+ * becomes a range min = max, an inverted range is put back in order and an empty
+ * photo link is removed. Ingredients already up to date come back unchanged.
+ */
+export function migrateIngredient(stored: StoredIngredient): Ingredient {
+  const { default_price_tnd, price_min_tnd, price_max_tnd, image_url, ...rest } = stored;
+  const legacy = toPrice(default_price_tnd);
+  const min = toPrice(price_min_tnd) ?? toPrice(price_max_tnd) ?? legacy ?? 0;
+  const max = toPrice(price_max_tnd) ?? toPrice(price_min_tnd) ?? legacy ?? 0;
+  const photo = typeof image_url === 'string' ? image_url.trim() : '';
+  return {
+    ...rest,
+    price_min_tnd: Math.min(min, max),
+    price_max_tnd: Math.max(min, max),
+    ...(photo ? { image_url: photo } : {}),
+  };
+}
+
+export function migrateIngredients(list: StoredIngredient[]): Ingredient[] {
+  return list.map(migrateIngredient);
 }
 
 /** Adds the seed items that are not in `list` yet (matched by id), keeping existing ones untouched. */

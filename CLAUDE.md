@@ -48,7 +48,9 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
    un SDK de base, et ne nomme jamais la base dans ses textes ; fenêtres avec `ModalShell` + `useCloseOnBack` ;
    vérifiée à 375 px et 320 px ; textes publics dans les trois langues, backoffice en français.
 6. **JSON** uniquement pour exporter / restaurer, jamais comme source de données de l'application.
-7. **Documentation** `docs/encyclopedie/` mise à jour, puis `npm run check` vert avant le commit.
+7. **Documentation** : après chaque évolution, mettre à jour `docs/encyclopedie/` **et ce `CLAUDE.md`**
+   (conventions, comportements à conserver, commandes) avec ce qui a changé, puis `npm run check` vert
+   avant le commit.
 
 ### Changer de base de données
 
@@ -80,6 +82,25 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`) ; jamais de
   `fixed inset-0` directement dans une page (une page animée ou floutée le capture : fenêtre hors écran, écran
   gris). Une animation ne laisse aucune `transform` une fois finie.
+- **Prix d'ingrédient = fourchette** (`price_min_tnd` ≤ `price_max_tnd`, aides `src/core/catalog/pricing.ts`,
+  coût des courses manquantes = `PriceRange`) ; affichage toujours via `formatPriceRange`
+  (`src/shared/i18n/formatPrice.ts`). Un ancien `default_price_tnd` est converti à la lecture par
+  `migrateIngredients` : ne plus l'utiliser.
+- **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /patron, vérifié par
+  `validateIngredient`) : toujours afficher un ingrédient avec `IngredientThumb` (`src/shared/ui/`), qui gère
+  le cas sans photo (pastille de catégorie) et le lien cassé.
+- Liens d'images et de vidéos saisis dans /patron : toujours avec un **aperçu en direct** de ce que verra
+  le public (`RecipeMediaFields`, aperçu de l'éditeur d'ingrédient).
+- **Formulaires du backoffice** (modèle : éditeur de recette) : choisir un ingrédient avec
+  `IngredientSearch` (jamais une liste déroulante de tout le catalogue) ; nombres avec `NumberField`,
+  unités avec `UnitInput` ; long formulaire = sections avec raccourcis + onglets de langue
+  (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
+  affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
+  `RecipeDraftRepository`) et confirmation avant de les perdre. Libellés du backoffice en français en dur
+  (pas `t.bo…`, qui suit la langue du site).
+- **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
+  relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
+  conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`).
 - Pas de nom affiché deux fois : un sous-titre dans une autre langue n'apparaît que s'il diffère du titre.
 - Installation : toujours via `useInstallApp()` ; bandeau `InstallBanner` sous l'en-tête (dès la première page
   d'une visite, reste jusqu'à fermeture, revient à la visite suivante) + Réglages › Application. Application
@@ -93,7 +114,8 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).
 - Comportements à conserver : filtres de recettes gardés entre les écrans (et entre les deux listes) ;
   récapitulatif des ingrédients choisis en haut du frigo ; « appuyez encore pour quitter » sur
-  l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`).
+  l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`) ; bouton « haut de page »
+  (`ScrollToTopButton`, dans `AppLayout`, au-dessus de la barre collante du frigo).
 - Code et commentaires en anglais ; documentation en français.
 
 ## Git

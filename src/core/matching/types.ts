@@ -1,4 +1,4 @@
-import type { Recipe } from '../catalog/types';
+import type { PriceRange, Recipe } from '../catalog/types';
 
 export type MatchTier = 'ready' | 'almost' | 'ideas';
 
@@ -15,7 +15,7 @@ export interface MatchingResult {
   missing_key: string[]; // subset of missing_ingredients that are key ingredients
   missing_staples: string[]; // staples not in fridge/pantry (informative only)
   substitutions: Substitution[];
-  missing_cost_tnd: number; // rough cost of missing_ingredients
+  missing_cost: PriceRange; // rough cost range of missing_ingredients (DT)
   fridge_used: number; // how many fridge items (not pantry) the recipe uses
   tier: MatchTier;
 }

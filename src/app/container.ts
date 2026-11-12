@@ -1,7 +1,15 @@
-import { CatalogStore, KitchenStore, MatchingScenariosStore, MatchingSettingsStore, PatronStore } from '@/application';
+import {
+  CatalogStore,
+  KitchenStore,
+  MatchingScenariosStore,
+  MatchingSettingsStore,
+  PatronStore,
+  RecipeDrafts,
+} from '@/application';
 import { localCatalogRepository, localKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
+import { localRecipeDrafts } from '@/infrastructure/local/localRecipeDrafts';
 import { firestoreCatalogSource } from '@/infrastructure/firebase/firestoreCatalogSource';
 import { firestoreCatalogAdmin } from '@/infrastructure/firebase/catalogSync';
 import { firestoreMatchingScenarios } from '@/infrastructure/firebase/firestoreMatchingScenarios';
@@ -32,6 +40,7 @@ export function createContainer() {
     userAuth: firebaseUserAuth,
     catalogAdmin: firestoreCatalogAdmin,
     vision: visionHttpGateway,
+    recipeDrafts: new RecipeDrafts(localRecipeDrafts, () => new Date().toISOString()),
   };
 }
 

@@ -18,7 +18,7 @@ import { useCatalog, usePatron } from '@/app/ContainerContext';
 import { DashboardTab } from './dashboard/DashboardTab';
 import { RecipesTab } from './recipes/RecipesTab';
 import { RecipeEditorModal } from './recipes/RecipeEditorModal';
-import { newRecipeDraft } from './recipes/recipeDraft';
+import { duplicateRecipeDraft, newRecipeDraft } from './recipes/recipeDraft';
 import { IngredientsTab } from './ingredients/IngredientsTab';
 import { DataTab } from './data/DataTab';
 import { ThemeEditor } from './themes/ThemeEditor';
@@ -33,7 +33,7 @@ export function BackofficeView({ onLogout }: { onLogout: () => void }) {
   const { recipes, ingredients } = useCatalog();
   const { cloudStatus } = usePatron();
   const [tab, setTab] = useState<Tab>('dashboard');
-  const [editing, setEditing] = useState<Recipe | null>(null);
+  const [editing, setEditing] = useState<{ recipe: Recipe; isNew: boolean } | null>(null);
   const [toast, setToast] = useState<{ message: string; isError: boolean } | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -43,7 +43,7 @@ export function BackofficeView({ onLogout }: { onLogout: () => void }) {
     toastTimer.current = window.setTimeout(() => setToast(null), isError ? 6000 : 3500);
   };
   const admin = useCatalogAdmin(notify);
-  const addRecipe = () => setEditing(newRecipeDraft());
+  const addRecipe = () => setEditing({ recipe: newRecipeDraft(), isNew: true });
 
   const tabs: { id: Tab; label: string; icon: ComponentType<{ className?: string }> }[] = [
     { id: 'dashboard', label: t.boTabDashboard, icon: LayoutDashboard },
@@ -140,16 +140,23 @@ export function BackofficeView({ onLogout }: { onLogout: () => void }) {
         />
       )}
       {tab === 'recipes' && (
-        <RecipesTab recipes={recipes} admin={admin} onAddRecipe={addRecipe} onEditRecipe={setEditing} />
+        <RecipesTab
+          recipes={recipes}
+          admin={admin}
+          onAddRecipe={addRecipe}
+          onEditRecipe={(recipe) => setEditing({ recipe, isNew: false })}
+          onDuplicateRecipe={(recipe) => setEditing({ recipe: duplicateRecipeDraft(recipe), isNew: true })}
+        />
       )}
-      {tab === 'ingredients' && <IngredientsTab ingredients={ingredients} admin={admin} />}
+      {tab === 'ingredients' && <IngredientsTab ingredients={ingredients} recipes={recipes} admin={admin} />}
       {tab === 'engine' && <MatchingSettingsPanel onNotify={notify} />}
       {tab === 'themes' && <ThemeEditor onNotify={notify} />}
       {tab === 'data' && <DataTab admin={admin} cloudStatus={cloudStatus} />}
 
       {editing && (
         <RecipeEditorModal
-          recipe={editing}
+          recipe={editing.recipe}
+          isNew={editing.isNew}
           recipes={recipes}
           ingredients={ingredients}
           onClose={() => setEditing(null)}

@@ -89,7 +89,7 @@ function analyzeAll(
       missing_key: facts.missingKey,
       missing_staples: facts.missingStaples,
       substitutions: facts.substitutions,
-      missing_cost_tnd: facts.missingCost,
+      missing_cost: facts.missingCost,
       fridge_used: facts.fridgeUsed,
       tier: tier ?? 'ideas',
     });

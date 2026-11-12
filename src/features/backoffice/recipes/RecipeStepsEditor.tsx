@@ -5,6 +5,8 @@ import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
 interface RecipeStepsEditorProps {
   steps: RecipeStep[];
   onChange: (steps: RecipeStep[]) => void;
+  /** After a failed save: steps without French text are highlighted */
+  invalid?: boolean;
 }
 
 const emptyStep = (n: number): RecipeStep => ({
@@ -15,7 +17,7 @@ const emptyStep = (n: number): RecipeStep => ({
 });
 
 /** Preparation steps of a recipe, in the three languages (numbering is redone on save). */
-export function RecipeStepsEditor({ steps, onChange }: RecipeStepsEditorProps) {
+export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeStepsEditorProps) {
   const renumber = (list: RecipeStep[]) => list.map((s, i) => ({ ...s, step_number: i + 1 }));
   const move = (index: number, delta: number) => {
     const target = index + delta;
@@ -27,19 +29,6 @@ export function RecipeStepsEditor({ steps, onChange }: RecipeStepsEditorProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-          Étapes de préparation ({steps.length})
-        </span>
-        <button
-          type="button"
-          onClick={() => onChange([...steps, emptyStep(steps.length + 1)])}
-          className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-text hover:underline"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Ajouter une étape
-        </button>
-      </div>
       {steps.length === 0 && (
         <p className="text-[11px] text-amber-700 dark:text-amber-300">Ajoutez au moins une étape en français.</p>
       )}
@@ -85,6 +74,8 @@ export function RecipeStepsEditor({ steps, onChange }: RecipeStepsEditorProps) {
             <LocalizedField
               label="Texte de l'étape"
               multiline
+              rows={3}
+              invalid={invalid && !step.instruction_fr.trim()}
               value={{ fr: step.instruction_fr, derja: step.instruction_derja, ar: step.instruction_ar }}
               onChange={(v) =>
                 onChange(
@@ -97,6 +88,14 @@ export function RecipeStepsEditor({ steps, onChange }: RecipeStepsEditorProps) {
           </li>
         ))}
       </ol>
+      <button
+        type="button"
+        onClick={() => onChange([...steps, emptyStep(steps.length + 1)])}
+        className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-dashed border-line text-xs font-bold text-brand-text hover:bg-brand/5"
+      >
+        <Plus className="w-4 h-4" />
+        Ajouter une étape
+      </button>
     </div>
   );
 }

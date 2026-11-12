@@ -17,7 +17,17 @@ export interface Ingredient {
   category: IngredientCategory;
   icon?: string;
   unit_default: string;
-  default_price_tnd: number; // Price per standard unit in DT
+  /** Market prices vary: lowest and highest price of one purchase unit, in DT (min <= max) */
+  price_min_tnd: number;
+  price_max_tnd: number;
+  /** Optional photo (https link set by the chef); a category visual is shown when absent */
+  image_url?: string;
+}
+
+/** Lowest and highest amount in DT */
+export interface PriceRange {
+  min: number;
+  max: number;
 }
 
 /**

@@ -18,6 +18,8 @@ import { scaleIngredients, analyzeRecipe, type MatchingConfig } from '@/core/mat
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
 import { ModalShell } from '@/shared/ui/ModalShell';
+import { IngredientThumb } from '@/shared/ui/IngredientThumb';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -264,17 +266,20 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   {availableItems.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 rounded-xl bg-brand/10 border border-brand/20 text-xs"
+                      className="flex items-center justify-between gap-2 p-1.5 pe-2.5 rounded-xl bg-brand/10 border border-brand/20 text-xs"
                     >
-                      <span className="font-medium text-slate-800 dark:text-slate-200">
-                        {item.ing ? getIngredientName(item.ing) : ''}
-                        {item.substitute && (
-                          <span className="block text-[10px] font-normal text-ink-muted">
-                            → avec {getIngredientName(item.substitute)} à la place
-                          </span>
-                        )}
+                      <span className="flex items-center gap-2 min-w-0">
+                        {item.ing && <IngredientThumb ingredient={item.substitute ?? item.ing} size="sm" />}
+                        <span className="font-medium text-slate-800 dark:text-slate-200 min-w-0">
+                          {item.ing ? getIngredientName(item.ing) : ''}
+                          {item.substitute && (
+                            <span className="block text-[10px] font-normal text-ink-muted">
+                              → avec {getIngredientName(item.substitute)} à la place
+                            </span>
+                          )}
+                        </span>
                       </span>
-                      <span className="font-bold text-brand-text">
+                      <span className="font-bold text-brand-text shrink-0">
                         {item.quantity} {item.unit}
                       </span>
                     </div>
@@ -296,24 +301,29 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   {missingItems.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 rounded-xl bg-accent/10 border border-accent/20 text-xs"
+                      className="flex items-center justify-between gap-2 p-1.5 pe-2.5 rounded-xl bg-accent/10 border border-accent/20 text-xs"
                     >
-                      <span className="font-medium text-slate-800 dark:text-slate-200">
-                        {item.ing ? getIngredientName(item.ing) : ''}
-                        {item.isKey && (
-                          <span className="ml-1.5 px-1.5 py-0.5 rounded bg-accent text-on-accent text-[9px] font-bold uppercase">
-                            clé
-                          </span>
-                        )}
+                      <span className="flex items-center gap-2 min-w-0">
+                        {item.ing && <IngredientThumb ingredient={item.ing} size="sm" />}
+                        <span className="font-medium text-slate-800 dark:text-slate-200 min-w-0">
+                          {item.ing ? getIngredientName(item.ing) : ''}
+                          {item.isKey && (
+                            <span className="ms-1.5 px-1.5 py-0.5 rounded bg-accent text-on-accent text-[9px] font-bold uppercase">
+                              clé
+                            </span>
+                          )}
+                        </span>
                       </span>
-                      <span className="font-bold text-accent-text">
+                      <span className="font-bold text-accent-text shrink-0">
                         {item.quantity} {item.unit}
                       </span>
                     </div>
                   ))}
                 </div>
-                {analysis.missingCost > 0 && (
-                  <p className="text-[11px] text-ink-muted">≈ {analysis.missingCost.toFixed(1)} DT de courses</p>
+                {analysis.missingCost.max > 0 && (
+                  <p className="text-[11px] text-ink-muted">
+                    {t.groceryCost.replace('{n}', formatPriceRange(analysis.missingCost, t.currency))}
+                  </p>
                 )}
               </div>
             )}

@@ -7,6 +7,7 @@ import { UserAccountModal } from '@/features/account/UserAccountModal';
 import { UpdatePrompt } from '@/shared/ui/UpdatePrompt';
 import { InstallBanner } from '@/shared/ui/InstallBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
+import { ScrollToTopButton } from '@/shared/ui/ScrollToTopButton';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
@@ -111,6 +112,8 @@ export function AppLayout() {
           {t.backAgainToExit}
         </div>
       )}
+      {/* The fridge shows a sticky "see recipes" bar at the bottom once something is chosen */}
+      <ScrollToTopButton label={t.scrollToTop} raised={pathname === PATHS.fridge && fridge.length > 0} />
       <UpdatePrompt />
       <OfflineIndicator />
       <BottomNav fridgeCount={fridge.length} />

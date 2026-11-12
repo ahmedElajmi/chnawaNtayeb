@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Copy, Eye, EyeOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import type { Recipe } from '@/core/catalog';
 import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
@@ -11,9 +11,11 @@ interface RecipesTabProps {
   admin: CatalogAdminActions;
   onAddRecipe: () => void;
   onEditRecipe: (recipe: Recipe) => void;
+  /** Opens the editor on a copy of the recipe (new, unpublished) */
+  onDuplicateRecipe: (recipe: Recipe) => void;
 }
 
-export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe }: RecipesTabProps) {
+export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplicateRecipe }: RecipesTabProps) {
   const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const q = normalizeText(search.trim());
@@ -115,6 +117,14 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe }: Recipe
                 aria-label={t.boEditRecipe}
               >
                 <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDuplicateRecipe(r)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                title="Dupliquer : nouvelle recette à partir de celle-ci"
+                aria-label={`Dupliquer ${r.name_fr}`}
+              >
+                <Copy className="w-4 h-4" />
               </button>
               <button
                 onClick={() => admin.deleteRecipe(r)}
