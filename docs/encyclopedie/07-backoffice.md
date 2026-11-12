@@ -23,9 +23,16 @@
 | Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
 | Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
 
-Les actions sur le catalogue passent par `useCatalogAdmin` (port `CatalogAdminGateway`) : chaque
-action enregistre localement, publie dans la base, rafraîchit les écrans et affiche le résultat
-(succès ou erreur lisible).
+Les actions sur le catalogue passent par `useCatalogAdmin` (service `CatalogAdmin`, `src/application`) :
+chaque action s'affiche tout de suite sur cet appareil, est écrite dans la base (document complet,
+versionné), puis arrive **en direct** sur tous les autres appareils ouverts. Le résultat (succès ou
+erreur lisible) est affiché. Une suppression publie une marque de suppression. « Récupérer depuis le
+cloud » relit tout le catalogue. À la première connexion du patron, une base vide reçoit le catalogue
+intégré (`seedIfEmpty`, une seule lecture).
+
+**Langue** : les noms (recettes, ingrédients, thèmes, catégories) suivent la langue du site, et
+l'éditeur de recette s'ouvre sur l'onglet de cette langue (il revient au français si un champ
+obligatoire en français manque). Les libellés du backoffice restent en français.
 
 **Champs en trois langues** : tout texte affiché au public se saisit en français, derja (lettres
 latines, 3 / 7 / 9) et arabe, avec le composant `ui/LocalizedField.tsx` (arabe de droite à gauche).

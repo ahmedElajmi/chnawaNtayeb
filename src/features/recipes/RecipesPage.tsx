@@ -35,7 +35,7 @@ export function RecipesPage() {
           </button>
         </div>
       ) : (
-        <RecipeGrid results={catalog} />
+        <RecipeGrid results={catalog} resetKey={JSON.stringify(filters)} />
       )}
     </div>
   );

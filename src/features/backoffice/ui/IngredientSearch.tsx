@@ -3,7 +3,8 @@ import { Search } from 'lucide-react';
 import type { Ingredient } from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
-import { useIngredientCategories } from '@/features/backoffice/ingredients/categories';
+import { useLanguage } from '@/app/providers/LanguageContext';
+import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
 
 const MAX_RESULTS = 30;
 
@@ -37,6 +38,7 @@ export function IngredientSearch({
   const [open, setOpen] = useState(autoFocus);
   const [active, setActive] = useState(0);
   const categoryLabel = new Map(useIngredientCategories());
+  const { getIngredientName, getSecondaryName, compareNames } = useLanguage();
 
   const results = useMemo(() => {
     const excluded = new Set(exclude);
@@ -45,10 +47,10 @@ export function IngredientSearch({
     return ingredients
       .filter((i) => !excluded.has(i.id) && (!q || names(i).some((n) => n.includes(q))))
       .map((i) => ({ i, starts: q && names(i).some((n) => n.startsWith(q)) ? 0 : 1 }))
-      .sort((a, b) => a.starts - b.starts || a.i.name_fr.localeCompare(b.i.name_fr, 'fr'))
+      .sort((a, b) => a.starts - b.starts || compareNames(a.i, b.i))
       .slice(0, MAX_RESULTS)
       .map((r) => r.i);
-  }, [ingredients, exclude, query]);
+  }, [ingredients, exclude, query, compareNames]);
 
   const choose = (ingredient: Ingredient) => {
     onSelect(ingredient);
@@ -126,14 +128,9 @@ export function IngredientSearch({
             >
               <IngredientThumb ingredient={ingredient} size="sm" />
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold text-ink truncate">{ingredient.name_fr}</span>
+                <span className="block text-xs font-semibold text-ink truncate">{getIngredientName(ingredient)}</span>
                 <span className="block text-[10px] text-ink-muted truncate">
-                  {[
-                    ingredient.name_derja !== ingredient.name_fr && ingredient.name_derja,
-                    categoryLabel.get(ingredient.category),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
+                  {[getSecondaryName(ingredient), categoryLabel.get(ingredient.category)].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="text-[10px] text-ink-muted shrink-0">{ingredient.unit_default}</span>

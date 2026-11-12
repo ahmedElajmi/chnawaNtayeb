@@ -50,7 +50,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
   availableIngredients,
   onAddIngredients,
 }) => {
-  const { t } = useLanguage();
+  const { t, getIngredientName, compareNames } = useLanguage();
   const { vision } = useContainer();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -62,6 +62,10 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useCloseOnBack(isOpen, onClose);
+  const nameOf = (id: string) => {
+    const found = availableIngredients.find((a) => a.id === id);
+    return found ? getIngredientName(found) : '';
+  };
 
   if (!isOpen) return null;
 
@@ -100,20 +104,18 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
         const key = found ? found.id : `?${det.name_fr.toLowerCase()}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        matched.push({ id: found?.id, name: found ? found.name_fr : det.name_fr, checked: !!found });
+        matched.push({ id: found?.id, name: found ? getIngredientName(found) : det.name_fr, checked: !!found });
       }
       setSuggestions(data.suggestions);
 
       if (matched.length === 0) {
-        setErrorMsg(
-          'Aucun ingrédient spécifique n a été détecté sur cette photo. Essayez de photographier vos ingrédients de plus près.'
-        );
+        setErrorMsg(t.scannerNothingFound);
       } else {
         setDetectedItems(matched);
       }
     } catch (err: any) {
       console.warn('Scan fridge error:', err);
-      setErrorMsg(err.message || "Impossible d'analyser l'image pour le moment.");
+      setErrorMsg(err.message || t.scannerFailed);
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +135,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
   };
 
   return (
-    <ModalShell>
+    <ModalShell onDismiss={isLoading ? null : onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-surface border border-line p-5 sm:p-6 shadow-2xl max-h-[90vh] flex flex-col text-ink">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -159,12 +161,8 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
           {!imagePreview ? (
             <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-brand/30 rounded-2xl bg-white/50 dark:bg-slate-800/50 text-center">
               <Camera className="w-12 h-12 text-brand-text mb-3 stroke-[1.5px]" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                Photographiez votre frigo ou votre plan de travail
-              </p>
-              <p className="text-xs text-slate-500 max-w-xs mb-5">
-                L'IA analysera les légumes, viandes, œufs, conserves et condiments visibles.
-              </p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{t.scannerIntroTitle}</p>
+              <p className="text-xs text-slate-500 max-w-xs mb-5">{t.scannerIntroText}</p>
 
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {/* Take Photo button for mobile */}
@@ -206,7 +204,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
               <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-56 bg-black flex items-center justify-center">
                 <img
                   src={imagePreview}
-                  alt="Frigo scanné"
+                  alt={t.scannerImageAlt}
                   referrerPolicy="no-referrer"
                   className="max-h-56 w-full object-contain"
                 />
@@ -228,7 +226,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
                   className="w-full py-3 rounded-xl bg-accent text-on-accent font-bold text-sm hover:bg-accent-strong transition flex items-center justify-center gap-2 shadow-md active:scale-98"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Lancer l'analyse par IA</span>
+                  <span>{t.scannerAnalyzeBtn}</span>
                 </button>
               )}
             </div>
@@ -284,7 +282,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
                       className="col-span-2 flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-dashed border-line text-xs"
                     >
                       <span className="font-medium text-ink">« {item.name} »</span>
-                      <span className="text-ink-muted">non reconnu, associer à :</span>
+                      <span className="text-ink-muted">{t.scannerUnknownMapTo}</span>
                       <select
                         defaultValue=""
                         onChange={(e) =>
@@ -293,7 +291,7 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
                               i === idx && e.target.value
                                 ? {
                                     id: e.target.value,
-                                    name: availableIngredients.find((a) => a.id === e.target.value)?.name_fr || it.name,
+                                    name: nameOf(e.target.value) || it.name,
                                     checked: true,
                                   }
                                 : it
@@ -302,21 +300,21 @@ export const PhotoScannerModal: React.FC<PhotoScannerModalProps> = ({
                         }
                         className="flex-1 min-w-[140px] px-2 py-1 rounded-md bg-surface border border-line text-ink"
                       >
-                        <option value="">Ignorer</option>
-                        {[...availableIngredients]
-                          .sort((a, b) => a.name_fr.localeCompare(b.name_fr, 'fr'))
-                          .map((ing) => (
-                            <option key={ing.id} value={ing.id}>
-                              {ing.name_fr}
-                            </option>
-                          ))}
+                        <option value="">{t.scannerIgnore}</option>
+                        {[...availableIngredients].sort(compareNames).map((ing) => (
+                          <option key={ing.id} value={ing.id}>
+                            {getIngredientName(ing)}
+                          </option>
+                        ))}
                       </select>
                     </label>
                   )
                 )}
               </div>
               {suggestions.length > 0 && (
-                <p className="text-[11px] text-ink-muted pt-1">Idées de plats : {suggestions.join(' · ')}</p>
+                <p className="text-[11px] text-ink-muted pt-1">
+                  {t.scannerDishIdeas} {suggestions.join(' · ')}
+                </p>
               )}
             </div>
           )}

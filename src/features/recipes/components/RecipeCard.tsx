@@ -3,6 +3,7 @@ import { Clock, Heart, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { MatchingResult } from '@/core/matching';
 import { Ingredient } from '@/core/catalog';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { getRecipeCost } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { parseYouTubeId } from '@/core/shared';
@@ -24,6 +25,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   allIngredients,
 }) => {
   const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost } = result;
+  const cost = getRecipeCost(recipe, allIngredients);
   const { t, language, getRecipeName, getIngredientName } = useLanguage();
 
   const totalTime = recipe.prep_time_minutes + recipe.cook_time_minutes;
@@ -122,7 +124,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <span>{totalTime} min</span>
             </span>
             <span aria-hidden="true">·</span>
-            <span className="font-bold text-accent-text">{recipe.estimated_cost_tnd.toFixed(1)} DT</span>
+            <span className="font-bold text-accent-text">{formatPriceRange(cost, t.currency)}</span>
             <span aria-hidden="true">·</span>
             <span>{recipe.base_servings} pers</span>
           </div>

@@ -13,6 +13,9 @@ import {
 } from '@/core/planning';
 import { Recipe, Ingredient, MealCategory, normalizeCategory } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { pickLocalized } from '@/core/shared';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { getRecipeCost } from '@/app/ContainerContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
@@ -30,6 +33,7 @@ type EditingSlot = { dayIndex: number; mealType: MealType; course: MealCategory 
 export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
   plan,
   recipes,
+  allIngredients,
   onUpdatePlan,
   onGenerateGroceryList,
   onSelectRecipeDetail,
@@ -85,11 +89,8 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
     updateSlot(dayIndex, mealType, removeFromSlot(slot, course));
   };
 
-  const getDayName = (day: DayPlan) => {
-    if (language === 'ar') return day.day_name_ar;
-    if (language === 'derja') return day.day_name_derja;
-    return day.day_name_fr;
-  };
+  const getDayName = (day: DayPlan) =>
+    pickLocalized(language, { fr: day.day_name_fr, derja: day.day_name_derja, ar: day.day_name_ar });
 
   const pickerRecipes = useMemo(() => {
     if (!editingSlot) return [];
@@ -320,7 +321,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
 
       {/* Choose Recipe Modal (only recipes of the slot's course) */}
       {editingSlot && (
-        <ModalShell>
+        <ModalShell onDismiss={() => setEditingSlot(null)}>
           <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-5 shadow-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
@@ -365,7 +366,8 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
                     <p className="text-xs sm:text-sm font-bold text-ink truncate">{getRecipeName(r)}</p>
                     <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
                       <span>
-                        {r.prep_time_minutes + r.cook_time_minutes} min · ~{r.estimated_cost_tnd} DT
+                        {r.prep_time_minutes + r.cook_time_minutes} min ·{' '}
+                        {formatPriceRange(getRecipeCost(r, allIngredients), t.currency)}
                       </span>
                       {r.is_healthy && (
                         <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">

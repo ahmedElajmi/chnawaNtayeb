@@ -1,5 +1,13 @@
 import type { Recipe, Ingredient } from '../src/core/catalog';
-import { initialRecipes, initialIngredients, normalizeCategory } from '../src/core/catalog';
+import {
+  initialRecipes,
+  initialIngredients,
+  normalizeCategory,
+  parseStoredIngredients,
+  parseStoredRecipes,
+} from '../src/core/catalog';
+import { isDeletionMarker, latestRevision } from '../src/core/sync';
+import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { slugify } from '../src/core/shared';
 import { recipePath as recipeAddress } from '../src/shared/paths';
 import { getAdminFirestore } from './firebaseAdmin';
@@ -13,22 +21,59 @@ import { getAdminFirestore } from './firebaseAdmin';
  * - sitemap.xml lists every published recipe
  */
 
-const CACHE_MS = 10 * 60 * 1000;
+/** How often the server asks the database for changes (only what changed is read). */
+const REFRESH_MS = 60 * 1000;
+
+/** One collection kept in memory, updated incrementally like the devices (see src/core/sync). */
+interface SyncedCollection<T> {
+  items: Map<string, T>;
+  revision: number | null;
+}
+
+let recipesCopy: SyncedCollection<Recipe> = { items: new Map(), revision: null };
+let ingredientsCopy: SyncedCollection<Ingredient> = { items: new Map(), revision: null };
 let cache: { at: number; recipes: Recipe[]; ingredients: Ingredient[] } | null = null;
+
+async function refresh<T extends { id: string; revision?: number }>(
+  db: Firestore,
+  name: string,
+  copy: SyncedCollection<T>,
+  read: (raw: unknown[]) => T[]
+): Promise<SyncedCollection<T>> {
+  const col = db.collection(name);
+  const snap = await (copy.revision === null
+    ? col.get()
+    : col.where('revision', '>=', Timestamp.fromMillis(copy.revision)).get());
+  const raw = snap.docs.map((d) => {
+    const data = d.data();
+    const revision = data.revision instanceof Timestamp ? data.revision.toMillis() : undefined;
+    return { ...data, id: d.id, revision };
+  });
+  const items = copy.revision === null ? new Map<string, T>() : new Map(copy.items);
+  const markers = raw.filter(isDeletionMarker);
+  markers.forEach((m) => items.delete(m.id));
+  const parsed = read(raw.filter((x) => !isDeletionMarker(x)));
+  parsed.forEach((item) => items.set(item.id, item));
+  return { items, revision: latestRevision([...parsed, ...markers], copy.revision ?? 0) };
+}
 
 /** Published catalog: Firestore when the server has admin access (admin edits included), built-in catalog otherwise. */
 export async function getCatalog(): Promise<{ recipes: Recipe[]; ingredients: Ingredient[] }> {
-  if (cache && Date.now() - cache.at < CACHE_MS) return cache;
+  if (cache && Date.now() - cache.at < REFRESH_MS) return cache;
   let recipes: Recipe[] = initialRecipes;
   let ingredients: Ingredient[] = initialIngredients;
   const db = getAdminFirestore();
   if (db) {
     try {
-      const [rs, is] = await Promise.all([db.collection('recipes').get(), db.collection('ingredients').get()]);
-      if (!rs.empty) recipes = rs.docs.map((d) => ({ ...(d.data() as Recipe), id: d.id }));
-      if (!is.empty) ingredients = is.docs.map((d) => ({ ...(d.data() as Ingredient), id: d.id }));
+      [recipesCopy, ingredientsCopy] = await Promise.all([
+        refresh(db, 'recipes', recipesCopy, parseStoredRecipes),
+        refresh(db, 'ingredients', ingredientsCopy, parseStoredIngredients),
+      ]);
+      if (recipesCopy.items.size) recipes = [...recipesCopy.items.values()];
+      if (ingredientsCopy.items.size) ingredients = [...ingredientsCopy.items.values()];
     } catch (e) {
       console.warn('[seo] Firestore indisponible, catalogue intégré utilisé :', (e as Error).message);
+      if (cache) return cache;
     }
   }
   recipes = recipes

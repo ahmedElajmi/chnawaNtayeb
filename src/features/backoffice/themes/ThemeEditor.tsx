@@ -158,7 +158,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
   };
 
   const handleDelete = async (theme: AppTheme) => {
-    if (!window.confirm(`Supprimer définitivement le thème "${theme.name_fr}" ?`)) return;
+    if (!window.confirm(`Supprimer définitivement le thème "${getThemeName(theme)}" ?`)) return;
     const result = await themeRepository.remove(theme.id);
     if (!result.ok) return onNotify(result.error, true);
     onNotify('Thème supprimé');
@@ -175,7 +175,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
       <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-lg font-extrabold text-ink">
-            {remoteThemes.some((t) => t.id === draft.id) ? `Modifier : ${draft.name_fr}` : 'Nouveau thème'}
+            {remoteThemes.some((t) => t.id === draft.id) ? `Modifier : ${getThemeName(draft)}` : 'Nouveau thème'}
           </h3>
           <div className="flex flex-wrap gap-2">
             <button
@@ -438,7 +438,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                   <button
                     onClick={() => startDuplicate(theme)}
                     title="Dupliquer"
-                    aria-label={`Dupliquer ${theme.name_fr}`}
+                    aria-label={`Dupliquer ${getThemeName(theme)}`}
                     className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                   >
                     <Copy className="w-4 h-4" />
@@ -448,7 +448,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                       <button
                         onClick={() => startEdit(theme)}
                         title="Modifier"
-                        aria-label={`Modifier ${theme.name_fr}`}
+                        aria-label={`Modifier ${getThemeName(theme)}`}
                         className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                       >
                         <Pencil className="w-4 h-4" />
@@ -456,7 +456,9 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                       <button
                         onClick={() => togglePublish(theme)}
                         title={theme.is_published ? 'Dépublier' : 'Publier'}
-                        aria-label={theme.is_published ? `Dépublier ${theme.name_fr}` : `Publier ${theme.name_fr}`}
+                        aria-label={
+                          theme.is_published ? `Dépublier ${getThemeName(theme)}` : `Publier ${getThemeName(theme)}`
+                        }
                         className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                       >
                         {theme.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -464,7 +466,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                       <button
                         onClick={() => handleDelete(theme)}
                         title="Supprimer"
-                        aria-label={`Supprimer ${theme.name_fr}`}
+                        aria-label={`Supprimer ${getThemeName(theme)}`}
                         className="p-2 rounded-lg text-ink-muted hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
                       >
                         <Trash2 className="w-4 h-4" />

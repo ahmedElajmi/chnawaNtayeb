@@ -10,9 +10,14 @@ export default function App() {
   const [container] = useState(createContainer);
 
   useEffect(() => {
-    container.catalog.syncFromRemote();
+    // Shared data follows the database live: a change made on another device shows at once
+    const stopCatalog = container.catalog.start();
+    const stopSettings = container.matchingSettings.start();
     container.patron.restoreSession();
-    container.matchingSettings.load();
+    return () => {
+      stopCatalog();
+      stopSettings();
+    };
   }, [container]);
 
   return (

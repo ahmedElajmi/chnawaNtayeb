@@ -9,6 +9,18 @@ export type IngredientCategory =
   | 'canned_pantry'
   | 'other';
 
+export const INGREDIENT_CATEGORIES: IngredientCategory[] = [
+  'vegetables',
+  'fruits',
+  'meats',
+  'fish',
+  'dairy_eggs',
+  'grains_pasta',
+  'spices_condiments',
+  'canned_pantry',
+  'other',
+];
+
 export interface Ingredient {
   id: string;
   name_fr: string;
@@ -22,6 +34,8 @@ export interface Ingredient {
   price_max_tnd: number;
   /** Optional photo (https link set by the chef); a category visual is shown when absent */
   image_url?: string;
+  /** Version set by the database on every write (incremental sync, see @/core/sync) */
+  revision?: number;
 }
 
 /** Lowest and highest amount in DT */
@@ -91,4 +105,6 @@ export interface Recipe {
   is_healthy?: boolean;
   /** Optional YouTube link showing how to cook the dish (nothing is displayed when absent or invalid) */
   video_url?: string;
+  /** Version set by the database on every write (incremental sync, see @/core/sync) */
+  revision?: number;
 }
