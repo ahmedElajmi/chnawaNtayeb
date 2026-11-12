@@ -135,3 +135,15 @@ describe('parseStoredIngredient', () => {
     expect(parseStoredIngredient({ id: 'x', deleted: true })).toBeNull();
   });
 });
+
+describe('validateIngredient: unit and price must fit', () => {
+  it('refuses a pack price for a single gram', () => {
+    const checked = validateIngredient({
+      ...initialIngredients[0],
+      unit_default: 'g',
+      price_min_tnd: 2,
+      price_max_tnd: 3,
+    });
+    expect(checked).toMatchObject({ ok: false, field: 'unit' });
+  });
+});

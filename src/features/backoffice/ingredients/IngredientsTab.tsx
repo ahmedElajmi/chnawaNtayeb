@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pencil, Plus, Search } from 'lucide-react';
 import {
   countIngredientUsage,
+  hasImplausibleUnitPrice,
   type Ingredient,
   type IngredientCategory,
   type PriceRange,
@@ -19,13 +20,14 @@ import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
 const PRICE_INPUT =
   'w-16 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700';
 
-type QuickFilter = 'all' | 'no-photo' | 'fixed-price' | 'unused';
+type QuickFilter = 'all' | 'no-photo' | 'fixed-price' | 'unused' | 'unit-check';
 
 const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
   { id: 'all', label: 'Tous' },
   { id: 'no-photo', label: 'Sans photo' },
   { id: 'fixed-price', label: 'Prix fixe (min = max)' },
   { id: 'unused', label: 'Dans aucune recette' },
+  { id: 'unit-check', label: 'Unité à vérifier' },
 ];
 
 const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
@@ -52,6 +54,8 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
     'no-photo': (i) => !i.image_url,
     'fixed-price': (i) => i.price_min_tnd === i.price_max_tnd,
     unused: (i) => !usage.get(i.id),
+    // Price that cannot be for one such unit (e.g. "g" with a pack price): costs ignore it until fixed
+    'unit-check': (i) => hasImplausibleUnitPrice(i),
   };
   const filtered = ingredients
     .filter((i) => category === 'all' || i.category === category)

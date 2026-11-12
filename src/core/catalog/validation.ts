@@ -2,6 +2,7 @@ import { INGREDIENT_CATEGORIES, type Ingredient, type IngredientCategory, type R
 import { migrateIngredient, migrateRecipes } from './migrations';
 import { normalizeRecipe } from './course';
 import { withoutUndefined } from '../shared';
+import { hasImplausibleUnitPrice } from './costEstimate';
 
 /** Part of the edited object an error is about, so a form can show it next to the right field. */
 export type CheckedField = 'name' | 'ingredients' | 'steps' | 'video' | 'price' | 'unit' | 'photo';
@@ -89,6 +90,12 @@ export function validateIngredient(ingredient: Ingredient): Checked<Ingredient> 
   const max = Number(ingredient.price_max_tnd);
   if (!Number.isFinite(max) || max < min)
     return { ok: false, field: 'price', error: 'Le prix maximum doit être supérieur ou égal au prix minimum.' };
+  if (hasImplausibleUnitPrice({ unit_default, price_max_tnd: max }))
+    return {
+      ok: false,
+      field: 'unit',
+      error: `Ce prix ne peut pas être celui d'un seul « ${unit_default} » : indiquez l'unité d'achat réelle (ex. 100 g, 250 g, kg, paquet (500 g)).`,
+    };
   const image_url = parseImageUrl(ingredient.image_url);
   if (image_url === null)
     return {

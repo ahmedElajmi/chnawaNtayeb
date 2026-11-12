@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { parseMeasure, purchaseUnits, recipeCostRange, suggestRecipeCost } from './costEstimate';
+import {
+  hasImplausibleUnitPrice,
+  parseMeasure,
+  purchaseUnits,
+  recipeCostRange,
+  suggestRecipeCost,
+} from './costEstimate';
 import { initialIngredients } from './seed/initialIngredients';
 import type { Ingredient } from './types';
 
@@ -56,7 +62,12 @@ describe('suggestRecipeCost', () => {
       },
       byId
     );
-    expect(suggestion).toEqual({ range: { min: 2.6, max: 3.1 }, priced: 2, unpriced: ['huile', 'inconnu'] });
+    expect(suggestion).toEqual({
+      range: { min: 2.6, max: 3.1 },
+      priced: 2,
+      unpriced: ['huile', 'inconnu'],
+      suspicious: [],
+    });
   });
 });
 
@@ -77,5 +88,58 @@ describe('recipeCostRange', () => {
   it("falls back to the chef's estimate when nothing can be priced", () => {
     const recipe = { estimated_cost_tnd: 7, ingredients: [{ ingredient_id: 'unknown', quantity_base: 1, unit: 'kg' }] };
     expect(recipeCostRange(recipe, new Map())).toEqual({ min: 7, max: 7 });
+  });
+});
+
+describe('recipeCostRange: inconsistent data never gives an absurd cost', () => {
+  const shrimp = { ...initialIngredients.find((i) => i.id === 'ing_crevettes')!, unit_default: 'g' };
+  const lemon = initialIngredients.find((i) => i.id === 'ing_citron')!;
+  const byId = new Map([
+    [shrimp.id, shrimp],
+    [lemon.id, lemon],
+  ]);
+
+  it('leaves out an ingredient needing hundreds of purchase units (price given for the wrong unit)', () => {
+    const recipe = {
+      estimated_cost_tnd: 22,
+      ingredients: [
+        { ingredient_id: shrimp.id, quantity_base: 600, unit: 'g' },
+        { ingredient_id: lemon.id, quantity_base: 1, unit: 'pièce' },
+      ],
+    };
+    expect(suggestRecipeCost(recipe, byId)).toMatchObject({ unpriced: [shrimp.id], suspicious: [shrimp.id] });
+    // The main ingredient is missing from the computation: the chef's estimate is shown instead
+    expect(recipeCostRange(recipe, byId)).toEqual({ min: 22, max: 22 });
+  });
+
+  it("falls back to the chef's estimate when the computed cost is far above it", () => {
+    const pricey = { ...lemon, price_min_tnd: 500, price_max_tnd: 600 };
+    const recipe = {
+      estimated_cost_tnd: 10,
+      ingredients: [{ ingredient_id: lemon.id, quantity_base: 1, unit: 'pièce' }],
+    };
+    expect(recipeCostRange(recipe, new Map([[lemon.id, pricey]]))).toEqual({ min: 10, max: 10 });
+  });
+});
+
+describe('hasImplausibleUnitPrice', () => {
+  it('flags a pack price given for a single gram, not real purchase units', () => {
+    expect(hasImplausibleUnitPrice({ unit_default: 'g', price_max_tnd: 3.6 })).toBe(true);
+    expect(hasImplausibleUnitPrice({ unit_default: '100 g', price_max_tnd: 3.6 })).toBe(false);
+    expect(hasImplausibleUnitPrice({ unit_default: 'kg', price_max_tnd: 66 })).toBe(false);
+    expect(hasImplausibleUnitPrice({ unit_default: 'pièce', price_max_tnd: 40 })).toBe(false);
+  });
+
+  it('every built-in ingredient has a plausible unit price', () => {
+    expect(initialIngredients.filter(hasImplausibleUnitPrice).map((i) => i.id)).toEqual([]);
+  });
+
+  it('an ingredient priced for the wrong unit is left out of the cost', () => {
+    const butter = { ...initialIngredients.find((i) => i.id === 'ing_beurre')!, unit_default: 'g' };
+    const recipe = {
+      estimated_cost_tnd: 12,
+      ingredients: [{ ingredient_id: butter.id, quantity_base: 30, unit: 'g' }],
+    };
+    expect(recipeCostRange(recipe, new Map([[butter.id, butter]]))).toEqual({ min: 12, max: 12 });
   });
 });

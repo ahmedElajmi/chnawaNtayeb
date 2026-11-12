@@ -85,7 +85,7 @@ export function RecipeEditorModal({
   onClose,
 }: RecipeEditorModalProps) {
   const [draft, setDraft] = useState<Recipe>(recipe);
-  const { language, getRecipeName } = useLanguage();
+  const { language, getRecipeName, getIngredientName } = useLanguage();
   // The fields open in the language of the site (French stays required, see submit)
   const [lang, setLang] = useState<EditorLanguage>(language);
   const [error, setError] = useState<{ message: string; field?: CheckedField } | null>(null);
@@ -269,6 +269,19 @@ export function RecipeEditorModal({
                         <span className="text-ink-muted">Estimation partielle : à titre indicatif.</span>
                       )}
                     </div>
+                  )}
+                  {cost.suspicious.length > 0 && (
+                    <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                      Unité à vérifier (prix donné pour une autre unité, ex. « g » au lieu de « 100 g ») :{' '}
+                      {cost.suspicious
+                        .map((id) => {
+                          const found = byId.get(id);
+                          return found ? getIngredientName(found) : id;
+                        })
+                        .join(', ')}
+                      . Le public voit l'estimation saisie tant que ce n'est pas corrigé (Ingrédients › Unité à
+                      vérifier).
+                    </p>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Catégorie">
