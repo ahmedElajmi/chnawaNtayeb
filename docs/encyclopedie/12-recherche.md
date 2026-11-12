@@ -287,45 +287,75 @@ couvre déjà l'essentiel :
 
 ### Ce qui coûte encore
 
-| Cas                                                                           | Lectures                                                      |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises     |
-| Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)    |
-| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                |
-| Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer) |
-| Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes      |
+| Cas                                                                           | Lectures                                                           |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises          |
+| Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)         |
+| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                     |
+| Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer)      |
+| Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes           |
+| Réveil du serveur Render (SEO)                                                | **toute** la collection, à chaque réveil (plusieurs fois par jour) |
 
 Le quota gratuit de Firestore est de **50 000 lectures par jour**. Exemple : 2 000 recettes + 500
-ingrédients, 300 visites par jour dont 30 nouveaux appareils, 20 éléments modifiés par jour.
+ingrédients, 300 visites par jour dont 30 nouveaux appareils, 20 éléments modifiés par jour, 10 réveils
+du serveur.
 
-| Situation                                       | Lectures par jour (exemple) |
-| ----------------------------------------------- | --------------------------: |
-| Avant la synchronisation incrémentale           |                   ≈ 750 000 |
-| `develop` aujourd'hui                           |                    ≈ 81 000 |
-| `develop` + copie compacte (étape 1 ci-dessous) |                     ≈ 7 500 |
+| Situation                                             | Lectures par jour (exemple) |
+| ----------------------------------------------------- | --------------------------: |
+| Avant la synchronisation incrémentale                 |                   ≈ 750 000 |
+| `develop` aujourd'hui                                 |                   ≈ 106 000 |
+| `develop` + fichier de démarrage (étape 1 ci-dessous) |                     ≈ 9 000 |
 
-Le poste restant, ce sont les **nouveaux appareils** : 30 × 2 500 = 75 000 lectures. Il ne compte pas
-tant que le catalogue reste petit, mais il dépasse le quota dès quelques milliers d'éléments.
+Les postes restants sont les **premières lectures complètes** : nouveaux appareils (30 × 2 500) et
+réveils du serveur (10 × 2 500). Ils comptent peu tant que le catalogue est petit, mais dépassent le
+quota dès quelques milliers d'éléments.
 
-### Étape 1 : copie compacte pour les premières visites
+### Étape 1 : fichier de démarrage du catalogue
 
-- Sur demande du patron (« Publier une copie compacte » dans `/patron`), ou automatiquement quand
-  beaucoup d'éléments ont changé depuis la dernière, la collection est compressée et écrite **dans la
-  base** en quelques morceaux (documents de moins de 1 Mo), avec la révision la plus récente qu'elle
-  contient. Le patron a déjà la collection à jour sur son appareil : aucune lecture, quelques écritures.
-- Une première visite lit 2 ou 3 morceaux, puis suit les changements `revision >=` celle de la copie
-  compacte : **une dizaine de lectures au lieu de 2 500**. Rien n'est perdu même si la copie compacte
-  a du retard : les changements ultérieurs arrivent par le suivi habituel.
-- Tout se passe **dans l'adapter** : `follow(null)` lit la copie compacte puis s'abonne. Le port
-  `SharedCollectionSource` et son test de contrat ne changent pas ; le domaine relit toujours les
-  données par `parseStoredRecipes` / `parseStoredIngredients`.
-- La base reste la source de vérité : la copie compacte est **dérivée**, reconstruite à partir des
-  éléments, jamais modifiée à la main (ce n'est pas un fichier JSON source de données). Morceau manquant,
-  illisible ou incohérent → lecture complète, comme aujourd'hui.
-- Au passage : purger les marques de suppression plus anciennes que la copie compacte et que la limite de
-  30 jours (aucun appareil ne peut plus en avoir besoin).
-- Écarté : servir le catalogue depuis le serveur Render (il relirait tout à chaque réveil) et les
-  « bundles » Firestore (il faut un stockage permanent pour le fichier, absent de l'offre gratuite).
+Idée : une première visite (et un réveil du serveur) ne lit plus la base élément par élément ; elle
+télécharge **un seul fichier** qui contient le catalogue publié, puis ne demande à la base que ce qui a
+changé depuis ce fichier.
+
+Trois façons de faire, comparées :
+
+| Option                                                    | Lectures d'une première visite        | Point de départ à jour…                 | Remarques                                                                                     |
+| --------------------------------------------------------- | ------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| A. Lecture complète (aujourd'hui)                         | 2 500 (une par élément)               | toujours                                | simple, mais coûte cher en lectures                                                           |
+| B. Copie compacte **dans la base** (2 ou 3 documents)     | 2 à 3 + changements depuis la copie   | à la dernière publication du patron     | 100 % Firestore ; documents limités à 1 Mo chacun                                             |
+| **C. Fichier JSON de démarrage servi avec l'application** | **0** + changements depuis le fichier | au dernier déploiement (ou publication) | une requête HTTP, compressé, mis en cache par le navigateur ; sert aussi au serveur au réveil |
+
+**Recommandée : C**, avec A comme repli.
+
+- **Fabrication** : au build (`npm run build`), un script lit le catalogue avec le compte de service
+  (une seule lecture complète par déploiement) et écrit `dist/catalog/start.<empreinte>.json` :
+  recettes, ingrédients (et plus tard étiquettes) et la **révision la plus récente** qu'il contient. Le
+  bouton « Publier » de `/patron` peut relancer un déploiement Render (« deploy hook », à vérifier) pour
+  le rafraîchir ; sinon il se met à jour au déploiement suivant.
+- **Première visite** (ou copie de plus de 30 jours, ou navigateur sans IndexedDB) : l'application
+  télécharge le fichier, le **relit par le domaine** (`parseStoredRecipes` / `parseStoredIngredients`,
+  éléments invalides ignorés), le range dans IndexedDB avec sa révision, puis suit `revision >=` celle du
+  fichier : seulement les changements faits depuis le déploiement.
+- **Serveur** : au réveil, `server/seo.ts` part du même fichier (déjà sur son disque, puisqu'il est dans
+  `dist/`) au lieu de tout relire : un réveil ne coûte plus que les changements.
+- **Taille** (mesurée sur le catalogue intégré : ≈ 4,3 ko par recette, ≈ 0,2 ko par ingrédient ;
+  compression gzip ÷ 4, brotli ÷ 5) : 2 000 recettes + 500 ingrédients ≈ 8,7 Mo bruts, **≈ 2 Mo
+  compressés**, une fois par appareil. Compression à activer côté serveur (fichier pré-compressé `.br` /
+  `.gz`, ou middleware). Au-delà de ~10 000 recettes : découper par langue, ou « liste légère + détail à
+  la demande ».
+- **Place dans l'architecture** : nouveau port `CatalogStartSource` (« point de départ du catalogue »,
+  mots du domaine) avec un adapter HTTP dans `src/infrastructure/http/`, branché dans `container.ts` ;
+  le `SyncedCollectionStore` l'utilise quand il n'a pas de copie, puis suit les changements comme
+  aujourd'hui. Le port `SharedCollectionSource` et son test de contrat ne changent pas.
+- **Règle JSON de `CLAUDE.md`** : aujourd'hui « JSON seulement pour exporter / restaurer ». Ce fichier
+  respecte l'esprit de la règle (la base reste la source de vérité ; le fichier est **dérivé**,
+  régénéré, jamais modifié à la main, toujours relu par le domaine et toujours complété par la base),
+  mais la règle devra le mentionner explicitement lors de l'implémentation.
+- **Repli** : fichier absent (build sans compte de service), illisible ou incohérent → lecture complète
+  d'aujourd'hui (option A).
+- Au passage : purger les marques de suppression plus anciennes que le dernier fichier et que la limite de
+  30 jours (plus aucun appareil ne peut en avoir besoin).
+- Écarté : les « bundles » Firestore (même idée, mais format propre à Firestore et fichier à héberger
+  quand même) et un catalogue servi par l'API du serveur depuis sa mémoire (perdue à chaque veille).
 
 ### Étape 2 : catégories en filtres, gérées par le patron
 
@@ -344,20 +374,38 @@ tant que le catalogue reste petit, mais il dépasse le quota dès quelques milli
   groupe, les choix s'additionnent (OU) ; entre groupes, ils se combinent (ET). Un filtre = une ligne de
   plus dans `createRecipeFilter`, qui reste la seule règle.
 
+### Navigateur d'ordinateur (pas seulement le téléphone)
+
+Tout ce qui est proposé fonctionne à l'identique dans un navigateur d'ordinateur (Chrome, Edge, Firefox,
+Safari) :
+
+- **IndexedDB, Web Worker, abonnement en direct, MiniSearch** : disponibles dans tous les navigateurs
+  récents, ordinateur compris ; l'espace accordé à IndexedDB y est en général plus grand que sur
+  téléphone. Les mesures de l'étude ont été faites sur un PC : c'est le cas le plus rapide.
+- **Navigation privée ou stockage bloqué** : si IndexedDB est indisponible, l'application garde le
+  catalogue en mémoire pour la visite. Grâce au fichier de démarrage, ce cas ne coûte qu'un
+  téléchargement, pas 2 500 lectures.
+- **Installation** : la PWA s'installe aussi sur ordinateur (Chrome, Edge) ; sinon elle s'utilise comme
+  un site normal, avec la même copie hors ligne.
+- **Interface** : recherche et filtres par étiquettes pensés aussi pour grand écran (filtres en colonne
+  latérale ou en barre au-dessus de la grille, raccourci clavier pour la recherche). À vérifier à
+  1280 px en plus de 375 px et 320 px.
+
 ### Sans régression
 
 - **Rien n'est retiré** : les filtres actuels (plat / entrée / dessert, utilisés aussi par le moteur
   « Warini » et le menu ; type de cuisine ; sain ; budget ; temps) restent tels quels. Les étiquettes
   s'ajoutent à côté. Faire de `cuisine_type` une étiquette serait une décision séparée, avec
   conversion à la lecture par `migrateRecipes`.
-- **Le pire cas = le comportement actuel** : sans copie compacte, ou en cas d'erreur, la lecture complète
-  d'aujourd'hui. Une base vide ne remplace toujours pas le catalogue intégré.
+- **Le pire cas = le comportement actuel** : sans fichier de démarrage, ou en cas d'erreur, la lecture
+  complète d'aujourd'hui. Une base vide ne remplace toujours pas le catalogue intégré.
 - **Contrats** : `sharedCollection.contract.ts` et `localCollectionCache.contract.ts` doivent passer sans
-  modification ; la copie compacte a ses propres tests dans l'adapter (morceaux, révision, repli).
+  modification ; le nouveau port `CatalogStartSource` a son test de contrat et une implémentation en
+  mémoire ; le store est testé avec et sans fichier, fichier périmé ou invalide.
 - **Tests du core** : `countFacets`, filtres par étiquette, validation des étiquettes ; tests de
   caractérisation des filtres actuels avant tout changement.
-- **Ordre des PR** : 1) étiquettes (utile tout de suite, indépendante) ; 2) copie compacte quand le
-  catalogue dépasse ~1 000 éléments ; 3) thèmes et scénarios sur le mécanisme générique. Chacune mesure
+- **Ordre des PR** : 1) étiquettes (utile tout de suite, indépendante) ; 2) fichier de démarrage (client et
+  serveur) ; 3) thèmes et scénarios sur le mécanisme générique. Chacune mesure
   le nombre de lectures avant / après (console Firebase, onglet Utilisation).
 
 ## Sources
