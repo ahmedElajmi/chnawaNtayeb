@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { finalizeRecipeDraft, newRecipeDraft, uniqueSlug } from './recipeDraft';
+import { initialIngredients, initialRecipes } from '@/core/catalog';
+import {
+  duplicateRecipeDraft,
+  finalizeRecipeDraft,
+  isDraftChanged,
+  missingTranslations,
+  newRecipeDraft,
+  recipeSectionStatus,
+  uniqueSlug,
+} from './recipeDraft';
 
 /** A new recipe with the minimum the chef must write: a French name and one French step. */
 const filled = (name_fr: string) => ({
@@ -21,6 +30,7 @@ describe('recipe editor rules', () => {
   it('requires a French name', () => {
     expect(finalizeRecipeDraft(newRecipeDraft(1), [])).toEqual({
       ok: false,
+      field: 'name',
       error: expect.stringContaining('obligatoire'),
     });
   });
@@ -55,5 +65,50 @@ describe('recipe editor rules', () => {
       [1, 'Tremper'],
       [2, 'Cuire'],
     ]);
+  });
+});
+
+describe('editor helpers', () => {
+  const recipe = initialRecipes[0];
+
+  it('detects changes', () => {
+    expect(isDraftChanged(recipe, { ...recipe })).toBe(false);
+    expect(isDraftChanged(recipe, { ...recipe, prep_time_minutes: recipe.prep_time_minutes + 1 })).toBe(true);
+  });
+
+  it('duplicates a recipe as a new unpublished one', () => {
+    const copy = duplicateRecipeDraft(recipe, 42);
+    expect(copy).toMatchObject({ id: 'custom_rec_42', slug: '', is_published: false });
+    expect(copy.name_fr).toBe(`${recipe.name_fr} (copie)`);
+    expect(copy.ingredients).toEqual(recipe.ingredients);
+    expect(copy.ingredients).not.toBe(recipe.ingredients);
+  });
+
+  it('counts the French texts left to translate', () => {
+    const draft = {
+      ...filled('Ojja'),
+      name_derja: 'Ojja',
+      steps: [
+        { step_number: 1, instruction_fr: 'Cuire.', instruction_derja: 'Tayyeb.', instruction_ar: '' },
+        { step_number: 2, instruction_fr: 'Servir.', instruction_derja: '', instruction_ar: '' },
+      ],
+    };
+    expect(missingTranslations(draft)).toEqual({ derja: 1, ar: 3 });
+  });
+
+  it('tells which sections are complete', () => {
+    const draft = newRecipeDraft(1);
+    expect(recipeSectionStatus(draft, initialIngredients)).toEqual({
+      infos: 'todo',
+      media: 'done',
+      ingredients: 'done',
+      steps: 'todo',
+      tip: 'optional',
+    });
+    const noKey = {
+      ...filled('X'),
+      ingredients: [{ ingredient_id: 'ing_sel_poivre', quantity_base: 1, unit: 'pincée' }],
+    };
+    expect(recipeSectionStatus(noKey, initialIngredients)).toMatchObject({ infos: 'done', ingredients: 'warn' });
   });
 });

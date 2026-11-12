@@ -154,8 +154,8 @@ export interface CatalogAdminGateway {
   pullFromCloud(): Promise<void>;
   /** Full backup as JSON text (dump) */
   exportBackup(): string;
-  /** Restores a JSON backup; false when the file is not a backup */
-  importBackup(json: string): boolean;
+  /** Restores a JSON backup on this device (read through `parseBackup`) */
+  importBackup(json: string): BackupImportResult;
   /** Built-in catalog and default menu on this device */
   resetLocalToDefaults(): void;
 }
@@ -174,6 +174,9 @@ export interface VisionGateway {
   ): Promise<FridgeScanResult>;
 }
 
+/** ok: what was restored (invalid entries skipped); not ok: the file is not a backup. */
+export type BackupImportResult = { ok: true; recipes: number; ingredients: number; skipped: number } | { ok: false };
+
 /** Whether admin edits reach the shared cloud catalog or stay on this device. */
 export type CloudStatus = 'connected' | 'local-only';
 
@@ -188,4 +191,18 @@ export interface PatronGateway {
   logout(): Promise<void>;
   /** Called once the admin is connected to the cloud (e.g. seeds an empty cloud catalog). */
   onCloudConnected(): Promise<void>;
+}
+
+/** Unsaved recipe edits, kept on this device so that closing the editor by mistake loses nothing. */
+export interface StoredRecipeDraft {
+  /** Raw recipe as stored: always read through `parseStoredRecipe` */
+  recipe: unknown;
+  savedAt: string;
+}
+
+export interface RecipeDraftRepository {
+  /** Draft kept for this key (a recipe id, or "new" for a recipe being created); null when none. */
+  load(key: string): StoredRecipeDraft | null;
+  save(key: string, draft: StoredRecipeDraft): void;
+  discard(key: string): void;
 }

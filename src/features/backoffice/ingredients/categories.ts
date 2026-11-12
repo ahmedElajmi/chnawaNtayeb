@@ -1,18 +1,18 @@
 import type { IngredientCategory } from '@/core/catalog';
-import { useLanguage } from '@/app/providers/LanguageContext';
 
-/** Ingredient categories with their label, for the backoffice selects. */
+/** Ingredient categories with their French label (the backoffice is written in French). */
+const CATEGORIES: [IngredientCategory, string][] = [
+  ['vegetables', 'Légumes'],
+  ['fruits', 'Fruits'],
+  ['meats', 'Viandes'],
+  ['fish', 'Poissons'],
+  ['dairy_eggs', 'Laitiers & œufs'],
+  ['grains_pasta', 'Féculents & pâtes'],
+  ['spices_condiments', 'Épices & condiments'],
+  ['canned_pantry', 'Conserves & épicerie'],
+  ['other', 'Autres'],
+];
+
 export function useIngredientCategories(): [IngredientCategory, string][] {
-  const { t } = useLanguage();
-  return [
-    ['vegetables', t.catVegetables],
-    ['fruits', t.catFruits],
-    ['meats', t.catMeats],
-    ['fish', t.catFish],
-    ['dairy_eggs', t.catDairyEggs],
-    ['grains_pasta', t.catGrainsPasta],
-    ['spices_condiments', t.catSpicesCondiments],
-    ['canned_pantry', t.catCannedPantry],
-    ['other', t.catOther],
-  ];
+  return CATEGORIES;
 }

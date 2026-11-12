@@ -75,6 +75,6 @@ const sample = [...r0.almost, ...r0.ideas]
   .slice(0, 3)
   .map(
     (r) =>
-      `${r.recipe.name_fr}: manque ${r.missing_ingredients.length} ingr. -> ${r.missing_cost_tnd} DT (recette entière ${r.recipe.estimated_cost_tnd} DT)`
+      `${r.recipe.name_fr}: manque ${r.missing_ingredients.length} ingr. -> ${r.missing_cost.min}-${r.missing_cost.max} DT (recette entière ${r.recipe.estimated_cost_tnd} DT)`
   );
 console.log('\ncost samples', sample);

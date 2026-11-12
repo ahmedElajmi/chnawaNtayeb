@@ -14,14 +14,14 @@
 
 ## Onglets (`src/features/backoffice/`)
 
-| Onglet          | Fichier                                           | Fonctions                                                        |
-| --------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
-| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                   |
-| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer  |
-| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, prix), prix du marché |
-| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                             |
-| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
-| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base       |
+| Onglet          | Fichier                                           | Fonctions                                                       |
+| --------------- | ------------------------------------------------- | --------------------------------------------------------------- |
+| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
+| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
+| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, photo), prix min–max |
+| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                            |
+| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
+| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
 
 Les actions sur le catalogue passent par `useCatalogAdmin` (port `CatalogAdminGateway`) : chaque
 action enregistre localement, publie dans la base, rafraîchit les écrans et affiche le résultat
@@ -31,18 +31,69 @@ action enregistre localement, publie dans la base, rafraîchit les écrans et af
 latines, 3 / 7 / 9) et arabe, avec le composant `ui/LocalizedField.tsx` (arabe de droite à gauche).
 Le français est la langue de référence : derja ou arabe vide → le français est affiché.
 
-**Éditeur de recette** : nom, description, **étapes de préparation** et astuce du chef dans les trois
-langues ; temps, prix, portions, image, vidéo YouTube (vérifiée), catégorie, type de cuisine,
-healthy, ingrédients avec leur **rôle** et leurs substitutions. Les étapes (`RecipeStepsEditor.tsx`)
-s'ajoutent, se suppriment et se déplacent (monter / descendre) ; elles sont renumérotées à
-l'enregistrement. Avant d'enregistrer, `validateRecipe` (domaine) vérifie le nom français, au
-moins un ingrédient et au moins une étape en français. Une nouvelle recette commence avec une
-étape vide. L'adresse de la recette est générée à partir du nom et rendue unique (`recipeDraft.ts`,
-testé). Retirer la vidéo la supprime aussi de la base (document remplacé en entier, voir
-[05](05-application-donnees.md)).
+**Éditeur de recette** (`recipes/RecipeEditorModal.tsx`, plein écran sur téléphone) : nom, description,
+**étapes de préparation** et astuce du chef dans les trois langues ; temps, coût, portions, image,
+vidéo YouTube (vérifiée), catégorie, type de cuisine, healthy, ingrédients avec leur **rôle** et leurs
+remplaçants propres à la recette.
 
-**Éditeur d'ingrédient** (`ingredients/IngredientEditorModal.tsx`, bouton crayon de la liste) :
-noms dans les trois langues, catégorie, unité, prix ; vérifié par `validateIngredient`.
+- **Sections** (Infos · Photo & vidéo · Ingrédients · Étapes · Astuce) avec des raccourcis en haut et
+  leur état : complet, à compléter, à vérifier (aucun ingrédient clé, étape sans français), facultatif
+  (`recipeSectionStatus`, `RecipeEditorChrome.tsx`).
+- **Une langue à la fois** : onglets FR / Derja / عربي (`ui/editorLanguage.tsx`) ; chaque champ
+  `LocalizedField` n'affiche que la langue choisie, avec le texte français en rappel pendant la
+  traduction. Un compteur sur chaque onglet indique les textes encore à traduire (`missingTranslations`).
+  Hors de l'éditeur de recette (éditeur d'ingrédient), les trois langues restent côte à côte.
+- **Barre d'enregistrement toujours visible** en bas. Une erreur s'affiche au-dessus, ramène à la
+  section concernée (onglet FR pour un texte obligatoire) et entoure le champ en rouge.
+- **Rien ne se perd** : le contenu est gardé en brouillon sur l'appareil pendant la saisie
+  (`useRecipeDraftAutosave`, port `RecipeDraftRepository`) et à la fermeture, quelle qu'elle soit
+  (bouton retour compris). « Annuler » ou ✕ avec des modifications demande : continuer, fermer en
+  gardant le brouillon, ou abandonner. À la réouverture de la même recette (ou d'une nouvelle
+  recette), « Reprendre / Ignorer ». Quitter la page avec des modifications demande confirmation.
+- **Ingrédients** (`RecipeIngredientsEditor.tsx`) : on ajoute en tapant quelques lettres dans
+  n'importe quelle langue (`ui/IngredientSearch.tsx` : vignette, catégorie, flèches + Entrée) ;
+  toucher le nom permet de le remplacer, l'unité suit alors l'ingrédient (sauf unité saisie à la main).
+  Quantité et unité (`ui/NumberField.tsx` : champ vidable, virgule acceptée ; `ui/UnitInput.tsx` :
+  unités proposées), « Facultatif », rôle en trois boutons de couleur (Clé / Secondaire / Placard,
+  avec leur explication) et **remplaçants pour cette recette**.
+- **Coût suggéré** d'après les fourchettes de prix des ingrédients (`suggestRecipeCost`), avec le nombre
+  d'ingrédients chiffrés ; « Utiliser » (milieu de la fourchette, au demi-dinar) n'est proposé que si
+  au moins la moitié des ingrédients sont chiffrés.
+- **Aperçu** : la fiche recette publique (`RecipeDetailModal`) avec le contenu en cours ; retour la ferme.
+- **Dupliquer** (liste des recettes) : ouvre l'éditeur sur une copie non publiée, « (copie) » dans le nom.
+- Boutons et textes de l'éditeur en français, quelle que soit la langue du site. Les étapes (`RecipeStepsEditor.tsx`)
+  s'ajoutent, se suppriment et se déplacent (monter / descendre) ; elles sont renumérotées à
+  l'enregistrement. Avant d'enregistrer, `validateRecipe` (domaine) vérifie le nom français, au
+  moins un ingrédient et au moins une étape en français. Une nouvelle recette commence avec une
+  étape vide. L'adresse de la recette est générée à partir du nom et rendue unique (`recipeDraft.ts`,
+  testé). Retirer la vidéo la supprime aussi de la base (document remplacé en entier, voir
+  [05](05-application-donnees.md)).
+
+**Aperçus en direct de la photo et de la vidéo** (`recipes/RecipeMediaFields.tsx`) : la photo s'affiche
+dans le même cadre que la carte de recette (ratio 4/3, nom en bas, logo de secours), avec son état
+(chargement, image introuvable → le logo sera montré au public) et « Retirer la photo ». La vidéo
+YouTube reconnue s'affiche avec le lecteur même de la fiche recette (`RecipeVideo`, lecture possible),
+avec « Retirer la vidéo ».
+
+**Éditeur d'ingrédient** (`ingredients/IngredientEditorModal.tsx`) : création (bouton « Ajouter un
+ingrédient ») et modification (bouton crayon). Noms dans les trois langues, catégorie, unité d'achat,
+**prix minimum et maximum**, **lien de la photo** avec aperçu en direct de la vignette publique
+(`IngredientThumb`, taille `lg`) : photo, ou pastille de la catégorie si vide / lien cassé ; « Retirer
+la photo ». Vérifié par `validateIngredient` avant l'enregistrement.
+
+Un nom français déjà utilisé par un autre ingrédient (casse et accents ignorés) est signalé pendant la
+saisie et refusé à l'enregistrement (`findDuplicateIngredient`).
+
+**Liste des ingrédients** : triée par nom ; vignette, nom, catégorie (libellés français,
+`ingredients/categories.ts`), unité, **nombre de recettes qui l'utilisent**, « sans photo » le cas
+échéant, et deux champs min / max modifiables directement ; « Enregistrer les prix » valide chaque
+fourchette (min ≤ max) avant d'écrire quoi que ce soit. **Filtres** : ce qu'il reste à compléter
+(Sans photo, Prix fixe min = max, Dans aucune recette, avec leur nombre) et catégories ; le nombre
+d'ingrédients affichés est indiqué.
+
+**Restauration d'une sauvegarde** (onglet Données) : relue par `parseBackup` ; le message indique le
+nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
+d'« Envoyer vers le cloud » pour publier.
 
 ## Onglet Moteur
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Heart, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { MatchingResult } from '@/core/matching';
 import { Ingredient } from '@/core/catalog';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { parseYouTubeId } from '@/core/shared';
@@ -22,7 +23,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onSelectRecipe,
   allIngredients,
 }) => {
-  const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost_tnd } = result;
+  const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost } = result;
   const { t, language, getRecipeName, getIngredientName } = useLanguage();
 
   const totalTime = recipe.prep_time_minutes + recipe.cook_time_minutes;
@@ -97,7 +98,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <AlertCircle className="w-3.5 h-3.5" />
               <span>
                 {missing_ingredients.length} na9es
-                {missing_cost_tnd > 0 && ` · ${t.groceryCost.replace('{n}', missing_cost_tnd.toFixed(1))}`}
+                {missing_cost.max > 0 &&
+                  ` · ${t.groceryCost.replace('{n}', formatPriceRange(missing_cost, t.currency))}`}
               </span>
             </span>
           )}

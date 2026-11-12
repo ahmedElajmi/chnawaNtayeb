@@ -4,6 +4,7 @@ import {
   initialIngredients,
   initialRecipes,
   mergeMissingById,
+  migrateIngredients,
   migrateRecipes,
   SEED_VERSION,
 } from '@/core/catalog';
@@ -12,6 +13,8 @@ import type { GroceryItem } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
 import { type AppTheme, isValidTheme } from '@/core/theme';
 import { createId, upsertById } from '@/core/shared';
+import { parseBackup } from '@/core/backup';
+import type { BackupImportResult } from '@/application';
 
 const KEYS = {
   RECIPES: 'chnowa_recipes_v1',
@@ -81,7 +84,8 @@ class StorageService {
     try {
       const data = localStorage.getItem(KEYS.INGREDIENTS);
       if (data) {
-        const list: Ingredient[] = JSON.parse(data);
+        // Stored copies may predate price ranges / photos: always read through the core migration
+        const list = migrateIngredients(JSON.parse(data));
         if (this.getSeedVersion() < SEED_VERSION) {
           // Add built-in ingredients that appeared since the last visit
           const merged = mergeMissingById(list, initialIngredients);
@@ -242,24 +246,29 @@ class StorageService {
     return JSON.stringify(backup, null, 2);
   }
 
-  importFullBackup(jsonString: string): boolean {
+  /** Restores a backup: every section is read through the domain rules (parseBackup). */
+  importFullBackup(jsonString: string): BackupImportResult {
+    let backup;
     try {
-      const parsed = JSON.parse(jsonString);
-      if (Array.isArray(parsed.recipes)) {
-        this.saveRecipes(parsed.recipes);
-      }
-      if (Array.isArray(parsed.ingredients)) {
-        this.saveIngredients(parsed.ingredients);
-      }
-      if (Array.isArray(parsed.weekly_plan)) {
-        const recipes = this.getRecipes();
-        this.saveWeeklyPlan(parsed.weekly_plan.map((day: DayPlan) => migrateDayPlan(day, recipes)));
-      }
-      return true;
-    } catch (e) {
-      console.error('Failed to import backup:', e);
-      return false;
+      backup = parseBackup(JSON.parse(jsonString));
+    } catch {
+      return { ok: false };
     }
+    if (!backup) return { ok: false };
+    if (backup.recipes) this.saveRecipes(backup.recipes);
+    if (backup.ingredients) this.saveIngredients(backup.ingredients);
+    if (backup.weeklyPlan) {
+      const recipes = this.getRecipes();
+      this.saveWeeklyPlan(backup.weeklyPlan.map((day) => migrateDayPlan(day as DayPlan, recipes)));
+    }
+    if (backup.favorites) this.saveFavorites(backup.favorites);
+    if (backup.groceryList) this.saveGroceryList(backup.groceryList);
+    return {
+      ok: true,
+      recipes: backup.recipes?.length ?? 0,
+      ingredients: backup.ingredients?.length ?? 0,
+      skipped: backup.skipped,
+    };
   }
 
   /** Replaces the local recipes and ingredients with the built-in catalog (menu and favorites are kept). */

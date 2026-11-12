@@ -1,116 +1,67 @@
-import { useState } from 'react';
-import { Pencil, Search } from 'lucide-react';
-import type { Ingredient, IngredientCategory } from '@/core/catalog';
+import { useMemo, useState } from 'react';
+import { Pencil, Plus, Search } from 'lucide-react';
+import {
+  countIngredientUsage,
+  type Ingredient,
+  type IngredientCategory,
+  type PriceRange,
+  type Recipe,
+} from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
+import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
-import { IngredientEditorModal } from './IngredientEditorModal';
+import { IngredientEditorModal, NEW_INGREDIENT } from './IngredientEditorModal';
 import { useIngredientCategories } from './categories';
 
-const FIELD = 'px-3 py-2 text-xs sm:text-sm rounded-xl bg-surface border border-slate-200 dark:border-slate-700';
+const PRICE_INPUT =
+  'w-16 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700';
 
-function NewIngredientForm({ admin }: { admin: CatalogAdminActions }) {
-  const [nameFr, setNameFr] = useState('');
-  const [nameDerja, setNameDerja] = useState('');
-  const [nameAr, setNameAr] = useState('');
-  const [category, setCategory] = useState<IngredientCategory>('vegetables');
-  const [unit, setUnit] = useState('kg');
-  const [price, setPrice] = useState(2.0);
+type QuickFilter = 'all' | 'no-photo' | 'fixed-price' | 'unused';
 
-  const categories = useIngredientCategories();
+const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
+  { id: 'all', label: 'Tous' },
+  { id: 'no-photo', label: 'Sans photo' },
+  { id: 'fixed-price', label: 'Prix fixe (min = max)' },
+  { id: 'unused', label: 'Dans aucune recette' },
+];
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const fr = nameFr.trim();
-    if (!fr) return;
-    await admin.addIngredient({
-      name_fr: fr,
-      name_derja: nameDerja.trim() || fr,
-      name_ar: nameAr.trim() || fr,
-      category,
-      unit_default: unit,
-      default_price_tnd: price,
-    });
-    setNameFr('');
-    setNameDerja('');
-    setNameAr('');
-  };
+const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
 
-  return (
-    <form onSubmit={submit} className="p-5 rounded-2xl bg-card border border-line space-y-3">
-      <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Ajouter un ingrédient au catalogue</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        <input
-          type="text"
-          value={nameFr}
-          onChange={(e) => setNameFr(e.target.value)}
-          placeholder="Nom Français (ex: Câpres)"
-          className={FIELD}
-          required
-        />
-        <input
-          type="text"
-          value={nameDerja}
-          onChange={(e) => setNameDerja(e.target.value)}
-          placeholder="Nom Derja Arabizi (ex: Kabbara)"
-          className={FIELD}
-        />
-        <input
-          type="text"
-          value={nameAr}
-          onChange={(e) => setNameAr(e.target.value)}
-          placeholder="Nom Arabe (ex: كبار)"
-          className={FIELD}
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as IngredientCategory)}
-          className={FIELD}
-          aria-label="Catégorie"
-        >
-          {categories.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          value={unit}
-          onChange={(e) => setUnit(e.target.value)}
-          placeholder="Unité (ex: kg, pièce, boîte...)"
-          className={FIELD}
-        />
-        <div className="flex gap-2">
-          <input
-            type="number"
-            step="0.1"
-            value={price}
-            onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-            placeholder="Prix unitaire DT"
-            aria-label="Prix unitaire en DT"
-            className={`w-full ${FIELD}`}
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong transition shrink-0"
-          >
-            Ajouter
-          </button>
-        </div>
-      </div>
-    </form>
-  );
+interface IngredientListProps {
+  ingredients: Ingredient[];
+  recipes: Recipe[];
+  admin: CatalogAdminActions;
 }
 
-function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: CatalogAdminActions }) {
+function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
   const [search, setSearch] = useState('');
-  const [prices, setPrices] = useState<Record<string, number>>({});
+  const [category, setCategory] = useState<IngredientCategory | 'all'>('all');
+  const [quick, setQuick] = useState<QuickFilter>('all');
+  const usage = useMemo(() => countIngredientUsage(recipes), [recipes]);
+  const [prices, setPrices] = useState<Record<string, PriceRange>>({});
   const [editing, setEditing] = useState<Ingredient | null>(null);
+  const categories = useIngredientCategories();
+  const categoryLabel = new Map(categories);
   const q = normalizeText(search.trim());
-  const filtered = q
-    ? ingredients.filter((i) => [i.name_fr, i.name_derja, i.name_ar].some((n) => normalizeText(n).includes(q)))
-    : ingredients;
+  const matchesQuick: Record<QuickFilter, (i: Ingredient) => boolean> = {
+    all: () => true,
+    'no-photo': (i) => !i.image_url,
+    'fixed-price': (i) => i.price_min_tnd === i.price_max_tnd,
+    unused: (i) => !usage.get(i.id),
+  };
+  const filtered = ingredients
+    .filter((i) => category === 'all' || i.category === category)
+    .filter(matchesQuick[quick])
+    .filter((i) => !q || [i.name_fr, i.name_derja, i.name_ar].some((n) => normalizeText(n).includes(q)))
+    .sort((a, b) => a.name_fr.localeCompare(b.name_fr, 'fr'));
+  const countOf = (f: QuickFilter) => ingredients.filter(matchesQuick[f]).length;
   const edited = Object.keys(prices).length;
+  const rangeOf = (ing: Ingredient): PriceRange => prices[ing.id] ?? { min: ing.price_min_tnd, max: ing.price_max_tnd };
+  const setBound = (ing: Ingredient, bound: keyof PriceRange, raw: string) => {
+    const value = parseFloat(raw.replace(',', '.'));
+    if (Number.isNaN(value)) return;
+    setPrices((p) => ({ ...p, [ing.id]: { ...rangeOf(ing), [bound]: value } }));
+  };
 
   return (
     <div className="space-y-3">
@@ -126,70 +77,136 @@ function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: C
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"
           />
         </div>
-        {edited > 0 && (
+        <div className="flex gap-2">
+          {edited > 0 && (
+            <button
+              onClick={async () => {
+                if (await admin.savePrices(ingredients, prices)) setPrices({});
+              }}
+              className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-accent text-on-accent text-xs sm:text-sm font-bold hover:bg-accent-strong transition shadow-md"
+            >
+              Enregistrer les prix ({edited})
+            </button>
+          )}
           <button
-            onClick={async () => {
-              await admin.savePrices(ingredients, prices);
-              setPrices({});
-            }}
-            className="px-4 py-2 rounded-xl bg-accent text-on-accent text-xs sm:text-sm font-bold hover:bg-accent-strong transition shadow-md shrink-0"
+            onClick={() => setEditing(NEW_INGREDIENT)}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-on-brand text-xs sm:text-sm font-bold hover:bg-brand-strong transition shadow-sm"
           >
-            Enregistrer les prix modifiés ({edited})
+            <Plus className="w-4 h-4" />
+            Ajouter un ingrédient
           </button>
-        )}
+        </div>
       </div>
+      <p className="text-[11px] text-ink-muted">
+        Prix du marché en fourchette (min – max) pour une unité d'achat. Photo et noms : bouton crayon.
+      </p>
+
+      {/* What is left to complete, then categories */}
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+        {QUICK_FILTERS.map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={quick === id}
+            onClick={() => setQuick(id)}
+            className={`${CHIP} ${quick === id ? 'bg-accent text-on-accent border-accent' : 'bg-card border-line text-ink-muted hover:text-ink'}`}
+          >
+            {label} ({countOf(id)})
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+        {[['all', 'Toutes catégories'] as const, ...categories].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={category === id}
+            onClick={() => setCategory(id)}
+            className={`${CHIP} ${category === id ? 'bg-brand text-on-brand border-brand' : 'bg-card border-line text-ink-muted hover:text-ink'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="text-[11px] text-ink-muted" aria-live="polite">
+        {filtered.length} ingrédient(s) affiché(s) sur {ingredients.length}
+      </p>
 
       <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {filtered.map((ing) => (
-          <div
-            key={ing.id}
-            className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
-          >
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm font-bold text-ink">
-                {ing.name_fr}
-                {ing.name_derja && (
-                  <span className="text-xs text-accent-text font-semibold ml-1.5">({ing.name_derja})</span>
-                )}
-              </p>
-              <p className="text-[11px] text-slate-400 capitalize">
-                {ing.category} · Unité : {ing.unit_default}
-              </p>
+        {filtered.map((ing) => {
+          const range = rangeOf(ing);
+          const invalid = range.min < 0 || range.max < range.min;
+          return (
+            <div
+              key={ing.id}
+              className="p-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
+            >
+              <div className="flex items-center gap-3 min-w-[11rem] flex-1">
+                <IngredientThumb ingredient={ing} size="md" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-bold text-ink truncate">
+                    {ing.name_fr}
+                    {ing.name_derja && (
+                      <span className="text-xs text-accent-text font-semibold ml-1.5">({ing.name_derja})</span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-400 truncate">
+                    {categoryLabel.get(ing.category) ?? ing.category} · Unité : {ing.unit_default} ·{' '}
+                    {usage.get(ing.id) ? `${usage.get(ing.id)} recette(s)` : 'aucune recette'}
+                    {!ing.image_url && ' · sans photo'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ms-auto">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={range.min}
+                  onChange={(e) => setBound(ing, 'min', e.target.value)}
+                  aria-label={`Prix minimum de ${ing.name_fr} en DT`}
+                  aria-invalid={invalid}
+                  className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
+                />
+                <span className="text-xs text-slate-400">–</span>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={range.max}
+                  onChange={(e) => setBound(ing, 'max', e.target.value)}
+                  aria-label={`Prix maximum de ${ing.name_fr} en DT`}
+                  aria-invalid={invalid}
+                  className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
+                />
+                <span className="text-xs font-bold text-slate-500">DT</span>
+                <button
+                  type="button"
+                  onClick={() => setEditing(ing)}
+                  aria-label={`Modifier ${ing.name_fr}`}
+                  title="Modifier les noms, l'unité, la catégorie et la photo"
+                  className="ml-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <input
-                type="number"
-                step="0.1"
-                value={prices[ing.id] ?? ing.default_price_tnd}
-                onChange={(e) => {
-                  const value = parseFloat(e.target.value);
-                  if (!Number.isNaN(value)) setPrices((p) => ({ ...p, [ing.id]: value }));
-                }}
-                aria-label={`Prix de ${ing.name_fr} en DT`}
-                className="w-20 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700"
-              />
-              <span className="text-xs font-bold text-slate-500">DT</span>
-              <button
-                type="button"
-                onClick={() => setEditing(ing)}
-                aria-label={`Modifier ${ing.name_fr}`}
-                title="Modifier les noms, l'unité et la catégorie"
-                className="ml-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {editing && (
         <IngredientEditorModal
           ingredient={editing}
+          catalog={ingredients}
           onClose={() => setEditing(null)}
           onSave={async (ingredient) => {
             setEditing(null);
-            await admin.saveIngredient(ingredient);
+            if (ingredient.id) await admin.saveIngredient(ingredient);
+            else {
+              const { id: _new, ...data } = ingredient;
+              await admin.addIngredient(data);
+            }
           }}
         />
       )}
@@ -197,11 +214,6 @@ function PriceList({ ingredients, admin }: { ingredients: Ingredient[]; admin: C
   );
 }
 
-export function IngredientsTab({ ingredients, admin }: { ingredients: Ingredient[]; admin: CatalogAdminActions }) {
-  return (
-    <div className="space-y-6">
-      <NewIngredientForm admin={admin} />
-      <PriceList ingredients={ingredients} admin={admin} />
-    </div>
-  );
+export function IngredientsTab({ ingredients, recipes, admin }: IngredientListProps) {
+  return <IngredientList ingredients={ingredients} recipes={recipes} admin={admin} />;
 }

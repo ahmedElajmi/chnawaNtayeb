@@ -100,11 +100,17 @@
           "type": "string",
           "maxLength": 30
         },
-        "default_price_tnd": {
+        "price_min_tnd": {
           "type": "number"
+        },
+        "price_max_tnd": {
+          "type": "number"
+        },
+        "image_url": {
+          "type": "string"
         }
       },
-      "required": ["name_fr", "category", "unit_default", "default_price_tnd"]
+      "required": ["name_fr", "category", "unit_default", "price_min_tnd", "price_max_tnd"]
     },
     "User": {
       "title": "User",

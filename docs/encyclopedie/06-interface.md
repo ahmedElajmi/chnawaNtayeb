@@ -61,6 +61,22 @@ Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie
   qu'elle tient dans l'écran ; plus haute, elle commence en haut et le fond défile, rien n'est coupé.
   Variantes : `mobile="bottom"` (Réglages, collée en bas sur téléphone), `mobile="full"` (fiche
   recette en plein écran sur téléphone, son contenu défile à l'intérieur).
+- **Bouton « haut de page »** (`shared/ui/ScrollToTopButton.tsx`, monté une fois dans `AppLayout`) :
+  apparaît après 1,5 hauteur d'écran de défilement (`shared/hooks/useScrolledPast.ts`), remonte en
+  douceur (instantané si l'appareil demande moins d'animations). En bas à droite, au-dessus de la barre
+  d'onglets ; remonté au-dessus de la barre « voir les recettes » du frigo quand des ingrédients sont
+  choisis. Libellé traduit (`scrollToTop`).
+- **Vignette d'ingrédient** (`shared/ui/IngredientThumb.tsx`) : toute image d'ingrédient passe par ce
+  composant. Avec photo : image recadrée, chargée à la demande ; si le lien ne répond pas, bascule sur
+  la pastille. Sans photo : pastille en dégradé de la couleur de la catégorie avec son emoji
+  (`shared/ui/ingredientVisuals.ts`, clair et sombre). Même taille dans les deux cas : une grille reste
+  régulière quel que soit le nombre de photos. Tailles `xs` (pastilles du récapitulatif), `sm` (fiche
+  recette, liste de courses), `md` (grille du frigo, backoffice), `lg` (aperçu du backoffice).
+  Utilisée dans : grille et récapitulatif du frigo, ingrédients disponibles / manquants de la fiche
+  recette, liste de courses (article libre = pastille sac, article acheté en gris).
+- **Prix en fourchette** : `formatPriceRange(range, t.currency)` (`shared/i18n/formatPrice.ts`) affiche
+  « 2.5 DT » ou « 2.5 – 4 DT » (« د.ت » en arabe). Sous chaque ingrédient de la grille du frigo
+  (« 2 – 3 DT / kg ») et dans le coût des courses manquantes (`groceryCost`, cartes et fiche recette).
 - **Animation `fade-in`** (`src/index.css`) : elle ne laisse aucune transformation une fois finie
   (`backwards`, état final `transform: none`). Toute nouvelle animation doit faire de même.
 

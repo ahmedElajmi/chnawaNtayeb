@@ -4,5 +4,8 @@ export * from './roles';
 export * from './substitutions';
 export * from './migrations';
 export * from './validation';
+export * from './pricing';
+export * from './costEstimate';
+export * from './usage';
 export { initialRecipes } from './seed/initialRecipes';
 export { initialIngredients } from './seed/initialIngredients';

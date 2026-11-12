@@ -9,7 +9,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'طماطم',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2.2,
+    price_min_tnd: 2.2,
+    price_max_tnd: 2.2,
   },
   {
     id: 'ing_oignon',
@@ -18,7 +19,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بصل',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 1.8,
+    price_min_tnd: 1.8,
+    price_max_tnd: 1.8,
   },
   {
     id: 'ing_piment',
@@ -27,7 +29,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فلفل أخضر / حلو',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_pomme_de_terre',
@@ -36,7 +39,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بطاطا',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_ail',
@@ -45,7 +49,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ثوم',
     category: 'vegetables',
     unit_default: 'tête',
-    default_price_tnd: 0.8,
+    price_min_tnd: 0.8,
+    price_max_tnd: 0.8,
   },
   {
     id: 'ing_persil',
@@ -54,7 +59,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'معدنوس',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 0.7,
+    price_min_tnd: 0.7,
+    price_max_tnd: 0.7,
   },
   {
     id: 'ing_coriandre',
@@ -63,7 +69,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كزبرة خضراء',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 0.7,
+    price_min_tnd: 0.7,
+    price_max_tnd: 0.7,
   },
   {
     id: 'ing_celeri',
@@ -72,7 +79,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كرفس',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 0.8,
+    price_min_tnd: 0.8,
+    price_max_tnd: 0.8,
   },
   {
     id: 'ing_courgette',
@@ -81,7 +89,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قرع أخضر',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2.5,
+    price_min_tnd: 2.5,
+    price_max_tnd: 2.5,
   },
   {
     id: 'ing_carotte',
@@ -90,7 +99,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سفنارية (جزر)',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 1.6,
+    price_min_tnd: 1.6,
+    price_max_tnd: 1.6,
   },
   {
     id: 'ing_potiron',
@@ -99,7 +109,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قرع أحمر',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_aubergine',
@@ -108,7 +119,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'باذنجان',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2.2,
+    price_min_tnd: 2.2,
+    price_max_tnd: 2.2,
   },
   {
     id: 'ing_blette',
@@ -117,7 +129,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سلق / سبانخ',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 0.8,
+    price_min_tnd: 0.8,
+    price_max_tnd: 0.8,
   },
   {
     id: 'ing_navet',
@@ -126,7 +139,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لفت',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 1.5,
+    price_min_tnd: 1.5,
+    price_max_tnd: 1.5,
   },
   {
     id: 'ing_concombre',
@@ -135,7 +149,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فقوس (خيار)',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 2.4,
+    price_min_tnd: 2.4,
+    price_max_tnd: 2.4,
   },
   {
     id: 'ing_citron',
@@ -144,7 +159,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قارص (ليمون)',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 0.6,
+    price_min_tnd: 0.6,
+    price_max_tnd: 0.6,
   },
   {
     id: 'ing_petits_pois',
@@ -153,7 +169,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جلبانة',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_artichaut',
@@ -162,7 +179,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قنارية (خرشوف)',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 1.2,
+    price_min_tnd: 1.2,
+    price_max_tnd: 1.2,
   },
   {
     id: 'ing_poivron',
@@ -171,7 +189,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فلفل حلو',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
   {
     id: 'ing_champignon',
@@ -180,7 +199,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فطر',
     category: 'vegetables',
     unit_default: 'barquette (250 g)',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_epinards',
@@ -189,7 +209,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سبانخ',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 1.2,
+    price_min_tnd: 1.2,
+    price_max_tnd: 1.2,
   },
   {
     id: 'ing_chou',
@@ -198,7 +219,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كرنب',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 1.5,
+    price_min_tnd: 1.5,
+    price_max_tnd: 1.5,
   },
   {
     id: 'ing_brocoli',
@@ -207,7 +229,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بروكلي',
     category: 'vegetables',
     unit_default: 'kg',
-    default_price_tnd: 4,
+    price_min_tnd: 4,
+    price_max_tnd: 4,
   },
   {
     id: 'ing_citron_vert',
@@ -216,7 +239,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ليم أخضر',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 0.8,
+    price_min_tnd: 0.8,
+    price_max_tnd: 0.8,
   },
   {
     id: 'ing_basilic',
@@ -225,7 +249,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حبق',
     category: 'vegetables',
     unit_default: 'botte',
-    default_price_tnd: 1,
+    price_min_tnd: 1,
+    price_max_tnd: 1,
   },
   {
     id: 'ing_laitue',
@@ -234,7 +259,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خس',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 1.5,
+    price_min_tnd: 1.5,
+    price_max_tnd: 1.5,
   },
   {
     id: 'ing_pak_choi',
@@ -243,7 +269,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بوك تشوي',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_betterave',
@@ -252,7 +279,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'باربو',
     category: 'vegetables',
     unit_default: 'pièce',
-    default_price_tnd: 1,
+    price_min_tnd: 1,
+    price_max_tnd: 1,
   },
 
   // FRUITS (Ghalla)
@@ -263,7 +291,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'برتقال',
     category: 'fruits',
     unit_default: 'kg',
-    default_price_tnd: 2.5,
+    price_min_tnd: 2.5,
+    price_max_tnd: 2.5,
   },
   {
     id: 'ing_pomme',
@@ -272,7 +301,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'تفاح',
     category: 'fruits',
     unit_default: 'kg',
-    default_price_tnd: 5,
+    price_min_tnd: 5,
+    price_max_tnd: 5,
   },
   {
     id: 'ing_banane',
@@ -281,7 +311,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'موز',
     category: 'fruits',
     unit_default: 'kg',
-    default_price_tnd: 6,
+    price_min_tnd: 6,
+    price_max_tnd: 6,
   },
   {
     id: 'ing_fraise',
@@ -290,7 +321,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فراولة',
     category: 'fruits',
     unit_default: 'kg',
-    default_price_tnd: 5,
+    price_min_tnd: 5,
+    price_max_tnd: 5,
   },
   {
     id: 'ing_dattes',
@@ -299,7 +331,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'تمر',
     category: 'fruits',
     unit_default: 'kg',
-    default_price_tnd: 9,
+    price_min_tnd: 9,
+    price_max_tnd: 9,
   },
   {
     id: 'ing_amandes',
@@ -308,7 +341,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لوز',
     category: 'fruits',
     unit_default: '100 g',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_noix',
@@ -317,7 +351,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جوز',
     category: 'fruits',
     unit_default: '100 g',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_avocat',
@@ -326,7 +361,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'أفوكادو',
     category: 'fruits',
     unit_default: 'pièce',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_raisins_secs',
@@ -335,7 +371,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زبيب',
     category: 'fruits',
     unit_default: '100 g',
-    default_price_tnd: 1.8,
+    price_min_tnd: 1.8,
+    price_max_tnd: 1.8,
   },
 
   // VIANDES & VOLAILLES (L7am w Djej)
@@ -346,7 +383,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'دجاج',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 11,
+    price_min_tnd: 11,
+    price_max_tnd: 11,
   },
   {
     id: 'ing_viande_hachee',
@@ -355,7 +393,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لحم مفروم',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 34,
+    price_min_tnd: 34,
+    price_max_tnd: 34,
   },
   {
     id: 'ing_agneau',
@@ -364,7 +403,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لحم علوش (خروف)',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 42,
+    price_min_tnd: 42,
+    price_max_tnd: 42,
   },
   {
     id: 'ing_boeuf',
@@ -373,7 +413,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لحم بقري',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 36,
+    price_min_tnd: 36,
+    price_max_tnd: 36,
   },
   {
     id: 'ing_merguez',
@@ -382,7 +423,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'مرقاز',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 28,
+    price_min_tnd: 28,
+    price_max_tnd: 28,
   },
   {
     id: 'ing_foie',
@@ -391,7 +433,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كبدة',
     category: 'meats',
     unit_default: '500 g',
-    default_price_tnd: 6,
+    price_min_tnd: 6,
+    price_max_tnd: 6,
   },
   {
     id: 'ing_poulet_hache',
@@ -400,7 +443,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'دجاج مفروم',
     category: 'meats',
     unit_default: 'kg',
-    default_price_tnd: 18,
+    price_min_tnd: 18,
+    price_max_tnd: 18,
   },
   {
     id: 'ing_jambon',
@@ -409,7 +453,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'لحم ديك رومي',
     category: 'meats',
     unit_default: 'tranche',
-    default_price_tnd: 0.9,
+    price_min_tnd: 0.9,
+    price_max_tnd: 0.9,
   },
 
   // POISSONS & FRUITS DE MER (7out)
@@ -420,7 +465,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'تن معلب',
     category: 'fish',
     unit_default: 'boîte',
-    default_price_tnd: 3.8,
+    price_min_tnd: 3.8,
+    price_max_tnd: 3.8,
   },
   {
     id: 'ing_poisson_frais',
@@ -429,7 +475,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حوت طازج (وراطة، قاروص، سردينة)',
     category: 'fish',
     unit_default: 'kg',
-    default_price_tnd: 16,
+    price_min_tnd: 16,
+    price_max_tnd: 16,
   },
   {
     id: 'ing_crevettes',
@@ -438,7 +485,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قريدس (كروفات)',
     category: 'fish',
     unit_default: '500 g',
-    default_price_tnd: 14,
+    price_min_tnd: 14,
+    price_max_tnd: 14,
   },
   {
     id: 'ing_saumon',
@@ -447,7 +495,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سلمون',
     category: 'fish',
     unit_default: 'kg',
-    default_price_tnd: 55,
+    price_min_tnd: 55,
+    price_max_tnd: 55,
   },
   {
     id: 'ing_poulpe',
@@ -456,7 +505,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قرنيط',
     category: 'fish',
     unit_default: 'kg',
-    default_price_tnd: 28,
+    price_min_tnd: 28,
+    price_max_tnd: 28,
   },
 
   // PRODUITS LAITIERS & ŒUFS (3dham w 7lib)
@@ -467,7 +517,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عظام (بيض)',
     category: 'dairy_eggs',
     unit_default: 'pièce',
-    default_price_tnd: 0.35,
+    price_min_tnd: 0.35,
+    price_max_tnd: 0.35,
   },
   {
     id: 'ing_lait',
@@ -476,7 +527,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حليب',
     category: 'dairy_eggs',
     unit_default: 'L',
-    default_price_tnd: 1.4,
+    price_min_tnd: 1.4,
+    price_max_tnd: 1.4,
   },
   {
     id: 'ing_fromage_rape',
@@ -485,7 +537,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جبن مرحي',
     category: 'dairy_eggs',
     unit_default: '100 g',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_ricotta',
@@ -494,7 +547,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ريكوتا / جبن عربي',
     category: 'dairy_eggs',
     unit_default: 'pot',
-    default_price_tnd: 2.8,
+    price_min_tnd: 2.8,
+    price_max_tnd: 2.8,
   },
   {
     id: 'ing_beurre',
@@ -503,7 +557,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زبدة / سمن',
     category: 'dairy_eggs',
     unit_default: '100 g',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
   {
     id: 'ing_creme',
@@ -512,7 +567,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كريمة طازجة',
     category: 'dairy_eggs',
     unit_default: 'brique (20 cl)',
-    default_price_tnd: 2.4,
+    price_min_tnd: 2.4,
+    price_max_tnd: 2.4,
   },
   {
     id: 'ing_parmesan',
@@ -521,7 +577,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جبن بارميزان',
     category: 'dairy_eggs',
     unit_default: '100 g',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_mozzarella',
@@ -530,7 +587,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'موزاريلا',
     category: 'dairy_eggs',
     unit_default: '200 g',
-    default_price_tnd: 5,
+    price_min_tnd: 5,
+    price_max_tnd: 5,
   },
   {
     id: 'ing_yaourt',
@@ -539,7 +597,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ياغورت',
     category: 'dairy_eggs',
     unit_default: 'pot',
-    default_price_tnd: 0.7,
+    price_min_tnd: 0.7,
+    price_max_tnd: 0.7,
   },
   {
     id: 'ing_cheddar',
@@ -548,7 +607,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جبن شيدر',
     category: 'dairy_eggs',
     unit_default: '100 g',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
 
   // CÉRÉALES, PÂTES & BOULANGERIE
@@ -559,7 +619,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'مقرونة',
     category: 'grains_pasta',
     unit_default: 'paquet (500g)',
-    default_price_tnd: 0.9,
+    price_min_tnd: 0.9,
+    price_max_tnd: 0.9,
   },
   {
     id: 'ing_semoule_couscous',
@@ -568,7 +629,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كسكسي',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 1.6,
+    price_min_tnd: 1.6,
+    price_max_tnd: 1.6,
   },
   {
     id: 'ing_riz',
@@ -577,7 +639,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'أرز',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 2.8,
+    price_min_tnd: 2.8,
+    price_max_tnd: 2.8,
   },
   {
     id: 'ing_pois_chiches',
@@ -586,7 +649,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حمص منقوع',
     category: 'grains_pasta',
     unit_default: '500 g',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_frik',
@@ -595,7 +659,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'شوربة فريك',
     category: 'grains_pasta',
     unit_default: '500 g',
-    default_price_tnd: 2.5,
+    price_min_tnd: 2.5,
+    price_max_tnd: 2.5,
   },
   {
     id: 'ing_nwasser',
@@ -604,7 +669,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'نواصر',
     category: 'grains_pasta',
     unit_default: 'paquet',
-    default_price_tnd: 1.4,
+    price_min_tnd: 1.4,
+    price_max_tnd: 1.4,
   },
   {
     id: 'ing_malsouka',
@@ -613,7 +679,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ورقة ملسوقة',
     category: 'grains_pasta',
     unit_default: 'paquet (10 pcs)',
-    default_price_tnd: 1.8,
+    price_min_tnd: 1.8,
+    price_max_tnd: 1.8,
   },
   {
     id: 'ing_farine',
@@ -622,7 +689,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فرينة (طحين)',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 1,
+    price_min_tnd: 1,
+    price_max_tnd: 1,
   },
   {
     id: 'ing_pain_baguette',
@@ -631,7 +699,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خبز',
     category: 'grains_pasta',
     unit_default: 'pièce',
-    default_price_tnd: 0.25,
+    price_min_tnd: 0.25,
+    price_max_tnd: 0.25,
   },
   {
     id: 'ing_pate_feuilletee',
@@ -640,7 +709,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عجينة مورقة',
     category: 'grains_pasta',
     unit_default: 'rouleau',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_pate_brisee',
@@ -649,7 +719,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عجينة مكسرة',
     category: 'grains_pasta',
     unit_default: 'rouleau',
-    default_price_tnd: 4,
+    price_min_tnd: 4,
+    price_max_tnd: 4,
   },
   {
     id: 'ing_lentilles',
@@ -658,7 +729,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عدس',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_haricots',
@@ -667,7 +739,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فاصوليا بيضاء',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 5.5,
+    price_min_tnd: 5.5,
+    price_max_tnd: 5.5,
   },
   {
     id: 'ing_tortilla',
@@ -676,7 +749,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خبز تورتيلا',
     category: 'grains_pasta',
     unit_default: 'pièce',
-    default_price_tnd: 1.1,
+    price_min_tnd: 1.1,
+    price_max_tnd: 1.1,
   },
   {
     id: 'ing_pain_panure',
@@ -685,7 +759,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خبز مرحي',
     category: 'grains_pasta',
     unit_default: '250 g',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_couscous_fin',
@@ -694,7 +769,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سميد رقيق',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 1.6,
+    price_min_tnd: 1.6,
+    price_max_tnd: 1.6,
   },
   {
     id: 'ing_pois_casses',
@@ -703,7 +779,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'جلبانة يابسة',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 5,
+    price_min_tnd: 5,
+    price_max_tnd: 5,
   },
   {
     id: 'ing_pate_lasagne',
@@ -712,7 +789,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'أوراق لازانيا',
     category: 'grains_pasta',
     unit_default: 'boîte (250 g)',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_pate_pizza',
@@ -721,7 +799,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عجينة بيتزا',
     category: 'grains_pasta',
     unit_default: 'boule',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
   {
     id: 'ing_toast',
@@ -730,7 +809,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خبز توست',
     category: 'grains_pasta',
     unit_default: 'tranche',
-    default_price_tnd: 0.25,
+    price_min_tnd: 0.25,
+    price_max_tnd: 0.25,
   },
   {
     id: 'ing_borghol',
@@ -739,7 +819,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'برغل',
     category: 'grains_pasta',
     unit_default: 'kg',
-    default_price_tnd: 4,
+    price_min_tnd: 4,
+    price_max_tnd: 4,
   },
 
   // ÉPICERIE, SUCRÉ & CONSERVES
@@ -750,7 +831,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'سكر',
     category: 'canned_pantry',
     unit_default: 'kg',
-    default_price_tnd: 1.6,
+    price_min_tnd: 1.6,
+    price_max_tnd: 1.6,
   },
   {
     id: 'ing_levure',
@@ -759,7 +841,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خميرة',
     category: 'canned_pantry',
     unit_default: 'sachet',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_maizena',
@@ -768,7 +851,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'نشاء',
     category: 'canned_pantry',
     unit_default: 'boîte',
-    default_price_tnd: 1.8,
+    price_min_tnd: 1.8,
+    price_max_tnd: 1.8,
   },
   {
     id: 'ing_miel',
@@ -777,7 +861,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'عسل',
     category: 'canned_pantry',
     unit_default: 'pot',
-    default_price_tnd: 15,
+    price_min_tnd: 15,
+    price_max_tnd: 15,
   },
   {
     id: 'ing_zgougou',
@@ -786,7 +871,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زقوقو',
     category: 'canned_pantry',
     unit_default: '500 g',
-    default_price_tnd: 18,
+    price_min_tnd: 18,
+    price_max_tnd: 18,
   },
   {
     id: 'ing_fruits_secs',
@@ -795,7 +881,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فواكه جافة',
     category: 'canned_pantry',
     unit_default: '100 g',
-    default_price_tnd: 5,
+    price_min_tnd: 5,
+    price_max_tnd: 5,
   },
   {
     id: 'ing_lait_coco',
@@ -804,7 +891,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حليب جوز الهند',
     category: 'canned_pantry',
     unit_default: 'boîte (400 ml)',
-    default_price_tnd: 6,
+    price_min_tnd: 6,
+    price_max_tnd: 6,
   },
   {
     id: 'ing_chocolat',
@@ -813,7 +901,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'شوكولاتة سوداء',
     category: 'canned_pantry',
     unit_default: 'tablette (100 g)',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_cacao',
@@ -822,7 +911,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كاكاو',
     category: 'canned_pantry',
     unit_default: 'c.à.s',
-    default_price_tnd: 0.6,
+    price_min_tnd: 0.6,
+    price_max_tnd: 0.6,
   },
   {
     id: 'ing_pesto',
@@ -831,7 +921,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بيستو',
     category: 'canned_pantry',
     unit_default: 'c.à.s',
-    default_price_tnd: 1.2,
+    price_min_tnd: 1.2,
+    price_max_tnd: 1.2,
   },
   {
     id: 'ing_mais',
@@ -840,7 +931,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ذرة',
     category: 'canned_pantry',
     unit_default: 'boîte',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
   {
     id: 'ing_rob_tmar',
@@ -849,7 +941,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'رب التمر',
     category: 'canned_pantry',
     unit_default: 'c.à.s',
-    default_price_tnd: 0.8,
+    price_min_tnd: 0.8,
+    price_max_tnd: 0.8,
   },
   {
     id: 'ing_huile_vegetale',
@@ -858,7 +951,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زيت نباتي',
     category: 'canned_pantry',
     unit_default: 'L',
-    default_price_tnd: 4.5,
+    price_min_tnd: 4.5,
+    price_max_tnd: 4.5,
   },
   {
     id: 'ing_cafe',
@@ -867,7 +961,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قهوة',
     category: 'canned_pantry',
     unit_default: '250 g',
-    default_price_tnd: 6,
+    price_min_tnd: 6,
+    price_max_tnd: 6,
   },
   {
     id: 'ing_tahina',
@@ -876,7 +971,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'طحينة',
     category: 'canned_pantry',
     unit_default: 'pot',
-    default_price_tnd: 7,
+    price_min_tnd: 7,
+    price_max_tnd: 7,
   },
 
   // ÉPICES, HARISSA & CONDIMENTS
@@ -887,7 +983,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'قرفة',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_fleur_oranger',
@@ -896,7 +993,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ماء الزهر',
     category: 'spices_condiments',
     unit_default: 'bouteille',
-    default_price_tnd: 3,
+    price_min_tnd: 3,
+    price_max_tnd: 3,
   },
   {
     id: 'ing_huile_olive',
@@ -905,7 +1003,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زيت زيتونة',
     category: 'spices_condiments',
     unit_default: 'c.à.s / L',
-    default_price_tnd: 22,
+    price_min_tnd: 22,
+    price_max_tnd: 22,
   },
   {
     id: 'ing_harissa',
@@ -914,7 +1013,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'هريسة عربي',
     category: 'spices_condiments',
     unit_default: 'c.à.s',
-    default_price_tnd: 1.5,
+    price_min_tnd: 1.5,
+    price_max_tnd: 1.5,
   },
   {
     id: 'ing_tomate_concentree',
@@ -923,7 +1023,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'طماطم معجونة',
     category: 'spices_condiments',
     unit_default: 'boîte',
-    default_price_tnd: 4.2,
+    price_min_tnd: 4.2,
+    price_max_tnd: 4.2,
   },
   {
     id: 'ing_tabel_karwiya',
@@ -932,7 +1033,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'تابل وكروية',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_curcuma',
@@ -941,7 +1043,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كركم',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_piment_moulu',
@@ -950,7 +1053,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'فلفل زينة',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_cumin',
@@ -959,7 +1063,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كمون',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.6,
+    price_min_tnd: 0.6,
+    price_max_tnd: 0.6,
   },
   {
     id: 'ing_menthe_sechee',
@@ -968,7 +1073,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'نعناع شايح',
     category: 'spices_condiments',
     unit_default: 'c.à.s',
-    default_price_tnd: 0.5,
+    price_min_tnd: 0.5,
+    price_max_tnd: 0.5,
   },
   {
     id: 'ing_mloukhiya_poudre',
@@ -977,7 +1083,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ملوخية مرحية',
     category: 'spices_condiments',
     unit_default: 'sachet',
-    default_price_tnd: 3.5,
+    price_min_tnd: 3.5,
+    price_max_tnd: 3.5,
   },
   {
     id: 'ing_capres',
@@ -986,7 +1093,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كبار',
     category: 'spices_condiments',
     unit_default: 'c.à.s',
-    default_price_tnd: 1,
+    price_min_tnd: 1,
+    price_max_tnd: 1,
   },
   {
     id: 'ing_olives',
@@ -995,7 +1103,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زيتون',
     category: 'spices_condiments',
     unit_default: '200 g',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_sel_poivre',
@@ -1004,7 +1113,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'ملح وفلفل أكحل',
     category: 'spices_condiments',
     unit_default: 'pincée',
-    default_price_tnd: 0.2,
+    price_min_tnd: 0.2,
+    price_max_tnd: 0.2,
   },
   {
     id: 'ing_paprika',
@@ -1013,7 +1123,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'بابريكا حلوة',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.35,
+    price_min_tnd: 0.35,
+    price_max_tnd: 0.35,
   },
   {
     id: 'ing_gingembre',
@@ -1022,7 +1133,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زنجبيل',
     category: 'spices_condiments',
     unit_default: '50 g',
-    default_price_tnd: 2,
+    price_min_tnd: 2,
+    price_max_tnd: 2,
   },
   {
     id: 'ing_sauce_soja',
@@ -1031,7 +1143,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'صلصة الصويا',
     category: 'spices_condiments',
     unit_default: 'bouteille',
-    default_price_tnd: 6.5,
+    price_min_tnd: 6.5,
+    price_max_tnd: 6.5,
   },
   {
     id: 'ing_vinaigre',
@@ -1040,7 +1153,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خل',
     category: 'spices_condiments',
     unit_default: 'bouteille',
-    default_price_tnd: 1.5,
+    price_min_tnd: 1.5,
+    price_max_tnd: 1.5,
   },
   {
     id: 'ing_curry',
@@ -1049,7 +1163,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'كاري',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.35,
+    price_min_tnd: 0.35,
+    price_max_tnd: 0.35,
   },
   {
     id: 'ing_moutarde',
@@ -1058,7 +1173,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'خردل',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.35,
+    price_min_tnd: 0.35,
+    price_max_tnd: 0.35,
   },
   {
     id: 'ing_origan',
@@ -1067,7 +1183,8 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'زعتر',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.25,
+    price_min_tnd: 0.25,
+    price_max_tnd: 0.25,
   },
   {
     id: 'ing_coriandre_graines',
@@ -1076,6 +1193,7 @@ export const initialIngredients: Ingredient[] = [
     name_ar: 'حب التابل',
     category: 'spices_condiments',
     unit_default: 'c.à.c',
-    default_price_tnd: 0.2,
+    price_min_tnd: 0.2,
+    price_max_tnd: 0.2,
   },
 ];

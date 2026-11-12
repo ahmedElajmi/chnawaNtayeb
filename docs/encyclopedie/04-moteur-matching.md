@@ -31,7 +31,10 @@ Les ingrédients facultatifs sont ignorés.
 
 Résultats utiles : ingrédients à acheter (clés puis secondaires), épices manquantes (informatif),
 remplacements utilisés, nombre d'**ingrédients distincts du frigo utilisés**, et coût d'achat des
-ingrédients manquants (une unité d'achat chacun : 1 kg, 1 paquet…).
+ingrédients manquants (une unité d'achat chacun : 1 kg, 1 paquet…), en **fourchette** :
+`missingCost` / `missing_cost` = `PriceRange` (somme des prix min et des prix max, arrondie au
+dixième). Affiché « ≈ 3 – 6 DT de courses » ; le tri par coût utilise toujours le coût estimé de la
+recette (`estimated_cost_tnd`).
 
 ## Score (`scoring.ts`)
 

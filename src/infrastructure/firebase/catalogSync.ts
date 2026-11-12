@@ -1,6 +1,13 @@
 import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, DocumentReference } from 'firebase/firestore';
 import { db, firebaseProjectId, handleFirestoreError, OperationType } from '@/infrastructure/firebase/client';
-import { type Recipe, type Ingredient, initialRecipes, initialIngredients, migrateRecipes } from '@/core/catalog';
+import {
+  type Recipe,
+  type Ingredient,
+  initialRecipes,
+  initialIngredients,
+  migrateIngredients,
+  migrateRecipes,
+} from '@/core/catalog';
 import type { CatalogAdminGateway, CatalogInitStats, WriteResult } from '@/application';
 import { storage } from '@/infrastructure/local/storage';
 
@@ -68,10 +75,12 @@ export async function syncIngredientsFromFirestore(): Promise<Ingredient[]> {
     const colRef = collection(db, 'ingredients');
     const snapshot = await getDocs(colRef);
     if (!snapshot.empty) {
-      const remoteIngredients: Ingredient[] = [];
+      const stored: Ingredient[] = [];
       snapshot.forEach((d) => {
-        remoteIngredients.push({ id: d.id, ...d.data() } as Ingredient);
+        stored.push({ id: d.id, ...d.data() } as Ingredient);
       });
+      // Cloud ingredients saved with a single price become a price range
+      const remoteIngredients = migrateIngredients(stored);
       storage.saveIngredients(remoteIngredients);
       return remoteIngredients;
     }

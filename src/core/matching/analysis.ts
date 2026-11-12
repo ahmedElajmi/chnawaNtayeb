@@ -1,4 +1,5 @@
-import type { Ingredient, IngredientRole, Recipe } from '../catalog/types';
+import type { Ingredient, IngredientRole, PriceRange, Recipe } from '../catalog/types';
+import { addPriceRanges, ingredientPriceRange, roundPriceRange, ZERO_PRICE } from '../catalog/pricing';
 import { getRole } from '../catalog/roles';
 import { getSubstitutes } from '../catalog/substitutions';
 import { normalizeCategory } from '../catalog/course';
@@ -39,8 +40,8 @@ export interface RecipeFacts {
   keyTotal: number;
   /** Distinct fridge ingredients used by the recipe (directly or as a replacement) */
   fridgeUsed: number;
-  /** Cost of buying the missing key/secondary ingredients (one purchase unit each: 1 kg, 1 pack...) */
-  missingCost: number;
+  /** Cost range of buying the missing key/secondary ingredients (one purchase unit each: 1 kg, 1 pack...) */
+  missingCost: PriceRange;
 }
 
 /** Looks at every non-optional ingredient of a recipe: available, replaced, or missing. */
@@ -63,7 +64,7 @@ export function analyzeAvailability(
     keyAvailable: 0,
     keyTotal: 0,
     fridgeUsed: 0,
-    missingCost: 0,
+    missingCost: ZERO_PRICE,
   };
 
   for (const item of recipe.ingredients) {
@@ -96,10 +97,11 @@ export function analyzeAvailability(
       continue;
     }
     (role === 'key' ? facts.missingKey : facts.missingSecondary).push(id);
-    facts.missingCost += ingredientsById.get(id)?.default_price_tnd ?? 0;
+    const missing = ingredientsById.get(id);
+    if (missing) facts.missingCost = addPriceRanges(facts.missingCost, ingredientPriceRange(missing));
   }
 
   facts.fridgeUsed = fridgeUsed.size;
-  facts.missingCost = Math.round(facts.missingCost * 10) / 10;
+  facts.missingCost = roundPriceRange(facts.missingCost);
   return facts;
 }
