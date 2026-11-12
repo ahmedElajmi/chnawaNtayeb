@@ -14,6 +14,7 @@ import {
 import { Recipe, Ingredient, MealCategory, normalizeCategory } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 interface WeeklyPlannerViewProps {
   plan: DayPlan[];
@@ -319,7 +320,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
 
       {/* Choose Recipe Modal (only recipes of the slot's course) */}
       {editingSlot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+        <ModalShell>
           <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-5 shadow-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
@@ -379,7 +380,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
               ))}
             </div>
           </div>
-        </div>
+        </ModalShell>
       )}
     </div>
   );

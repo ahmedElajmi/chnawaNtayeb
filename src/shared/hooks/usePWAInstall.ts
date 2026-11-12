@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -12,41 +12,40 @@ const isStandaloneMode = () =>
 
 const isIOSDevice = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
+/*
+ * One shared install state for the whole app. The browser fires `beforeinstallprompt` once, at page
+ * load: listening here (module level) lets a component mounted later (banner, Settings) still use it.
+ * The service worker is registered once, in main.tsx (versioned URL, production only).
+ */
+type InstallState = { deferredPrompt: BeforeInstallPromptEvent | null; isInstalled: boolean };
+let state: InstallState = { deferredPrompt: null, isInstalled: isStandaloneMode() };
+const listeners = new Set<() => void>();
+const update = (patch: Partial<InstallState>) => {
+  state = { ...state, ...patch };
+  listeners.forEach((l) => l());
+};
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  update({ deferredPrompt: e as BeforeInstallPromptEvent });
+});
+window.addEventListener('appinstalled', () => update({ isInstalled: true, deferredPrompt: null }));
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+const isIOS = isIOSDevice();
+
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(isStandaloneMode);
-  const [isIOS] = useState(isIOSDevice);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    // The service worker is registered once, in main.tsx (versioned URL, production only).
-    // Registering it here too (another URL) made both registrations replace each other forever.
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
+  const { deferredPrompt, isInstalled } = useSyncExternalStore(subscribe, () => state);
 
   const install = async () => {
     if (!deferredPrompt) return false;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
+      update({ isInstalled: true, deferredPrompt: null });
       return true;
     }
     return false;

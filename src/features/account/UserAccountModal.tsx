@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, LogIn, LogOut, CheckCircle, Sparkles, X, Mail, Lock, Shield, Loader2, UserPlus } from 'lucide-react';
 import type { AppUser } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
+import { ModalShell } from '@/shared/ui/ModalShell';
 
 interface UserAccountModalProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   const isAdmin = isPatronSession || (!!currentUser && userAuth.isOwner(currentUser));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+    <ModalShell>
       <div className="w-full max-w-sm rounded-3xl bg-surface border border-line p-6 shadow-2xl text-ink">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
@@ -247,6 +248,6 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };

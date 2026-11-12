@@ -136,6 +136,8 @@ export interface TranslationDictionary {
   modeSystem: string;
   settingsLanguage: string;
   settingsClose: string;
+  settingsTabDisplay: string;
+  settingsTabApp: string;
   themeActive: string;
   backAgainToExit: string;
   pantryTitle: string;
@@ -318,6 +320,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'Auto',
     settingsLanguage: 'Lougha',
     settingsClose: 'Sakker',
+    settingsTabDisplay: 'Chakl',
+    settingsTabApp: "L'application",
     themeActive: 'Mékhtar',
     backAgainToExit: 'Enzel marra okhra bech tokhrej',
     pantryTitle: 'Placard mte3ek',
@@ -499,6 +503,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'Auto',
     settingsLanguage: 'Langue',
     settingsClose: 'Fermer',
+    settingsTabDisplay: 'Affichage',
+    settingsTabApp: 'Application',
     themeActive: 'Actif',
     backAgainToExit: 'Appuie encore une fois pour quitter',
     pantryTitle: 'Mon placard de base',
@@ -678,6 +684,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     modeSystem: 'تلقائي',
     settingsLanguage: 'اللغة',
     settingsClose: 'إغلاق',
+    settingsTabDisplay: 'العرض',
+    settingsTabApp: 'التطبيق',
     themeActive: 'مُفعّل',
     backAgainToExit: 'اضغط مرة أخرى للخروج',
     pantryTitle: 'مؤونتي الأساسية',

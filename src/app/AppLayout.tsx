@@ -5,6 +5,7 @@ import { BottomNav } from '@/app/layout/BottomNav';
 import { SettingsModal } from '@/features/settings/SettingsModal';
 import { UserAccountModal } from '@/features/account/UserAccountModal';
 import { UpdatePrompt } from '@/shared/ui/UpdatePrompt';
+import { InstallBanner } from '@/shared/ui/InstallBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { PATHS } from '@/shared/paths';
@@ -43,6 +44,12 @@ export function AppLayout() {
     window.scrollTo({ top: 0 });
   }, [pathname]);
 
+  const isPatron = patronStatus === 'signed-in';
+  const patronLogout = () => {
+    patron.logout();
+    if (isBackoffice) goHome();
+  };
+
   useCloseOnBack(isUserModalOpen, () => setIsUserModalOpen(false));
   useCloseOnBack(isSettingsOpen, () => setIsSettingsOpen(false));
 
@@ -51,13 +58,13 @@ export function AppLayout() {
       <Header
         currentUser={currentUser}
         onOpenUserModal={() => setIsUserModalOpen(true)}
-        isPatronAuthenticated={patronStatus === 'signed-in'}
-        onPatronLogout={() => {
-          patron.logout();
-          if (isBackoffice) goHome();
-        }}
+        isPatronAuthenticated={isPatron}
+        onPatronLogout={patronLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
+
+      {/* Install invitation (not in the backoffice); also available in Settings › Application */}
+      {!isBackoffice && <InstallBanner />}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
         <Outlet />
@@ -89,7 +96,12 @@ export function AppLayout() {
           navigate(PATHS.patron);
         }}
       />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isPatronAuthenticated={isPatron}
+        onPatronLogout={patronLogout}
+      />
       {/* "Press back again to exit" hint */}
       {showExitHint && (
         <div

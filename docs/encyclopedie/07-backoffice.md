@@ -3,6 +3,8 @@
 ## Accès
 
 - Adresse `/patron`, ou trois clics sur le logo, ou depuis la fenêtre « Compte ».
+- Une fois connecté : badge « Patron » et « Quitter » dans l'en-tête (ordinateur et tablette) ;
+  sur téléphone, Réglages › Application, section « Patron » (accès au backoffice, quitter le mode patron).
 - Connexion vérifiée **uniquement par le serveur** (`ADMIN_USERNAME`, `ADMIN_PASSWORD`) :
   5 tentatives ratées par quart d'heure et par adresse IP, session de 8 heures.
 - Si le serveur dispose de `FIREBASE_SERVICE_ACCOUNT`, la session donne aussi le droit d'écrire
@@ -12,23 +14,35 @@
 
 ## Onglets (`src/features/backoffice/`)
 
-| Onglet          | Fichier                                           | Fonctions                                                       |
-| --------------- | ------------------------------------------------- | --------------------------------------------------------------- |
-| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
-| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
-| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter un ingrédient, modifier les prix du marché              |
-| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                            |
-| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
-| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
+| Onglet          | Fichier                                           | Fonctions                                                        |
+| --------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                   |
+| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer  |
+| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, prix), prix du marché |
+| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                             |
+| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
+| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base       |
 
 Les actions sur le catalogue passent par `useCatalogAdmin` (port `CatalogAdminGateway`) : chaque
 action enregistre localement, publie dans la base, rafraîchit les écrans et affiche le résultat
 (succès ou erreur lisible).
 
-**Éditeur de recette** : noms dans les trois langues, description, temps, prix, portions, image,
-vidéo YouTube (vérifiée), catégorie, type de cuisine, healthy, ingrédients avec leur **rôle** et
-leurs substitutions, astuce du chef. L'adresse de la recette est générée à partir du nom et
-rendue unique (`recipeDraft.ts`, testé).
+**Champs en trois langues** : tout texte affiché au public se saisit en français, derja (lettres
+latines, 3 / 7 / 9) et arabe, avec le composant `ui/LocalizedField.tsx` (arabe de droite à gauche).
+Le français est la langue de référence : derja ou arabe vide → le français est affiché.
+
+**Éditeur de recette** : nom, description, **étapes de préparation** et astuce du chef dans les trois
+langues ; temps, prix, portions, image, vidéo YouTube (vérifiée), catégorie, type de cuisine,
+healthy, ingrédients avec leur **rôle** et leurs substitutions. Les étapes (`RecipeStepsEditor.tsx`)
+s'ajoutent, se suppriment et se déplacent (monter / descendre) ; elles sont renumérotées à
+l'enregistrement. Avant d'enregistrer, `validateRecipe` (domaine) vérifie le nom français, au
+moins un ingrédient et au moins une étape en français. Une nouvelle recette commence avec une
+étape vide. L'adresse de la recette est générée à partir du nom et rendue unique (`recipeDraft.ts`,
+testé). Retirer la vidéo la supprime aussi de la base (document remplacé en entier, voir
+[05](05-application-donnees.md)).
+
+**Éditeur d'ingrédient** (`ingredients/IngredientEditorModal.tsx`, bouton crayon de la liste) :
+noms dans les trois langues, catégorie, unité, prix ; vérifié par `validateIngredient`.
 
 ## Onglet Moteur
 
