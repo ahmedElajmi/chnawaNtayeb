@@ -79,6 +79,20 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 
 ## Git
 
+Détails : `docs/encyclopedie/09-qualite-tests.md` (« Branches et versions »).
+
+- `main` = production. **Jamais** de commit direct ni de PR vers `main`, sauf release ou hotfix.
+- `develop` = branche d'intégration (branche par défaut sur GitHub), contient tous les développements validés.
+  `main` et `develop` sont protégées : passage obligatoire par une PR.
+- **Chaque nouvelle demande** part de `develop` à jour (`git checkout develop && git pull`) sur une nouvelle branche :
+  `feature/<nom-court>` (évolution), `fix/<nom-court>` (correction), `docs/<nom>` ou `chore/<nom>`
+  (documentation, outillage). Noms en anglais, en kebab-case (`feature/grocery-export`).
+- `npm run check` vert, push, puis PR **vers `develop`** ; branche supprimée après fusion.
+- Release : quand une version est validée, PR `develop` → `main`, puis tag annoté sur `main`
+  (`git tag -a vX.Y.Z -m "..."` + `git push origin vX.Y.Z`) ; semver : majeur = rupture, mineur = features,
+  patch = corrections.
+- Hotfix urgent en production : `hotfix/<nom>` depuis `main`, PR vers `main`, tag patch, puis fusion de `main`
+  dans `develop`.
 - Messages de commit **en anglais**, courts, décrivant le changement. Pas de mention d'outil d'IA
   ni de ligne `Co-Authored-By`.
 - Ne jamais commiter `.env` ni de compte de service.

@@ -41,3 +41,4 @@ npm run check
 - **Modifier les suggestions de recettes** : [04 Moteur de matching](04-moteur-matching.md).
 - **Ajouter une fonctionnalité** : [11 Guides pratiques](11-guides-pratiques.md).
 - **Mettre en production** : [10 Exploitation](10-exploitation.md).
+- **Branches, PR et versions** : [09 Qualité et tests](09-qualite-tests.md#branches-et-versions).
