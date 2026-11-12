@@ -67,14 +67,14 @@ Prettier : apostrophes simples, lignes de 120 caractères. Ignorés : `dist`, `p
 
 ## Branches et versions
 
-| Branche                     | Rôle                                                       | Part de   | Fusionnée dans              |
-| --------------------------- | ---------------------------------------------------------- | --------- | --------------------------- |
-| `main`                      | Production. Protégée, aucun commit direct.                 | —         | —                           |
-| `develop`                   | Intégration des développements validés. Branche par défaut | `main`    | `main` (release)            |
-| `feature/<nom>`             | Nouvelle fonctionnalité                                    | `develop` | `develop` (PR)              |
-| `fix/<nom>`                 | Correction                                                 | `develop` | `develop` (PR)              |
-| `docs/<nom>`, `chore/<nom>` | Documentation, outillage                                   | `develop` | `develop` (PR)              |
-| `hotfix/<nom>`              | Correction urgente en production                           | `main`    | `main` (PR), puis `develop` |
+| Branche                     | Rôle                                                       | Part de   | Fusionnée dans                |
+| --------------------------- | ---------------------------------------------------------- | --------- | ----------------------------- |
+| `master`                    | Production. Protégée, aucun commit direct.                 | —         | —                             |
+| `develop`                   | Intégration des développements validés. Branche par défaut | `master`  | `master` (release)            |
+| `feature/<nom>`             | Nouvelle fonctionnalité                                    | `develop` | `develop` (PR)                |
+| `fix/<nom>`                 | Correction                                                 | `develop` | `develop` (PR)                |
+| `docs/<nom>`, `chore/<nom>` | Documentation, outillage                                   | `develop` | `develop` (PR)                |
+| `hotfix/<nom>`              | Correction urgente en production                           | `master`  | `master` (PR), puis `develop` |
 
 Nouvelle demande :
 
@@ -87,15 +87,16 @@ git push -u origin feature/nom-court
 gh pr create --base develop
 ```
 
-La branche est supprimée après la fusion. `main` et `develop` sont protégées sur GitHub : tout passe par une PR.
+La branche est supprimée après la fusion. `master` et `develop` sont protégées sur GitHub : tout passe par une PR.
 
-**Release** : quand une version est validée, PR `develop` → `main`, puis tag annoté sur `main` :
+**Release** : quand une version est validée, PR `develop` → `master`, puis tag annoté sur `master` :
 
 ```bash
-git checkout main && git pull
+git checkout master && git pull
 git tag -a v2.1.0 -m "Release 2.1.0"
 git push origin v2.1.0
 ```
 
 Numérotation semver : majeur = changement incompatible, mineur = nouvelles fonctionnalités, patch = corrections.
-Un hotfix produit une version patch et est ensuite reporté dans `develop` (fusion de `main` dans `develop`).
+Un hotfix produit une version patch et est ensuite reporté dans `develop` (fusion de `master` dans `develop`).
+La branche de production s'appelait `main` jusqu'au 12/11/2026 (renommée `master`).
