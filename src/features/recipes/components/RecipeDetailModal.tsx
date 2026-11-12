@@ -20,6 +20,7 @@ import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { getRecipeCost } from '@/app/ContainerContext';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -69,6 +70,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
     config: matchingConfig,
   });
   const missingKeySet = new Set(analysis.missingKey);
+  const cost = getRecipeCost(recipe, allIngredients);
   const missingStapleSet = new Set(analysis.missingStaples);
   const substituteOf = new Map(analysis.substitutions.map((s) => [s.ingredient_id, s.substitute_id]));
   const matchedSet = new Set(analysis.matched);
@@ -113,7 +115,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
     const tipBlock = tip ? `💡 *Astuce Tounsiya :*\n${tip}\n\n` : '';
     const message = `🇹🇳 *Recette Chnowa Ntayeb : ${name}*${otherNames ? ` (${otherNames})` : ''}\n⏱ Temps : ${
       recipe.prep_time_minutes + recipe.cook_time_minutes
-    } min | 💰 Budget : ~${recipe.estimated_cost_tnd} DT | 👥 ${servings} personnes\n\n🛒 *Ingrédients :*\n${ingList}\n\n${tipBlock}👩‍🍳 Recette Chnowa Ntayeb, by Chef Souhed\n📱 Découvre plus d'idées repas sur Chnowa Ntayeb !`;
+    } min | 💰 Budget : ${formatPriceRange(cost, t.currency)} | 👥 ${servings} personnes\n\n🛒 *Ingrédients :*\n${ingList}\n\n${tipBlock}👩‍🍳 Recette Chnowa Ntayeb, by Chef Souhed\n📱 Découvre plus d'idées repas sur Chnowa Ntayeb !`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
@@ -201,7 +203,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <div className="flex flex-col items-center justify-center p-1 border-x border-slate-100 dark:border-slate-700">
               <Coins className="w-4 h-4 text-accent-text mb-1" />
               <span className="text-[11px] text-slate-400">{t.costEstimate}</span>
-              <span className="text-sm font-bold text-accent-text">{recipe.estimated_cost_tnd.toFixed(1)} DT</span>
+              <span className="text-sm font-bold text-accent-text">{formatPriceRange(cost, t.currency)}</span>
             </div>
 
             <div className="flex flex-col items-center justify-center p-1">

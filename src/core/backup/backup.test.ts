@@ -48,7 +48,11 @@ describe('parseBackup', () => {
       grocery_list: [{ name: 'no id' }],
     });
     expect(parsed?.recipes).toHaveLength(1);
-    expect(parsed?.ingredients?.[0]).toMatchObject({ price_min_tnd: 2.5, price_max_tnd: 2.5 });
+    // Old single price within the built-in market range: the range is used
+    expect(parsed?.ingredients?.[0]).toMatchObject({
+      price_min_tnd: initialIngredients[0].price_min_tnd,
+      price_max_tnd: initialIngredients[0].price_max_tnd,
+    });
     expect(parsed?.ingredients).toHaveLength(1);
     expect(parsed?.favorites).toEqual(['a']);
     expect(parsed?.groceryList).toEqual([]);

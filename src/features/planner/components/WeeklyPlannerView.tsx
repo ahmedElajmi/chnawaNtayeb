@@ -14,6 +14,8 @@ import {
 import { Recipe, Ingredient, MealCategory, normalizeCategory } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { pickLocalized } from '@/core/shared';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { getRecipeCost } from '@/app/ContainerContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
@@ -31,6 +33,7 @@ type EditingSlot = { dayIndex: number; mealType: MealType; course: MealCategory 
 export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
   plan,
   recipes,
+  allIngredients,
   onUpdatePlan,
   onGenerateGroceryList,
   onSelectRecipeDetail,
@@ -363,7 +366,8 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
                     <p className="text-xs sm:text-sm font-bold text-ink truncate">{getRecipeName(r)}</p>
                     <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
                       <span>
-                        {r.prep_time_minutes + r.cook_time_minutes} min · ~{r.estimated_cost_tnd} DT
+                        {r.prep_time_minutes + r.cook_time_minutes} min ·{' '}
+                        {formatPriceRange(getRecipeCost(r, allIngredients), t.currency)}
                       </span>
                       {r.is_healthy && (
                         <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseMeasure, purchaseUnits, suggestRecipeCost } from './costEstimate';
+import { parseMeasure, purchaseUnits, recipeCostRange, suggestRecipeCost } from './costEstimate';
+import { initialIngredients } from './seed/initialIngredients';
 import type { Ingredient } from './types';
 
 const ing = (id: string, unit: string, min: number, max = min): Ingredient => ({
@@ -56,5 +57,25 @@ describe('suggestRecipeCost', () => {
       byId
     );
     expect(suggestion).toEqual({ range: { min: 2.6, max: 3.1 }, priced: 2, unpriced: ['huile', 'inconnu'] });
+  });
+});
+
+describe('recipeCostRange', () => {
+  it('is computed from the ingredient price ranges', () => {
+    const egg = { ...initialIngredients.find((i) => i.id === 'ing_oeuf')! };
+    const byId = new Map([[egg.id, egg]]);
+    const recipe = {
+      estimated_cost_tnd: 99,
+      ingredients: [{ ingredient_id: egg.id, quantity_base: 2, unit: egg.unit_default }],
+    };
+    const range = recipeCostRange(recipe, byId);
+    expect(range.min).toBeCloseTo(2 * egg.price_min_tnd, 1);
+    expect(range.max).toBeCloseTo(2 * egg.price_max_tnd, 1);
+    expect(range.min).toBeLessThan(range.max);
+  });
+
+  it("falls back to the chef's estimate when nothing can be priced", () => {
+    const recipe = { estimated_cost_tnd: 7, ingredients: [{ ingredient_id: 'unknown', quantity_base: 1, unit: 'kg' }] };
+    expect(recipeCostRange(recipe, new Map())).toEqual({ min: 7, max: 7 });
   });
 });

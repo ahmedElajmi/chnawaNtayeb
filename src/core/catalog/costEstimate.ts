@@ -83,3 +83,20 @@ export function suggestRecipeCost(
   }
   return { range: roundPriceRange(range), priced, unpriced };
 }
+
+/**
+ * Cost range of a recipe for its base servings, shown to the public: computed from the
+ * ingredient price ranges; the chef's single estimate when no ingredient can be priced.
+ */
+export function recipeCostRange(
+  recipe: Pick<Recipe, 'ingredients' | 'estimated_cost_tnd'>,
+  ingredientsById: ReadonlyMap<string, Ingredient>
+): PriceRange {
+  const suggestion = suggestRecipeCost(recipe, ingredientsById);
+  if (suggestion.priced > 0) return suggestion.range;
+  const estimate = Math.max(0, recipe.estimated_cost_tnd || 0);
+  return { min: estimate, max: estimate };
+}
+
+/** Middle of a range (averages, sorting by cost). */
+export const middleOfRange = (range: PriceRange): number => (range.min + range.max) / 2;

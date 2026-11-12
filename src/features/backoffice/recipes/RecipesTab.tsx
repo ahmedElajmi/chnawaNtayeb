@@ -3,6 +3,8 @@ import { Copy, Eye, EyeOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import type { Recipe } from '@/core/catalog';
 import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
+import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 
@@ -17,6 +19,7 @@ interface RecipesTabProps {
 
 export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplicateRecipe }: RecipesTabProps) {
   const { t, getRecipeName, getSecondaryName } = useLanguage();
+  const { ingredients } = useCatalog();
   const [search, setSearch] = useState('');
   const q = normalizeText(search.trim());
   const filtered = q
@@ -93,7 +96,9 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                   <span>{r.prep_time_minutes + r.cook_time_minutes} min</span>
                   <span>·</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">{r.estimated_cost_tnd} DT</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {formatPriceRange(getRecipeCost(r, ingredients), 'DT')}
+                  </span>
                   <span>·</span>
                   <span className="capitalize">{r.cuisine_type}</span>
                 </div>
