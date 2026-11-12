@@ -1,10 +1,44 @@
-# 12 · Recherche : étude des moteurs
+# 12 · Recherche : moteur et étude
 
-> **Statut : étude, rien n'est encore implémenté.** Cette page compare des moteurs de recherche
+## Ce qui est en place
+
+Recherche **dans l'appareil** avec MiniSearch, derrière le port `SearchEngine` : hors ligne, sans
+aucune lecture de la base, sur ordinateur comme sur téléphone.
+
+| Couche    | Fichier                                                | Rôle                                                                                                      |
+| --------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Domaine   | `src/core/search/normalize.ts`                         | `normalizeSearchText` : règles communes à l'indexation et à la requête (arabe, derja latine, français)    |
+| Domaine   | `src/core/search/documents.ts`                         | `recipeSearchDocument`, `ingredientSearchDocument` (toutes les langues et variantes), poids des champs    |
+| Domaine   | `src/core/search/indexPlan.ts`                         | `planIndexUpdate` : seuls les éléments changés sont réindexés                                             |
+| Port      | `src/application/ports.ts` : `SearchEngine`            | `rebuild`, `upsert`, `remove`, `search` (asynchrone : un moteur serveur pourra le remplacer)              |
+| Store     | `src/application/search/CatalogSearch.ts`              | Index construits à la première recherche, puis suivent le catalogue ; `null` = repli sur le filtre simple |
+| Adapters  | `infrastructure/minisearch/`, `infrastructure/memory/` | MiniSearch (production) ; mémoire (référence) ; contrat commun `contracts/searchEngine.contract.ts`       |
+| Interface | `useSearchMatches` (`src/app/ContainerContext.tsx`)    | `/recettes`, `/suggestions` (via `searchMatches` des filtres) et recherche d'ingrédients du frigo         |
+
+Comportement :
+
+- **Champs et poids** : noms (×3), ingrédients de la recette (×1,5), descriptions (×1), dans **toutes**
+  les langues et variantes (lues par préfixe : `name_*`, `description_*`).
+- **Tous les mots** de la requête doivent être trouvés, chacun comme **début de mot** (« merg » →
+  « merguez », jamais « sel » → « persil »), avec des **fautes** : aucune sous 5 lettres, 1 jusqu'à 8,
+  2 au-delà (« kamounya » → « Kamounia »).
+- **Classement** : `/recettes` est trié par pertinence pendant une recherche ; `/suggestions` garde
+  l'ordre de chaque niveau du frigo.
+- **Repli sans régression** : tant que le moteur n'a pas répondu (première frappe) ou s'il échoue,
+  l'ancien filtre par nom s'applique ; les autres filtres (catégorie, budget, temps, sain) ne changent pas.
+- **Mises à jour en direct** : une recette modifiée par le patron est réindexée seule ; un ingrédient
+  modifié réindexe les recettes (leurs mots contiennent les noms d'ingrédients).
+
+Changer de moteur (Orama, moteur serveur…) : écrire un adapter qui passe
+`contracts/searchEngine.contract.ts`, puis le brancher dans `src/app/container.ts`.
+
+## Étude
+
+> **Statut : étude réalisée avant l'implémentation ci-dessus.** Cette page compare des moteurs de recherche
 > gratuits et rapides pour un catalogue qui peut atteindre des milliers de recettes et d'ingrédients
 > en trois langues, propose un moteur et un plan d'intégration, puis une stratégie pour lire la base le
-> moins possible (navigation, recherche, filtres gérés par le patron). L'implémentation se fera sur sa
-> propre branche (`feature/recipe-search`). Faits vérifiés le 12/11/2026 (sources en fin de page).
+> moins possible (navigation, recherche, filtres gérés par le patron). Faits vérifiés le 12/11/2026
+> (sources en fin de page).
 
 ## Ce qui existe aujourd'hui
 

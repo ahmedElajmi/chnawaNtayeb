@@ -15,8 +15,9 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `MatchingSettingsStore` | réglages du moteur, version, source                     | Base = référence, copie locale hors ligne, valeurs du code par défaut                |
 | `RecipeDrafts`          | (service) brouillons de l'éditeur de recette            | Garde, propose à nouveau et efface les modifications non enregistrées                |
 | `CatalogAdmin`          | (service) actions du backoffice sur le catalogue        | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration    |
+| `CatalogSearch`         | révision des index de recherche                         | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))    |
 
-Hooks d'accès : `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
@@ -34,6 +35,7 @@ Hooks d'accès : `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSett
 | `PatronGateway`              | Connexion et session patron                    | `infrastructure/http/patronHttpGateway`             |
 | `VisionGateway`              | Scan photo du frigo                            | `infrastructure/http/visionHttpGateway`             |
 | `RecipeDraftRepository`      | Brouillons de recettes non enregistrés         | `infrastructure/local/localRecipeDrafts`            |
+| `SearchEngine`               | Recherche texte (recettes, ingrédients)        | `infrastructure/minisearch/miniSearchEngine`        |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par

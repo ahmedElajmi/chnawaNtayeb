@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Search, Sparkles, Trash2, Check, ArrowRight, Package, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { Ingredient, STAPLE_INGREDIENT_IDS, ingredientPriceRange } from '@/core/catalog';
+import { sortBySearchScore } from '@/core/search';
+import { useSearchMatches } from '@/app/ContainerContext';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { PhotoScannerModal } from '@/features/fridge/components/PhotoScannerModal';
@@ -62,12 +64,16 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
     { id: 'fruits', label: t.catFruits },
   ];
 
+  // Search engine answer (typos, derja spellings, Arabic); until it answers, the simple filter below applies
+  const searchMatches = useSearchMatches('ingredients', searchQuery);
+
   const filteredIngredients = useMemo(() => {
-    return allIngredients.filter((ing) => {
+    const kept = allIngredients.filter((ing) => {
       // Category filter
       if (activeCategory !== 'all' && ing.category !== activeCategory) {
         return false;
       }
+      if (searchMatches) return searchMatches.has(ing.id);
       // Search filter
       if (searchQuery.trim().length > 0) {
         const q = searchQuery.toLowerCase().trim();
@@ -79,7 +85,8 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
       }
       return true;
     });
-  }, [allIngredients, activeCategory, searchQuery]);
+    return searchMatches ? sortBySearchScore(kept, (ing) => ing.id, searchMatches) : kept;
+  }, [allIngredients, activeCategory, searchQuery, searchMatches]);
 
   const handleTriggerSearch = () => {
     try {

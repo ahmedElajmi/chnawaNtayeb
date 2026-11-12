@@ -1,5 +1,6 @@
 import {
   CatalogAdmin,
+  CatalogSearch,
   CatalogStore,
   KitchenStore,
   MatchingScenariosStore,
@@ -30,6 +31,7 @@ import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
 import { firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
+import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
 
 /** A device copy older than this is read again in full (deletion markers may have been purged). */
 const FULL_REFRESH_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
@@ -72,6 +74,8 @@ export function createContainer() {
   return {
     // Stores (state shared by the screens)
     catalog,
+    // Text search on the device copy of the catalog (swap the engines here, e.g. for a server one)
+    search: new CatalogSearch(catalog, { recipes: createMiniSearchEngine(), ingredients: createMiniSearchEngine() }),
     kitchen,
     patron: new PatronStore(patronHttpGateway, () => catalogAdmin.seedIfEmpty()),
     matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),

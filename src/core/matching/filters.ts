@@ -8,6 +8,12 @@ export interface FilterOptions {
   category?: string; // 'all' or MealCategory
   cuisineType?: string; // 'all' or CuisineType
   searchQuery?: string;
+  /**
+   * Ids found by the search engine for `searchQuery`, with their relevance. When present, they
+   * replace the simple name filter (typos, derja spellings, ingredients, descriptions) and the
+   * full list is ordered by relevance; when absent (engine not ready), the name filter applies.
+   */
+  searchMatches?: ReadonlyMap<string, number>;
   healthyOnly?: boolean;
 }
 
@@ -23,7 +29,9 @@ function predicates(filters: FilterOptions = {}): RecipePredicate[] {
   if (healthyOnly) list.push((r) => !!r.is_healthy);
   if (maxBudget) list.push((r) => r.estimated_cost_tnd <= maxBudget);
   if (maxTotalTime) list.push((r) => r.prep_time_minutes + r.cook_time_minutes <= maxTotalTime);
-  if (query) list.push((r) => [r.name_fr, r.name_derja, r.name_ar].some((n) => normalizeText(n).includes(query)));
+  const matches = filters.searchMatches;
+  if (query && matches) list.push((r) => matches.has(r.id));
+  else if (query) list.push((r) => [r.name_fr, r.name_derja, r.name_ar].some((n) => normalizeText(n).includes(query)));
   return list;
 }
 

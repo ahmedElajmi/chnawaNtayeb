@@ -4,6 +4,7 @@ import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
 import type { CollectionChanges, Versioned } from '@/core/sync';
+import type { SearchDocument, SearchHit } from '@/core/search';
 
 /**
  * Ports: what the application needs from the outside world.
@@ -68,6 +69,24 @@ export interface SharedCollectionWriter<T extends Versioned> {
   replaceAll(items: T[]): Promise<WriteResult & { removed?: number }>;
   /** True when the collection holds nothing yet (reads at most one entry). */
   isEmpty(): Promise<boolean>;
+}
+
+/**
+ * Full-text search over catalog items (recipes or ingredients). Implementations may run on the
+ * device or on a server; documents and queries are already normalized by the core
+ * (`@/core/search`), so every engine sees the same words.
+ */
+export interface SearchEngine {
+  /** Replaces the whole index. */
+  rebuild(documents: SearchDocument[]): Promise<void>;
+  /** Adds new documents and replaces the ones with the same id (no word of the old version remains). */
+  upsert(documents: SearchDocument[]): Promise<void>;
+  remove(ids: string[]): Promise<void>;
+  /**
+   * Ids whose documents contain every word of the query (a word may be the beginning of an
+   * indexed word), best first. An empty query finds nothing.
+   */
+  search(query: string): Promise<SearchHit[]>;
 }
 
 /** The user's own kitchen data. */

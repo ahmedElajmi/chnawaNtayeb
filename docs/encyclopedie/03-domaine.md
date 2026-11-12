@@ -94,6 +94,14 @@ les marques de suppression et les ids retirés, sans modifier la liste reçue), 
 `isDeletionMarker`, `withoutDeleted`. Testé, y compris sur 20 000 éléments. Voir
 [05 Application et données](05-application-donnees.md).
 
+## `search` : recherche texte
+
+`normalizeSearchText` / `searchTerms` (s'appuie sur `normalizeText` sans le modifier : harakat, tatweel,
+formes d'alef, ة, ى, article arabe ; derja latine : chiffres arabizi 3 / 7 / 9 / 5 / 2, q → k, ou / o → u,
+sh → ch, lettres doublées), `recipeSearchDocument` / `ingredientSearchDocument` (toutes les langues et
+variantes via `localizedValues`), `SEARCH_FIELD_WEIGHTS`, `sortBySearchScore`, `planIndexUpdate`.
+Voir [12 Recherche](12-recherche.md).
+
 ## `matching` : le moteur de suggestions
 
 Voir la page dédiée [04 Moteur de matching](04-moteur-matching.md).
