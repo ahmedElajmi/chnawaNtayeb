@@ -206,6 +206,8 @@ export interface TranslationDictionary {
   recipesSuggestionsTab: string;
   selectedIngredientsTitle: string;
   showAllLabel: string;
+  listProgress: string;
+  listShowMore: string;
   showLessLabel: string;
   removeIngredientLabel: string;
   suggestionsEmptyTitle: string;
@@ -413,6 +415,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     recipesSuggestionsTab: 'Ekhtiyarati',
     selectedIngredientsTitle: 'Frigo mte3i',
     showAllLabel: 'Warini el kol',
+    listProgress: '{shown} men {total}',
+    listShowMore: 'Warrini akther',
     showLessLabel: 'Na9es',
     removeIngredientLabel: 'Na7i',
     suggestionsEmptyTitle: 'El frigo fera8',
@@ -620,6 +624,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     recipesSuggestionsTab: 'Mes suggestions',
     selectedIngredientsTitle: 'Mon frigo',
     showAllLabel: 'Tout voir',
+    listProgress: '{shown} sur {total}',
+    listShowMore: 'Voir plus',
     showLessLabel: 'Réduire',
     removeIngredientLabel: 'Retirer',
     suggestionsEmptyTitle: 'Votre frigo est vide',
@@ -823,6 +829,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     recipesSuggestionsTab: 'اقتراحاتي',
     selectedIngredientsTitle: 'شنوة عندي في الفريجيدار',
     showAllLabel: 'ورّيني الكل',
+    listProgress: '{shown} من {total}',
+    listShowMore: 'عرض المزيد',
     showLessLabel: 'نقّص',
     removeIngredientLabel: 'نحّي',
     suggestionsEmptyTitle: 'الفريجيدار فارغ',

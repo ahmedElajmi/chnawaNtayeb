@@ -12,6 +12,8 @@ import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 import { IngredientEditorModal, NEW_INGREDIENT } from './IngredientEditorModal';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { usePagedList } from '@/shared/hooks/usePagedList';
+import { ShowMore } from '@/shared/ui/ShowMore';
 import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
 
 const PRICE_INPUT =
@@ -56,6 +58,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
     .filter(matchesQuick[quick])
     .filter((i) => !q || [i.name_fr, i.name_derja, i.name_ar].some((n) => normalizeText(n).includes(q)))
     .sort(compareNames);
+  const page = usePagedList(filtered, `${q}|${category}|${quick}`);
   const countOf = (f: QuickFilter) => ingredients.filter(matchesQuick[f]).length;
   const edited = Object.keys(prices).length;
   const rangeOf = (ing: Ingredient): PriceRange => prices[ing.id] ?? { min: ing.price_min_tnd, max: ing.price_max_tnd };
@@ -135,7 +138,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
       </p>
 
       <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {filtered.map((ing) => {
+        {page.visible.map((ing) => {
           const range = rangeOf(ing);
           const invalid = range.min < 0 || range.max < range.min;
           return (
@@ -196,6 +199,11 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
           );
         })}
       </div>
+      <ShowMore
+        list={page}
+        progressLabel={(shown, total) => `${shown} ingrédient(s) affiché(s) sur ${total}`}
+        buttonLabel="Afficher plus"
+      />
 
       {editing && (
         <IngredientEditorModal

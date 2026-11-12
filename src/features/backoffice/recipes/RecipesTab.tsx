@@ -5,6 +5,8 @@ import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
+import { usePagedList } from '@/shared/hooks/usePagedList';
+import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 
@@ -25,6 +27,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
   const filtered = q
     ? recipes.filter((r) => [r.name_fr, r.name_derja, r.name_ar].some((n) => normalizeText(n).includes(q)))
     : recipes;
+  const page = usePagedList(filtered, q);
 
   const togglePublish = (recipe: Recipe) => {
     const updated = { ...recipe, is_published: !recipe.is_published };
@@ -58,7 +61,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
       </div>
 
       <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {filtered.map((r) => (
+        {page.visible.map((r) => (
           <div
             key={r.id}
             className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
@@ -145,6 +148,11 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
           </div>
         ))}
       </div>
+      <ShowMore
+        list={page}
+        progressLabel={(shown, total) => `${shown} recette(s) affichée(s) sur ${total}`}
+        buttonLabel="Afficher plus"
+      />
     </div>
   );
 }
