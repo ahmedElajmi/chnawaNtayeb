@@ -228,6 +228,44 @@ Mettre à jour cette page (statut « implémenté »), `05-application-donnees.m
 normalisation dans `normalizeSearchText`) ; `npm run check` vert ; mesurer sur un vrai téléphone avec le
 catalogue réel avant la PR.
 
+## Sans régression
+
+### Chaque limite et sa solution
+
+| Limite d'aujourd'hui                | Exemple                                       | Solution                                                                  |
+| ----------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
+| Aucune tolérance aux fautes         | « kamounya » ne trouve rien                   | Le moteur accepte 1 ou 2 fautes selon la longueur du mot                  |
+| Arabe vocalisé                      | « كُسْكُسِي » ≠ « كسكسي »                     | `normalizeSearchText` retire les harakat, unifie `أ إ آ` → `ا`, `ة` → `ه` |
+| Derja en lettres latines            | « 3jja » ≠ « ojja », « sh » ≠ « ch »          | Table d'équivalences dans `normalizeSearchText`, validée avec le chef     |
+| Le frigo ignore la normalisation    | « oeuf » ne trouve pas « Œufs »               | Le frigo passe par la même recherche que les recettes                     |
+| Pas de classement                   | Résultats dans l'ordre du catalogue           | Score du moteur : nom > ingrédients > description                         |
+| Coût linéaire sur un gros catalogue | Chaque frappe renormalise toutes les recettes | Index construit une fois, puis mis à jour par `upsert` / `remove`         |
+
+### Les règles à suivre pendant l'implémentation
+
+1. **`normalizeText` n'est pas modifié.** Le matching du frigo, le scan photo et `findByName` en
+   dépendent. `normalizeSearchText` l'appelle puis ajoute les règles arabes et derja : le comportement
+   actuel ne bouge pas.
+2. **Le comportement actuel est figé par des tests avant tout changement** (tests de caractérisation) :
+   « sel » ne trouve pas « persil », « oeuf » trouve « Œufs », les filtres (catégorie, budget, temps,
+   sain) renvoient les mêmes recettes qu'avant. Un test cassé bloque `npm run check`, donc le commit.
+3. **Premier adapter = le code d'aujourd'hui.** Le port `RecipeSearchEngine` arrive d'abord avec
+   l'adapter en mémoire, qui reproduit exactement le `includes` actuel. L'application est branchée dessus
+   et doit donner les mêmes résultats. Ensuite seulement, MiniSearch le remplace dans `container.ts`
+   (une ligne, réversible).
+4. **Un seul test de contrat pour tous les moteurs.** L'adapter en mémoire, MiniSearch et plus tard un
+   moteur serveur passent le même `recipeSearchEngine.contract.ts` (un document supprimé ne ressort plus,
+   un nom modifié ne garde pas l'ancien terme, mot entier…).
+5. **Les filtres ne bougent pas.** Le moteur ne traite que le texte et renvoie des ids classés ;
+   `createRecipeFilter` reste la seule règle pour catégorie, budget, temps et sain.
+6. **Repli tant que l'index n'est pas prêt.** Au démarrage, pendant la construction ou en cas d'erreur
+   du moteur, la recherche actuelle répond : jamais d'écran vide.
+7. **Comparaison avant fusion.** Un script de diagnostic (sur le modèle de `npm run diagnose:matching`)
+   lance une liste de recherches types sur le vrai catalogue avec l'ancienne et la nouvelle recherche et
+   affiche les différences ; chaque différence doit être voulue.
+8. **Petites PR, une par étape** : normalisation, puis port + adapter en mémoire, puis MiniSearch, puis
+   l'interface. Chacune est testable et réversible seule.
+
 ## Sources
 
 - Render, offre gratuite : https://render.com/docs/free ; ressources : https://render.com/docs/compute-plans
