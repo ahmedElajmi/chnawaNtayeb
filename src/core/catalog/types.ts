@@ -26,6 +26,8 @@ export interface Ingredient {
   name_fr: string;
   name_derja: string;
   name_ar: string;
+  /** Derja in Arabic letters (optional variant; empty → Arabic, see LANGUAGES) */
+  name_derja_ar?: string;
   category: IngredientCategory;
   icon?: string;
   unit_default: string;
@@ -66,12 +68,15 @@ export interface RecipeStep {
   instruction_fr: string;
   instruction_derja: string;
   instruction_ar: string;
+  instruction_derja_ar?: string;
 }
 
+/** Chef's tip in every content language (same shape as LocalizedText). */
 export interface ChefTip {
   fr: string;
   derja: string;
   ar: string;
+  derja_ar?: string;
 }
 
 /** Course of a dish. Old values (express, kaskrout, soupe) are converted by ./course.ts */
@@ -89,6 +94,9 @@ export interface Recipe {
   description_fr: string;
   description_derja: string;
   description_ar: string;
+  /** Derja in Arabic letters (optional variants of the name and description) */
+  name_derja_ar?: string;
+  description_derja_ar?: string;
   image_url: string;
   prep_time_minutes: number;
   cook_time_minutes: number;

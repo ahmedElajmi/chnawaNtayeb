@@ -1,3 +1,4 @@
+import { localizedField, withLocalizedField } from '@/core/shared';
 import { useState } from 'react';
 import { ImageOff, X } from 'lucide-react';
 import {
@@ -106,8 +107,8 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
           <LocalizedField
             label="Nom de l'ingrédient"
             frenchRequired
-            value={{ fr: draft.name_fr, derja: draft.name_derja, ar: draft.name_ar }}
-            onChange={(v) => set({ name_fr: v.fr, name_derja: v.derja, name_ar: v.ar })}
+            value={localizedField(draft, 'name')}
+            onChange={(v) => setDraft((d) => withLocalizedField(d, 'name', v))}
             invalid={!!duplicate}
           />
           {duplicate && (

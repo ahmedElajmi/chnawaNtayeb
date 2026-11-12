@@ -178,3 +178,55 @@ describe('browseRecipes – full catalog', () => {
     expect(list.length).toBeLessThan(published.length);
   });
 });
+
+describe('text search in the recipe lists', () => {
+  const published = initialRecipes.filter((r) => r.is_published);
+  const ids = (list: MatchingResult[]) => list.map((r) => r.recipe.id);
+
+  it('without engine results, keeps the simple name filter', () => {
+    const list = browseRecipes(initialRecipes, [], { searchQuery: 'ojja' }, ctx);
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.every((r) => normalizeText(r.recipe.name_fr + ' ' + r.recipe.name_derja).includes('ojja'))).toBe(true);
+  });
+
+  it('with engine results, keeps exactly the recipes found, best first, other filters still applied', () => {
+    const a = published[0].id;
+    const b = published[1].id;
+    const matches = new Map([
+      [a, 1],
+      [b, 5],
+      ['unknown', 9],
+    ]);
+    const list = browseRecipes(initialRecipes, [], { searchQuery: 'x', searchMatches: matches }, ctx);
+    expect(ids(list)).toEqual([b, a]);
+
+    const dessert = published.find((r) => r.category === 'dessert')!;
+    const main = published.find((r) => r.category !== 'dessert')!;
+    const filtered = browseRecipes(
+      initialRecipes,
+      [],
+      {
+        searchQuery: 'x',
+        category: 'dessert',
+        searchMatches: new Map([
+          [dessert.id, 1],
+          [main.id, 2],
+        ]),
+      },
+      ctx
+    );
+    expect(ids(filtered)).toEqual([dessert.id]);
+  });
+
+  it('ignores engine results when there is no query', () => {
+    const list = browseRecipes(initialRecipes, [], { searchMatches: new Map([[published[0].id, 1]]) }, ctx);
+    expect(list).toHaveLength(published.length);
+  });
+
+  it('the fridge suggestions keep their own order inside each level', () => {
+    const matches = new Map(published.map((r, i) => [r.id, i]));
+    const plain = matchRecipes(initialRecipes, ['ing_oeuf'], { searchQuery: 'x', searchMatches: matches }, ctx);
+    const all = matchRecipes(initialRecipes, ['ing_oeuf'], undefined, ctx);
+    expect(ids(plain.ready)).toEqual(ids(all.ready));
+  });
+});

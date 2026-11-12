@@ -15,11 +15,27 @@ describe('parseBackup', () => {
       ...recipe,
       name_derja: 'Ojja derja',
       name_ar: 'عجة',
-      steps: [{ step_number: 1, instruction_fr: 'Cuire.', instruction_derja: 'Tayyeb.', instruction_ar: 'اطبخ.' }],
-      chef_tip: { fr: 'Astuce', derja: 'Nasi7a', ar: 'نصيحة' },
+      name_derja_ar: 'عجّة بالمرقاز',
+      description_derja_ar: 'ماكلة فيسع',
+      steps: [
+        {
+          step_number: 1,
+          instruction_fr: 'Cuire.',
+          instruction_derja: 'Tayyeb.',
+          instruction_ar: 'اطبخ.',
+          instruction_derja_ar: 'طيّب.',
+        },
+      ],
+      chef_tip: { fr: 'Astuce', derja: 'Nasi7a', ar: 'نصيحة', derja_ar: 'نصيحة الشاف' },
       video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     };
-    const ingredient = { ...initialIngredients[0], price_min_tnd: 2, price_max_tnd: 3, image_url: 'https://a.b/c.jpg' };
+    const ingredient = {
+      ...initialIngredients[0],
+      name_derja_ar: 'طماطم',
+      price_min_tnd: 2,
+      price_max_tnd: 3,
+      image_url: 'https://a.b/c.jpg',
+    };
     const file = JSON.parse(
       JSON.stringify({
         recipes: [edited],

@@ -147,3 +147,42 @@ describe('validateIngredient: unit and price must fit', () => {
     expect(checked).toMatchObject({ ok: false, field: 'unit' });
   });
 });
+
+describe('language variants in the catalog', () => {
+  const base = initialRecipes[0];
+
+  it('validateRecipe keeps and trims derja in Arabic letters, and drops it when empty', () => {
+    const checked = validateRecipe({
+      ...base,
+      name_derja_ar: ' عجّة ',
+      description_derja_ar: '  ',
+      steps: [{ ...base.steps[0], instruction_derja_ar: ' طيّب. ' }],
+      chef_tip: { fr: 'Astuce', derja: '', ar: '', derja_ar: ' نصيحة ' },
+    });
+    expect(checked.ok).toBe(true);
+    if (!checked.ok) return;
+    expect(checked.value.name_derja_ar).toBe('عجّة');
+    expect('description_derja_ar' in checked.value).toBe(false);
+    expect(checked.value.steps[0].instruction_derja_ar).toBe('طيّب.');
+    expect(checked.value.chef_tip?.derja_ar).toBe('نصيحة');
+  });
+
+  it('a step written only in derja with Arabic letters is kept (French is still required to save)', () => {
+    const checked = validateRecipe({
+      ...base,
+      steps: [
+        base.steps[0],
+        { step_number: 2, instruction_fr: '', instruction_derja: '', instruction_ar: '', instruction_derja_ar: 'كمّل' },
+      ],
+    });
+    expect(checked.ok).toBe(false);
+  });
+
+  it('validateIngredient keeps derja in Arabic letters only when written', () => {
+    const ingredient = initialIngredients[0];
+    const kept = validateIngredient({ ...ingredient, name_derja_ar: ' طماطم ' });
+    const dropped = validateIngredient({ ...ingredient, name_derja_ar: ' ' });
+    expect(kept.ok && kept.value.name_derja_ar).toBe('طماطم');
+    expect(dropped.ok && 'name_derja_ar' in dropped.value).toBe(false);
+  });
+});

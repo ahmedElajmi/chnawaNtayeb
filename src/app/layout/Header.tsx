@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useMatch, useNavigate } from 'react-router';
 import { Settings, Globe, User, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { Language } from '@/core/shared';
+import { languageInfo, SELECTOR_ORDER, type Language } from '@/core/shared';
 import type { AppUser } from '@/application';
 import { PATHS } from '@/shared/paths';
 import { useRecipesHref } from '@/features/recipes/filterMemory';
@@ -156,9 +156,11 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label="Sélectionner la langue"
               className="appearance-none pl-7 pr-3.5 py-1.5 text-xs font-semibold rounded-lg bg-card border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
             >
-              <option value="derja">🇹🇳 Derja</option>
-              <option value="fr">🇫🇷 FR</option>
-              <option value="ar">العربية</option>
+              {SELECTOR_ORDER.map((code) => (
+                <option key={code} value={code}>
+                  {languageInfo(code).selectorLabel}
+                </option>
+              ))}
             </select>
           </div>
 

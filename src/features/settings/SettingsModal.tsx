@@ -15,7 +15,7 @@ import {
 import { PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useTheme } from '@/app/providers/ThemeContext';
-import { Language } from '@/core/shared';
+import { languageInfo, SELECTOR_ORDER, type Language } from '@/core/shared';
 import { ThemeMode } from '@/core/preferences';
 import { ThemePreviewCard } from '@/features/settings/ThemePreviewCard';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -65,11 +65,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     { id: 'system', label: t.modeSystem, icon: MonitorSmartphone },
   ];
 
-  const languages: { id: Language; label: string }[] = [
-    { id: 'derja', label: 'Derja' },
-    { id: 'fr', label: 'Français' },
-    { id: 'ar', label: 'العربية' },
-  ];
+  const languages: { id: Language; label: string }[] = SELECTOR_ORDER.map((id) => ({
+    id,
+    label: languageInfo(id).selectorLabel,
+  }));
 
   // The Application tab only exists when it has something to offer (nothing once installed, unless patron)
   const hasAppTab = install.canInstall || isPatronAuthenticated;
