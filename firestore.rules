@@ -38,17 +38,27 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------
-    // Catalog: public read, admin-only write
+    // Catalog: public read, admin-only write.
+    // Incremental sync: every write carries `revision` = the server time of the write
+    // (devices ask only for `revision >= newest they know`), and a deletion is published
+    // as a marker { deleted: true, revision } so every device removes the item too.
     // ------------------------------------------------------------------
+
+    function isVersionedWrite(d) {
+      return d.revision == request.time
+        && (!('deleted' in d) || (d.deleted == true && d.keys().hasOnly(['deleted', 'revision'])));
+    }
 
     match /recipes/{recipeId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidId(recipeId);
+      allow create, update: if isAdmin() && isValidId(recipeId) && isVersionedWrite(request.resource.data);
+      allow delete: if isAdmin() && isValidId(recipeId);
     }
 
     match /ingredients/{ingredientId} {
       allow read: if true;
-      allow write: if isAdmin() && isValidId(ingredientId);
+      allow create, update: if isAdmin() && isValidId(ingredientId) && isVersionedWrite(request.resource.data);
+      allow delete: if isAdmin() && isValidId(ingredientId);
     }
 
     // ------------------------------------------------------------------

@@ -1,9 +1,9 @@
-import type { Ingredient, Recipe } from '@/core/catalog';
 import type { DayPlan } from '@/core/planning';
 import type { GroceryItem } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
+import type { CollectionChanges, Versioned } from '@/core/sync';
 
 /**
  * Ports: what the application needs from the outside world.
@@ -13,18 +13,61 @@ import type { AppTheme } from '@/core/theme';
  * its contract test in src/infrastructure/contracts) and swapping them in src/app/container.ts.
  */
 
-/** Catalog copy kept on the device (works offline). */
-export interface CatalogRepository {
-  loadRecipes(): Recipe[];
-  saveRecipes(recipes: Recipe[]): void;
-  loadIngredients(): Ingredient[];
-  saveIngredients(ingredients: Ingredient[]): void;
+// ---------------------------------------------------------------------------
+// Shared collections (recipes, ingredients...): one generic mechanism for all of them.
+// The database is the source of truth, followed incrementally (only what changed since
+// the newest revision known on the device); the device keeps a copy for offline use.
+// ---------------------------------------------------------------------------
+
+/** Raw entries changed in a shared collection: always read by the domain before use. */
+export interface RemoteChanges {
+  /** Entries written since the last call (deletion markers included), as stored */
+  items: unknown[];
+  /** Ids removed outright */
+  removedIds: string[];
+  /** True when `items` is the whole collection (first answer of a full read) */
+  complete: boolean;
 }
 
-/** Shared catalog published by the admin. `null` means "unavailable, keep the local copy". */
-export interface RemoteCatalogSource {
-  fetchRecipes(): Promise<Recipe[] | null>;
-  fetchIngredients(): Promise<Ingredient[] | null>;
+/** A shared collection published by the admin, followed live. */
+export interface SharedCollectionSource {
+  /**
+   * Sends what changed since `sinceRevision` (the whole collection when null), then every
+   * later change, until the returned function is called. `onError` when it cannot be read.
+   */
+  follow(sinceRevision: number | null, onChanges: (changes: RemoteChanges) => void, onError: () => void): () => void;
+}
+
+/** Device copy of a shared collection, with the newest revision it contains. */
+export interface CollectionCopy<T> {
+  items: T[];
+  /** Newest revision known; null = never followed incrementally (read everything next time) */
+  revision: number | null;
+  /** When the copy was last updated from the database (ms since epoch) */
+  savedAt: number;
+}
+
+/** Offline copy of a shared collection (large volumes: stored item by item). */
+export interface LocalCollectionCache<T extends Versioned> {
+  /** Raw copy (read through the domain by the store); null when there is none. */
+  load(): Promise<CollectionCopy<unknown> | null>;
+  /** Replaces the whole copy. */
+  replace(copy: CollectionCopy<T>): Promise<void>;
+  /** Applies changes to the copy (only the changed items are written). */
+  update(changes: CollectionChanges<T>, meta: Omit<CollectionCopy<T>, 'items'>): Promise<void>;
+}
+
+/** Admin writes to a shared collection. Every write is complete (no merge) and versioned by the database. */
+export interface SharedCollectionWriter<T extends Versioned> {
+  put(item: T): Promise<WriteResult>;
+  /** Publishes a deletion (other devices remove the item too). */
+  remove(id: string): Promise<WriteResult>;
+  /** Writes many items (grouped, for large volumes). */
+  putAll(items: T[]): Promise<WriteResult>;
+  /** Makes the collection exactly `items`: the others are removed. */
+  replaceAll(items: T[]): Promise<WriteResult & { removed?: number }>;
+  /** True when the collection holds nothing yet (reads at most one entry). */
+  isEmpty(): Promise<boolean>;
 }
 
 /** The user's own kitchen data. */
@@ -56,6 +99,11 @@ export interface StoredMatchingSettings {
 export interface MatchingSettingsRepository {
   /** Active settings; null when none were ever published. Throws when unreachable. */
   loadActive(): Promise<StoredMatchingSettings | null>;
+  /**
+   * Sends the active settings now and every time they are published again (null when none),
+   * until the returned function is called.
+   */
+  followActive(onChange: (settings: StoredMatchingSettings | null) => void): () => void;
   /** Publishes new settings as the next version (the previous ones stay in the history). */
   publish(config: MatchingConfig, note: string): Promise<WriteResult & { version?: number }>;
   /** Latest versions, newest first. */
@@ -137,29 +185,6 @@ export interface CatalogInitStats {
   deleted: number;
 }
 
-/** Catalog administration (backoffice): local copy first, then the shared cloud catalog. */
-export interface CatalogAdminGateway {
-  /** Name of the cloud project shown to the admin */
-  readonly cloudName: string;
-  saveRecipe(recipe: Recipe): Promise<WriteResult>;
-  deleteRecipe(recipeId: string): Promise<WriteResult>;
-  saveIngredient(ingredient: Ingredient): Promise<WriteResult>;
-  /** Creates an ingredient on this device (then `saveIngredient` publishes it) */
-  createIngredient(data: Omit<Ingredient, 'id'>): Ingredient;
-  /** Sends every local recipe and ingredient to the cloud */
-  pushAll(): Promise<WriteResult>;
-  /** Replaces the cloud catalog with the built-in one */
-  resetCloudCatalog(): Promise<WriteResult & { stats?: CatalogInitStats }>;
-  /** Replaces the local copy with the cloud catalog */
-  pullFromCloud(): Promise<void>;
-  /** Full backup as JSON text (dump) */
-  exportBackup(): string;
-  /** Restores a JSON backup on this device (read through `parseBackup`) */
-  importBackup(json: string): BackupImportResult;
-  /** Built-in catalog and default menu on this device */
-  resetLocalToDefaults(): void;
-}
-
 export interface FridgeScanResult {
   /** Detected items: catalog id when recognized, French name otherwise */
   ingredients: { ingredient_id: string | null; name_fr: string }[];
@@ -189,8 +214,6 @@ export interface PatronGateway {
   verifySession(): Promise<boolean>;
   connectCloud(): Promise<CloudStatus>;
   logout(): Promise<void>;
-  /** Called once the admin is connected to the cloud (e.g. seeds an empty cloud catalog). */
-  onCloudConnected(): Promise<void>;
 }
 
 /** Unsaved recipe edits, kept on this device so that closing the editor by mistake loses nothing. */

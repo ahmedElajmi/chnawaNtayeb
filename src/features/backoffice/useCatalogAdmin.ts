@@ -7,17 +7,13 @@ import { downloadTextFile } from '@/shared/ui/download';
 export type Notify = (message: string, isError?: boolean) => void;
 
 /**
- * Catalog actions of the backoffice: each one goes through the CatalogAdminGateway port,
- * refreshes the screens, and reports success or the cloud error.
+ * Catalog actions of the backoffice: each one goes through the CatalogAdmin service (shown at once
+ * on this device, then sent live to the others by the database) and reports success or the cloud error.
  */
 export function useCatalogAdmin(notify: Notify) {
-  const { catalogAdmin, catalog, kitchen } = useContainer();
+  const { catalogAdmin } = useContainer();
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const refresh = () => {
-    catalog.reloadLocal();
-    kitchen.reload();
-  };
   const report = (result: WriteResult, success: string) => (result.ok ? notify(success) : notify(result.error, true));
   const whileSyncing = async (action: () => Promise<void>) => {
     setIsSyncing(true);
@@ -34,14 +30,12 @@ export function useCatalogAdmin(notify: Notify) {
 
     async saveRecipe(recipe: Recipe, success = 'Recette enregistrée et synchronisée') {
       const result = await catalogAdmin.saveRecipe(recipe);
-      refresh();
       report(result, success);
     },
 
     async deleteRecipe(recipe: Recipe) {
       if (!window.confirm(`Confirmer la suppression de "${recipe.name_fr}" ?`)) return;
       const result = await catalogAdmin.deleteRecipe(recipe.id);
-      refresh();
       report(result, 'Recette supprimée');
     },
 
@@ -63,21 +57,18 @@ export function useCatalogAdmin(notify: Notify) {
         const result = await catalogAdmin.saveIngredient(ingredient);
         if (!result.ok) failure = result;
       }
-      refresh();
       report(failure ?? { ok: true }, 'Prix du marché mis à jour');
       return true;
     },
 
     async saveIngredient(ingredient: Ingredient) {
       const result = await catalogAdmin.saveIngredient(ingredient);
-      refresh();
       report(result, 'Ingrédient enregistré et synchronisé');
     },
 
     async addIngredient(data: Omit<Ingredient, 'id'>) {
       const created = catalogAdmin.createIngredient(data);
       const result = await catalogAdmin.saveIngredient(created);
-      refresh();
       report(result, 'Nouvel ingrédient ajouté au catalogue');
     },
 
@@ -87,8 +78,7 @@ export function useCatalogAdmin(notify: Notify) {
     pullFromCloud: () =>
       whileSyncing(async () => {
         try {
-          await catalogAdmin.pullFromCloud();
-          refresh();
+          catalogAdmin.pullFromCloud();
           notify('Recettes et ingrédients rechargés depuis le cloud');
         } catch {
           notify('Erreur lors de la récupération depuis le cloud.', true);
@@ -105,7 +95,6 @@ export function useCatalogAdmin(notify: Notify) {
         );
         if (!ok) return;
         const result = await catalogAdmin.resetCloudCatalog();
-        refresh();
         if (result.ok && result.stats) {
           const { recipes, ingredients, deleted } = result.stats;
           notify(
@@ -128,7 +117,6 @@ export function useCatalogAdmin(notify: Notify) {
         notify("Ce fichier n'est pas une sauvegarde Chnowa Ntayeb lisible.", true);
         return;
       }
-      refresh();
       const skipped = result.skipped ? ` ${result.skipped} élément(s) illisible(s) ignoré(s).` : '';
       notify(
         `Sauvegarde restaurée sur cet appareil : ${result.recipes} recettes, ${result.ingredients} ingrédients.${skipped} ` +
@@ -140,7 +128,6 @@ export function useCatalogAdmin(notify: Notify) {
     resetLocalToDefaults() {
       if (!window.confirm('Voulez-vous vraiment restaurer le catalogue de recettes tunisiennes par défaut ?')) return;
       catalogAdmin.resetLocalToDefaults();
-      refresh();
       notify('Catalogue réinitialisé avec succès !');
     },
   };

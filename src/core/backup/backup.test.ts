@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { initialIngredients, initialRecipes } from '../catalog';
-import { parseBackup } from './backup';
+import { createBackup, parseBackup } from './backup';
 
 const recipe = initialRecipes[0];
 
@@ -53,5 +53,22 @@ describe('parseBackup', () => {
     expect(parsed?.favorites).toEqual(['a']);
     expect(parsed?.groceryList).toEqual([]);
     expect(parsed?.skipped).toBe(4);
+  });
+});
+
+describe('createBackup', () => {
+  it('writes complete objects that parseBackup reads back, without sync revisions', () => {
+    const recipes = [{ ...recipe, revision: 123 }];
+    const ingredients = [{ ...initialIngredients[0], revision: 456 }];
+    const file = createBackup(
+      { recipes, ingredients, weeklyPlan: [], favorites: [recipe.id], groceryList: [] },
+      '2026-11-12T10:00:00.000Z'
+    );
+    expect(file.exported_at).toBe('2026-11-12T10:00:00.000Z');
+    expect(JSON.stringify(file)).not.toContain('revision');
+    const back = parseBackup(JSON.parse(JSON.stringify(file)));
+    expect(back?.recipes).toEqual([recipe]);
+    expect(back?.ingredients).toEqual([initialIngredients[0]]);
+    expect(back?.favorites).toEqual([recipe.id]);
   });
 });
