@@ -220,11 +220,12 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   récapitulatif des ingrédients choisis en haut du frigo ; « appuyez encore pour quitter » sur
   l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`) ; bouton « haut de page »
   (`ScrollToTopButton`, dans `AppLayout`, au-dessus de la barre collante du frigo).
-- **Endpoints d'API en anglais, regroupés par espace** : les endpoints du backoffice vivent sous
-  **`/admin/api/*`** (`/admin/api/login`, `/admin/api/employees`), les endpoints publics sous **`/api/*`**
-  (`/api/vision/scan-fridge`, `/api/health`). L'espace backoffice est servi sur **`/admin`** (`/patron`
-  redirige vers lui le temps d'une version). Les slugs des pages publiques restent en français par choix
-  produit (`/frigo`, `/recettes`).
+- **URLs et endpoints tous en anglais** : les pages publiques sont `/`, `/fridge`, `/recipes`, `/recipe/:slug`,
+  `/suggestions`, `/planner`, `/grocery`, `/admin` ; les endpoints du backoffice vivent sous **`/admin/api/*`**,
+  les endpoints publics sous **`/api/*`** (`/api/vision/scan-fridge`, `/api/health`). **Aucune URL complète n'est
+  écrite ailleurs que dans `src/shared/paths.ts`** (constantes `PATHS`, carte `LEGACY_PATHS` des adresses de
+  l'époque française, qui répondent en **301** — pages et `/recette/:slug` — pour transférer le référencement) ;
+  partout ailleurs, passer par `PATHS.*` / `recipePath()`.
 - Code et commentaires en anglais ; documentation en français.
 
 ## Git
