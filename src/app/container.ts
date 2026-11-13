@@ -7,8 +7,11 @@ import {
   MatchingSettingsStore,
   PatronStore,
   RecipeDrafts,
+  ReviewBoard,
+  ReviewSettingsStore,
   SyncedCollectionStore,
 } from '@/application';
+import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
   initialRecipes,
@@ -28,6 +31,8 @@ import { firestoreCloudName, firestoreIngredients, firestoreRecipes } from '@/in
 import { firestoreMatchingScenarios } from '@/infrastructure/firebase/firestoreMatchingScenarios';
 import { firestoreMatchingSettings } from '@/infrastructure/firebase/firestoreMatchingSettings';
 import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
+import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firestoreReviewWorkspace';
+import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
 import { firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
@@ -64,6 +69,39 @@ export function createContainer() {
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
   const catalog = new CatalogStore(recipes, ingredients);
+
+  // Validation workflow: private workspaces (admin only, started from the backoffice)
+  const recipesWorkspace = createFirestoreReviewWorkspace<'recipe'>('recipes');
+  const ingredientsWorkspace = createFirestoreReviewWorkspace<'ingredient'>('ingredients');
+  const review = new ReviewBoard({
+    settings: new ReviewSettingsStore(firestoreReviewSettings),
+    catalog,
+    recipes: {
+      workspace: new SyncedCollectionStore<WorkCopy<'recipe'>>({
+        source: recipesWorkspace.source,
+        cache: createIndexedDbCollectionCache<WorkCopy<'recipe'>>('recipes_workspace'),
+        read: parseWorkCopies('recipe'),
+        builtIn: () => [],
+        now,
+        fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
+      }),
+      writer: recipesWorkspace.writer,
+    },
+    ingredients: {
+      workspace: new SyncedCollectionStore<WorkCopy<'ingredient'>>({
+        source: ingredientsWorkspace.source,
+        cache: createIndexedDbCollectionCache<WorkCopy<'ingredient'>>('ingredients_workspace'),
+        read: parseWorkCopies('ingredient'),
+        builtIn: () => [],
+        now,
+        fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
+      }),
+      writer: ingredientsWorkspace.writer,
+    },
+    // One patron account for now: the admin. Team accounts and their roles come with the roles editor.
+    actor: () => ({ id: 'patron', role: DEFAULT_ROLES.find((r) => r.id === ADMIN_ROLE_ID)! }),
+    now,
+  });
   const kitchen = new KitchenStore(localKitchenRepository);
   const catalogAdmin = new CatalogAdmin(catalog, firestoreRecipes.writer, firestoreIngredients.writer, kitchen, {
     cloudName: firestoreCloudName,
@@ -88,6 +126,8 @@ export function createContainer() {
     themes: firestoreThemeRepository,
     userAuth: firebaseUserAuth,
     catalogAdmin,
+    // Validation workflow (workspaces, workflows, roles): followed only in the backoffice
+    review,
     vision: visionHttpGateway,
     recipeDrafts: new RecipeDrafts(localRecipeDrafts, () => new Date().toISOString()),
   };

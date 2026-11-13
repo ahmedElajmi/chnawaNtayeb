@@ -6,3 +6,5 @@ export * from './workflow';
 export * from './roles';
 export * from './progress';
 export * from './queue';
+export * from './workCopy';
+export * from './settings';

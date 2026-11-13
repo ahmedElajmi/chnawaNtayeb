@@ -96,8 +96,8 @@ les marques de suppression et les ids retirés, sans modifier la liste reçue), 
 
 ## `review` : workflow de validation du contenu
 
-Règles pures du workflow de validation (plan complet : [14](14-refonte-backoffice.md)). Pas encore
-branché à l'application : les ports, l'atelier et les écrans viennent ensuite.
+Règles pures du workflow de validation (plan complet : [14](14-refonte-backoffice.md)). Utilisées par
+l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans viennent ensuite.
 
 - `parts.ts` : les **parties** de chaque type de contenu (`REVIEW_KINDS` : recette, ingrédient) et la
   **grille** partie × langue (`reviewCells`). Une partie de texte a une case par langue ou variante
@@ -131,6 +131,13 @@ branché à l'application : les ports, l'atelier et les écrans viennent ensuite
 - `queue.ts` : file « À valider » (`groupQueue` par élément, étape, partie, langue, type ou auteur, avec
   des totaux sur toute la file ; `queueCounts`) et `workflowImpact` (éléments en ligne qu'un nouveau
   workflow rendrait à revalider).
+- `workCopy.ts` : la **copie de travail** (`WorkCopy` : contenu, décisions par case, empreintes de la
+  version en ligne, historique borné à 50 événements, `written_at` posé à chaque écriture pour refuser
+  une modification qui ne part pas de la copie enregistrée) ; `parseWorkCopy` (contenu relu par
+  `parseStoredRecipe` / `parseStoredIngredient`), `workCopyFromPublished` (élément déjà en ligne : toutes
+  ses cases validées), `newWorkCopy`, `hasPendingChanges`, `PublishedVersion` et `parsePublishedVersion`.
+- `settings.ts` : `ReviewSettings` (workflows de chaque type + rôles, un seul document),
+  `resolveReviewSettings` (toujours utilisable, avec ce qui a été réparé), `validateReviewSettings`.
 
 ## `search` : recherche texte
 

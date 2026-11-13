@@ -6,18 +6,21 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 `subscribe(listener)`, et des méthodes métier qui enregistrent puis notifient. Côté React,
 `useStore` (dans `src/app/ContainerContext.tsx`) s'abonne via `useSyncExternalStore`.
 
-| Store                   | État                                                    | Rôle                                                                                 |
-| ----------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas) |
-| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non  | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                        |
-| `KitchenStore`          | frigo, placard, favoris, menu, liste de courses         | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement     |
-| `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud   | Session patron, toujours confirmée par le serveur                                    |
-| `MatchingSettingsStore` | réglages du moteur, version, source                     | Base = référence, copie locale hors ligne, valeurs du code par défaut                |
-| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette            | Garde, propose à nouveau et efface les modifications non enregistrées                |
-| `CatalogAdmin`          | (service) actions du backoffice sur le catalogue        | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration    |
-| `CatalogSearch`         | révision des index de recherche                         | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))    |
+| Store                   | État                                                      | Rôle                                                                                 |
+| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas) |
+| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                        |
+| `KitchenStore`          | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement     |
+| `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud     | Session patron, toujours confirmée par le serveur                                    |
+| `MatchingSettingsStore` | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                |
+| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                |
+| `CatalogAdmin`          | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration    |
+| `CatalogSearch`         | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))    |
+| `ReviewSettingsStore`   | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée         |
+| `ReviewStore<K>`        | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer      |
+| `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                    |
 
-Hooks d'accès : `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useReview(kind)`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
@@ -36,10 +39,13 @@ Hooks d'accès : `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`
 | `VisionGateway`              | Scan photo du frigo                            | `infrastructure/http/visionHttpGateway`             |
 | `RecipeDraftRepository`      | Brouillons de recettes non enregistrés         | `infrastructure/local/localRecipeDrafts`            |
 | `SearchEngine`               | Recherche texte (recettes, ingrédients)        | `infrastructure/minisearch/miniSearchEngine`        |
+| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication       | `infrastructure/firebase/firestoreReviewWorkspace`  |
+| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions          | `infrastructure/firebase/firestoreReviewSettings`   |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par
-l'adapter IndexedDB, testé avec `fake-indexeddb`).
+l'adapter IndexedDB, testé avec `fake-indexeddb`) ; atelier : `memoryReviewWorkspace` et
+`reviewWorkspace.contract.ts`, réglages : `memoryReviewSettings`.
 
 Les écritures renvoient `WriteResult` : `{ ok: true }` ou `{ ok: false, error }` (message lisible).
 Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part ailleurs.
@@ -58,6 +64,27 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 | `matching_scenarios/{id}`         | Scénarios du chef                        | patron                    | patron (enveloppe validée)       |
 | `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron          | lui-même (champs limités)        |
 | `admins/{uid}`                    | Comptes administrateurs supplémentaires  | patron                    | patron                           |
+| `recipes_workspace/{id}`          | Copies de travail des recettes (atelier) | patron                    | patron (enveloppe validée)       |
+| `ingredients_workspace/{id}`      | Copies de travail des ingrédients        | patron                    | patron (enveloppe validée)       |
+| `recipes_versions/{id}-{t}`       | Versions publiées d'une recette          | patron                    | patron (création seulement)      |
+| `ingredients_versions/{id}-{t}`   | Versions publiées d'un ingrédient        | patron                    | patron (création seulement)      |
+| `settings/review`                 | Workflows et rôles en vigueur            | patron                    | patron                           |
+| `review_settings_versions/v<n>`   | Historique des workflows et rôles        | patron                    | patron (création seulement)      |
+
+**Atelier du workflow de validation** (`ReviewBoard`, `src/application/review/`) : chaque type de contenu
+a un atelier privé (`<collection>_workspace`), suivi par le même `SyncedCollectionStore` que le
+catalogue (copie IndexedDB `recipes_workspace` / `ingredients_workspace`, base IndexedDB en version 2).
+`ReviewStore` calcule sur l'appareil où en est chaque copie (`reviewSnapshot`), et garde le résultat
+tant que la copie, le workflow et les ingrédients ne changent pas. Les droits du rôle sont vérifiés
+avant chaque action (`canPerform`, `canReviewCell`). **Publier** écrit en une seule transaction la
+version publique (cases validées, les autres reprises de la version en ligne), la copie de travail et
+une version dans l'historique (`<collection>_versions`). Chaque écriture de l'atelier dit de quelle
+copie elle part (`written_at`) : si quelqu'un a enregistré entre-temps, rien n'est écrit et le message
+demande de recharger. `importPublished` fait le premier passage au workflow : ce qui est en ligne
+devient une copie validée, une recette en brouillon passe dans l'atelier et quitte la collection
+publique. Pour l'instant, l'atelier n'est pas encore utilisé par les écrans (l'éditeur de recette écrit
+toujours directement dans la collection publique, via `CatalogAdmin`) ; le seul compte est le patron,
+avec le rôle administrateur.
 
 **Écriture d'une recette ou d'un ingrédient** : le document est **remplacé en entier** (pas de
 fusion), sans aucune valeur `undefined` (`withoutUndefined`, `@/core/shared` ; Firestore refuse
