@@ -74,6 +74,10 @@ l'adresse canonique, les cartes de partage, les données schema.org et une **cop
   (certains robots n'envoient pas `text/html`). Les autres adresses (`/patron`, fichiers, `/api`) ne
   passent pas par le catalogue (`isSeoPath`).
 - Une recette ou une adresse de liste inconnue renvoie une page 404 (`noindex`).
+- **Adresse de base** : toutes ces URLs (canonical, sitemap, robots) viennent de la variable
+  `APP_URL` (`server/http.ts`, `getBaseUrl`). Les en-têtes de la requête ne sont jamais lus :
+  un client peut les forger (empoisonnement de canonical/sitemap). En production, le serveur
+  refuse de démarrer sans `APP_URL` ; en développement il retombe sur `http://localhost:PORT`.
 - **Nouvelle adresse publique** : ajouter son constructeur dans `SCREENS` (sinon les robots la voient vide).
 - Le catalogue utilisé est celui de Firestore si le serveur y a accès (seulement les changements, au plus
   une fois par minute et seulement quand une page est demandée), sinon le catalogue intégré. Il est lu
