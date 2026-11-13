@@ -1,5 +1,8 @@
 # 07 · Backoffice patron (`/patron`)
 
+> Refonte prévue (nouvelle navigation, workflow de validation, workflows configurables) :
+> [14-refonte-backoffice.md](14-refonte-backoffice.md).
+
 ## Accès
 
 - Adresse `/patron`, ou trois clics sur le logo, ou depuis la fenêtre « Compte ».
