@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig(() => {
   return {
@@ -14,6 +14,13 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(import.meta.dirname, 'src'),
       },
+    },
+    test: {
+      // Agent sessions create git worktrees under .claude/worktrees; their stale
+      // test files must never run alongside the real suite.
+      exclude: [...configDefaults.exclude, '**/.claude/**'],
+      // Reuse workers across files: the suite is pure logic, isolation buys nothing.
+      isolate: false,
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
