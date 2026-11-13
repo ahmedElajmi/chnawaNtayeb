@@ -1,14 +1,25 @@
 import type { ComponentType, ReactNode } from 'react';
 import {
   Carrot,
+  ClipboardCheck,
   Database,
+  GitBranch,
   LayoutDashboard,
   Palette,
   SlidersHorizontal,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
-import { ENGINE_PAGES, PATRON_PAGES, patronPath, type PatronPage } from '@/shared/paths';
+import { ENGINE_PAGES, PATRON_PAGES, patronPath, WORKFLOW_PAGES, type PatronPage } from '@/shared/paths';
+import { QueuePage } from '../review/QueuePage';
+import {
+  ReviewSettingsDraftProvider,
+  RolesEditorPage,
+  TeamPage,
+  WorkflowSaveBar,
+  WorkflowStepsPage,
+} from '../workflows/WorkflowPages';
+import type { Permission } from '@/core/review';
 import type { BackofficeTexts } from '../i18n/backofficeTexts';
 import {
   EngineBoostsPage,
@@ -21,12 +32,14 @@ import {
 } from '../matching/EnginePages';
 import { MatchingDraftProvider } from '../matching/MatchingDraftContext';
 import { AppearancePage, DataPage, HomePage, IngredientsPage, RecipesPage } from './pages';
-import { RecipeReviewPage } from '../review/RecipeReviewPage';
+import { IngredientReviewRoute, RecipeReviewRoute } from '../review/ReviewPage';
 
 /** What the navigation knows to show a number next to an entry (counted on the whole lists). */
 export interface SectionCounts {
   recipes: number;
   ingredients: number;
+  /** Cells waiting for the reviewer */
+  pending: number;
 }
 
 export interface BackofficeSubPage {
@@ -50,6 +63,8 @@ export interface BackofficeSection {
   subPages?: BackofficeSubPage[];
   /** Shared state and header of the sub-pages (e.g. the engine draft and its publication bar) */
   frame?: ComponentType<{ children: ReactNode }>;
+  /** Right needed to see the page (the database rules check it again) */
+  requires?: Permission;
 }
 
 function EngineFrame({ children }: { children: ReactNode }) {
@@ -60,6 +75,17 @@ function EngineFrame({ children }: { children: ReactNode }) {
         {children}
       </div>
     </MatchingDraftProvider>
+  );
+}
+
+function WorkflowsFrame({ children }: { children: ReactNode }) {
+  return (
+    <ReviewSettingsDraftProvider>
+      <div className="space-y-4">
+        <WorkflowSaveBar />
+        {children}
+      </div>
+    </ReviewSettingsDraftProvider>
   );
 }
 
@@ -76,13 +102,21 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     element: <HomePage />,
   },
   {
+    page: PATRON_PAGES.review,
+    icon: ClipboardCheck,
+    label: (b) => b.queueTitle,
+    hint: (b) => b.queueHint,
+    count: (c) => c.pending || null,
+    element: <QueuePage />,
+  },
+  {
     page: PATRON_PAGES.recipes,
     icon: UtensilsCrossed,
     label: (b) => b.recipes,
     hint: (b) => b.recipesHint,
     count: (c) => c.recipes,
     element: <RecipesPage />,
-    routes: [{ path: ':id', element: <RecipeReviewPage /> }],
+    routes: [{ path: ':id', element: <RecipeReviewRoute /> }],
   },
   {
     page: PATRON_PAGES.ingredients,
@@ -91,12 +125,14 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     hint: (b) => b.ingredientsHint,
     count: (c) => c.ingredients,
     element: <IngredientsPage />,
+    routes: [{ path: ':id', element: <IngredientReviewRoute /> }],
   },
   {
     page: PATRON_PAGES.engine,
     icon: SlidersHorizontal,
     label: (b) => b.engine,
     hint: (b) => b.engineHint,
+    requires: 'publish',
     frame: EngineFrame,
     subPages: [
       { page: ENGINE_PAGES.simulator, label: (b) => b.engineSimulator, element: <EngineSimulatorPage /> },
@@ -112,13 +148,28 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     icon: Palette,
     label: (b) => b.appearance,
     hint: (b) => b.appearanceHint,
+    requires: 'publish',
     element: <AppearancePage />,
+  },
+  {
+    page: PATRON_PAGES.workflows,
+    icon: GitBranch,
+    label: (b) => b.workflowsTitle,
+    hint: (b) => b.workflowsHint,
+    requires: 'manage_workflows',
+    frame: WorkflowsFrame,
+    subPages: [
+      { page: WORKFLOW_PAGES.steps, label: (b) => b.workflowsSteps, element: <WorkflowStepsPage /> },
+      { page: WORKFLOW_PAGES.roles, label: (b) => b.workflowsRoles, element: <RolesEditorPage /> },
+      { page: WORKFLOW_PAGES.team, label: (b) => b.workflowsTeam, element: <TeamPage /> },
+    ],
   },
   {
     page: PATRON_PAGES.data,
     icon: Database,
     label: (b) => b.data,
     hint: (b) => b.dataHint,
+    requires: 'publish',
     element: <DataPage />,
   },
 ];

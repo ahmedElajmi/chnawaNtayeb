@@ -13,6 +13,7 @@ import {
   stepOfCell,
   withEvent,
   workCopyFromPublished,
+  workflowImpact,
   type PublishedVersion,
   type QueueEntry,
   type ReviewContext,
@@ -121,6 +122,14 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
 
   entry(id: string): ReviewEntry<K> | undefined {
     return this.memo.get(id)?.entry;
+  }
+
+  /** Items online that a new workflow would send back to review (computed on this device). */
+  impactOf(workflow: WorkflowDefinition): string[] {
+    const online = this.getState()
+      .entries.filter((e) => e.online)
+      .map((e) => ({ id: e.copy.id, item: e.copy.content, decisions: e.copy.decisions }));
+    return workflowImpact(this.deps.kind, online, workflow, this.deps.context());
   }
 
   /** Items of the review queue (for groupQueue / queueCounts). */

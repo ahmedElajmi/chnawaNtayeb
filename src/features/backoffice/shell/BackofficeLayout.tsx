@@ -1,12 +1,24 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { ChevronDown, Cloud, CloudOff, LogOut, Menu, X } from 'lucide-react';
-import { useCatalog, useContainer, usePatron } from '@/app/ContainerContext';
+import { canPerform } from '@/core/review';
+import { useCatalog, useContainer, usePatron, useReviewSettings, useTeam } from '@/app/ContainerContext';
 import { PATHS, patronPath } from '@/shared/paths';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { useBackofficeText } from '../i18n/useBackofficeText';
+import { useReviewQueue } from '../review/useReviewQueue';
 import { BACKOFFICE_SECTIONS, sectionOf, type BackofficeSection, type SectionCounts } from './sections';
+
+/** Pages the person signed in may see (rights of their role). */
+export function useAllowedSections() {
+  const { review } = useContainer();
+  // Re-read when the member record or the roles change
+  useTeam();
+  useReviewSettings();
+  const { role } = review.actor();
+  return BACKOFFICE_SECTIONS.filter((s) => !s.requires || canPerform(role, s.requires));
+}
 
 /** Whether the patron's changes reach every device, with the explanation on demand. */
 function StatusPill() {
@@ -51,9 +63,10 @@ function Count({ value }: { value: number | null | undefined }) {
  */
 function SectionLinks({ counts, onNavigate }: { counts: SectionCounts; onNavigate?: () => void }) {
   const b = useBackofficeText();
+  const sections = useAllowedSections();
   return (
     <ul className="space-y-0.5">
-      {BACKOFFICE_SECTIONS.map((s) => {
+      {sections.map((s) => {
         const Icon = s.icon;
         return (
           <li key={s.page}>
@@ -138,7 +151,8 @@ export function BackofficeLayout({ onLogout }: { onLogout: () => void }) {
   useEffect(() => review.start(), [review]);
 
   const section = sectionOf(pathname);
-  const counts: SectionCounts = { recipes: recipes.length, ingredients: ingredients.length };
+  const { counts: queue } = useReviewQueue();
+  const counts: SectionCounts = { recipes: recipes.length, ingredients: ingredients.length, pending: queue.pending };
   const Icon = section.icon;
   const logout = (
     <button

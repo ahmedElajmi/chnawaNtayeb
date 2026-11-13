@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { ClipboardCheck, Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import type { Recipe } from '@/core/catalog';
+import { recipeNeedsTranslation, type Recipe } from '@/core/catalog';
 import type { ItemStatus, ReviewSnapshot, WorkflowDefinition } from '@/core/review';
 import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { usePagedList } from '@/shared/hooks/usePagedList';
-import { patronPath, PATRON_PAGES } from '@/shared/paths';
+import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
 import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import type { BackofficeTexts } from '../i18n/backofficeTexts';
@@ -23,19 +23,21 @@ export interface RecipeRow {
   snapshot?: ReviewSnapshot;
 }
 
-type Filter = 'all' | 'online' | 'pending' | 'review' | 'to_fix' | 'incomplete';
+type Filter = 'all' | 'online' | 'pending' | 'review' | 'to_fix' | 'incomplete' | 'no-photo' | 'to-translate';
 
-const FILTERS: { id: Filter; label: (b: BackofficeTexts) => string; match: (s: ItemStatus) => boolean }[] = [
+const FILTERS: { id: Filter; label: (b: BackofficeTexts) => string; match: (row: RecipeRow) => boolean }[] = [
   { id: 'all', label: (b) => b.filterAll, match: () => true },
   {
     id: 'review',
     label: (b) => b.filterToReview,
-    match: (s) => s === 'ready' || s === 'in_review' || s === 'publishable',
+    match: ({ status: s }) => s === 'ready' || s === 'in_review' || s === 'publishable',
   },
-  { id: 'to_fix', label: (b) => b.filterToFix, match: (s) => s === 'to_fix' },
-  { id: 'incomplete', label: (b) => b.filterIncomplete, match: (s) => s === 'incomplete' },
-  { id: 'pending', label: (b) => b.filterPending, match: (s) => s === 'online_pending' },
-  { id: 'online', label: (b) => b.filterOnline, match: (s) => s === 'online' || s === 'online_pending' },
+  { id: 'to_fix', label: (b) => b.filterToFix, match: ({ status }) => status === 'to_fix' },
+  { id: 'incomplete', label: (b) => b.filterIncomplete, match: ({ status }) => status === 'incomplete' },
+  { id: 'pending', label: (b) => b.filterPending, match: ({ status }) => status === 'online_pending' },
+  { id: 'online', label: (b) => b.filterOnline, match: ({ status: s }) => s === 'online' || s === 'online_pending' },
+  { id: 'no-photo', label: (b) => b.filterNoPhoto, match: ({ recipe }) => !recipe.image_url?.trim() },
+  { id: 'to-translate', label: (b) => b.filterToTranslate, match: ({ recipe }) => recipeNeedsTranslation(recipe) },
 ];
 
 const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
@@ -67,7 +69,11 @@ export function RecipesTab({
   const b = useBackofficeText();
   const { ingredients } = useCatalog();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [params] = useSearchParams();
+  const [filter, setFilter] = useState<Filter>(() => {
+    const asked = params.get(LIST_FILTER_PARAM);
+    return FILTERS.some((f) => f.id === asked) ? (asked as Filter) : 'all';
+  });
   const q = normalizeText(search.trim());
   const searched = useMemo(
     () =>
@@ -79,11 +85,11 @@ export function RecipesTab({
     [rows, q]
   );
   const counts = useMemo(
-    () => Object.fromEntries(FILTERS.map((f) => [f.id, searched.filter((r) => f.match(r.status)).length])),
+    () => Object.fromEntries(FILTERS.map((f) => [f.id, searched.filter(f.match).length])),
     [searched]
   ) as Record<Filter, number>;
   const current = FILTERS.find((f) => f.id === filter)!;
-  const filtered = useMemo(() => searched.filter((r) => current.match(r.status)), [searched, current]);
+  const filtered = useMemo(() => searched.filter(current.match), [searched, current]);
   const page = usePagedList(filtered, `${q}|${filter}`);
 
   return (

@@ -67,6 +67,12 @@ export const useReview = <K extends ReviewKind>(kind: K) => {
   return { ...useStore(store), store };
 };
 
+/** The team (members and the member record of the signed-in account). */
+export const useTeam = () => {
+  const { team } = useContainer();
+  return { ...useStore(team), team };
+};
+
 /** Workflows and roles of the team. */
 export const useReviewSettings = () => {
   const { review } = useContainer();

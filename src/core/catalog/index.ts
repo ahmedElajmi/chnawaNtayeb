@@ -9,3 +9,4 @@ export * from './costEstimate';
 export * from './usage';
 export { initialRecipes } from './seed/initialRecipes';
 export { initialIngredients } from './seed/initialIngredients';
+export * from './health';

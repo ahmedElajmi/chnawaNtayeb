@@ -73,22 +73,46 @@ export function StatusBadge({ status }: { status: ItemStatus }) {
   );
 }
 
-const PART_LABEL: Record<string, (b: BackofficeTexts) => string> = {
-  identity: (b) => b.partIdentity,
-  media: (b) => b.partMedia,
-  details: (b) => b.partDetails,
+const PART_LABEL: Record<string, (b: BackofficeTexts, kind: ReviewKind) => string> = {
+  identity: (b, kind) => (kind === 'ingredient' ? b.partName : b.partIdentity),
+  media: (b, kind) => (kind === 'ingredient' ? b.partPhoto : b.partMedia),
+  details: (b, kind) => (kind === 'ingredient' ? b.partCategory : b.partDetails),
   steps: (b) => b.partSteps,
   tip: (b) => b.partTip,
+  price: (b) => b.partPrice,
 };
 
-export const partLabel = (b: BackofficeTexts, part: string) => PART_LABEL[part]?.(b) ?? part;
+export const partLabel = (b: BackofficeTexts, part: string, kind: ReviewKind = 'recipe') =>
+  PART_LABEL[part]?.(b, kind) ?? part;
 
 /** Name of a cell: "Étapes · Derja", "Médias". */
 export function cellLabel(b: BackofficeTexts, kind: ReviewKind, id: string): string {
   const cell = parseCellId(kind, id);
   if (!cell) return id;
-  return cell.language ? `${partLabel(b, cell.part)} · ${languageInfo(cell.language).short}` : partLabel(b, cell.part);
+  const part = partLabel(b, cell.part, kind);
+  return cell.language ? `${part} · ${languageInfo(cell.language).short}` : part;
 }
+
+const RULE_LABEL: Record<string, (b: BackofficeTexts) => string> = {
+  'recipe.name': (b) => b.ruleName,
+  'recipe.description': (b) => b.ruleDescription,
+  'recipe.photo': (b) => b.rulePhoto,
+  'recipe.video': (b) => b.ruleVideo,
+  'recipe.ingredients': (b) => b.ruleIngredients,
+  'recipe.key-ingredient': (b) => b.ruleKeyIngredient,
+  'recipe.known-ingredients': (b) => b.ruleKnownIngredients,
+  'recipe.published-ingredients': (b) => b.rulePublishedIngredients,
+  'recipe.times': (b) => b.ruleTimes,
+  'recipe.steps': (b) => b.ruleSteps,
+  'recipe.tip': (b) => b.ruleTip,
+  'ingredient.name': (b) => b.ruleName,
+  'ingredient.category': (b) => b.ruleCategory,
+  'ingredient.price': (b) => b.rulePrice,
+  'ingredient.photo': (b) => b.rulePhoto,
+};
+
+/** Readable name of a quality check. */
+export const ruleLabel = (b: BackofficeTexts, rule: string) => RULE_LABEL[rule]?.(b) ?? rule;
 
 /**
  * One segment per cell of the workflow, in the colour of its state: what is missing shows at a glance,
@@ -255,7 +279,7 @@ export function ValidationGrid({
       ))}
       {parts.map((part) => (
         <div key={part.id} className="contents">
-          <span className="text-[11px] font-semibold self-center leading-tight">{partLabel(b, part.id)}</span>
+          <span className="text-[11px] font-semibold self-center leading-tight">{partLabel(b, part.id, kind)}</span>
           {part.perLanguage ? languages.map((l) => cellButton(`${part.id}:${l}`)) : cellButton(part.id, true)}
         </div>
       ))}

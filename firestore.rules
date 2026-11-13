@@ -19,14 +19,36 @@ service cloud.firestore {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Admin = patron session bridged by the server (custom token with the `patron` claim),
-    // the owner's verified Google account, or a uid listed in /admins.
-    function isAdmin() {
+    // Owner = patron session bridged by the server (custom token with the `patron` claim) or the
+    // owner's verified Google account: every right.
+    function isOwner() {
       return isSignedIn() && (
         request.auth.token.patron == true ||
-        (request.auth.token.email == 'ahmedlajmi123@gmail.com' && request.auth.token.email_verified == true) ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        (request.auth.token.email == 'ahmedlajmi123@gmail.com' && request.auth.token.email_verified == true)
       );
+    }
+
+    function isMember() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function member() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
+    }
+
+    // Admin = the owner or a member of the team (any role): reads the workspace, edits work copies.
+    function isAdmin() {
+      return isOwner() || isMember();
+    }
+
+    // Rights of a member's role, copied on their record by the app (TeamStore) since the rules cannot
+    // read the roles document: publishing (public collections) and managing (workflows, roles, team).
+    function canPublish() {
+      return isOwner() || (isMember() && member().can_publish == true);
+    }
+
+    function canManage() {
+      return isOwner() || (isMember() && member().can_manage == true);
     }
 
     function optionalString(data, field, maxSize) {
@@ -51,14 +73,14 @@ service cloud.firestore {
 
     match /recipes/{recipeId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidId(recipeId) && isVersionedWrite(request.resource.data);
-      allow delete: if isAdmin() && isValidId(recipeId);
+      allow create, update: if canPublish() && isValidId(recipeId) && isVersionedWrite(request.resource.data);
+      allow delete: if canPublish() && isValidId(recipeId);
     }
 
     match /ingredients/{ingredientId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidId(ingredientId) && isVersionedWrite(request.resource.data);
-      allow delete: if isAdmin() && isValidId(ingredientId);
+      allow create, update: if canPublish() && isValidId(ingredientId) && isVersionedWrite(request.resource.data);
+      allow delete: if canPublish() && isValidId(ingredientId);
     }
 
     // ------------------------------------------------------------------
@@ -110,12 +132,12 @@ service cloud.firestore {
     // Published versions: never modified nor deleted
     match /recipes_versions/{versionId} {
       allow read: if isAdmin();
-      allow create: if isAdmin() && isValidId(versionId) && isValidVersion(request.resource.data, 'recipe');
+      allow create: if canPublish() && isValidId(versionId) && isValidVersion(request.resource.data, 'recipe');
     }
 
     match /ingredients_versions/{versionId} {
       allow read: if isAdmin();
-      allow create: if isAdmin() && isValidId(versionId) && isValidVersion(request.resource.data, 'ingredient');
+      allow create: if canPublish() && isValidId(versionId) && isValidVersion(request.resource.data, 'ingredient');
     }
 
     // Workflows and roles of the team (one document) and every saved version of it
@@ -129,12 +151,12 @@ service cloud.firestore {
 
     match /settings/review {
       allow read: if isAdmin();
-      allow write: if isAdmin() && isValidReviewSettings(request.resource.data);
+      allow write: if canManage() && isValidReviewSettings(request.resource.data);
     }
 
     match /review_settings_versions/{versionId} {
       allow read: if isAdmin();
-      allow create: if isAdmin() && isValidId(versionId) && isValidReviewSettings(request.resource.data);
+      allow create: if canManage() && isValidId(versionId) && isValidReviewSettings(request.resource.data);
     }
 
     // ------------------------------------------------------------------
@@ -175,10 +197,10 @@ service cloud.firestore {
     match /themes/{themeId} {
       // Visitors only see published themes (the app queries `where is_published == true`)
       allow read: if resource.data.is_published == true || isAdmin();
-      allow create, update: if isAdmin() && isValidId(themeId)
+      allow create, update: if canPublish() && isValidId(themeId)
         && !(themeId in ['classique', 'fkhar'])
         && isValidTheme(request.resource.data);
-      allow delete: if isAdmin() && isValidId(themeId);
+      allow delete: if canPublish() && isValidId(themeId);
     }
 
     // ------------------------------------------------------------------
@@ -198,13 +220,13 @@ service cloud.firestore {
     // Active settings: read by every visitor
     match /settings/matching {
       allow read: if true;
-      allow write: if isAdmin() && isValidMatchingSettings(request.resource.data);
+      allow write: if canPublish() && isValidMatchingSettings(request.resource.data);
     }
 
     // History of every published version: never modified nor deleted
     match /matching_settings_versions/{versionId} {
       allow read: if isAdmin();
-      allow create: if isAdmin() && isValidId(versionId) && isValidMatchingSettings(request.resource.data);
+      allow create: if canPublish() && isValidId(versionId) && isValidMatchingSettings(request.resource.data);
     }
 
     // ------------------------------------------------------------------
@@ -247,16 +269,30 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      // Managers find an account by its e-mail to add it to the team; other members see no profile
+      allow read: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || canManage());
       allow create, update: if isSignedIn() && isValidId(userId) && (
-        isAdmin() || (request.auth.uid == userId && isValidUserProfile(userId, request.resource.data))
+        canManage() || (request.auth.uid == userId && isValidUserProfile(userId, request.resource.data))
       );
-      allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow delete: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || canManage());
     }
 
-    // Admins collection (super user control)
+    // Team: one record per member (role and rights). A member reads their own record (to know their
+    // role); only managers read the others and change the team.
+    function isValidMember(d) {
+      return d.keys().hasOnly(['email', 'role', 'can_publish', 'can_manage', 'added_by', 'added_at'])
+        && d.email is string && d.email.size() <= 254
+        && d.role is string && d.role.size() > 0 && d.role.size() <= 40 && d.role != 'admin'
+        && d.can_publish is bool && d.can_manage is bool
+        && d.added_by is string && d.added_by.size() <= 254
+        && d.added_at is number;
+    }
+
     match /admins/{adminId} {
-      allow read, write: if isAdmin() && isValidId(adminId);
+      allow get: if isSignedIn() && isValidId(adminId) && (request.auth.uid == adminId || canManage());
+      allow list: if canManage();
+      allow create, update: if canManage() && isValidId(adminId) && isValidMember(request.resource.data);
+      allow delete: if canManage() && isValidId(adminId);
     }
   }
 }
