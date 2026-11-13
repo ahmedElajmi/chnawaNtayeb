@@ -36,7 +36,7 @@ const GROUPINGS: { id: QueueGrouping; label: (b: BackofficeTexts) => string }[] 
 const GROUPING_PARAM = 'groupe';
 
 /**
- * /patron/a-valider — every cell waiting for the reviewer, grouped as chosen (item, step, part,
+ * /admin/review — every cell waiting for the reviewer, grouped as chosen (item, step, part,
  * language, kind, author) with the counts of the whole queue. A group is reviewed in series: its
  * cells follow one another, across items, with the keyboard (V, C, →) or large buttons on a phone.
  */

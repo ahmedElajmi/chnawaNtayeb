@@ -65,7 +65,7 @@ lecture publique. Chaque document : `id` (ISO 2 lettres), `dial` (`+216`), `enab
 Backoffice › **Équipe** pour les membres, **Clients › Pays** pour les pays, **Clients › Comptes** pour l'annuaire :
 
 1. Le patron saisit l'e-mail, le nom affiché et le rôle, puis « **Créer le compte** ».
-2. Le serveur (`POST /api/accounts/employees`, session patron obligatoire, Admin SDK) crée le compte Firebase
+2. Le serveur (`POST /admin/api/employees`, session admin obligatoire, Admin SDK) crée le compte Firebase
    avec un **mot de passe temporaire** et l'affiche une fois : le patron le transmet lui-même.
 3. Le membre est ajouté à l'équipe (`admins/{uid}`) avec son rôle (les droits que lisent les règles).
 4. L'employé se connecte avec le mot de passe temporaire et le change dans Mon profil.

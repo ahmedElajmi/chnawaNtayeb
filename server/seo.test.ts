@@ -156,4 +156,25 @@ describe('sitemap', () => {
     expect(xml).toContain(`<loc>${BASE}/recette/${catalog.recipes[0].slug}</loc>`);
     expect(xml.match(/<url>/g)).toHaveLength(3 + catalog.recipes.length);
   });
+
+  it('never lists a non-public URL', () => {
+    const xml = sitemapXml(BASE, catalog);
+    for (const forbidden of ['/patron', '/api/', '/suggestions', '/semaine', '/courses', '/se connecter']) {
+      expect(xml, forbidden).not.toContain(`<loc>${BASE}${forbidden}`);
+    }
+  });
+
+  it('never lists an unpublished or broken recipe', () => {
+    const catalog2 = {
+      ...catalog,
+      recipes: [
+        ...catalog.recipes,
+        { ...catalog.recipes[0], id: 'hidden', slug: 'cachee', is_published: false, name_fr: 'Cachée' },
+        { ...catalog.recipes[0], id: 'broken', slug: 'sans-nom', is_published: true, name_fr: '' },
+      ],
+    } as typeof catalog;
+    const xml = sitemapXml(BASE, catalog2);
+    expect(xml).not.toContain('/recette/cachee');
+    expect(xml).not.toContain('/recette/sans-nom');
+  });
 });

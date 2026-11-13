@@ -220,9 +220,11 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   récapitulatif des ingrédients choisis en haut du frigo ; « appuyez encore pour quitter » sur
   l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`) ; bouton « haut de page »
   (`ScrollToTopButton`, dans `AppLayout`, au-dessus de la barre collante du frigo).
-- **Endpoints d'API en anglais** : toute route du serveur et tout appel client `/api/...` est nommée en
-  anglais (`/api/accounts/employees`, `/api/vision/scan-fridge`). Les slugs des pages publiques restent en
-  français par choix produit (`/frigo`, `/recettes`).
+- **Endpoints d'API en anglais, regroupés par espace** : les endpoints du backoffice vivent sous
+  **`/admin/api/*`** (`/admin/api/login`, `/admin/api/employees`), les endpoints publics sous **`/api/*`**
+  (`/api/vision/scan-fridge`, `/api/health`). L'espace backoffice est servi sur **`/admin`** (`/patron`
+  redirige vers lui le temps d'une version). Les slugs des pages publiques restent en français par choix
+  produit (`/frigo`, `/recettes`).
 - Code et commentaires en anglais ; documentation en français.
 
 ## Git

@@ -25,7 +25,7 @@ export function AppRoutes() {
   const pageLocation: Location | string = recipeMatch ? (background ?? PATHS.recipes) : location;
 
   // Old secret address of the backoffice
-  if (location.hash === '#patron') return <Navigate to={PATHS.patron} replace />;
+  if (location.hash === '#patron') return <Navigate to={PATHS.patron} replace />; // old bookmark
 
   return (
     <>
