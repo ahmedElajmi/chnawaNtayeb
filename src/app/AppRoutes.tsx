@@ -38,7 +38,7 @@ export function AppRoutes() {
           <Route path={PATHS.planner} element={<PlannerPage />} />
           <Route path={PATHS.grocery} element={<GroceryPage />} />
           <Route
-            path={PATHS.patron}
+            path={`${PATHS.patron}/*`}
             element={
               <Suspense fallback={null}>
                 <BackofficePage />

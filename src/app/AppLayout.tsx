@@ -9,7 +9,7 @@ import { InstallBanner } from '@/shared/ui/InstallBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
 import { ScrollToTopButton } from '@/shared/ui/ScrollToTopButton';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
-import { PATHS } from '@/shared/paths';
+import { isPatronPath, PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import type { AppUser } from '@/application';
 import { useContainer, useKitchen, usePatron } from './ContainerContext';
@@ -27,7 +27,7 @@ export function AppLayout() {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const isBackoffice = pathname === PATHS.patron;
+  const isBackoffice = isPatronPath(pathname);
   const [showExitHint, setShowExitHint] = useState(false);
   const [year] = useState(() => new Date().getFullYear());
   const exitHintTimer = useRef<number | undefined>(undefined);
