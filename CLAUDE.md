@@ -91,7 +91,9 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
   suggestion jugée fausse devient d'abord un scénario du chef, créé dans /patron › Moteur (stocké
   en base, collection `matching_scenarios` ; aucune liste de scénarios dans le code).
-- Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx`.
+- Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx` + si elle est publique, sa page serveur dans
+  `SCREENS` (`server/seo.ts`) : les robots qui ne lancent pas le JavaScript doivent voir son contenu (copie lisible
+  dans `fallback`, masquée aux visiteurs, listes par pages de 100).
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
   dans `/patron` : aucun formulaire de création dans l'interface publique.
 - **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe

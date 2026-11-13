@@ -1,6 +1,6 @@
 /**
  * Public addresses of the app (one per screen). Shared by the client router and the
- * server (server/seo.ts renders /, /recettes and /recette/<slug> for search engines).
+ * server (server/seo.ts renders every public address for robots: add a new one to its SCREENS table).
  */
 export const PATHS = {
   home: '/',
