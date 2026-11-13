@@ -31,7 +31,7 @@ describe('recipe editor rules', () => {
     expect(finalizeRecipeDraft(newRecipeDraft(1), [])).toEqual({
       ok: false,
       field: 'name',
-      error: expect.stringContaining('obligatoire'),
+      error: { code: 'nameRequired' },
     });
   });
 

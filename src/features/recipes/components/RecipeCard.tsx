@@ -81,7 +81,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             e.stopPropagation();
             onToggleFavorite(recipe.id);
           }}
-          aria-label="Ajouter aux favoris"
+          aria-label={isFavorite ? t.removeFromFavorites : t.addToFavorites}
           className="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs text-slate-600 dark:text-slate-200 hover:text-rose-500 dark:hover:text-rose-400 shadow-sm transition active:scale-90"
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'stroke-[2px]'}`} />
@@ -92,14 +92,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           {tier === 'ready' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand text-on-brand text-[11px] font-bold shadow-md">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>100% 7adher !</span>
+              <span>{t.readyBadge}</span>
             </span>
           )}
           {tier === 'almost' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent text-on-accent text-[11px] font-bold shadow-md">
               <AlertCircle className="w-3.5 h-3.5" />
               <span>
-                {missing_ingredients.length} na9es
+                {t.missingCountBadge.replace('{n}', String(missing_ingredients.length))}
                 {missing_cost.max > 0 &&
                   ` · ${t.groceryCost.replace('{n}', formatPriceRange(missing_cost, t.currency))}`}
               </span>
@@ -107,7 +107,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           )}
           {tier === 'ideas' && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-semibold backdrop-blur-xs">
-              {missing_key.length > 0 ? `${t.missingKeyLabel} · ${score}%` : 'Idée repas'}
+              {missing_key.length > 0 ? `${t.missingKeyLabel} · ${score}%` : t.mealIdea}
             </span>
           )}
         </div>
@@ -121,12 +121,12 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3 text-slate-400" />
-              <span>{totalTime} min</span>
+              <span>{t.minutesValue.replace('{n}', String(totalTime))}</span>
             </span>
             <span aria-hidden="true">·</span>
             <span className="font-bold text-accent-text">{formatPriceRange(cost, t.currency)}</span>
             <span aria-hidden="true">·</span>
-            <span>{recipe.base_servings} pers</span>
+            <span>{t.servingsShort.replace('{n}', String(recipe.base_servings))}</span>
           </div>
 
           {/* Dish Name */}

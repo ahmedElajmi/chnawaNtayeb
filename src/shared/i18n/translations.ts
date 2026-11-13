@@ -212,9 +212,99 @@ export interface TranslationDictionary {
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
+  // Public screens: home, header, account, patron access, recipe and list labels
+  minutesValue: string;
+  servingsShort: string;
+  homeBadge: string;
+  homeRecipeCount: string;
+  homeDiscoverRecipes: string;
+  shortcutExpressTitle: string;
+  shortcutExpressDesc: string;
+  shortcutBudgetDesc: string;
+  shortcutTraditionTitle: string;
+  shortcutTraditionDesc: string;
+  shortcutWeekDesc: string;
+  homeReadyCount: string;
+  homeSeeAll: string;
+  homeReadyEmpty: string;
+  homeFillFridge: string;
+  logoPatronHint: string;
+  patronBadge: string;
+  patronOpenBackoffice: string;
+  patronLogout: string;
+  patronQuit: string;
+  patronExitMode: string;
+  themePreviewNote: string;
+  languageSelectLabel: string;
+  networkStatusLabel: string;
+  accountLabel: string;
+  accountMine: string;
+  accountSpace: string;
+  accountSynced: string;
+  accountSaveFavorites: string;
+  accountStatus: string;
+  accountConnected: string;
+  accountIdentifier: string;
+  accountPatronSession: string;
+  accountGuestName: string;
+  accountGuest: string;
+  accountRole: string;
+  accountRoleAdmin: string;
+  accountRoleUser: string;
+  accountActiveNote: string;
+  accountSignIn: string;
+  accountSignOut: string;
+  accountCreate: string;
+  accountCreateMine: string;
+  accountEmail: string;
+  accountEmailPlaceholder: string;
+  accountPassword: string;
+  accountPasswordMin: string;
+  accountOr: string;
+  accountGuestContinue: string;
+  accountPatronAccess: string;
+  authErrorInvalidCredentials: string;
+  authErrorEmailInUse: string;
+  authErrorWeakPassword: string;
+  authErrorInvalidEmail: string;
+  authErrorDisabled: string;
+  authErrorUnknown: string;
+  errorNetwork: string;
+  errorTooManyAttempts: string;
+  patronLoginTitle: string;
+  patronLoginSubtitle: string;
+  patronLoginUsername: string;
+  patronLoginSubmit: string;
+  patronErrorUnreachable: string;
+  patronErrorInvalid: string;
+  patronErrorUnavailable: string;
+  readyBadge: string;
+  missingCountBadge: string;
+  mealIdea: string;
+  keyIngredientBadge: string;
+  pantryReminder: string;
+  ingredientFallback: string;
+  addMissingToGrocery: string;
+  missingAddedToast: string;
+  shareRecipeHeading: string;
+  shareMoreIdeas: string;
+  shareSentFrom: string;
+  groceryGenerated: string;
+  searchRecipePlaceholder: string;
+  searchRecipeLabel: string;
+  favoritesCount: string;
+  maxBudgetLabel: string;
+  maxTimeLabel: string;
+  budgetAny: string;
+  timeAny: string;
 }
 
-const BASE_TRANSLATIONS = {
+/**
+ * Interface texts of every language and variant, each one written in full: derja in Arabic letters
+ * (`derjaArabic.ts`) is Tunisian derja, never literary Arabic, and the literary Arabic holds no derja
+ * word (checked by `translations.test.ts`).
+ */
+export const translations = {
   derja: {
     appName: 'Chnowa Ntayeb',
     slogan: 'Elli 3andek fel frigo, na3mlou bih makla !',
@@ -238,7 +328,7 @@ const BASE_TRANSLATIONS = {
     selectedCount: 'ingrédient ekhtarthom',
     clearSelection: 'Fasakh el kol',
     addBtn: 'Zid',
-    cookNowAction: ' ورّيني شنوة نطيب !',
+    cookNowAction: 'Warrini chnowa ntayeb !',
     tierReadyTitle: 'Njem ntayebha tawa !',
     tierReadyDesc: '3andek el ingrédients el kol el lezma f dar',
     tierAlmostTitle: 'Naqsek ken chwaya',
@@ -417,6 +507,92 @@ const BASE_TRANSLATIONS = {
     catalogEmptyTitle: 'Ma fama 7atta makla b had el filtres',
     catalogEmptyDesc: 'Na7i filtre walla badel el recherche.',
     resetFiltersLabel: 'Fasakh el filtres',
+    minutesValue: '{n} min',
+    servingsShort: '{n} 3bed',
+    homeBadge: 'Makla tounsiya 100% bleche',
+    homeRecipeCount: '{n} makla',
+    homeDiscoverRecipes: 'Ekteshef el maklet',
+    shortcutExpressTitle: 'Maklet fisa3',
+    shortcutExpressDesc: '< 15 min tatyib',
+    shortcutBudgetDesc: 'Rkhis w lel étudiants',
+    shortcutTraditionTitle: 'Makla 3arbi',
+    shortcutTraditionDesc: 'Kosksi, rouz, tajine...',
+    shortcutWeekDesc: 'Planning bla tabdhir',
+    homeReadyCount: '{n} makla tnejjem ttayebha tawa bel frigo mte3ek',
+    homeSeeAll: 'Warrini el kol ({n})',
+    homeReadyEmpty:
+      'Ekhtar chwaya ingrédients (3dham, tmatem, hrissa...) bech tchouf el maklet elli tnejjem ttayebhom tawa !',
+    homeFillFridge: '3abbi el frigo mte3i',
+    logoPatronHint: '3 clics : dokhoul el patron',
+    patronBadge: 'Patron',
+    patronOpenBackoffice: 'Odkhel lel backoffice',
+    patronLogout: 'Okhrej mel compte patron',
+    patronQuit: 'Okhrej',
+    patronExitMode: 'Okhrej mel mode patron',
+    themePreviewNote: 'Thème fi west el aperçu (backoffice).',
+    languageSelectLabel: 'Ekhtar el lougha',
+    networkStatusLabel: '7alet el réseau',
+    accountLabel: 'Compte',
+    accountMine: 'Compte mte3i',
+    accountSpace: 'Espace mte3ek',
+    accountSynced: 'Msajjel m3a compte mte3ek',
+    accountSaveFavorites: 'Sajjel el favoris mte3ek',
+    accountStatus: 'El 7ala :',
+    accountConnected: 'Connecté',
+    accountIdentifier: 'El identifiant :',
+    accountPatronSession: 'Session patron',
+    accountGuestName: 'Dhif y7eb el makla',
+    accountGuest: 'Dhif',
+    accountRole: 'Dawr :',
+    accountRoleAdmin: 'Super admin',
+    accountRoleUser: 'Utilisateur',
+    accountActiveNote:
+      'Compte mte3ek khaddem. El favoris, el frigo w menu el jom3a yo93dou msajlin 3al appareil hedha.',
+    accountSignIn: 'Odkhel',
+    accountSignOut: 'Okhrej',
+    accountCreate: 'A3mel compte',
+    accountCreateMine: 'A3mel compte mte3i',
+    accountEmail: 'Email',
+    accountEmailPlaceholder: 'email-mte3ek@exemple.com',
+    accountPassword: 'Mot de passe',
+    accountPasswordMin: '{n} 7orouf 3al a9al.',
+    accountOr: 'Walla',
+    accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
+    accountPatronAccess: 'Dokhoul el idara (/patron)',
+    authErrorInvalidCredentials: 'Email walla mot de passe ghalet.',
+    authErrorEmailInUse: 'Famma deja compte b el email hedha. Odkhel bih khir.',
+    authErrorWeakPassword: 'Mot de passe dh3if barcha ({n} 7orouf 3al a9al).',
+    authErrorInvalidEmail: 'Email ghalet.',
+    authErrorDisabled: 'El tari9a hedhi mta3 el dokhoul msakra tawa.',
+    authErrorUnknown: 'Famma ghalta. 3awed.',
+    errorNetwork: 'Ma famech connexion internet.',
+    errorTooManyAttempts: 'Barcha mo7awlet. 3awed ba3d chwaya d9aye9.',
+    patronLoginTitle: 'Dokhoul el patron',
+    patronLoginSubtitle: 'Idara m2ammna (/patron)',
+    patronLoginUsername: 'Identifiant super-user',
+    patronLoginSubmit: '7ell el backoffice',
+    patronErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
+    patronErrorInvalid: 'Identifiant walla mot de passe ghalet.',
+    patronErrorUnavailable: 'Dokhoul el patron mouch mawjoud tawa.',
+    readyBadge: '100% 7adher !',
+    missingCountBadge: '{n} na9es',
+    mealIdea: 'Fekra makla',
+    keyIngredientBadge: 'asesi',
+    pantryReminder: 'Ma tensech :',
+    ingredientFallback: 'Ingrédient',
+    addMissingToGrocery: 'Zid elli naqsek lel qadhya',
+    missingAddedToast: 'El ingrédients elli naqsin tzedou lel liste mta3 el qadhya !',
+    shareRecipeHeading: 'Makla mel Chnowa Ntayeb',
+    shareMoreIdeas: 'Ekteshef afkar okhrin 3la Chnowa Ntayeb !',
+    shareSentFrom: 'Teb3ath men',
+    groceryGenerated: 'Liste el qadhya tsna3et !',
+    searchRecipePlaceholder: 'Lawwej 3la makla (ojja, kosksi, kafteji...)',
+    searchRecipeLabel: 'Lawwej 3la makla',
+    favoritesCount: 'Favoris ({n})',
+    maxBudgetLabel: 'Akther budget',
+    maxTimeLabel: 'Akther waqt',
+    budgetAny: 'Budget : el kol',
+    timeAny: 'Waqt : el kol',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -622,34 +798,120 @@ const BASE_TRANSLATIONS = {
     catalogEmptyTitle: 'Aucune recette ne correspond à ces filtres',
     catalogEmptyDesc: 'Retirez un filtre ou modifiez la recherche.',
     resetFiltersLabel: 'Effacer les filtres',
+    minutesValue: '{n} min',
+    servingsShort: '{n} pers.',
+    homeBadge: 'Cuisine tunisienne 100 % gratuite',
+    homeRecipeCount: '{n} recettes',
+    homeDiscoverRecipes: 'Découvrir les recettes',
+    shortcutExpressTitle: 'Plats express',
+    shortcutExpressDesc: '< 15 min de cuisson',
+    shortcutBudgetDesc: 'Économique & étudiant',
+    shortcutTraditionTitle: 'Tradition tounsi',
+    shortcutTraditionDesc: 'Couscous, rouz, tajine...',
+    shortcutWeekDesc: 'Planning anti-gaspillage',
+    homeReadyCount: '{n} recettes réalisables immédiatement avec votre frigo',
+    homeSeeAll: 'Voir tout ({n})',
+    homeReadyEmpty:
+      'Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à cuisiner !',
+    homeFillFridge: 'Remplir mon frigo',
+    logoPatronHint: '3 clics : accès patron',
+    patronBadge: 'Patron',
+    patronOpenBackoffice: 'Accéder au backoffice patron',
+    patronLogout: 'Déconnexion patron',
+    patronQuit: 'Quitter',
+    patronExitMode: 'Quitter le mode patron',
+    themePreviewNote: 'Aperçu d’un thème en cours (backoffice).',
+    languageSelectLabel: 'Choisir la langue',
+    networkStatusLabel: 'Statut réseau',
+    accountLabel: 'Compte',
+    accountMine: 'Mon compte',
+    accountSpace: 'Espace utilisateur',
+    accountSynced: 'Synchronisé avec votre compte',
+    accountSaveFavorites: 'Sauvegardez vos favoris',
+    accountStatus: 'Statut :',
+    accountConnected: 'Connecté',
+    accountIdentifier: 'Identifiant :',
+    accountPatronSession: 'Session patron',
+    accountGuestName: 'Invité gourmand',
+    accountGuest: 'Invité',
+    accountRole: 'Rôle :',
+    accountRoleAdmin: 'Super admin',
+    accountRoleUser: 'Utilisateur',
+    accountActiveNote:
+      'Ton compte est actif. Tes favoris, ton frigo et ton menu de la semaine restent enregistrés sur cet appareil.',
+    accountSignIn: 'Se connecter',
+    accountSignOut: 'Se déconnecter',
+    accountCreate: 'Créer un compte',
+    accountCreateMine: 'Créer mon compte',
+    accountEmail: 'E-mail',
+    accountEmailPlaceholder: 'votre-email@exemple.com',
+    accountPassword: 'Mot de passe',
+    accountPasswordMin: '{n} caractères minimum.',
+    accountOr: 'Ou',
+    accountGuestContinue: 'Continuer en 1 clic (invité)',
+    accountPatronAccess: 'Accès sécurisé gérance (/patron)',
+    authErrorInvalidCredentials: 'E-mail ou mot de passe incorrect.',
+    authErrorEmailInUse: 'Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.',
+    authErrorWeakPassword: 'Mot de passe trop faible ({n} caractères minimum).',
+    authErrorInvalidEmail: 'Adresse e-mail invalide.',
+    authErrorDisabled: 'Ce mode de connexion est désactivé pour le moment.',
+    authErrorUnknown: 'Une erreur est survenue. Réessaie.',
+    errorNetwork: 'Connexion internet indisponible.',
+    errorTooManyAttempts: 'Trop de tentatives. Réessaie dans quelques minutes.',
+    patronLoginTitle: 'Accès patron',
+    patronLoginSubtitle: 'Administration sécurisée (/patron)',
+    patronLoginUsername: 'Identifiant super-user',
+    patronLoginSubmit: 'Déverrouiller le backoffice',
+    patronErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
+    patronErrorInvalid: 'Identifiant ou mot de passe incorrect.',
+    patronErrorUnavailable: 'Accès patron indisponible pour le moment.',
+    readyBadge: '100 % prêt !',
+    missingCountBadge: '{n} manquant(s)',
+    mealIdea: 'Idée repas',
+    keyIngredientBadge: 'clé',
+    pantryReminder: 'Pense aussi à :',
+    ingredientFallback: 'Ingrédient',
+    addMissingToGrocery: 'Ajouter les manquants aux courses',
+    missingAddedToast: 'Les ingrédients manquants ont été ajoutés à votre liste de courses !',
+    shareRecipeHeading: 'Recette Chnowa Ntayeb',
+    shareMoreIdeas: 'Découvre plus d’idées repas sur Chnowa Ntayeb !',
+    shareSentFrom: 'Envoyé depuis',
+    groceryGenerated: 'Liste de courses générée !',
+    searchRecipePlaceholder: 'Rechercher par nom de plat (ojja, couscous, kafteji...)',
+    searchRecipeLabel: 'Rechercher une recette',
+    favoritesCount: 'Favoris ({n})',
+    maxBudgetLabel: 'Budget maximum',
+    maxTimeLabel: 'Temps maximum',
+    budgetAny: 'Budget : tous',
+    timeAny: 'Temps : tous',
   },
   ar: {
-    appName: 'شنوة نطيب؟',
-    slogan: 'اللي عندك في الفريجيدار نعملو بيه ماكلة بنينة!',
-    tagline: 'شنوة نطيب اليوم؟',
+    appName: 'Chnowa Ntayeb',
+    slogan: 'بما في ثلاجتك، نحضّر لك طبقًا شهيًّا!',
+    tagline: 'ماذا نطبخ اليوم؟',
     navHome: 'الرئيسية',
-    navFridge: 'الفريجيدار',
+    navFridge: 'ثلاجتي',
     navRecipes: 'الوصفات',
-    navWeekly: 'قائمة الجمعة',
-    navGrocery: 'القضية',
+    navWeekly: 'قائمة الأسبوع',
+    navGrocery: 'المشتريات',
     navBackoffice: 'الإدارة',
-    heroTitle: 'شنوة نطيب اليوم؟',
-    heroSubtitle: 'اختار المكونات اللي متوفرة عندك في الدار وتعرف على أشهى المأكولات التونسية في أقل من 30 ثانية!',
-    btnFindMeal: 'دبّرلي في ماكلة',
-    btnOpenFridge: 'حلّ الفريجيدار',
-    btnScanPhoto: 'صوّر الفريجيدار بالذكاء الاصطناعي',
+    heroTitle: 'ماذا نطبخ اليوم؟',
+    heroSubtitle: 'اختر المكوّنات المتوفرة لديك واكتشف فورًا أشهى الأطباق التونسية في أقل من 30 ثانية!',
+    btnFindMeal: 'اقترح عليّ وصفة',
+    btnOpenFridge: 'افتح ثلاجتي',
+    btnScanPhoto: 'صوّر الثلاجة بالذكاء الاصطناعي',
     quickIdeas: 'أفكار سريعة لليوم',
-    fridgeTitle: 'شنوة عندك في الفريجيدار؟',
-    fridgeSubtitle: 'انزل على المكونات اللي حاضرة عندك في الكوجينة:',
-    searchPlaceholder: 'لوّج على مكوّن (طماطم، عظام، بطاطا...)',
+    fridgeTitle: 'ماذا يوجد في ثلاجتك؟',
+    fridgeSubtitle: 'حدّد المكوّنات المتوفرة في مطبخك:',
+    searchPlaceholder: 'ابحث عن مكوّن (طماطم، بيض، بصل...)',
     selectedCount: 'مكوّنات مختارة',
-    clearSelection: 'فسّخ الكل',
-    addBtn: 'زيد',
-    cookNowAction: 'ورّيني شنوة نطيب !',
-    tierReadyTitle: 'نجم نطيبها توّا !',
-    tierReadyDesc: 'عندك كامل المكونات الأساسية في الدار',
-    tierAlmostTitle: 'ناقصك كان شوية',
-    tierAlmostDesc: 'ينقصك مكوّن أو اثنين فقط من الحانوت',
+    clearSelection: 'مسح الكل',
+    addBtn: 'إضافة',
+    cookNowAction: 'اعثر على وصفاتي!',
+    tierReadyTitle: 'يمكنني الطهي الآن!',
+    tierReadyDesc: 'لديك كل المكوّنات المطلوبة في البيت',
+    tierAlmostTitle: 'لا ينقصك إلا القليل',
+    tierAlmostDesc: 'ينقصك مكوّن أو اثنان فقط تشتريهما من أقرب متجر',
     tierIdeasTitle: 'أفكار أخرى ممتازة',
     tierIdeasDesc: 'أطباق تونسية تقليدية أو اقتصادية تستحق التجربة',
     filterAll: 'الكل',
@@ -661,42 +923,42 @@ const BASE_TRANSLATIONS = {
     between5and10DT: 'بين 5 و 10 د.ت',
     between10and20DT: 'بين 10 و 20 د.ت',
     over20DT: 'أكثر من 20 د.ت',
-    under15Min: 'فيسع (< 15 دقيقة)',
+    under15Min: 'سريع (< 15 دقيقة)',
     under30Min: '< 30 دقيقة',
     under45Min: '< 45 دقيقة',
-    over45Min: 'طيّاب على نار هادية',
+    over45Min: 'طهي على نار هادئة (> 45 دقيقة)',
     servings: 'عدد الأشخاص',
     person: 'شخص',
     persons: 'أشخاص',
     prepTime: 'التحضير',
     cookTime: 'الطهي',
     totalTime: 'الوقت الجملي',
-    costEstimate: 'السوم التقديري',
+    costEstimate: 'التكلفة التقديرية',
     ingredientsTitle: 'المكونات المطلوبة',
     availableIngredients: 'متوفر عندك',
-    missingIngredients: 'لازمك تشريه',
+    missingIngredients: 'للشراء',
     stepsTitle: 'طريقة التحضير خطوة بخطوة',
     chefTipTitle: 'نصيحة Chef Souhed',
-    shareWhatsApp: 'ابعث على واتساب',
-    addToFavorites: 'زيد في المفضلة',
-    removeFromFavorites: 'نحّي من المفضلة',
+    shareWhatsApp: 'شارك على واتساب',
+    addToFavorites: 'أضف إلى المفضلة',
+    removeFromFavorites: 'أزل من المفضلة',
     favoriteAddedToast: 'تمت الإضافة إلى المفضلة!',
-    weeklyTitle: 'برنامج الجمعة',
-    weeklySubtitle: 'نظّم فطوراتك وعشاءاتك على 7 أيام واقضي على الحيرة',
-    lunch: 'فطور نصف النهار',
+    weeklyTitle: 'قائمة الأسبوع',
+    weeklySubtitle: 'خطّط لوجبات الغداء والعشاء لتجنّب التبذير',
+    lunch: 'الغداء',
     dinner: 'العشاء',
-    generateWeekPlan: 'توليد برنامج أوتوماتيكي',
-    generateGroceryList: 'حضّر قائمة القضية',
-    emptySlot: 'فارغة حالياً',
-    chooseDish: 'اختار طبق',
-    groceryTitle: 'قائمة القضية',
-    grocerySubtitle: 'المكونات الناقصة مجمّعة حسب الأقسام للذهاب للسوق',
-    itemsToBuy: 'لازمك تشريه',
-    itemsBought: 'شريتو',
-    addManualItem: 'زيد حاجة للقضية (خبز، ماء...)...',
-    clearChecked: 'امسح اللي شريتو',
-    shareGroceryWhatsApp: 'شارك القضية على واتساب',
-    emptyGrocery: 'القائمة فارغة! زيد وجبات في البرنامج لتوليد القضية.',
+    generateWeekPlan: 'إنشاء برنامج تلقائي',
+    generateGroceryList: 'إنشاء قائمة المشتريات',
+    emptySlot: 'لم يُختر أي طبق',
+    chooseDish: 'اختر طبقًا',
+    groceryTitle: 'قائمة المشتريات',
+    grocerySubtitle: 'المكوّنات الناقصة مجمّعة للتسوّق',
+    itemsToBuy: 'للشراء',
+    itemsBought: 'تم شراؤه',
+    addManualItem: 'أضف منتجًا (خبز، ماء...)...',
+    clearChecked: 'امسح ما تم شراؤه',
+    shareGroceryWhatsApp: 'شارك القائمة على واتساب',
+    emptyGrocery: 'قائمة مشترياتك فارغة. أضف وصفات إلى قائمة الأسبوع لملئها!',
     boTitle: 'فضاء الإدارة والتحكم (Backoffice)',
     boSubtitle: 'إدارة الوصفات، المكونات وأسعار السوق التونسية',
     boTabDashboard: 'لوحة القيادة',
@@ -716,13 +978,13 @@ const BASE_TRANSLATIONS = {
     boConfirmDelete: 'هل أنت متأكد من حذف هذه الوصفة؟',
     boSave: 'حفظ التغييرات',
     boCancel: 'إلغاء',
-    scannerTitle: 'تصوير الفريجيدار بالذكاء الاصطناعي',
-    scannerDesc: 'صوّر الفريجيدار وسيقوم الذكاء الاصطناعي باكتشاف المكونات آلياً.',
+    scannerTitle: 'تصوير الثلاجة بالذكاء الاصطناعي',
+    scannerDesc: 'صوّر ثلاجتك وسيكتشف الذكاء الاصطناعي المكوّنات الظاهرة.',
     scannerCameraBtn: 'التقاط صورة',
     scannerUploadBtn: 'رفع صورة',
     scannerAnalyzing: 'جاري فحص المكونات...',
     scannerDetected: 'المكونات المكتشفة:',
-    scannerAddSelected: 'أضف إلى الفريجيدار',
+    scannerAddSelected: 'أضف إلى الثلاجة',
     scannerErrorKey: 'مفتاح Gemini API مطلوب لتشغيل ميزة الكاميرا.',
     pwaOfflineTitle: 'يعمل دون إنترنت ويفتح فوراً',
     pwaOfflineText: 'يحتفظ التطبيق بوصفاتك وقوائم مشترياتك ليعمل حتى دون 4G أو Wi-Fi.',
@@ -735,9 +997,9 @@ const BASE_TRANSLATIONS = {
       '**Android (Chrome):** اضغط على النقاط الثلاث **(⋮)** في الأعلى، ثم اختر **« تثبيت التطبيق »** أو **« إضافة إلى الشاشة الرئيسية »**.',
     pwaDesktopStep: '**PC / Mac (Chrome / Edge):** انقر على أيقونة التثبيت **(⊕)** بجانب شريط العنوان.',
     pwaGotIt: 'فهمت!',
-    scannerIntroTitle: 'صوّر الفريجيدار أو طاولة المطبخ',
+    scannerIntroTitle: 'صوّر ثلاجتك أو طاولة المطبخ',
     scannerIntroText: 'سيحلّل الذكاء الاصطناعي الخضر واللحوم والبيض والمعلّبات والتوابل الظاهرة.',
-    scannerImageAlt: 'صورة الفريجيدار',
+    scannerImageAlt: 'صورة الثلاجة',
     scannerAnalyzeBtn: 'ابدأ التحليل بالذكاء الاصطناعي',
     scannerNothingFound: 'لم يتم اكتشاف أي مكوّن في هذه الصورة. صوّر مكوّناتك من مسافة أقرب.',
     scannerFailed: 'تعذّر تحليل الصورة حالياً. حاول لاحقاً.',
@@ -807,30 +1069,106 @@ const BASE_TRANSLATIONS = {
     videoBadge: 'فيديو',
     recipesAllTab: 'كل الوصفات',
     recipesSuggestionsTab: 'اقتراحاتي',
-    selectedIngredientsTitle: 'شنوة عندي في الفريجيدار',
-    showAllLabel: 'ورّيني الكل',
+    selectedIngredientsTitle: 'ثلاجتي',
+    showAllLabel: 'عرض الكل',
     listProgress: '{shown} من {total}',
     listShowMore: 'عرض المزيد',
-    showLessLabel: 'نقّص',
-    removeIngredientLabel: 'نحّي',
-    suggestionsEmptyTitle: 'الفريجيدار فارغ',
-    suggestionsEmptyDesc: 'اختار شوية مكوّنات باش نورّيك شنوة تنجم تطيب.',
+    showLessLabel: 'عرض أقل',
+    removeIngredientLabel: 'إزالة',
+    suggestionsEmptyTitle: 'ثلاجتك فارغة',
+    suggestionsEmptyDesc: 'اختر بعض المكوّنات لنريك ما يمكنك طهيه.',
     fillFridgeHint: 'املأ الثلاجة',
     catalogSoonTitle: 'الوصفات قادمة',
     categoriesTitle: 'الأصناف',
     allCategoriesCrumb: 'الكل',
-    catalogSoonDesc: 'يُعدّها الشيف سهيد ويراجعها واحدة تلو الأخرى. عُد قريبًا!',
-    catalogEmptyTitle: 'ما فماش وصفة بهالفلاتر',
-    catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
-    resetFiltersLabel: 'فسّخ الفلاتر',
+    catalogSoonDesc: 'يُعدّها Chef Souhed ويراجعها واحدة تلو الأخرى. عُد قريبًا!',
+    catalogEmptyTitle: 'لا توجد وصفة تطابق هذه المرشّحات',
+    catalogEmptyDesc: 'أزل مرشّحًا أو عدّل البحث.',
+    resetFiltersLabel: 'مسح المرشّحات',
+    minutesValue: '{n} دقيقة',
+    servingsShort: '{n} أشخاص',
+    homeBadge: 'مطبخ تونسي مجاني 100%',
+    homeRecipeCount: '{n} وصفة',
+    homeDiscoverRecipes: 'اكتشف الوصفات',
+    shortcutExpressTitle: 'أطباق سريعة',
+    shortcutExpressDesc: 'طهي في أقل من 15 دقيقة',
+    shortcutBudgetDesc: 'اقتصادي ومناسب للطلبة',
+    shortcutTraditionTitle: 'المطبخ التقليدي',
+    shortcutTraditionDesc: 'كسكسي، أرز، طاجين...',
+    shortcutWeekDesc: 'تخطيط يحدّ من التبذير',
+    homeReadyCount: '{n} وصفة يمكنك إعدادها فورًا بما في ثلاجتك',
+    homeSeeAll: 'عرض الكل ({n})',
+    homeReadyEmpty: 'اختر بعض المكوّنات الأساسية (بيض، طماطم، هريسة...) لتكتشف الوصفات الجاهزة للطهي!',
+    homeFillFridge: 'املأ ثلاجتي',
+    logoPatronHint: '3 نقرات: دخول المدير',
+    patronBadge: 'المدير',
+    patronOpenBackoffice: 'الدخول إلى لوحة الإدارة',
+    patronLogout: 'تسجيل خروج المدير',
+    patronQuit: 'خروج',
+    patronExitMode: 'الخروج من وضع المدير',
+    themePreviewNote: 'معاينة سمة جارية من لوحة الإدارة.',
+    languageSelectLabel: 'اختر اللغة',
+    networkStatusLabel: 'حالة الشبكة',
+    accountLabel: 'الحساب',
+    accountMine: 'حسابي',
+    accountSpace: 'فضاء المستخدم',
+    accountSynced: 'متزامن مع حسابك',
+    accountSaveFavorites: 'احفظ وصفاتك المفضّلة',
+    accountStatus: 'الحالة:',
+    accountConnected: 'متصل',
+    accountIdentifier: 'المعرّف:',
+    accountPatronSession: 'جلسة المدير',
+    accountGuestName: 'ضيف ذوّاق',
+    accountGuest: 'ضيف',
+    accountRole: 'الدور:',
+    accountRoleAdmin: 'مدير عام',
+    accountRoleUser: 'مستخدم',
+    accountActiveNote: 'حسابك نشط. تبقى مفضّلاتك وثلاجتك وقائمة الأسبوع محفوظة على هذا الجهاز.',
+    accountSignIn: 'تسجيل الدخول',
+    accountSignOut: 'تسجيل الخروج',
+    accountCreate: 'إنشاء حساب',
+    accountCreateMine: 'إنشاء حسابي',
+    accountEmail: 'البريد الإلكتروني',
+    accountEmailPlaceholder: 'name@example.com',
+    accountPassword: 'كلمة المرور',
+    accountPasswordMin: '{n} أحرف على الأقل.',
+    accountOr: 'أو',
+    accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
+    accountPatronAccess: 'دخول الإدارة الآمن (/patron)',
+    authErrorInvalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+    authErrorEmailInUse: 'يوجد حساب بهذا البريد الإلكتروني. سجّل الدخول بدلًا من ذلك.',
+    authErrorWeakPassword: 'كلمة المرور ضعيفة جدًا ({n} أحرف على الأقل).',
+    authErrorInvalidEmail: 'عنوان البريد الإلكتروني غير صالح.',
+    authErrorDisabled: 'طريقة تسجيل الدخول هذه معطّلة حاليًا.',
+    authErrorUnknown: 'حدث خطأ. أعد المحاولة.',
+    errorNetwork: 'الاتصال بالإنترنت غير متوفر.',
+    errorTooManyAttempts: 'محاولات كثيرة جدًا. أعد المحاولة بعد بضع دقائق.',
+    patronLoginTitle: 'دخول المدير',
+    patronLoginSubtitle: 'إدارة آمنة (/patron)',
+    patronLoginUsername: 'اسم المستخدم المسؤول',
+    patronLoginSubmit: 'فتح لوحة الإدارة',
+    patronErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
+    patronErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+    patronErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
+    readyBadge: 'جاهز 100%!',
+    missingCountBadge: 'ينقص {n}',
+    mealIdea: 'فكرة وجبة',
+    keyIngredientBadge: 'أساسي',
+    pantryReminder: 'لا تنسَ أيضًا:',
+    ingredientFallback: 'مكوّن',
+    addMissingToGrocery: 'أضف الناقص إلى قائمة المشتريات',
+    missingAddedToast: 'أُضيفت المكوّنات الناقصة إلى قائمة مشترياتك!',
+    shareRecipeHeading: 'وصفة من Chnowa Ntayeb',
+    shareMoreIdeas: 'اكتشف المزيد من أفكار الوجبات على Chnowa Ntayeb!',
+    shareSentFrom: 'أُرسلت من',
+    groceryGenerated: 'تم إنشاء قائمة المشتريات!',
+    searchRecipePlaceholder: 'ابحث باسم الطبق (عجة، كسكسي، كفتاجي...)',
+    searchRecipeLabel: 'ابحث عن وصفة',
+    favoritesCount: 'المفضّلة ({n})',
+    maxBudgetLabel: 'الميزانية القصوى',
+    maxTimeLabel: 'أقصى وقت',
+    budgetAny: 'الميزانية: الكل',
+    timeAny: 'الوقت: الكل',
   },
-} satisfies Record<Exclude<Language, 'derja_ar'>, TranslationDictionary>;
-
-/**
- * Interface texts of every language. A language variant only lists what differs from its family:
- * derja in Arabic letters = literary Arabic texts, replaced by the derja ones that exist.
- */
-export const translations: Record<Language, TranslationDictionary> = {
-  ...BASE_TRANSLATIONS,
-  derja_ar: { ...BASE_TRANSLATIONS.ar, ...DERJA_ARABIC },
-};
+  derja_ar: DERJA_ARABIC,
+} satisfies Record<Language, TranslationDictionary>;

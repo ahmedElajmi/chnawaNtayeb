@@ -112,10 +112,10 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
       })
       .join('\n');
 
-    const tipBlock = tip ? `💡 *Astuce Tounsiya :*\n${tip}\n\n` : '';
-    const message = `🇹🇳 *Recette Chnowa Ntayeb : ${name}*${otherNames ? ` (${otherNames})` : ''}\n⏱ Temps : ${
-      recipe.prep_time_minutes + recipe.cook_time_minutes
-    } min | 💰 Budget : ${formatPriceRange(cost, t.currency)} | 👥 ${servings} personnes\n\n🛒 *Ingrédients :*\n${ingList}\n\n${tipBlock}👩‍🍳 Recette Chnowa Ntayeb, by Chef Souhed\n📱 Découvre plus d'idées repas sur Chnowa Ntayeb !`;
+    const tipBlock = tip ? `💡 *${t.chefTipTitle} :*\n${tip}\n\n` : '';
+    const minutes = t.minutesValue.replace('{n}', String(recipe.prep_time_minutes + recipe.cook_time_minutes));
+    const people = `${servings} ${servings > 1 ? t.persons : t.person}`;
+    const message = `🇹🇳 *${t.shareRecipeHeading} : ${name}*${otherNames ? ` (${otherNames})` : ''}\n⏱ ${t.filterTime} : ${minutes} | 💰 ${t.filterBudget} : ${formatPriceRange(cost, t.currency)} | 👥 ${people}\n\n🛒 *${t.ingredientsTitle} :*\n${ingList}\n\n${tipBlock}👩‍🍳 ${t.shareRecipeHeading}, by Chef Souhed\n📱 ${t.shareMoreIdeas}`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
@@ -123,7 +123,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
 
   const handleAddMissing = () => {
     const toAdd = missingItems.map((item) => ({
-      name: item.ing ? getIngredientName(item.ing) : 'Ingrédient',
+      name: item.ing ? getIngredientName(item.ing) : t.ingredientFallback,
       quantity: item.quantity,
       unit: item.unit,
     }));
@@ -157,7 +157,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
             <button
               onClick={onClose}
-              aria-label="Fermer"
+              aria-label={t.settingsClose}
               className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-md transition"
             >
               <X className="w-5 h-5" />
@@ -173,7 +173,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               <button
                 onClick={handleShareWhatsApp}
                 className="p-2 rounded-full bg-[#25D366] text-white hover:brightness-110 shadow-md transition"
-                title="Partager sur WhatsApp"
+                title={t.shareWhatsApp}
               >
                 <Share2 className="w-5 h-5" />
               </button>
@@ -196,7 +196,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               <Clock className="w-4 h-4 text-brand-text mb-1" />
               <span className="text-[11px] text-slate-400">{t.totalTime}</span>
               <span className="text-sm font-bold text-ink">
-                {recipe.prep_time_minutes + recipe.cook_time_minutes} min
+                {t.minutesValue.replace('{n}', String(recipe.prep_time_minutes + recipe.cook_time_minutes))}
               </span>
             </div>
 
@@ -243,7 +243,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-text hover:underline"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Ajouter manquants aux courses</span>
+                  <span>{t.addMissingToGrocery}</span>
                 </button>
               )}
             </div>
@@ -251,7 +251,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             {addedGroceryToast && (
               <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Les ingrédients manquants ont été ajoutés à votre liste de courses !</span>
+                <span>{t.missingAddedToast}</span>
               </div>
             )}
 
@@ -311,7 +311,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                           {item.ing ? getIngredientName(item.ing) : ''}
                           {item.isKey && (
                             <span className="ms-1.5 px-1.5 py-0.5 rounded bg-accent text-on-accent text-[9px] font-bold uppercase">
-                              clé
+                              {t.keyIngredientBadge}
                             </span>
                           )}
                         </span>
@@ -333,7 +333,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             {/* Pantry reminders (never block the recipe) */}
             {stapleItems.length > 0 && (
               <p className="pt-1 text-[11px] text-ink-muted">
-                Pense aussi à :{' '}
+                {t.pantryReminder}{' '}
                 {stapleItems
                   .map((s) => (s.ing ? getIngredientName(s.ing) : ''))
                   .filter(Boolean)

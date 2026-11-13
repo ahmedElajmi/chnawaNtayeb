@@ -69,15 +69,15 @@ export class TeamStore extends Store<TeamState> {
 
   /** Adds the account that signed in on the site with this e-mail, with a role. */
   async add(email: string, roleId: string, by: string): Promise<WriteResult> {
-    if (!isEmail(email)) return { ok: false, error: 'Adresse e-mail invalide.' };
-    if (roleId === ADMIN_ROLE_ID) return { ok: false, error: 'Le rôle administrateur ne se donne pas.' };
+    if (!isEmail(email)) return { ok: false, error: 'err:invalid-email' };
+    if (roleId === ADMIN_ROLE_ID) return { ok: false, error: 'err:admin-role' };
     const role = this.deps.roles().find((r) => r.id === roleId);
-    if (!role) return { ok: false, error: 'Rôle inconnu.' };
+    if (!role) return { ok: false, error: 'err:unknown-role' };
     const account = await this.repo.findAccountByEmail(email.trim().toLowerCase()).catch(() => null);
     if (!account)
       return {
         ok: false,
-        error: 'Aucun compte avec cette adresse : la personne doit d’abord se connecter une fois sur le site.',
+        error: 'err:no-account',
       };
     const member: TeamMember = {
       uid: account.uid,
@@ -93,7 +93,7 @@ export class TeamStore extends Store<TeamState> {
   async setRole(uid: string, roleId: string): Promise<WriteResult> {
     const member = this.getState().members.find((m) => m.uid === uid);
     const role = this.deps.roles().find((r) => r.id === roleId);
-    if (!member || !role || roleId === ADMIN_ROLE_ID) return { ok: false, error: 'Rôle inconnu.' };
+    if (!member || !role || roleId === ADMIN_ROLE_ID) return { ok: false, error: 'err:unknown-role' };
     return this.repo.put({ ...member, role: roleId, ...memberRights(role) });
   }
 

@@ -14,11 +14,13 @@ import { downloadTextFile } from '@/shared/ui/download';
 import { ScenarioEditorModal } from './ScenarioEditorModal';
 import { cls, Section } from './ui';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-const TIERS: { id: MatchTier; label: string }[] = [
-  { id: 'ready', label: 'Prêtes' },
-  { id: 'almost', label: 'Presque prêtes' },
-  { id: 'ideas', label: 'Idées' },
+const TIERS: { id: MatchTier; label: (b: BackofficeTexts) => string }[] = [
+  { id: 'ready', label: (b) => b.engTiersReady },
+  { id: 'almost', label: (b) => b.engTiersAlmost },
+  { id: 'ideas', label: (b) => b.engTiersIdeas },
 ];
 
 /** Suggestions of one scenario with the draft settings (the "Tester" button). */
@@ -34,6 +36,7 @@ function ScenarioPreview({
   config: MatchingConfig;
 }) {
   const { getRecipeName } = useLanguage();
+  const b = useBackofficeText();
   const results = useMemo(
     () =>
       matchRecipes(recipes, scenario.fridge, scenario.filters, {
@@ -48,7 +51,7 @@ function ScenarioPreview({
       {TIERS.map(({ id, label }) => (
         <div key={id} className="min-w-0">
           <p className={cls.label}>
-            {label} ({results[id].length})
+            {label(b)} ({results[id].length})
           </p>
           <ol className="text-[11px] text-ink">
             {results[id].slice(0, 5).map((r, i) => (
@@ -83,6 +86,7 @@ export function ScenariosManager({
   config: MatchingConfig;
   onNotify: (message: string, isError?: boolean) => void;
 }) {
+  const b = useBackofficeText();
   const { status, matchingScenarios } = useMatchingScenarios();
   const [editing, setEditing] = useState<{ scenario: MatchingScenario; isNew: boolean } | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
@@ -102,24 +106,26 @@ export function ScenariosManager({
     await matchingScenarios.load();
     setBusy(false);
     setLastRun(new Date());
-    if (matchingScenarios.getState().status === 'error') onNotify('Base injoignable : scénarios non rechargés.', true);
+    if (matchingScenarios.getState().status === 'error') onNotify(b.engScenariosUnreachable, true);
   };
 
   const remove = async (scenario: MatchingScenario) => {
-    if (!window.confirm(`Supprimer le scénario « ${scenario.title} » ?`)) return;
+    if (!window.confirm(format(b.engConfirmDeleteScenario, { title: scenario.title }))) return;
     const result = await matchingScenarios.remove(scenario.id);
-    onNotify(result.ok ? 'Scénario supprimé.' : result.error, !result.ok);
+    onNotify(result.ok ? b.engScenarioDeleted : result.error, !result.ok);
   };
 
   const importFile = async (file: File) => {
     const count = matchingScenarios.getState().scenarios.length;
-    if (count > 0 && !window.confirm(`Remplacer les ${count} scénarios de la base par ceux du fichier ?`)) return;
+    if (count > 0 && !window.confirm(format(b.engConfirmReplaceScenarios, { count }))) return;
     setBusy(true);
     const result = await matchingScenarios.importJson(await file.text());
     setBusy(false);
     if (!result.ok) return onNotify(result.error, true);
     onNotify(
-      `${result.count} scénario(s) restauré(s)${result.skipped ? `, ${result.skipped} incomplet(s) ignoré(s)` : ''}.`
+      result.skipped
+        ? format(b.engScenariosRestoredSkipped, { count: result.count ?? 0, skipped: result.skipped })
+        : format(b.engScenariosRestored, { count: result.count ?? 0 })
     );
   };
 
@@ -129,20 +135,20 @@ export function ScenariosManager({
     <Section
       title={
         results.length
-          ? `Scénarios du chef : ${results.length - failed}/${results.length} respectés`
-          : 'Scénarios du chef'
+          ? format(b.engScenariosTitleCount, { passed: results.length - failed, total: results.length })
+          : b.engScenariosTitle
       }
-      hint="« Avec ce frigo, on doit voir ces plats. » Enregistrés en base et rejoués avec le brouillon avant publication."
+      hint={b.engScenariosHint}
       actions={
         <div className="flex flex-wrap gap-2">
           <button
             className={`${cls.primary} inline-flex items-center gap-1`}
             onClick={() => setEditing({ scenario: newScenario(), isNew: true })}
           >
-            <Plus className="w-3.5 h-3.5" /> Ajouter
+            <Plus className="w-3.5 h-3.5" /> {b.engAdd}
           </button>
           <button className={`${cls.secondary} inline-flex items-center gap-1`} disabled={busy} onClick={runTests}>
-            <Play className="w-3.5 h-3.5" /> {busy ? 'Tests…' : 'Lancer les tests'}
+            <Play className="w-3.5 h-3.5" /> {busy ? b.engTestsRunning : b.engRunTests}
           </button>
           <button
             className={`${cls.secondary} inline-flex items-center gap-1`}
@@ -154,14 +160,14 @@ export function ScenariosManager({
               )
             }
           >
-            <Download className="w-3.5 h-3.5" /> Exporter
+            <Download className="w-3.5 h-3.5" /> {b.engExportButton}
           </button>
           <button
             className={`${cls.secondary} inline-flex items-center gap-1`}
             disabled={busy}
             onClick={() => fileInput.current?.click()}
           >
-            <Upload className="w-3.5 h-3.5" /> Importer
+            <Upload className="w-3.5 h-3.5" /> {b.engineImport}
           </button>
           <input
             ref={fileInput}
@@ -179,22 +185,16 @@ export function ScenariosManager({
     >
       {lastRun && (
         <p className="text-[11px] text-ink-muted">
-          Derniers tests : {lastRun.toLocaleTimeString('fr-FR')} · {results.length - failed} réussi(s), {failed} en
-          échec.
+          {format(b.engLastRun, {
+            time: lastRun.toLocaleTimeString(),
+            passed: results.length - failed,
+            failed,
+          })}
         </p>
       )}
-      {status === 'loading' && results.length === 0 && <p className="text-xs text-ink-muted">Chargement…</p>}
-      {status === 'error' && (
-        <p className="text-xs font-semibold text-rose-600">
-          Base injoignable : la liste n’a pas pu être chargée (« Lancer les tests » pour réessayer).
-        </p>
-      )}
-      {status === 'ready' && results.length === 0 && (
-        <p className="text-xs text-ink-muted">
-          Aucun scénario en base. Ajoutez-en un, ou importez un export (fichier initial :
-          docs/encyclopedie/donnees/scenarios-initiaux.json).
-        </p>
-      )}
+      {status === 'loading' && results.length === 0 && <p className="text-xs text-ink-muted">{b.engLoading}</p>}
+      {status === 'error' && <p className="text-xs font-semibold text-rose-600">{b.engScenariosLoadError}</p>}
+      {status === 'ready' && results.length === 0 && <p className="text-xs text-ink-muted">{b.engNoScenario}</p>}
 
       <ul className="space-y-1.5">
         {results.map(({ scenario, passed, failures }) => (
@@ -207,15 +207,13 @@ export function ScenariosManager({
               )}
               <span className={`flex-1 min-w-0 break-words ${passed ? 'text-ink' : 'font-semibold text-rose-600'}`}>
                 {scenario.title}
-                {!passed && wasPassing.has(scenario.id) && (
-                  <span className="ml-1 font-bold">(cassé par le brouillon)</span>
-                )}
+                {!passed && wasPassing.has(scenario.id) && <span className="ml-1 font-bold">{b.engBrokenByDraft}</span>}
               </span>
               <div className="flex shrink-0">
                 <button
                   className="p-1 rounded text-ink-muted hover:text-ink"
-                  aria-label={`Tester « ${scenario.title} »`}
-                  title="Tester : voir les suggestions"
+                  aria-label={format(b.engTestScenario, { title: scenario.title })}
+                  title={b.engTestHint}
                   aria-pressed={testing === scenario.id}
                   onClick={() => setTesting(testing === scenario.id ? null : scenario.id)}
                 >
@@ -223,16 +221,16 @@ export function ScenariosManager({
                 </button>
                 <button
                   className="p-1 rounded text-ink-muted hover:text-ink"
-                  aria-label={`Modifier « ${scenario.title} »`}
-                  title="Modifier"
+                  aria-label={format(b.engEditScenario, { title: scenario.title })}
+                  title={b.engEdit}
                   onClick={() => setEditing({ scenario, isNew: false })}
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   className="p-1 rounded text-ink-muted hover:text-rose-600"
-                  aria-label={`Supprimer « ${scenario.title} »`}
-                  title="Supprimer"
+                  aria-label={format(b.engDeleteScenario, { title: scenario.title })}
+                  title={b.engDelete}
                   onClick={() => void remove(scenario)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -264,7 +262,7 @@ export function ScenariosManager({
           onSave={async (s) => {
             const scenario = editing.isNew ? { ...s, id: matchingScenarios.newId(s.title) } : s;
             const result = await matchingScenarios.save(scenario, catalog);
-            if (result.ok) onNotify(editing.isNew ? 'Scénario ajouté.' : 'Scénario enregistré.');
+            if (result.ok) onNotify(editing.isNew ? b.engScenarioAdded : b.engScenarioSaved);
             return result;
           }}
         />

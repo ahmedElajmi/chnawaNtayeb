@@ -1,12 +1,17 @@
 import type { Language } from '@/core/shared';
 
+import { accessTexts } from './texts/access';
+import { editorsTexts } from './texts/editors';
+import { enginesTexts } from './texts/engine';
+import { panelsTexts } from './texts/panels';
+
 /**
  * Labels of the backoffice, in every language and variant (they follow the current language like the
  * rest of the site). Kept apart from the public dictionary: it is only downloaded with /patron.
- * A variant only lists what differs from its family (derja in Arabic letters = literary Arabic + these).
- * The pages not yet moved to this dictionary still show French labels.
+ * Shared labels live here; each area has its own file in ./texts (defineTexts), every language
+ * written in full (derja in Arabic letters included).
  */
-export interface BackofficeTexts {
+interface CoreTexts {
   title: string;
   /** Navigation landmark and the mobile menu */
   navLabel: string;
@@ -357,9 +362,25 @@ export interface BackofficeTexts {
   recipeNoCategories: string;
   queueGroupCategory: string;
   groupToDo: string;
+
+  // Error codes of the stores and adapters
+  errConflict: string;
+  errDenied: string;
+  errNotFound: string;
+  errUnknownCell: string;
+  errIncompleteCell: string;
+  errNoteRequired: string;
+  errNotPublishable: string;
+  errSavedLocally: string;
+  errWriteRefused: string;
+  errUnreachable: string;
+  errInvalidEmail: string;
+  errAdminRole: string;
+  errUnknownRole: string;
+  errNoAccount: string;
 }
 
-const fr: BackofficeTexts = {
+const fr: CoreTexts = {
   title: 'Backoffice',
   navLabel: 'Sections du backoffice',
   menu: 'Menu',
@@ -711,9 +732,24 @@ const fr: BackofficeTexts = {
   recipeNoCategories: 'Aucune catégorie : crée-les dans Catégories.',
   queueGroupCategory: 'Catégorie',
   groupToDo: '{count} à traiter',
+  errConflict: 'Cet élément a été modifié entre-temps par quelqu’un d’autre : recharge avant de continuer.',
+  errDenied: 'Ton rôle ne permet pas cette action.',
+  errNotFound: 'Élément introuvable dans l’atelier.',
+  errUnknownCell: 'Partie inconnue.',
+  errIncompleteCell: 'Cette partie n’est pas complète : corrige les points bloquants avant de la valider.',
+  errNoteRequired: 'Écris une note pour dire quoi corriger.',
+  errNotPublishable: 'Toutes les parties obligatoires doivent être validées avant de publier.',
+  errSavedLocally: 'Enregistré sur cet appareil seulement : la base n’a pas accepté l’écriture.',
+  errWriteRefused:
+    'Enregistré sur cet appareil seulement : la base a refusé l’écriture (session non reliée ou règles non déployées).',
+  errUnreachable: 'Enregistré sur cet appareil seulement : la base est injoignable.',
+  errInvalidEmail: 'Adresse e-mail invalide.',
+  errAdminRole: 'Le rôle administrateur ne se donne pas.',
+  errUnknownRole: 'Rôle inconnu.',
+  errNoAccount: 'Aucun compte avec cette adresse : la personne doit d’abord se connecter une fois sur le site.',
 };
 
-const derja: BackofficeTexts = {
+const derja: CoreTexts = {
   title: 'Backoffice',
   navLabel: 'Aqsem el backoffice',
   menu: 'Menu',
@@ -1061,9 +1097,24 @@ const derja: BackofficeTexts = {
   recipeNoCategories: 'Ma famma 7atta catégorie : a3malhom fi Catégories.',
   queueGroupCategory: 'Catégorie',
   groupToDo: '{count} lezem yet3amlou',
+  errConflict: 'El 7aja hedhi tbadlet men 3and 7add e5er : 3awed charger 9bal ma tkammel.',
+  errDenied: 'El role mte3ek ma ysa79ekch.',
+  errNotFound: 'El 7aja mouch mawjouda fel atelier.',
+  errUnknownCell: 'Partie mouch ma3roufa.',
+  errIncompleteCell: 'El partie hedhi mouch kemla : sala7 el 7wayej elli tsakker 9bal ma tvalidiha.',
+  errNoteRequired: 'Ekteb mla7dha bech t9oul chnowa lezem yetsala7.',
+  errNotPublishable: 'El parties el lezma lkol lezem yetvalidaw 9bal el publication.',
+  errSavedLocally: 'Tsajel 3al appareil hedha bark : el base ma 9eblettech.',
+  errWriteRefused:
+    'Tsajel 3al appareil hedha bark : el base rafdhet (session mouch marboutta wala règles mouch déployées).',
+  errUnreachable: 'Tsajel 3al appareil hedha bark : el base ma tjewebch.',
+  errInvalidEmail: 'Adresse e-mail mouch s7i7a.',
+  errAdminRole: 'Role el administrateur ma yet3tach.',
+  errUnknownRole: 'Role mouch ma3rouf.',
+  errNoAccount: 'Ma famma 7atta compte b el adresse hedhi : el 3abd lezmou yconnecti marra 3al site lowel.',
 };
 
-const ar: BackofficeTexts = {
+const ar: CoreTexts = {
   title: 'لوحة الإدارة',
   navLabel: 'أقسام لوحة الإدارة',
   menu: 'القائمة',
@@ -1405,10 +1456,24 @@ const ar: BackofficeTexts = {
   recipeNoCategories: 'لا توجد أصناف: أنشئها في «الأصناف».',
   queueGroupCategory: 'الصنف',
   groupToDo: '{count} قيد المعالجة',
+  errConflict: 'عدّل شخص آخر هذا العنصر في الأثناء: أعد التحميل قبل المتابعة.',
+  errDenied: 'لا يسمح دورك بهذا الإجراء.',
+  errNotFound: 'العنصر غير موجود في الورشة.',
+  errUnknownCell: 'جزء غير معروف.',
+  errIncompleteCell: 'هذا الجزء غير مكتمل: صحّح النقاط المانعة قبل مراجعته.',
+  errNoteRequired: 'اكتب ملاحظة توضّح ما يجب تصحيحه.',
+  errNotPublishable: 'يجب مراجعة كل الأجزاء الإلزامية قبل النشر.',
+  errSavedLocally: 'حُفظ على هذا الجهاز فقط: لم تقبل قاعدة البيانات الكتابة.',
+  errWriteRefused: 'حُفظ على هذا الجهاز فقط: رفضت قاعدة البيانات الكتابة (جلسة غير مرتبطة أو قواعد غير منشورة).',
+  errUnreachable: 'حُفظ على هذا الجهاز فقط: تعذّر الوصول إلى قاعدة البيانات.',
+  errInvalidEmail: 'عنوان بريد إلكتروني غير صالح.',
+  errAdminRole: 'لا يُمنح دور المسؤول.',
+  errUnknownRole: 'دور غير معروف.',
+  errNoAccount: 'لا يوجد حساب بهذا العنوان: يجب أن يسجّل الشخص دخوله مرة واحدة على الموقع أولًا.',
 };
 
 /** Derja in Arabic letters: only what differs from literary Arabic. To be reviewed by a native speaker. */
-const derjaArabic: Partial<BackofficeTexts> = {
+const derjaArabic: CoreTexts = {
   logout: 'اخرج',
   backToSite: 'ارجع للموقع',
   statusOnline: 'منشور للكل',
@@ -1684,13 +1749,99 @@ const derjaArabic: Partial<BackofficeTexts> = {
   recipeNoCategories: 'ما فمّا حتّى صنف: اعملهم في «الأصناف».',
   queueGroupCategory: 'الصنف',
   groupToDo: '{count} لازمهم يتعملو',
+  title: 'الباك أوفيس',
+  navLabel: 'أقسام الباك أوفيس',
+  menu: 'المنيو',
+  closeMenu: 'سكّر المنيو',
+  homeHint: 'أرقام الكاتالوڨ وحاجات تتعمل بالزربة',
+  engine: 'الموتور',
+  engineHint: 'ريڨلاجات الاقتراحات «ورّيني شنوة نطيّب»',
+  appearanceHint: 'الألوان اللي يشوفها العموم',
+  data: 'الداتا',
+  dataHint: 'سوفڨارد، رجوع وتزامن',
+  engineSimulator: 'السيمولاتور',
+  engineScenarios: 'السيناريوات',
+  engineBoosts: 'اللي نقدّموهم',
+  engineTuning: 'الريڨلاجات',
+  engineHistory: 'التاريخ',
+  engineOnline: 'منشور: النسخة {version}',
+  engineNoVersion: 'منشور: الريڨلاجات العاديّة',
+  engineFromCache: 'نسخة على الجهاز',
+  engineNotePlaceholder: 'ملاحظة على النسخة (مثلًا: ماكلات رمضان القدّام)',
+  enginePublishing: 'قاعد ينشر…',
+  engineAcceptFailures: 'انشر مع {count} سيناريو موش محترم',
+  engineIdle: 'بدّل ريڨلاج: السيمولاتور والسيناريوات يورّيوك شنوة يتبدّل قبل ما تنشر.',
+  engineExport: 'صدّر (JSON)',
+  engineImport: 'جيب',
+  engineResetDraft: 'البروايون = العادي',
+  reviewTitle: 'التصديق',
+  reviewOnlineVersion: 'المنشور',
+  reviewWorkVersion: 'في الورشة',
+  reviewAdvice: 'مستحسن',
+  reviewCommon: 'مشتركة',
+  reviewNoteFrom: 'ملاحظة: {note}',
+  partDetails: 'المعلومات والمكوّنات',
+  partSteps: 'المراحل',
+  filterAll: 'الكل',
+  filterOnline: 'منشورة',
+  ruleDescription: 'الوصف مكتوب',
+  ruleVideo: 'فيديو يوتيوب',
+  ruleIngredients: 'مكوّن واحد على الأقل',
+  ruleKeyIngredient: 'مكوّن أساسي',
+  rulePublishedIngredients: 'مكوّنات منشورة',
+  ruleTimes: 'الوقت والقسمات',
+  partCategory: 'الصنف والوحدة',
+  ruleCategory: 'الصنف والوحدة',
+  queueByItem: 'الحاجة',
+  queueByStep: 'المرحلة',
+  queueByLanguage: 'اللغة',
+  queueByKind: 'النوع',
+  workflowsTitle: 'مسارات التصديق',
+  workflowsHint: 'مراحل التصديق، الأدوار والإكيب',
+  workflowsSteps: 'المراحل',
+  workflowsRoles: 'الأدوار',
+  workflowsTeam: 'الإكيب',
+  workflowsOptions: 'خيارات',
+  workflowsNewStep: 'مرحلة',
+  workflowsStepOf: 'مرحلة متاع',
+  workflowsDefaultLevel: 'العادي',
+  rolesMembers: '{count} عضو',
+  teamRole: 'الدور',
+  statusLocalDetail:
+    'السرفور ما نجّمش يربط السيسيون متاعك بالقاعدة (الكونفيڨيراسيون متاع السرفور ناقصة ولا غالطة، شوف دوكيمونتاسيون الاستغلال). التبديلات متاعك يقعدو على الجهاز هذا وما يتنشروش.',
+  errConflict: 'الحاجة هذي تبدّلت من عند حد آخر: عاود شارجي قبل ما تكمّل.',
+  errDenied: 'الدور متاعك ما يسمحلكش.',
+  errNotFound: 'الحاجة موش موجودة في الورشة.',
+  errUnknownCell: 'جزء موش معروف.',
+  errIncompleteCell: 'الجزء هذا موش كامل: صلّح الحوايج اللي تسكّر قبل ما تصدّق عليه.',
+  errNoteRequired: 'اكتب ملاحظة باش تقول شنوة لازم يتصلّح.',
+  errNotPublishable: 'الأجزاء اللازمة الكل لازم يتصدّقو قبل ما تنشر.',
+  errSavedLocally: 'تسجّل على الجهاز هذا برك: القاعدة ما قبلتهوش.',
+  errWriteRefused: 'تسجّل على الجهاز هذا برك: القاعدة رفضت (السيسيون موش مربوطة ولا القواعد موش منشورة).',
+  errUnreachable: 'تسجّل على الجهاز هذا برك: القاعدة ما تجاوبش.',
+  errInvalidEmail: 'الإيمايل موش صحيح.',
+  errAdminRole: 'دور الأدمين ما يتعطاش.',
+  errUnknownRole: 'دور موش معروف.',
+  errNoAccount: 'ما فمّا حتّى كونت بالأدريسة هذي: الشخص لازمو يكونيكتي مرّة على السيت الأوّل.',
 };
 
-const BASE = { fr, derja, ar } satisfies Record<Exclude<Language, 'derja_ar'>, BackofficeTexts>;
+const CORE: Record<Language, CoreTexts> = { fr, derja, ar, derja_ar: derjaArabic };
+const AREAS = [accessTexts, editorsTexts, enginesTexts, panelsTexts] as const;
+
+export type BackofficeTexts = CoreTexts &
+  (typeof accessTexts)['fr'] &
+  (typeof editorsTexts)['fr'] &
+  (typeof enginesTexts)['fr'] &
+  (typeof panelsTexts)['fr'];
+
+const textsOf = (lang: Language): BackofficeTexts =>
+  Object.assign({}, CORE[lang], ...AREAS.map((area) => area[lang])) as BackofficeTexts;
 
 export const BACKOFFICE_TEXTS: Record<Language, BackofficeTexts> = {
-  ...BASE,
-  derja_ar: { ...BASE.ar, ...derjaArabic },
+  fr: textsOf('fr'),
+  derja: textsOf('derja'),
+  ar: textsOf('ar'),
+  derja_ar: textsOf('derja_ar'),
 };
 
 /** Replaces `{name}` placeholders: format(b.engineOnline, { version: 3 }). */

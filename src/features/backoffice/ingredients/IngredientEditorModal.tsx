@@ -6,6 +6,7 @@ import {
   parseImageUrl,
   validateIngredient,
   type Ingredient,
+  type CheckedField,
   type IngredientCategory,
 } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
@@ -15,6 +16,8 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
 import { useIngredientCategories } from '@/shared/i18n/useCategoryNames';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-200 dark:border-slate-700 mt-1';
 const LABEL = 'text-[11px] font-bold text-slate-600 dark:text-slate-300';
@@ -42,12 +45,29 @@ interface IngredientEditorModalProps {
 
 const priceInput = (value: string) => (value.trim() === '' ? NaN : Number(value.replace(',', '.')));
 
+/** Message of an ingredient refused by the domain rules, told by the field it is about and the values typed. */
+function errorMessage(field: CheckedField | undefined, checked: Ingredient, b: BackofficeTexts): string {
+  switch (field) {
+    case 'name':
+      return b.edErrIngredientName;
+    case 'unit':
+      return checked.unit_default.trim()
+        ? format(b.edErrUnitPrice, { unit: checked.unit_default.trim() })
+        : b.edErrUnitRequired;
+    case 'price':
+      return Number.isFinite(checked.price_min_tnd) && checked.price_min_tnd >= 0 ? b.edErrPriceMax : b.edErrPriceMin;
+    default:
+      return b.edErrPhoto;
+  }
+}
+
 /**
  * Create or edit an ingredient: names in the three languages, category, unit,
  * price range and optional photo link, with a live preview of how it looks.
  */
 export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: IngredientEditorModalProps) {
   const { getIngredientName } = useLanguage();
+  const b = useBackofficeText();
   const categories = useIngredientCategories();
   const isNew = !ingredient.id;
   const [draft, setDraft] = useState<Ingredient>(ingredient);
@@ -59,10 +79,10 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
     JSON.stringify(draft) !== JSON.stringify(ingredient) ||
     minText !== String(ingredient.price_min_tnd) ||
     maxText !== String(ingredient.price_max_tnd);
-  const dismiss = useGuardedClose(dirty, onClose, 'Abandonner les modifications de cet ingrédient ?');
+  const dismiss = useGuardedClose(dirty, onClose, b.edDiscardIngredient);
   const set = (patch: Partial<Ingredient>) => setDraft((d) => ({ ...d, ...patch }));
 
-  const title = isNew ? 'Nouvel ingrédient' : `Modifier : ${getIngredientName(ingredient)}`;
+  const title = isNew ? b.edNewIngredient : format(b.edEditNamed, { name: getIngredientName(ingredient) });
   const photo = parseImageUrl(draft.image_url);
   const preview: Ingredient = { ...draft, image_url: photo ?? undefined };
   // Two ingredients with the same French name would be impossible to tell apart in the recipes
@@ -70,13 +90,10 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const checked = validateIngredient({
-      ...draft,
-      price_min_tnd: priceInput(minText),
-      price_max_tnd: priceInput(maxText),
-    });
-    if (!checked.ok) setError(checked.error);
-    else if (duplicate) setError(`« ${duplicate.name_fr} » existe déjà dans le catalogue : modifiez-le plutôt.`);
+    const typed: Ingredient = { ...draft, price_min_tnd: priceInput(minText), price_max_tnd: priceInput(maxText) };
+    const checked = validateIngredient(typed);
+    if (!checked.ok) setError(errorMessage(checked.field, typed, b));
+    else if (duplicate) setError(format(b.edIngredientExists, { name: getIngredientName(duplicate) }));
     else onSave(checked.value);
   };
 
@@ -90,7 +107,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
       >
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
           <h3 className="font-extrabold text-base text-ink truncate">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 shrink-0" aria-label="Fermer">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 shrink-0" aria-label={b.close}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -105,7 +122,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
             </p>
           )}
           <LocalizedField
-            label="Nom de l'ingrédient"
+            label={b.edIngredientName}
             frenchRequired
             value={localizedField(draft, 'name')}
             onChange={(v) => setDraft((d) => withLocalizedField(d, 'name', v))}
@@ -113,12 +130,12 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
           />
           {duplicate && (
             <p className="-mt-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-              « {duplicate.name_fr} » existe déjà dans le catalogue.
+              {format(b.edIngredientExistsShort, { name: getIngredientName(duplicate) })}
             </p>
           )}
           <div className="grid grid-cols-2 gap-3">
             <label className={LABEL}>
-              Catégorie
+              {b.edCategory}
               <select
                 value={draft.category}
                 onChange={(e) => set({ category: e.target.value as IngredientCategory })}
@@ -132,18 +149,18 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
               </select>
             </label>
             <label className={LABEL}>
-              Unité d'achat
+              {b.edPurchaseUnit}
               <input
                 type="text"
                 value={draft.unit_default}
                 onChange={(e) => set({ unit_default: e.target.value })}
-                placeholder="kg, pièce, boîte..."
+                placeholder={b.edUnitPlaceholder}
                 className={INPUT}
                 required
               />
             </label>
             <label className={LABEL}>
-              Prix minimum (DT)
+              {b.edPriceMin}
               <input
                 type="number"
                 inputMode="decimal"
@@ -155,7 +172,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
               />
             </label>
             <label className={LABEL}>
-              Prix maximum (DT)
+              {b.edPriceMax}
               <input
                 type="number"
                 inputMode="decimal"
@@ -167,14 +184,11 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
               />
             </label>
           </div>
-          <p className="-mt-2 text-[11px] text-ink-muted">
-            Les prix du marché changent : indiquez la fourchette habituelle pour une unité d'achat (même valeur deux
-            fois pour un prix fixe).
-          </p>
+          <p className="-mt-2 text-[11px] text-ink-muted">{b.edPriceHint}</p>
 
           <div className="space-y-2">
             <label className={`block ${LABEL}`}>
-              Photo (lien https, facultatif)
+              {b.edPhotoOptional}
               <input
                 type="url"
                 inputMode="url"
@@ -188,15 +202,11 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
             <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-line">
               <IngredientThumb key={preview.image_url ?? 'none'} ingredient={preview} size="lg" />
               <div className="min-w-0 space-y-1">
-                <p className="text-sm font-bold text-ink truncate">{getIngredientName(draft) || 'Aperçu'}</p>
-                <p className="text-[11px] text-ink-muted">
-                  {photo
-                    ? "Aperçu de la photo. Si l'image ne s'affiche pas, le lien est inaccessible : la pastille de la catégorie sera montrée à la place."
-                    : 'Sans photo : pastille colorée de la catégorie.'}
-                </p>
+                <p className="text-sm font-bold text-ink truncate">{getIngredientName(draft) || b.edPreview}</p>
+                <p className="text-[11px] text-ink-muted">{photo ? b.edIngredientPhotoOk : b.edIngredientNoPhoto}</p>
                 {photo === null && (
                   <p className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
-                    <ImageOff className="w-3.5 h-3.5" /> Lien invalide (adresse complète en https:// attendue)
+                    <ImageOff className="w-3.5 h-3.5" /> {b.edInvalidLink}
                   </p>
                 )}
                 {draft.image_url && (
@@ -205,7 +215,7 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
                     onClick={() => set({ image_url: '' })}
                     className="block text-[11px] font-semibold text-accent-text hover:underline"
                   >
-                    Retirer la photo
+                    {b.edRemovePhoto}
                   </button>
                 )}
               </div>
@@ -218,13 +228,13 @@ export function IngredientEditorModal({ ingredient, catalog, onSave, onClose }: 
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900"
             >
-              Annuler
+              {b.cancel}
             </button>
             <button
               type="submit"
               className="px-5 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong shadow-sm transition"
             >
-              {isNew ? 'Ajouter au catalogue' : 'Enregistrer'}
+              {isNew ? b.edAddToCatalog : b.save}
             </button>
           </div>
         </form>

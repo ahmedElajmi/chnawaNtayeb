@@ -39,9 +39,9 @@ export function EnginePublishBar() {
     try {
       const parsed = JSON.parse(await file.text());
       setDraft(resolveMatchingConfig(parsed?.config ?? parsed));
-      notify('Fichier chargé dans le brouillon : vérifiez puis publiez.');
+      notify(b.engFileLoaded);
     } catch {
-      notify('Fichier illisible : ce n’est pas un export de réglages.', true);
+      notify(b.engFileUnreadable, true);
     }
   };
 
@@ -174,6 +174,7 @@ export function EngineTuningPage() {
 }
 
 export function EngineHistoryPage() {
+  const b = useBackofficeText();
   const notify = useNotify();
   const { setDraft, version, restore, listVersions } = useMatchingDraft();
   return (
@@ -183,7 +184,7 @@ export function EngineHistoryPage() {
       refreshKey={version}
       onEdit={(v) => {
         setDraft(resolveMatchingConfig(v.config));
-        notify(`Version ${v.version} ouverte dans le brouillon.`);
+        notify(format(b.engVersionOpened, { version: v.version }));
       }}
       onRestore={restore}
     />

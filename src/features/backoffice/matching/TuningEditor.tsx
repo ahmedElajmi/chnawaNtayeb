@@ -1,42 +1,36 @@
 import { DEFAULT_MATCHING_CONFIG, type MatchingConfig } from '@/core/matching';
+import type { BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 import { cls, Section } from './ui';
 
 type Scoring = MatchingConfig['scoring'];
 type Tiers = MatchingConfig['tiers'];
 
-const TIER_FIELDS: { key: keyof Tiers; label: string; help: string; max: number }[] = [
-  {
-    key: 'almostMaxToBuy',
-    label: '« Presque prêt » : courses max.',
-    help: 'Nombre d’ingrédients à acheter au maximum',
-    max: 5,
-  },
-  {
-    key: 'almostMaxMissingKey',
-    label: 'Ingrédients clés manquants max.',
-    help: '0 = une recette sans son ingrédient principal n’est jamais « presque prête »',
-    max: 3,
-  },
+type Label = (b: BackofficeTexts) => string;
+
+const TIER_FIELDS: { key: keyof Tiers; label: Label; help: Label; max: number }[] = [
+  { key: 'almostMaxToBuy', label: (b) => b.engTuneAlmostMaxToBuy, help: (b) => b.engTuneAlmostMaxToBuyHelp, max: 5 },
+  { key: 'almostMaxMissingKey', label: (b) => b.engTuneMaxMissingKey, help: (b) => b.engTuneMaxMissingKeyHelp, max: 3 },
   {
     key: 'almostMaxToBuyWhenKeyMissing',
-    label: 'Courses max. si une clé manque',
-    help: '1 = seulement si c’est la seule course',
+    label: (b) => b.engTuneToBuyWhenKeyMissing,
+    help: (b) => b.engTuneToBuyWhenKeyMissingHelp,
     max: 5,
   },
   {
     key: 'ideasMinFridgeUsedWithoutKey',
-    label: 'Idées sans ingrédient clé',
-    help: 'Ingrédients du frigo nécessaires pour une recette sans ingrédient clé',
+    label: (b) => b.engTuneIdeasWithoutKey,
+    help: (b) => b.engTuneIdeasWithoutKeyHelp,
     max: 10,
   },
 ];
 
-const SCORING_FIELDS: { key: keyof Scoring; label: string; step: number; max: number }[] = [
-  { key: 'keyWeight', label: 'Poids d’un ingrédient clé', step: 0.5, max: 10 },
-  { key: 'secondaryWeight', label: 'Poids d’un ingrédient secondaire', step: 0.5, max: 10 },
-  { key: 'substituteFactor', label: 'Valeur d’un remplacement (0 à 1)', step: 0.05, max: 1 },
-  { key: 'staplePenalty', label: 'Points retirés par épice manquante', step: 1, max: 20 },
-  { key: 'maxStaplePenalty', label: 'Maximum retiré pour les épices', step: 1, max: 50 },
+const SCORING_FIELDS: { key: keyof Scoring; label: Label; step: number; max: number }[] = [
+  { key: 'keyWeight', label: (b) => b.engTuneKeyWeight, step: 0.5, max: 10 },
+  { key: 'secondaryWeight', label: (b) => b.engTuneSecondaryWeight, step: 0.5, max: 10 },
+  { key: 'substituteFactor', label: (b) => b.engTuneSubstituteFactor, step: 0.05, max: 1 },
+  { key: 'staplePenalty', label: (b) => b.engTuneStaplePenalty, step: 1, max: 20 },
+  { key: 'maxStaplePenalty', label: (b) => b.engTuneMaxStaplePenalty, step: 1, max: 50 },
 ];
 
 function NumberField({
@@ -72,10 +66,11 @@ function NumberField({
 }
 
 export function TuningEditor({ config, onChange }: { config: MatchingConfig; onChange: (c: MatchingConfig) => void }) {
+  const b = useBackofficeText();
   return (
     <Section
-      title="Seuils et poids"
-      hint="Quand une recette est « prête », « presque prête » ou une « idée », et comment le score est calculé."
+      title={b.engTuningTitle}
+      hint={b.engTuningHint}
       actions={
         <button
           className={cls.secondary}
@@ -83,7 +78,7 @@ export function TuningEditor({ config, onChange }: { config: MatchingConfig; onC
             onChange({ ...config, scoring: DEFAULT_MATCHING_CONFIG.scoring, tiers: DEFAULT_MATCHING_CONFIG.tiers })
           }
         >
-          Valeurs par défaut
+          {b.engDefaults}
         </button>
       }
     >
@@ -91,8 +86,8 @@ export function TuningEditor({ config, onChange }: { config: MatchingConfig; onC
         {TIER_FIELDS.map((f) => (
           <NumberField
             key={f.key}
-            label={f.label}
-            help={f.help}
+            label={f.label(b)}
+            help={f.help(b)}
             max={f.max}
             value={config.tiers[f.key]}
             onChange={(v) => onChange({ ...config, tiers: { ...config.tiers, [f.key]: v } })}
@@ -103,7 +98,7 @@ export function TuningEditor({ config, onChange }: { config: MatchingConfig; onC
         {SCORING_FIELDS.map((f) => (
           <NumberField
             key={f.key}
-            label={f.label}
+            label={f.label(b)}
             step={f.step}
             max={f.max}
             value={config.scoring[f.key]}

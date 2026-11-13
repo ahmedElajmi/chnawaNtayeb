@@ -3,6 +3,7 @@ import type { Recipe } from '@/core/catalog';
 import type { MatchingConfig, RecipeBoost } from '@/core/matching';
 import { cls, RecipeSelect, Section } from './ui';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 export function BoostsEditor({
   config,
@@ -14,6 +15,7 @@ export function BoostsEditor({
   onChange: (c: MatchingConfig) => void;
 }) {
   const { getRecipeName } = useLanguage();
+  const b = useBackofficeText();
   const [recipeId, setRecipeId] = useState('');
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const name = (id: string) => {
@@ -22,45 +24,42 @@ export function BoostsEditor({
   };
   const setBoosts = (recipeBoosts: RecipeBoost[]) => onChange({ ...config, recipeBoosts });
   const update = (i: number, patch: Partial<RecipeBoost>) =>
-    setBoosts(config.recipeBoosts.map((b, k) => (k === i ? { ...b, ...patch } : b)));
+    setBoosts(config.recipeBoosts.map((boost, k) => (k === i ? { ...boost, ...patch } : boost)));
 
   return (
-    <Section
-      title="Mises en avant"
-      hint="Recettes affichées en premier dans leur niveau (recette du jour, saison, Ramadan…). Une date de fin les retire automatiquement."
-    >
-      {config.recipeBoosts.length === 0 && <p className="text-xs text-ink-muted">Aucune recette mise en avant.</p>}
+    <Section title={b.engineBoosts} hint={b.engBoostsHint}>
+      {config.recipeBoosts.length === 0 && <p className="text-xs text-ink-muted">{b.engNoBoost}</p>}
       <ul className="space-y-2">
-        {config.recipeBoosts.map((b, i) => {
-          const expired = !!b.until && b.until < today;
+        {config.recipeBoosts.map((boost, i) => {
+          const expired = !!boost.until && boost.until < today;
           return (
-            <li key={`${b.recipeId}-${i}`} className="flex flex-wrap items-center gap-2 text-xs">
+            <li key={`${boost.recipeId}-${i}`} className="flex flex-wrap items-center gap-2 text-xs">
               <span className={`flex-1 min-w-40 font-semibold ${expired ? 'line-through text-ink-muted' : 'text-ink'}`}>
-                {name(b.recipeId)}
+                {name(boost.recipeId)}
               </span>
               <label className="flex items-center gap-1">
-                <span className={cls.label}>Priorité</span>
+                <span className={cls.label}>{b.engPriority}</span>
                 <input
                   type="number"
                   min={1}
                   max={10}
-                  value={b.weight}
+                  value={boost.weight}
                   onChange={(e) => update(i, { weight: Number(e.target.value) })}
                   className={`${cls.input} w-16`}
                 />
               </label>
               <label className="flex items-center gap-1">
-                <span className={cls.label}>Jusqu’au</span>
+                <span className={cls.label}>{b.engUntil}</span>
                 <input
                   type="date"
-                  value={b.until ?? ''}
+                  value={boost.until ?? ''}
                   onChange={(e) => update(i, { until: e.target.value || undefined })}
                   className={cls.input}
                 />
               </label>
-              {expired && <span className="text-[10px] font-bold text-rose-600">terminée</span>}
+              {expired && <span className="text-[10px] font-bold text-rose-600">{b.engEnded}</span>}
               <button className={cls.danger} onClick={() => setBoosts(config.recipeBoosts.filter((_, k) => k !== i))}>
-                Retirer
+                {b.engRemove}
               </button>
             </li>
           );
@@ -68,7 +67,7 @@ export function BoostsEditor({
       </ul>
       <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-line">
         <RecipeSelect
-          recipes={recipes.filter((r) => !config.recipeBoosts.some((b) => b.recipeId === r.id))}
+          recipes={recipes.filter((r) => !config.recipeBoosts.some((boost) => boost.recipeId === r.id))}
           value={recipeId}
           onChange={setRecipeId}
         />
@@ -80,7 +79,7 @@ export function BoostsEditor({
             setRecipeId('');
           }}
         >
-          Mettre en avant
+          {b.engBoost}
         </button>
       </div>
     </Section>

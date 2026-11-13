@@ -1,5 +1,12 @@
 import { LANGUAGE_CODES, localizedField, REFERENCE_LANGUAGE, type Language } from '@/core/shared';
-import { getRole, validateRecipe, type CheckedField, type Ingredient, type Recipe } from '@/core/catalog';
+import {
+  getRole,
+  normalizeSteps,
+  validateRecipe,
+  type CheckedField,
+  type Ingredient,
+  type Recipe,
+} from '@/core/catalog';
 import { normalizeYouTubeUrl, parseYouTubeId, slugify } from '@/core/shared';
 
 /** Starting point of a new recipe in the editor. */
@@ -43,7 +50,24 @@ export function uniqueSlug(name: string, recipeId: string, existing: Pick<Recipe
   return slug;
 }
 
-export type RecipeDraftCheck = { ok: true; recipe: Recipe } | { ok: false; error: string; field?: CheckedField };
+/** Why the editor content cannot be saved (the editor shows it in the current language). */
+export type RecipeDraftError =
+  | { code: 'nameRequired' }
+  | { code: 'noIngredient' }
+  | { code: 'noStep' }
+  | { code: 'stepNotFrench'; step: number }
+  | { code: 'invalidVideo' };
+
+export type RecipeDraftCheck =
+  { ok: true; recipe: Recipe } | { ok: false; error: RecipeDraftError; field?: CheckedField };
+
+/** Reason of a recipe refused by the domain rules, told by the field it is about. */
+function draftError(recipe: Recipe, field: CheckedField | undefined): RecipeDraftError {
+  if (field === 'name') return { code: 'nameRequired' };
+  if (field === 'ingredients') return { code: 'noIngredient' };
+  const missing = normalizeSteps(recipe.steps).find((s) => !s.instruction_fr.trim());
+  return missing ? { code: 'stepNotFrench', step: missing.step_number } : { code: 'noStep' };
+}
 
 /**
  * Validates the editor content and returns the recipe to save:
@@ -53,14 +77,14 @@ export type RecipeDraftCheck = { ok: true; recipe: Recipe } | { ok: false; error
  */
 export function finalizeRecipeDraft(input: Recipe, existing: Pick<Recipe, 'id' | 'slug'>[]): RecipeDraftCheck {
   const checked = validateRecipe(input);
-  if (!checked.ok) return checked;
+  if (!checked.ok) return { ok: false, field: checked.field, error: draftError(input, checked.field) };
   const draft = checked.value;
   const rawVideo = draft.video_url?.trim() ?? '';
   if (rawVideo && !parseYouTubeId(rawVideo)) {
     return {
       ok: false,
       field: 'video',
-      error: 'Le lien vidéo doit être un lien YouTube valide (ou laissez le champ vide).',
+      error: { code: 'invalidVideo' },
     };
   }
   const slug =

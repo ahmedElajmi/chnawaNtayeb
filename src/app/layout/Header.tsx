@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Zone 1: Brand Wordmark (with discrete 3-clicks patron trigger) */}
         <button
           onClick={handleLogoClick}
-          title="Chnowa Ntayeb (3 clics pour l'accès patron)"
+          title={`Chnowa Ntayeb (${t.logoPatronHint})`}
           className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0"
         >
           <img
@@ -112,17 +112,17 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'bg-accent/10 text-accent-text dark:bg-accent/20 hover:bg-accent hover:text-on-accent'
                   }`
                 }
-                title="Accéder au Backoffice Patron"
+                title={t.patronOpenBackoffice}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Patron</span>
+                <span>{t.patronBadge}</span>
               </NavLink>
               <button
                 onClick={onPatronLogout}
                 className="text-[11px] text-slate-400 hover:text-rose-500 font-semibold px-1"
-                title="Déconnexion Patron"
+                title={t.patronLogout}
               >
-                Quitter
+                {t.patronQuit}
               </button>
             </div>
           )}
@@ -135,15 +135,15 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-brand/10 border-brand/30 text-brand-text'
                 : 'bg-card border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300'
             }`}
-            title={currentUser ? 'Mon Compte' : 'Se connecter'}
+            title={currentUser ? t.accountMine : t.accountSignIn}
           >
             <User className="w-3.5 h-3.5 text-slate-500" />
             <span className="hidden sm:inline">
               {currentUser
                 ? currentUser.isAnonymous
-                  ? 'Invité'
-                  : currentUser.email?.split('@')[0] || 'Compte'
-                : 'Compte'}
+                  ? t.accountGuest
+                  : currentUser.email?.split('@')[0] || t.accountLabel
+                : t.accountLabel}
             </span>
           </button>
 
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
             <select
               value={language}
               onChange={handleLangChange}
-              aria-label="Sélectionner la langue"
+              aria-label={t.languageSelectLabel}
               className="appearance-none pl-7 pr-3.5 py-1.5 text-xs font-semibold rounded-lg bg-card border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
             >
               {SELECTOR_ORDER.map((code) => (

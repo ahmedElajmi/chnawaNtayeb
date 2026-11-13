@@ -66,8 +66,11 @@ export interface ReviewStoreDeps<K extends ReviewKind> {
 /** Items sent back to review at the same time */
 const RESET_BATCH = 10;
 
-const CONFLICT = 'Cet élément a été modifié entre-temps par quelqu’un d’autre : recharge avant de continuer.';
-const denied = (what: string): WriteResult => ({ ok: false, error: `Ton rôle ne permet pas de ${what}.` });
+/*
+ * Errors are codes (`err:<code>`): the interface says them in the current language (no text here).
+ */
+const CONFLICT = 'err:conflict';
+const denied = (_what: string): WriteResult => ({ ok: false, error: 'err:denied' });
 
 /**
  * Validation of one kind of content (recipes, ingredients): the team edits work copies in a private
@@ -214,7 +217,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     note?: string
   ): Promise<WorkspaceWriteResult> {
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const { kind } = this.deps;
     const { id: by, role } = this.deps.actor();
     const workflow = this.getState().workflow;
@@ -223,15 +226,14 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     for (const cellId of cells) {
       const cell = parseCellId(kind, cellId);
       const review = entry.snapshot.cells[cellId];
-      if (!cell || !review) return { ok: false, error: `Case inconnue : ${cellId}.` };
+      if (!cell || !review) return { ok: false, error: 'err:unknown-cell' };
       if (!canReviewCell(role, stepOfCell(workflow, cellId), cell)) return denied('valider cette partie');
       if (verdict === 'approved' && review.state === 'incomplete')
         return {
           ok: false,
-          error: 'Cette partie n’est pas complète : corrige les points bloquants avant de la valider.',
+          error: 'err:incomplete-cell',
         };
-      if (verdict === 'rejected' && !note?.trim())
-        return { ok: false, error: 'Écris une note pour dire quoi corriger.' };
+      if (verdict === 'rejected' && !note?.trim()) return { ok: false, error: 'err:note-required' };
       decisions = decideCell(decisions, cellId, {
         verdict,
         hash: cellHash(kind, entry.copy.content, cell),
@@ -259,7 +261,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const { id: by, role } = this.deps.actor();
     if (!canPerform(role, 'publish')) return denied('publier');
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const online = this.deps.published.getState().items.find((i) => i.id === id) ?? null;
     const composed = composePublication(
       this.deps.kind,
@@ -268,8 +270,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
       entry.snapshot,
       this.getState().workflow
     );
-    if (!composed)
-      return { ok: false, error: 'Toutes les parties obligatoires doivent être validées avant de publier.' };
+    if (!composed) return { ok: false, error: 'err:not-publishable' };
     const item = this.deps.kind === 'recipe' ? ({ ...composed, is_published: true } as ReviewItems[K]) : composed;
     const at = this.deps.now();
     const version: PublishedVersion<K> = {
@@ -304,7 +305,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const { id: by, role } = this.deps.actor();
     if (!canPerform(role, 'publish')) return denied('retirer du site');
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const at = this.deps.now();
     const { published_hashes: _h, published_at: _a, ...rest } = entry.copy;
     const copy: WorkCopy<K> = { ...rest, history: withEvent(entry.copy.history, { action: 'unpublish', by, at }) };
@@ -416,6 +417,6 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     if (result.conflict) return { ok: false, conflict: true, error: CONFLICT };
     // Database unreachable or refused: like the catalog, the change stays on this device
     this.deps.workspace.putLocal(written);
-    return { ok: false, local: true, error: `Enregistré sur cet appareil seulement. ${result.error}` };
+    return { ok: false, local: true, error: 'err:saved-locally' };
   }
 }

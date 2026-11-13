@@ -23,8 +23,16 @@ import { RecipeCategoryPicker } from './RecipeCategoryPicker';
 import { RecipeStepsEditor } from './RecipeStepsEditor';
 import { RecipeImageField, RecipeVideoField } from './RecipeMediaFields';
 import { EditorSection, SectionNav, sectionDomId } from './RecipeEditorChrome';
-import { localizedField, withLocalizedField } from '@/core/shared';
-import { finalizeRecipeDraft, missingTranslations, recipeSectionStatus, type SectionId } from './recipeDraft';
+import { languageInfo, localizedField, withLocalizedField, type Language } from '@/core/shared';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
+import {
+  finalizeRecipeDraft,
+  missingTranslations,
+  recipeSectionStatus,
+  type RecipeDraftError,
+  type SectionId,
+} from './recipeDraft';
 import { useRecipeDraftAutosave } from './useRecipeDraftAutosave';
 
 interface RecipeEditorModalProps {
@@ -53,14 +61,30 @@ function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; 
   );
 }
 
-const CUISINES: [CuisineType, string][] = [
-  ['traditionnelle', 'Traditionnelle'],
-  ['rapide', 'Rapide'],
-  ['economique', 'Économique'],
-  ['familiale', 'Familiale'],
-  ['vegetarienne', 'Végétarienne'],
-  ['internationale', 'Internationale'],
+const cuisines = (b: BackofficeTexts): [CuisineType, string][] => [
+  ['traditionnelle', b.edCuisineTraditional],
+  ['rapide', b.edCuisineFast],
+  ['economique', b.edCuisineBudget],
+  ['familiale', b.edCuisineFamily],
+  ['vegetarienne', b.edCuisineVegetarian],
+  ['internationale', b.edCuisineInternational],
 ];
+
+/** Message of a refused save, in the current language. */
+function errorMessage(error: RecipeDraftError, b: BackofficeTexts): string {
+  switch (error.code) {
+    case 'nameRequired':
+      return b.edErrRecipeName;
+    case 'noIngredient':
+      return b.edErrNoIngredient;
+    case 'noStep':
+      return b.edErrNoStep;
+    case 'stepNotFrench':
+      return format(b.edErrStepFrench, { step: error.step });
+    case 'invalidVideo':
+      return b.edErrVideo;
+  }
+}
 
 /** Section that shows the field a validation error is about. */
 const SECTION_OF: Partial<Record<CheckedField, SectionId>> = {
@@ -70,9 +94,11 @@ const SECTION_OF: Partial<Record<CheckedField, SectionId>> = {
   video: 'media',
 };
 
-const savedAtLabel = (iso: string) => {
+const savedAtLabel = (iso: string, language: Language) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+  return Number.isNaN(d.getTime())
+    ? ''
+    : d.toLocaleString(languageInfo(language).htmlLang, { dateStyle: 'short', timeStyle: 'short' });
 };
 
 /**
@@ -93,9 +119,10 @@ export function RecipeEditorModal({
 }: RecipeEditorModalProps) {
   const [draft, setDraft] = useState<Recipe>(recipe);
   const { language, getRecipeName, getIngredientName } = useLanguage();
+  const b = useBackofficeText();
   // The fields open in the language of the site (French stays required, see submit)
   const [lang, setLang] = useState<EditorLanguage>(language);
-  const [error, setError] = useState<{ message: string; field?: CheckedField } | null>(null);
+  const [error, setError] = useState<{ reason: RecipeDraftError; field?: CheckedField } | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
   const [preview, setPreview] = useState(false);
   const autosave = useRecipeDraftAutosave(recipe, isNew, draft);
@@ -117,9 +144,9 @@ export function RecipeEditorModal({
   const suggestedCost = Math.round(((cost.range.min + cost.range.max) / 2) * 2) / 2;
   const title = isNew
     ? getRecipeName(draft).trim()
-      ? `Nouvelle recette : ${getRecipeName(draft)}`
-      : 'Nouvelle recette'
-    : `Modifier : ${getRecipeName(recipe)}`;
+      ? format(b.edNewRecipeNamed, { name: getRecipeName(draft) })
+      : b.edNewRecipe
+    : format(b.edEditNamed, { name: getRecipeName(recipe) });
 
   const requestClose = () => (autosave.dirty ? setConfirmClose(true) : onClose());
 
@@ -131,7 +158,7 @@ export function RecipeEditorModal({
       onSave(checked.recipe);
       return;
     }
-    setError({ message: checked.error, field: checked.field });
+    setError({ reason: checked.error, field: checked.field });
     // Required texts are the French ones
     if (checked.field === 'name' || checked.field === 'steps') setLang('fr');
     const section = checked.field && SECTION_OF[checked.field];
@@ -157,13 +184,13 @@ export function RecipeEditorModal({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:border-brand"
               >
                 <Eye className="w-3.5 h-3.5" />
-                Aperçu
+                {b.edPreview}
               </button>
               <button
                 type="button"
                 onClick={requestClose}
                 className="text-slate-400 hover:text-slate-600 p-1.5"
-                aria-label="Fermer"
+                aria-label={b.close}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -199,8 +226,16 @@ export function RecipeEditorModal({
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl border border-brand/40 bg-brand/10 text-xs">
                     <History className="w-4 h-4 text-brand-text shrink-0" />
                     <p className="flex-1 text-ink">
-                      Des modifications non enregistrées du <b>{savedAtLabel(autosave.offer.savedAt)}</b> ont été
-                      gardées sur cet appareil.
+                      {(() => {
+                        const [before, after = ''] = b.edDraftOffer.split('{date}');
+                        return (
+                          <>
+                            {before}
+                            <b>{savedAtLabel(autosave.offer.savedAt, language)}</b>
+                            {after}
+                          </>
+                        );
+                      })()}
                     </p>
                     <div className="flex gap-2">
                       <button
@@ -211,49 +246,49 @@ export function RecipeEditorModal({
                         }}
                         className="px-3 py-1.5 rounded-lg bg-brand text-on-brand font-bold"
                       >
-                        Reprendre
+                        {b.edResume}
                       </button>
                       <button
                         type="button"
                         onClick={autosave.declineOffer}
                         className="px-3 py-1.5 rounded-lg border border-line font-semibold text-ink-muted"
                       >
-                        Ignorer
+                        {b.edIgnore}
                       </button>
                     </div>
                   </div>
                 )}
 
-                <EditorSection id="infos" title="Infos">
+                <EditorSection id="infos" title={b.edSectionInfos}>
                   <LocalizedField
-                    label="Nom de la recette"
+                    label={b.edRecipeName}
                     frenchRequired
                     invalid={error?.field === 'name'}
                     value={localizedField(draft, 'name')}
                     onChange={(v) => setDraft((d) => withLocalizedField(d, 'name', v))}
                   />
                   <LocalizedField
-                    label="Description"
+                    label={b.edDescription}
                     multiline
                     value={localizedField(draft, 'description')}
                     onChange={(v) => setDraft((d) => withLocalizedField(d, 'description', v))}
                   />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <Field label="Préparation (min)">
+                    <Field label={b.edPrepTime}>
                       <NumberField
                         value={draft.prep_time_minutes}
                         onChange={(prep_time_minutes) => set({ prep_time_minutes })}
                         className={INPUT}
                       />
                     </Field>
-                    <Field label="Cuisson (min)">
+                    <Field label={b.edCookTime}>
                       <NumberField
                         value={draft.cook_time_minutes}
                         onChange={(cook_time_minutes) => set({ cook_time_minutes })}
                         className={INPUT}
                       />
                     </Field>
-                    <Field label="Portions de base">
+                    <Field label={b.edBaseServings}>
                       <NumberField
                         value={draft.base_servings}
                         fallback={4}
@@ -261,7 +296,7 @@ export function RecipeEditorModal({
                         className={INPUT}
                       />
                     </Field>
-                    <Field label="Coût estimé (DT)">
+                    <Field label={b.edEstimatedCost}>
                       <NumberField
                         value={draft.estimated_cost_tnd}
                         onChange={(estimated_cost_tnd) => set({ estimated_cost_tnd })}
@@ -273,10 +308,10 @@ export function RecipeEditorModal({
                     <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-card border border-line text-[11px]">
                       <Sparkles className="w-3.5 h-3.5 text-accent-text shrink-0" />
                       <span className="flex-1 min-w-0 text-ink">
-                        D'après les prix des ingrédients : <b>{formatPriceRange(cost.range, 'DT')}</b>{' '}
+                        {b.edCostFromPrices} <b>{formatPriceRange(cost.range, 'DT')}</b>{' '}
                         <span className="text-ink-muted">
-                          ({cost.priced}/{costTotal} ingrédients chiffrés
-                          {cost.unpriced.length > 0 && ' : cuillères, pincées… non comptées'})
+                          ({format(b.edCostPriced, { priced: cost.priced, total: costTotal })}
+                          {cost.unpriced.length > 0 && ` : ${b.edCostUnpriced}`})
                         </span>
                       </span>
                       {/* Only offered when most of the recipe is priced: a partial sum would mislead */}
@@ -286,48 +321,45 @@ export function RecipeEditorModal({
                           onClick={() => set({ estimated_cost_tnd: suggestedCost })}
                           className="shrink-0 px-2.5 py-1 rounded-lg bg-accent/10 text-accent-text font-bold hover:bg-accent/20"
                         >
-                          Utiliser {suggestedCost} DT
+                          {format(b.edUseCost, { cost: suggestedCost })}
                         </button>
                       ) : (
-                        <span className="text-ink-muted">Estimation partielle : à titre indicatif.</span>
+                        <span className="text-ink-muted">{b.edCostPartial}</span>
                       )}
                     </div>
                   )}
                   {cost.suspicious.length > 0 && (
                     <p className="text-[11px] text-rose-700 dark:text-rose-300">
-                      Unité à vérifier (prix donné pour une autre unité, ex. « g » au lieu de « 100 g ») :{' '}
-                      {cost.suspicious
-                        .map((id) => {
-                          const found = byId.get(id);
-                          return found ? getIngredientName(found) : id;
-                        })
-                        .join(', ')}
-                      . Le public voit l'estimation saisie tant que ce n'est pas corrigé (Ingrédients › Unité à
-                      vérifier).
+                      {format(b.edCostSuspicious, {
+                        names: cost.suspicious
+                          .map((id) => {
+                            const found = byId.get(id);
+                            return found ? getIngredientName(found) : id;
+                          })
+                          .join(', '),
+                      })}
                     </p>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Catégorie">
+                    <Field label={b.courseLabel}>
                       <select
                         value={normalizeCategory(draft.category)}
                         onChange={(e) => set({ category: e.target.value as MealCategory })}
                         className={INPUT}
                       >
-                        <option value="entree">Entrée (salades, soupes, brik…)</option>
-                        <option value="plat_principal">Plat principal</option>
-                        <option value="dessert">Dessert</option>
+                        <option value="entree">{b.courseEntree}</option>
+                        <option value="plat_principal">{b.courseMain}</option>
+                        <option value="dessert">{b.courseDessert}</option>
                       </select>
-                      <p className="text-[10px] text-ink-muted mt-1">
-                        « Express » est ajouté automatiquement si la recette prend 20 min ou moins.
-                      </p>
+                      <p className="text-[10px] text-ink-muted mt-1">{b.edExpressHint}</p>
                     </Field>
-                    <Field label="Type de cuisine">
+                    <Field label={b.edCuisineType}>
                       <select
                         value={draft.cuisine_type}
                         onChange={(e) => set({ cuisine_type: e.target.value as CuisineType })}
                         className={INPUT}
                       >
-                        {CUISINES.map(([value, label]) => (
+                        {cuisines(b).map(([value, label]) => (
                           <option key={value} value={value}>
                             {label}
                           </option>
@@ -347,16 +379,13 @@ export function RecipeEditorModal({
                       className="accent-brand w-4 h-4 mt-0.5"
                     />
                     <span className="text-xs">
-                      <span className="font-bold text-ink">Plat équilibré / healthy</span>
-                      <span className="block text-ink-muted">
-                        Léger, riche en légumes, peu de friture ou de sucre. Affiche le badge Healthy et l'inclut dans
-                        les filtres et menus healthy.
-                      </span>
+                      <span className="font-bold text-ink">{b.edHealthy}</span>
+                      <span className="block text-ink-muted">{b.edHealthyHint}</span>
                     </span>
                   </label>
                 </EditorSection>
 
-                <EditorSection id="media" title="Photo & vidéo">
+                <EditorSection id="media" title={b.edSectionMedia}>
                   <RecipeImageField
                     value={draft.image_url}
                     title={getRecipeName(draft)}
@@ -371,8 +400,8 @@ export function RecipeEditorModal({
 
                 <EditorSection
                   id="ingredients"
-                  title={`Ingrédients (${draft.ingredients.length})`}
-                  hint={`Quantités pour ${draft.base_servings} personnes. Le rôle guide les suggestions du frigo.`}
+                  title={format(b.edIngredientsTitle, { count: draft.ingredients.length })}
+                  hint={format(b.edIngredientsHint, { count: draft.base_servings })}
                 >
                   <RecipeIngredientsEditor
                     items={draft.ingredients}
@@ -384,8 +413,8 @@ export function RecipeEditorModal({
 
                 <EditorSection
                   id="steps"
-                  title={`Étapes de préparation (${draft.steps.length})`}
-                  hint="Au moins une étape en français ; elles sont renumérotées à l'enregistrement."
+                  title={format(b.edStepsTitle, { count: draft.steps.length })}
+                  hint={b.edStepsHint}
                 >
                   <RecipeStepsEditor
                     steps={draft.steps}
@@ -394,13 +423,13 @@ export function RecipeEditorModal({
                   />
                 </EditorSection>
 
-                <EditorSection id="tip" title="Astuce du chef (facultative)">
+                <EditorSection id="tip" title={b.edTipTitle}>
                   <LocalizedField
-                    label="Astuce"
+                    label={b.edTip}
                     multiline
                     value={draft.chef_tip ?? { fr: '', derja: '', ar: '' }}
                     onChange={(chef_tip) => set({ chef_tip })}
-                    placeholder="Ex : Ne jamais battre les œufs dans une vraie ojja !"
+                    placeholder={b.edTipPlaceholder}
                   />
                 </EditorSection>
               </div>
@@ -419,14 +448,13 @@ export function RecipeEditorModal({
                 }}
                 className="w-full text-left p-2.5 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 text-xs font-semibold"
               >
-                {error.message} <span className="underline">Voir</span>
+                {errorMessage(error.reason, b)} <span className="underline">{b.edSeeError}</span>
               </button>
             )}
             {confirmClose ? (
               <div className="space-y-2">
                 <p className="text-xs text-ink">
-                  <b>Modifications non enregistrées.</b> Si vous fermez, elles restent en brouillon sur cet appareil et
-                  vous seront proposées à la prochaine ouverture.
+                  <b>{b.edUnsavedTitle}</b> {b.edUnsavedText}
                 </p>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <button
@@ -437,41 +465,39 @@ export function RecipeEditorModal({
                     }}
                     className="me-auto px-3 py-2 text-xs font-semibold text-rose-600 hover:underline"
                   >
-                    Abandonner les modifications
+                    {b.edDiscardChanges}
                   </button>
                   <button
                     type="button"
                     onClick={onClose}
                     className="px-3 py-2 rounded-xl border border-line text-xs font-semibold text-ink"
                   >
-                    Fermer (brouillon gardé)
+                    {b.edCloseKeepDraft}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmClose(false)}
                     className="px-4 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold"
                   >
-                    Continuer l'édition
+                    {b.edKeepEditing}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-end gap-3">
-                {autosave.dirty && (
-                  <span className="me-auto text-[11px] text-ink-muted">Brouillon gardé sur cet appareil</span>
-                )}
+                {autosave.dirty && <span className="me-auto text-[11px] text-ink-muted">{b.edDraftKept}</span>}
                 <button
                   type="button"
                   onClick={requestClose}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300"
                 >
-                  Annuler
+                  {b.cancel}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2.5 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong shadow-sm transition"
                 >
-                  Enregistrer
+                  {b.save}
                 </button>
               </div>
             )}

@@ -1,8 +1,32 @@
 import React, { useState } from 'react';
 import { User, LogIn, LogOut, CheckCircle, Sparkles, X, Mail, Lock, Shield, Loader2, UserPlus } from 'lucide-react';
-import type { AppUser } from '@/application';
+import type { AppUser, UserAuthError } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
+import { useLanguage } from '@/app/providers/LanguageContext';
+import type { TranslationDictionary } from '@/shared/i18n/translations';
 import { ModalShell } from '@/shared/ui/ModalShell';
+
+/** Text of a failed sign-in, in the current language (the gateway only gives a code). */
+function authErrorText(t: TranslationDictionary, error: UserAuthError, minPasswordLength: number): string {
+  switch (error) {
+    case 'invalid-credentials':
+      return t.authErrorInvalidCredentials;
+    case 'email-in-use':
+      return t.authErrorEmailInUse;
+    case 'weak-password':
+      return t.authErrorWeakPassword.replace('{n}', String(minPasswordLength));
+    case 'invalid-email':
+      return t.authErrorInvalidEmail;
+    case 'too-many-attempts':
+      return t.errorTooManyAttempts;
+    case 'network':
+      return t.errorNetwork;
+    case 'disabled':
+      return t.authErrorDisabled;
+    default:
+      return t.authErrorUnknown;
+  }
+}
 
 interface UserAccountModalProps {
   isOpen: boolean;
@@ -18,6 +42,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   onOpenPatronLogin,
 }) => {
   const { userAuth } = useContainer();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +51,9 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   if (!isOpen) return null;
+
+  const showError = (err: unknown) =>
+    setErrorMsg(authErrorText(t, userAuth.errorCode(err), userAuth.minPasswordLength));
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +65,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       setPassword('');
       onClose();
     } catch (err) {
-      setErrorMsg(userAuth.errorMessage(err));
+      showError(err);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +78,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       await userAuth.loginAsGuest();
       onClose();
     } catch (err) {
-      setErrorMsg(userAuth.errorMessage(err));
+      showError(err);
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +90,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       await userAuth.logout();
       onClose();
     } catch (err) {
-      setErrorMsg(userAuth.errorMessage(err));
+      showError(err);
     } finally {
       setIsLoading(false);
     }
@@ -80,14 +108,13 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               <User className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-ink">{currentUser ? 'Mon Compte' : 'Espace Utilisateur'}</h3>
-              <p className="text-[11px] text-slate-400">
-                {currentUser ? 'Synchronisé avec votre compte' : 'Sauvegardez vos favoris'}
-              </p>
+              <h3 className="font-extrabold text-base text-ink">{currentUser ? t.accountMine : t.accountSpace}</h3>
+              <p className="text-[11px] text-slate-400">{currentUser ? t.accountSynced : t.accountSaveFavorites}</p>
             </div>
           </div>
           <button
             onClick={onClose}
+            aria-label={t.settingsClose}
             className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400"
           >
             <X className="w-5 h-5" />
@@ -104,30 +131,31 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
           <div className="mt-5 space-y-4">
             <div className="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-700/80 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Statut :</span>
+                <span className="text-xs font-semibold text-slate-500">{t.accountStatus}</span>
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  Connecté
+                  {t.accountConnected}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Identifiant :</span>
+                <span className="text-xs font-semibold text-slate-500">{t.accountIdentifier}</span>
                 <span className="text-xs font-bold text-ink truncate max-w-[180px]">
-                  {isPatronSession ? 'Session patron' : currentUser.isAnonymous ? 'Invité Gourmand' : currentUser.email}
+                  {isPatronSession
+                    ? t.accountPatronSession
+                    : currentUser.isAnonymous
+                      ? t.accountGuestName
+                      : currentUser.email}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Rôle :</span>
+                <span className="text-xs font-semibold text-slate-500">{t.accountRole}</span>
                 <span className="text-xs font-extrabold text-accent-text uppercase">
-                  {isAdmin ? 'Super Admin' : 'Utilisateur'}
+                  {isAdmin ? t.accountRoleAdmin : t.accountRoleUser}
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Ton compte est actif. Tes favoris, ton frigo et ton menu de la semaine restent enregistrés sur cet
-              appareil.
-            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">{t.accountActiveNote}</p>
 
             <button
               onClick={handleLogout}
@@ -135,7 +163,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               className="w-full py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300 font-bold text-xs hover:bg-rose-100 transition flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-              <span>Se déconnecter</span>
+              <span>{t.accountSignOut}</span>
             </button>
           </div>
         ) : (
@@ -143,8 +171,8 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             <div role="tablist" className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-card border border-line">
               {(
                 [
-                  ['login', 'Se connecter'],
-                  ['register', 'Créer un compte'],
+                  ['login', t.accountSignIn],
+                  ['register', t.accountCreate],
                 ] as const
               ).map(([id, label]) => (
                 <button
@@ -166,14 +194,14 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             </div>
             <form onSubmit={handleEmailAuth} className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Email</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.accountEmail}</label>
                 <div className="relative mt-1">
                   <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre-email@exemple.com"
+                    placeholder={t.accountEmailPlaceholder}
                     autoComplete="email"
                     className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
                     required
@@ -182,7 +210,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Mot de passe</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.accountPassword}</label>
                 <div className="relative mt-1">
                   <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
@@ -197,7 +225,9 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   />
                 </div>
                 {mode === 'register' && (
-                  <p className="text-[10px] text-ink-muted mt-1">{userAuth.minPasswordLength} caractères minimum.</p>
+                  <p className="text-[10px] text-ink-muted mt-1">
+                    {t.accountPasswordMin.replace('{n}', String(userAuth.minPasswordLength))}
+                  </p>
                 )}
               </div>
 
@@ -213,13 +243,13 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                 ) : (
                   <LogIn className="w-4 h-4" />
                 )}
-                <span>{mode === 'register' ? 'Créer mon compte' : 'Se connecter'}</span>
+                <span>{mode === 'register' ? t.accountCreateMine : t.accountSignIn}</span>
               </button>
             </form>
 
             <div className="relative flex items-center justify-center">
               <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
-              <span className="bg-surface px-2 text-[10px] text-slate-400 font-semibold uppercase">Ou</span>
+              <span className="bg-surface px-2 text-[10px] text-slate-400 font-semibold uppercase">{t.accountOr}</span>
             </div>
 
             <button
@@ -228,7 +258,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               className="w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-card text-slate-700 dark:text-slate-200 font-semibold text-xs hover:border-brand transition flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Continuer en 1-clic (Invité)</span>
+              <span>{t.accountGuestContinue}</span>
             </button>
           </div>
         )}
@@ -244,7 +274,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             className="text-[11px] text-slate-400 hover:text-accent-text transition inline-flex items-center gap-1"
           >
             <Shield className="w-3 h-3" />
-            <span>Accès sécurisé gérance (/patron)</span>
+            <span>{t.accountPatronAccess}</span>
           </button>
         </div>
       </div>

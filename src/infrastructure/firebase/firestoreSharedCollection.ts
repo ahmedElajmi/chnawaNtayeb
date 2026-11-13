@@ -38,9 +38,7 @@ function writeError(error: unknown, path: string): WriteResult {
   const denied = /permission|insufficient/i.test(info.error);
   return {
     ok: false,
-    error: denied
-      ? 'Enregistré sur cet appareil seulement : le cloud a refusé l’écriture (session patron non reliée à Firebase, ou règles non déployées).'
-      : 'Enregistré sur cet appareil seulement : le cloud est injoignable.',
+    error: denied ? 'err:write-refused' : 'err:unreachable',
   };
 }
 

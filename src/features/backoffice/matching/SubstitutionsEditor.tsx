@@ -9,8 +9,14 @@ import {
 import type { MatchingConfig } from '@/core/matching';
 import { cls, IngredientChips, IngredientSelect, Section } from './ui';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import type { BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-const COURSE_LABEL: Record<MealCategory, string> = { entree: 'Entrées', plat_principal: 'Plats', dessert: 'Desserts' };
+const courseLabels = (b: BackofficeTexts): Record<MealCategory, string> => ({
+  entree: b.engCoursesStarter,
+  plat_principal: b.engCoursesMain,
+  dessert: b.engCoursesDessert,
+});
 
 function RuleRow({
   rule,
@@ -24,6 +30,8 @@ function RuleRow({
   onRemove: () => void;
 }) {
   const { getIngredientName } = useLanguage();
+  const b = useBackofficeText();
+  const courseLabel = courseLabels(b);
   const found = ingredients.find((i) => i.id === rule.ingredient);
   const name = found ? getIngredientName(found) : rule.ingredient;
   const toggleCourse = (course: MealCategory) => {
@@ -35,7 +43,7 @@ function RuleRow({
     <li className="p-3 rounded-xl bg-surface border border-line space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-bold text-ink">{name}</span>
-        <span className="text-ink-muted">peut être remplacé par</span>
+        <span className="text-ink-muted">{b.engCanBeReplacedBy}</span>
         <div className="flex-1">
           <IngredientChips
             ids={rule.substitutes}
@@ -44,11 +52,11 @@ function RuleRow({
           />
         </div>
         <button className={cls.danger} onClick={onRemove}>
-          Supprimer
+          {b.engDelete}
         </button>
       </div>
       <div className="flex flex-wrap items-center gap-3 text-[11px] text-ink-muted">
-        <span>Sauf pour :</span>
+        <span>{b.engExceptFor}</span>
         {MEAL_CATEGORIES.map((c) => (
           <label key={c} className="inline-flex items-center gap-1">
             <input
@@ -56,7 +64,7 @@ function RuleRow({
               checked={rule.notForCourses?.includes(c) ?? false}
               onChange={() => toggleCourse(c)}
             />
-            {COURSE_LABEL[c]}
+            {courseLabel[c]}
           </label>
         ))}
         <label className="inline-flex items-center gap-1">
@@ -65,7 +73,7 @@ function RuleRow({
             checked={!!rule.notWhenKey}
             onChange={(e) => onChange({ ...rule, notWhenKey: e.target.checked || undefined })}
           />
-          quand c’est l’ingrédient principal du plat
+          {b.engWhenKey}
         </label>
       </div>
     </li>
@@ -81,17 +89,18 @@ export function SubstitutionsEditor({
   ingredients: Ingredient[];
   onChange: (c: MatchingConfig) => void;
 }) {
+  const b = useBackofficeText();
   const [newIngredient, setNewIngredient] = useState('');
   const rules = config.substitutions;
   const setRules = (substitutions: SubstitutionRule[]) => onChange({ ...config, substitutions });
 
   return (
     <Section
-      title="Remplacements d’ingrédients"
-      hint="Règles générales « X peut remplacer Y ». Les remplacements propres à une recette se règlent dans la fiche recette."
+      title={b.engSubstitutionsTitle}
+      hint={b.engSubstitutionsHint}
       actions={
         <button className={cls.secondary} onClick={() => setRules(DEFAULT_SUBSTITUTION_RULES)}>
-          Règles par défaut
+          {b.engDefaultRules}
         </button>
       }
     >
@@ -111,7 +120,7 @@ export function SubstitutionsEditor({
           ingredients={ingredients}
           value={newIngredient}
           onChange={setNewIngredient}
-          placeholder="Ingrédient à remplacer"
+          placeholder={b.engIngredientToReplace}
         />
         <button
           className={cls.primary}
@@ -121,7 +130,7 @@ export function SubstitutionsEditor({
             setNewIngredient('');
           }}
         >
-          Ajouter une règle
+          {b.engAddRule}
         </button>
       </div>
     </Section>

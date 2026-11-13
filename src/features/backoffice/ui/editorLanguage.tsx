@@ -1,5 +1,7 @@
 import { createContext, useContext, useRef, type KeyboardEvent } from 'react';
 import { EDITING_ORDER, languageInfo, type Language, type LanguageInfo } from '@/core/shared';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 export type EditorLanguage = Language;
 
@@ -15,6 +17,12 @@ const EditorLanguageContext = createContext<EditorLanguage | null>(null);
 export const EditorLanguageProvider = EditorLanguageContext.Provider;
 export const useEditorLanguage = () => useContext(EditorLanguageContext);
 
+/** Name of each language or variant for the backoffice, in the current language ("Derja in Latin letters"). */
+export function useLanguageDescriptions(): Record<Language, string> {
+  const b = useBackofficeText();
+  return { fr: b.edLangFr, ar: b.edLangAr, derja: b.edLangDerja, derja_ar: b.edLangDerjaAr };
+}
+
 /**
  * Tabs to choose the language being written, with how many texts are left to translate.
  * Arrow keys move between tabs (Home / End: first / last), like any tab list.
@@ -28,6 +36,8 @@ export function LanguageTabs({
   onChange: (lang: EditorLanguage) => void;
   missing?: Partial<Record<EditorLanguage, number>>;
 }) {
+  const b = useBackofficeText();
+  const descriptions = useLanguageDescriptions();
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const move = (event: KeyboardEvent, index: number) => {
     const last = EDITOR_LANGUAGES.length - 1;
@@ -58,10 +68,11 @@ export function LanguageTabs({
   return (
     <div
       role="tablist"
-      aria-label="Langue de saisie"
+      aria-label={b.edInputLanguage}
       className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-x-auto"
     >
-      {EDITOR_LANGUAGES.map(({ code, short, description, htmlLang, family }, index) => {
+      {EDITOR_LANGUAGES.map(({ code, short, htmlLang, family }, index) => {
+        const description = descriptions[code];
         const count = missing?.[code] ?? 0;
         const active = value === code;
         // A thin separator between the reference language and the Arabic family
@@ -77,7 +88,7 @@ export function LanguageTabs({
               role="tab"
               aria-selected={active}
               tabIndex={active ? 0 : -1}
-              title={count ? `${description} : ${count} texte(s) à traduire` : description}
+              title={count ? format(b.edToTranslate, { lang: description, count }) : description}
               onClick={() => onChange(code)}
               onKeyDown={(e) => move(e, index)}
               className={`flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
