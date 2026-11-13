@@ -1,4 +1,5 @@
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { useKitchen } from '@/app/ContainerContext';
 import { PATHS } from '@/shared/paths';
 import { useRecipeCatalog, useRecipeFiltersInUrl, useRecipeMatches } from './hooks';
 import { RecipeFilterBar } from './components/RecipeFilterBar';
@@ -12,6 +13,7 @@ export function RecipesPage() {
   const [filters, setFilters] = useRecipeFiltersInUrl(PATHS.recipes);
   const catalog = useRecipeCatalog(filters);
   const { ready, almost, ideas } = useRecipeMatches(filters);
+  const { fridge } = useKitchen();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -19,7 +21,7 @@ export function RecipesPage() {
       <RecipeListTabs
         active={PATHS.recipes}
         catalogCount={catalog.length}
-        suggestionsCount={ready.length + almost.length + ideas.length}
+        suggestionsCount={fridge.length === 0 ? null : ready.length + almost.length + ideas.length}
       />
       <RecipeFilterBar filters={filters} setFilters={setFilters} />
 

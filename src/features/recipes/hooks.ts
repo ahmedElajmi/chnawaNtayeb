@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, type Location } from 'react-router';
-import { browseRecipes, matchRecipes, type FilterOptions, type MatchingResult } from '@/core/matching';
+import { browseRecipes, fridgeSuggestions, type FilterOptions, type MatchingResult } from '@/core/matching';
 import { useCatalog, useKitchen, useMatchingSettings, useSearchMatches } from '@/app/ContainerContext';
 import { recipePath, type RecipeListPath } from '@/shared/paths';
 import { parseRecipeFilters, serializeRecipeFilters, type RecipeFilters } from './recipeFilters';
@@ -36,11 +36,11 @@ function useMatchingInputs(filters: RecipeFilters) {
   }, [recipes, ingredients, fridge, pantry, favorites, filters, config, searchMatches]);
 }
 
-/** Recipes the user can cook with their fridge, grouped by tier, with the given filters applied. */
+/** Recipes the user can cook with their fridge, grouped by tier, with the given filters applied (none when the fridge is empty). */
 export function useRecipeMatches(filters: RecipeFilters): RecipeMatches {
   const { recipes, fridge, options, ctx, keep } = useMatchingInputs(filters);
   return useMemo(() => {
-    const result = matchRecipes(recipes, fridge, options, ctx);
+    const result = fridgeSuggestions(recipes, fridge, options, ctx);
     return { ready: keep(result.ready), almost: keep(result.almost), ideas: keep(result.ideas) };
   }, [recipes, fridge, options, ctx, keep]);
 }

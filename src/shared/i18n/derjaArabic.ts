@@ -169,6 +169,7 @@ export const DERJA_ARABIC: Partial<TranslationDictionary> = {
   removeIngredientLabel: 'نحّي',
   suggestionsEmptyTitle: 'الفريجيدار فارغ',
   suggestionsEmptyDesc: 'اختار شويّة مكوّنات باش نورّيك شنوة تنجم تطيب.',
+  fillFridgeHint: 'عبّي الفريجيدار',
   catalogEmptyTitle: 'ما فمّا حتى ماكلة بالفلتر هذا',
   catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
   resetFiltersLabel: 'فسّخ الفلتر',

@@ -213,6 +213,7 @@ export interface TranslationDictionary {
   removeIngredientLabel: string;
   suggestionsEmptyTitle: string;
   suggestionsEmptyDesc: string;
+  fillFridgeHint: string;
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
@@ -422,6 +423,7 @@ const BASE_TRANSLATIONS = {
     removeIngredientLabel: 'Na7i',
     suggestionsEmptyTitle: 'El frigo fera8',
     suggestionsEmptyDesc: 'Ekhtar chwaya ingrédients bech nwarrik chnowa tnajem ttayeb.',
+    fillFridgeHint: '3abbi el frigo',
     catalogEmptyTitle: 'Ma fama 7atta makla b had el filtres',
     catalogEmptyDesc: 'Na7i filtre walla badel el recherche.',
     resetFiltersLabel: 'Fasakh el filtres',
@@ -631,6 +633,7 @@ const BASE_TRANSLATIONS = {
     removeIngredientLabel: 'Retirer',
     suggestionsEmptyTitle: 'Votre frigo est vide',
     suggestionsEmptyDesc: 'Sélectionnez quelques ingrédients pour voir les recettes que vous pouvez cuisiner.',
+    fillFridgeHint: 'remplir le frigo',
     catalogEmptyTitle: 'Aucune recette ne correspond à ces filtres',
     catalogEmptyDesc: 'Retirez un filtre ou modifiez la recherche.',
     resetFiltersLabel: 'Effacer les filtres',
@@ -836,6 +839,7 @@ const BASE_TRANSLATIONS = {
     removeIngredientLabel: 'نحّي',
     suggestionsEmptyTitle: 'الفريجيدار فارغ',
     suggestionsEmptyDesc: 'اختار شوية مكوّنات باش نورّيك شنوة تنجم تطيب.',
+    fillFridgeHint: 'املأ الثلاجة',
     catalogEmptyTitle: 'ما فماش وصفة بهالفلاتر',
     catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
     resetFiltersLabel: 'فسّخ الفلاتر',
