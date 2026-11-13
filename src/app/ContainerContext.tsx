@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { ReviewStore, SearchKind, Store } from '@/application';
 import type { ReviewKind } from '@/core/review';
+import { enabledCountries } from '@/core/accounts';
 import type { CategoryKind } from '@/core/categories';
 import { recipeCostRange, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
+import { useLanguage } from './providers/LanguageContext';
 import type { Container } from './container';
 
 const ContainerContext = createContext<Container | null>(null);
@@ -79,6 +81,20 @@ export const useReview = <K extends ReviewKind>(kind: K) => {
 export const useTeam = () => {
   const { team } = useContainer();
   return { ...useStore(team), team };
+};
+
+/** Countries users may pick (phone dial codes, address regions), in display-name order. */
+export const useCountries = () => {
+  const { countries } = useContainer();
+  const { countries: list } = useStore(countries);
+  const { language } = useLanguage();
+  return { countries: list, enabled: enabledCountries(list, language), countriesStore: countries };
+};
+
+/** Profile of the signed-in account (name, phone, address, preferred language). */
+export const useAccountProfile = () => {
+  const { accountProfile } = useContainer();
+  return { ...useStore(accountProfile), accountProfileStore: accountProfile };
 };
 
 /** Workflows and roles of the team. */

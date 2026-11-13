@@ -19,13 +19,10 @@ service cloud.firestore {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Owner = patron session bridged by the server (custom token with the `patron` claim) or the
-    // owner's verified Google account: every right.
+    // Owner = the patron session bridged by the server (custom token with the `patron` claim).
+    // No e-mail shortcut: a right never comes from an address written in this file.
     function isOwner() {
-      return isSignedIn() && (
-        request.auth.token.patron == true ||
-        (request.auth.token.email == 'ahmedlajmi123@gmail.com' && request.auth.token.email_verified == true)
-      );
+      return isSignedIn() && request.auth.token.patron == true;
     }
 
     function isMember() {
@@ -230,6 +227,13 @@ service cloud.firestore {
         && d.note is string && d.note.size() <= 200;
     }
 
+    // Countries users may pick (dial codes, address regions): public read, patron writes
+    match /countries/{countryId} {
+      allow read: if true;
+      allow create, update: if canPublish() && isValidId(countryId) && isVersionedWrite(request.resource.data);
+      allow delete: if canPublish() && isValidId(countryId);
+    }
+
     // Active settings: read by every visitor
     match /settings/matching {
       allow read: if true;
@@ -270,11 +274,27 @@ service cloud.firestore {
     // set of fields. `role` can never be written by the client.
     // ------------------------------------------------------------------
 
+    // Address block of a profile: shallow, bounded, region/postal shapes checked cheaply
+    // (the core revalidates everything on read anyway).
+    function isValidAddress(d) {
+      return d.keys().hasOnly(['line', 'region', 'city', 'postalCode', 'country'])
+        && d.line is string && d.line.size() > 0 && d.line.size() <= 120
+        && d.region is string && d.region.size() <= 40
+        && d.city is string && d.city.size() > 0 && d.city.size() <= 60
+        && d.postalCode is string && d.postalCode.size() >= 3 && d.postalCode.size() <= 10
+        && d.country is string && d.country.matches('^[A-Z]{2}$');
+    }
+
     function isValidUserProfile(userId, d) {
-      return d.keys().hasOnly(['uid', 'email', 'displayName', 'isAnonymous', 'favorites', 'savedFridge', 'lastLogin'])
+      return d.keys().hasOnly(['uid', 'type', 'email', 'displayName', 'phone', 'address', 'preferredLanguage', 'isAnonymous', 'favorites', 'savedFridge', 'lastLogin'])
         && d.uid == userId
+        && (!('type' in d) || (d.type is string && (d.type == 'client' || d.type == 'employee')))
         && optionalString(d, 'email', 254)
         && optionalString(d, 'displayName', 60)
+        // E.164: plus and 6 to 15 digits (libphonenumber-js does the real validation client-side)
+        && (!('phone' in d) || (d.phone is string && d.phone.matches('^\+[1-9][0-9]{5,14}$')))
+        && (!('address' in d) || (d.address is map && isValidAddress(d.address)))
+        && (!('preferredLanguage' in d) || (d.preferredLanguage is string && d.preferredLanguage in ['fr', 'ar', 'derja', 'derja_ar']))
         && (!('isAnonymous' in d) || d.isAnonymous is bool)
         && optionalList(d, 'favorites', 300)
         && optionalList(d, 'savedFridge', 300)

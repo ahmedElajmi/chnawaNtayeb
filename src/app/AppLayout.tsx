@@ -23,7 +23,7 @@ export function AppLayout() {
   const { pathname } = useLocation();
   const { fridge } = useKitchen();
   const { status: patronStatus, patron } = usePatron();
-  const { userAuth } = useContainer();
+  const { userAuth, accountProfile, team } = useContainer();
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -38,7 +38,17 @@ export function AppLayout() {
     exitHintTimer.current = window.setTimeout(() => setShowExitHint(false), 2000);
   }, pathname);
 
-  useEffect(() => userAuth.subscribe(setCurrentUser), [userAuth]);
+  // The profile and the team record of the signed-in account follow every sign-in / sign-out
+  useEffect(
+    () =>
+      userAuth.subscribe((user) => {
+        setCurrentUser(user);
+        const uid = user && !user.isAnonymous ? user.uid : null;
+        void accountProfile.identify(uid);
+        void team.identify(uid);
+      }),
+    [userAuth, accountProfile, team]
+  );
 
   // Each new screen starts at the top
   useEffect(() => {

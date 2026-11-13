@@ -15,12 +15,13 @@ export const COLLECTIONS = [
   'ingredients_workspace',
   'recipe_categories',
   'ingredient_categories',
+  'countries',
 ] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
 const DB_NAME = 'chnowa';
-// 2: workspaces of the validation workflow; 3: categories (stores created on upgrade, existing ones kept)
-const DB_VERSION = 3;
+// 2: workspaces of the validation workflow; 3: categories; 4: countries (stores created on upgrade, existing ones kept)
+const DB_VERSION = 4;
 const META = 'meta';
 
 interface Meta {

@@ -192,6 +192,21 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode patron, le badge
   et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
+- **Comptes** : trois niveaux — client (formulaire), employé (créé par le patron via le serveur, mot de passe
+  temporaire), patron (session serveur uniquement). Détails : `docs/encyclopedie/13-comptes.md`.
+  - Le champ `type` d'un profil vaut `client` ou `employee` ; les variantes de clients sont des données
+    (segment, tags…), jamais des valeurs de `type` ; les fonctions client sont universelles (un employé use le
+    site comme un client).
+  - Téléphone : **E.164** en un seul champ (`+21620123456`), validé par `normalizePhone` (libphonenumber-js,
+    la seule dépendance ajoutée par cette évolution) ; jamais un indicatif séparé.
+  - Profil lu via `resolveUserProfile` (tolérant : `type` absent = client), écrit **en entier** par
+    `AccountProfileRepository` (port + contrat).
+  - Pays : collection partagée `countries` (mécanisme commun `SyncedCollectionStore` + IndexedDB, graine
+    régénérée par `npm run build:countries`) ; `enabled` par pays contrôlé dans /patron ; les sélecteurs
+    (adresse) ne proposent que les pays activés, les indicatifs du téléphone tous.
+  - UI : `PhoneInput` et `AddressFields` (`src/shared/ui`) sans logique métier ; drapeaux calculés depuis le
+    code ISO, noms de pays via `Intl.DisplayNames`.
+  - Aucun droit ne vient d'un e-mail écrit dans le code ou les règles : `isOwner` = jeton patron du serveur.
 - **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) ;
   normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ;
   sans réponse du moteur, l'ancien filtre par nom sert de repli. Un nouveau champ texte localisé

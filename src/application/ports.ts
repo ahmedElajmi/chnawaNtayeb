@@ -1,4 +1,5 @@
 import type { DayPlan } from '@/core/planning';
+import type { RegistrationInput, UserProfile } from '@/core/accounts';
 import type { GroceryItem } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
@@ -200,14 +201,35 @@ export interface UserAuthGateway {
   subscribe(listener: (user: AppUser | null) => void): () => void;
   loginAsGuest(): Promise<void>;
   loginWithEmail(email: string, password: string): Promise<void>;
-  register(email: string, password: string): Promise<void>;
+  /** Creates the account and its profile (name, phone, address, preferred language) */
+  register(input: RegistrationInput): Promise<void>;
   logout(): Promise<void>;
   /** Why a sign-in failed, as a code the interface translates */
   errorCode(error: unknown): UserAuthError;
-  /** Owner account that also has admin rights */
-  isOwner(user: AppUser): boolean;
   /** Technical account of a patron session (signed in through the server) */
   isPatronAccount(user: AppUser): boolean;
+  /** Changes the password, re-checking the current one */
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
+}
+
+/** Profile of any signed-in account (clients and employees alike), read and edited by its owner. */
+export interface AccountProfileRepository {
+  /** The stored profile of one account, null when it has none yet. */
+  read(uid: string): Promise<UserProfile | null>;
+  /** Writes the whole profile back (complete document, no merge). */
+  write(profile: UserProfile): Promise<boolean>;
+}
+
+/** Creates staff accounts on the server (patron session required): the client never mints a right. */
+export interface AccountCreationGateway {
+  /** Returns the temporary password exactly once, to hand to the employee. */
+  createEmployee(input: {
+    email: string;
+    displayName: string;
+  }): Promise<
+    | { ok: true; uid: string; temporaryPassword: string }
+    | { ok: false; error: 'email-in-use' | 'invalid-email' | 'server' }
+  >;
 }
 
 export interface CatalogInitStats {

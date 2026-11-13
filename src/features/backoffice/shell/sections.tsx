@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Palette,
   SlidersHorizontal,
+  Users,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ import {
   type PatronPage,
 } from '@/shared/paths';
 import { IngredientCategoriesPage, RecipeCategoriesPage } from '../categories/CategoriesPage';
+import { CountriesPage } from '../users/CountriesPage';
 import { QueuePage } from '../review/QueuePage';
 import {
   ReviewSettingsDraftProvider,
@@ -170,6 +172,14 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     hint: (b) => b.appearanceHint,
     requires: 'publish',
     element: <AppearancePage />,
+  },
+  {
+    page: PATRON_PAGES.users,
+    icon: Users,
+    label: (b) => b.usersTitle,
+    hint: (b) => b.usersHint,
+    requires: 'manage_roles',
+    element: <CountriesPage />,
   },
   {
     page: PATRON_PAGES.workflows,

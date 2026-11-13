@@ -18,7 +18,8 @@
     "diagnose:matching": "tsx scripts/diagnostics/matching-report.ts",
     "brand": "python scripts/build_brand.py",
     "firebase:login": "npx firebase-tools@14 login",
-    "deploy:rules": "npx firebase-tools@14 deploy --only firestore:rules"
+    "deploy:rules": "npx firebase-tools@14 deploy --only firestore:rules",
+    "build:countries": "node scripts/build_countries.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -31,6 +32,7 @@
     "express-rate-limit": "^8.7.3",
     "firebase": "^13.2.0",
     "firebase-admin": "^14.5.0",
+    "libphonenumber-js": "^1.13.16",
     "lucide-react": "^0.546.0",
     "minisearch": "^7.2.0",
     "motion": "^12.23.24",
@@ -45,6 +47,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
+    "country-region-data": "^4.1.0",
     "esbuild": "^0.27.0",
     "fake-indexeddb": "^6.2.8",
     "oxlint": "^1.92.0",

@@ -29,6 +29,7 @@ l'application (Vite en développement, `dist/` en production).
 | POST    | `/api/auth/patron-firebase-token` | Nouveau jeton Firebase pour une session existante (après rechargement) |
 | POST    | `/api/vision/scan-fridge`         | Photo + catalogue → ingrédients reconnus + idées de plats              |
 | GET     | `/sitemap.xml`, `/robots.txt`     | Référencement                                                          |
+| POST    | `/api/accounts/employees`         | Création d'un compte employé (session patron, mot de passe temporaire) |
 
 ## Sécurité
 
