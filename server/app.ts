@@ -1,9 +1,12 @@
 import express from 'express';
 import { legacyRedirect } from './seo';
 import { securityHeadersMiddleware } from './headers';
+import { createFirestoreStore } from './storage/firestoreStore';
+import { getAdminFirestore } from './firebaseAdmin';
 import type { AdminConfig } from './patronAuth';
 import type { VisionProvider } from './vision/visionProvider';
 import { accountRoutes } from './routes/accountRoutes';
+import { dataRoutes } from './routes/dataRoutes';
 import { patronRoutes } from './routes/patronRoutes';
 import { seoRoutes } from './routes/seoRoutes';
 import { VISION_PATH, visionRoutes } from './routes/visionRoutes';
@@ -42,6 +45,9 @@ export function createApiApp({ adminConfig, vision }: AppDependencies): express.
   });
   app.use(patronRoutes(adminConfig));
   app.use(accountRoutes(adminConfig));
+  // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow
+  const adminDb = getAdminFirestore();
+  app.use(dataRoutes(adminConfig, adminDb ? createFirestoreStore(adminDb) : null));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
   return app;
