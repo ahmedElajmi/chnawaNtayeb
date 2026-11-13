@@ -41,6 +41,12 @@ l'application (Vite en développement, `dist/` en production).
   envoyé est nettoyé (ids valides, noms sans retour à la ligne) ; la réponse de l'IA n'est jamais
   crue sur parole (ids inconnus → `null`, tailles limitées).
 - `trust proxy` activé (hébergement derrière un proxy, pour les limites par IP) ; en-tête `x-powered-by` retiré.
+- **En-têtes de sécurité** (`server/headers.ts`, branché dans `server/app.ts`) : `X-Content-Type-Options`,
+  `Referrer-Policy`, `X-Frame-Options: SAMEORIGIN`, HSTS en https, et une **CSP minimale** qui ne
+  restreint que des mécanismes que l'application n'utilise pas (`frame-ancestors`, `base-uri`,
+  `form-action`, `object-src`) — aucune page légitime ne peut être cassée. Une CSP complète
+  (scripts, styles, frames, connexions) devra d'abord tourner en mode `Report-Only` : le script
+  inline du thème et le serveur Vite de développement seraient sinon bloqués.
 
 ## Scan photo : changer de fournisseur d'IA
 

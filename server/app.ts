@@ -1,4 +1,5 @@
 import express from 'express';
+import { securityHeadersMiddleware } from './headers';
 import type { AdminConfig } from './patronAuth';
 import type { VisionProvider } from './vision/visionProvider';
 import { patronRoutes } from './routes/patronRoutes';
@@ -17,6 +18,9 @@ export function createApiApp({ adminConfig, vision }: AppDependencies): express.
   // Render (and most hosts) put the app behind one proxy: needed for correct client IPs in rate limiting
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
+
+  // Defense in depth: descriptive headers and a CSP over mechanisms the app never uses
+  app.use(securityHeadersMiddleware());
 
   // Small JSON bodies everywhere, except the photo upload which has its own limit
   const smallJson = express.json({ limit: '100kb' });
