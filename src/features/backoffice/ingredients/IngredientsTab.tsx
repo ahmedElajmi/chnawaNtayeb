@@ -15,7 +15,9 @@ import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { usePagedList } from '@/shared/hooks/usePagedList';
 import { ShowMore } from '@/shared/ui/ShowMore';
-import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
+import { categoryWithDescendants } from '@/core/categories';
+import { CategoryGroupingControls, CategoryGroups, useCategoryGrouping } from '../ui/CategoryGroups';
 import { CompletenessMeter, NextActionLink, StatusBadge } from '../review/reviewUi';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -64,8 +66,13 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
   });
   const usage = useMemo(() => countIngredientUsage(recipes), [recipes]);
   const [prices, setPrices] = useState<Record<string, PriceRange>>({});
-  const categories = useIngredientCategories();
-  const categoryLabel = new Map(categories);
+  const categoryNames = useCategoryNames('ingredient');
+  const roots = categoryNames.tree.roots.map((n) => [n.category.id, categoryNames.name(n.category.id)] as const);
+  const inCategory = useMemo(
+    () => (category === 'all' ? null : categoryWithDescendants(categoryNames.tree, category)),
+    [category, categoryNames.tree]
+  );
+  const grouping = useCategoryGrouping();
   const q = normalizeText(search.trim());
   const matchesQuick: Record<QuickFilter, (i: Ingredient) => boolean> = {
     all: () => true,
@@ -77,7 +84,7 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
     'unit-check': (i) => hasImplausibleUnitPrice(i),
   };
   const filtered = ingredients
-    .filter((i) => category === 'all' || i.category === category)
+    .filter((i) => !inCategory || inCategory.has(i.category))
     .filter(matchesQuick[quick])
     .filter(
       (i) => !q || [i.name_fr, i.name_derja, i.name_ar, i.name_derja_ar ?? ''].some((n) => normalizeText(n).includes(q))
@@ -91,6 +98,74 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
     const value = parseFloat(raw.replace(',', '.'));
     if (Number.isNaN(value)) return;
     setPrices((p) => ({ ...p, [ing.id]: { ...rangeOf(ing), [bound]: value } }));
+  };
+
+  const renderRow = (ing: Ingredient) => {
+    const range = rangeOf(ing);
+    const invalid = range.min < 0 || range.max < range.min;
+    const info = infoOf(ing);
+    const name = getIngredientName(ing);
+    return (
+      <div className="p-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition">
+        <div className="flex items-center gap-3 min-w-[11rem] flex-1">
+          <IngredientThumb ingredient={ing} size="md" />
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-bold text-ink truncate">
+              <Link to={patronPath(PATRON_PAGES.ingredients, ing.id)} className="hover:text-brand-text hover:underline">
+                {name}
+              </Link>
+              {getSecondaryName(ing) && (
+                <span className="text-xs text-accent-text font-semibold ms-1.5">({getSecondaryName(ing)})</span>
+              )}
+            </p>
+            <div className="mt-0.5 flex flex-wrap items-center gap-2">
+              <StatusBadge status={info.status} />
+              <CompletenessMeter kind="ingredient" result={info.completeness} />
+            </div>
+            <p className="text-[11px] text-slate-400 truncate">
+              {categoryNames.path(ing.category) || ing.category} · {format(b.ingUnit, { unit: ing.unit_default })} ·{' '}
+              {usage.get(ing.id) ? format(b.ingUsedIn, { count: usage.get(ing.id)! }) : b.ingNoRecipe}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0 ms-auto">
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            value={range.min}
+            onChange={(e) => setBound(ing, 'min', e.target.value)}
+            aria-label={format(b.ingPriceMin, { name })}
+            aria-invalid={invalid}
+            className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
+          />
+          <span className="text-xs text-slate-400">–</span>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            value={range.max}
+            onChange={(e) => setBound(ing, 'max', e.target.value)}
+            aria-label={format(b.ingPriceMax, { name })}
+            aria-invalid={invalid}
+            className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
+          />
+          <span className="text-xs font-bold text-slate-500">{t.currency}</span>
+          <span className="ms-1">
+            <NextActionLink kind="ingredient" id={ing.id} status={info.status} snapshot={info.snapshot} />
+          </span>
+          <button
+            type="button"
+            onClick={() => editIngredient(ing)}
+            aria-label={format(b.ingEdit, { name })}
+            title={b.ingEditHint}
+            className="ms-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -146,7 +221,7 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
         ))}
       </div>
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-        {[['all', b.allCategories] as const, ...categories].map(([id, label]) => (
+        {[['all', b.allCategories] as const, ...roots].map(([id, label]) => (
           <button
             key={id}
             type="button"
@@ -162,86 +237,31 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
         {format(b.ingShown, { shown: filtered.length, total: ingredients.length })}
       </p>
 
-      <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {page.visible.map((ing) => {
-          const range = rangeOf(ing);
-          const invalid = range.min < 0 || range.max < range.min;
-          const info = infoOf(ing);
-          const name = getIngredientName(ing);
-          return (
-            <div
-              key={ing.id}
-              className="p-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
-            >
-              <div className="flex items-center gap-3 min-w-[11rem] flex-1">
-                <IngredientThumb ingredient={ing} size="md" />
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-ink truncate">
-                    <Link
-                      to={patronPath(PATRON_PAGES.ingredients, ing.id)}
-                      className="hover:text-brand-text hover:underline"
-                    >
-                      {name}
-                    </Link>
-                    {getSecondaryName(ing) && (
-                      <span className="text-xs text-accent-text font-semibold ms-1.5">({getSecondaryName(ing)})</span>
-                    )}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                    <StatusBadge status={info.status} />
-                    <CompletenessMeter kind="ingredient" result={info.completeness} />
-                  </div>
-                  <p className="text-[11px] text-slate-400 truncate">
-                    {categoryLabel.get(ing.category) ?? ing.category} · {format(b.ingUnit, { unit: ing.unit_default })}{' '}
-                    · {usage.get(ing.id) ? format(b.ingUsedIn, { count: usage.get(ing.id)! }) : b.ingNoRecipe}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 shrink-0 ms-auto">
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={range.min}
-                  onChange={(e) => setBound(ing, 'min', e.target.value)}
-                  aria-label={format(b.ingPriceMin, { name })}
-                  aria-invalid={invalid}
-                  className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
-                />
-                <span className="text-xs text-slate-400">–</span>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={range.max}
-                  onChange={(e) => setBound(ing, 'max', e.target.value)}
-                  aria-label={format(b.ingPriceMax, { name })}
-                  aria-invalid={invalid}
-                  className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
-                />
-                <span className="text-xs font-bold text-slate-500">{t.currency}</span>
-                <span className="ms-1">
-                  <NextActionLink kind="ingredient" id={ing.id} status={info.status} snapshot={info.snapshot} />
-                </span>
-                <button
-                  type="button"
-                  onClick={() => editIngredient(ing)}
-                  aria-label={format(b.ingEdit, { name })}
-                  title={b.ingEditHint}
-                  className="ms-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <ShowMore
-        list={page}
-        progressLabel={(shown, total) => format(t.listProgress, { shown, total })}
-        buttonLabel={t.listShowMore}
-      />
+      <CategoryGroupingControls kind="ingredient" />
+
+      {grouping.on ? (
+        <CategoryGroups
+          kind="ingredient"
+          items={filtered}
+          categoriesOf={(i) => [i.category]}
+          renderItem={renderRow}
+          keyOf={(i) => i.id}
+          resetKey={`${q}|${category}|${quick}`}
+        />
+      ) : (
+        <>
+          <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
+            {page.visible.map((ing) => (
+              <div key={ing.id}>{renderRow(ing)}</div>
+            ))}
+          </div>
+          <ShowMore
+            list={page}
+            progressLabel={(shown, total) => format(t.listProgress, { shown, total })}
+            buttonLabel={t.listShowMore}
+          />
+        </>
+      )}
     </div>
   );
 }

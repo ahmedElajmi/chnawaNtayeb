@@ -131,7 +131,14 @@ describe('validateRecipe: cleared optional fields', () => {
 describe('parseStoredIngredient', () => {
   it('reads a valid ingredient and refuses a broken one', () => {
     expect(parseStoredIngredient({ ...initialIngredients[0] })).toEqual(initialIngredients[0]);
-    expect(parseStoredIngredient({ id: 'x', name_fr: 'X', unit_default: 'kg', category: 'nope' })).toBeNull();
+    // A category created in the backoffice is kept; an unreadable one becomes "other"
+    expect(parseStoredIngredient({ id: 'x', name_fr: 'X', unit_default: 'kg', category: 'volaille' })?.category).toBe(
+      'volaille'
+    );
+    expect(parseStoredIngredient({ id: 'x', name_fr: 'X', unit_default: 'kg', category: 'Bad id' })?.category).toBe(
+      'other'
+    );
+    expect(parseStoredIngredient({ id: 'x', name_fr: 'X', unit_default: 'kg' })?.category).toBe('other');
     expect(parseStoredIngredient({ id: 'x', deleted: true })).toBeNull();
   });
 });

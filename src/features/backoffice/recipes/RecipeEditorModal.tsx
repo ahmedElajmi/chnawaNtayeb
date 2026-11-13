@@ -19,6 +19,7 @@ import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
 import { NumberField } from '@/features/backoffice/ui/NumberField';
 import { EditorLanguageProvider, LanguageTabs, type EditorLanguage } from '@/features/backoffice/ui/editorLanguage';
 import { RecipeIngredientsEditor } from './RecipeIngredientsEditor';
+import { RecipeCategoryPicker } from './RecipeCategoryPicker';
 import { RecipeStepsEditor } from './RecipeStepsEditor';
 import { RecipeImageField, RecipeVideoField } from './RecipeMediaFields';
 import { EditorSection, SectionNav, sectionDomId } from './RecipeEditorChrome';
@@ -334,6 +335,10 @@ export function RecipeEditorModal({
                       </select>
                     </Field>
                   </div>
+                  <RecipeCategoryPicker
+                    value={draft.category_ids ?? []}
+                    onChange={(category_ids) => set({ category_ids })}
+                  />
                   <label className="flex items-start gap-2 p-3 rounded-xl bg-card border border-line cursor-pointer">
                     <input
                       type="checkbox"

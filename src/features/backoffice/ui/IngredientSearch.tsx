@@ -4,7 +4,7 @@ import type { Ingredient } from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
 
 const MAX_RESULTS = 30;
 
@@ -37,7 +37,7 @@ export function IngredientSearch({
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(autoFocus);
   const [active, setActive] = useState(0);
-  const categoryLabel = new Map(useIngredientCategories());
+  const categoryNames = useCategoryNames('ingredient');
   const { getIngredientName, getSecondaryName, compareNames } = useLanguage();
 
   const results = useMemo(() => {
@@ -130,7 +130,7 @@ export function IngredientSearch({
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-ink truncate">{getIngredientName(ingredient)}</span>
                 <span className="block text-[10px] text-ink-muted truncate">
-                  {[getSecondaryName(ingredient), categoryLabel.get(ingredient.category)].filter(Boolean).join(' · ')}
+                  {[getSecondaryName(ingredient), categoryNames.name(ingredient.category)].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="text-[10px] text-ink-muted shrink-0">{ingredient.unit_default}</span>

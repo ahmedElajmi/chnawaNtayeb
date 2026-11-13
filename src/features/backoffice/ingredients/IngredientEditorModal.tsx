@@ -14,7 +14,7 @@ import { useGuardedClose } from '@/shared/hooks/useGuardedClose';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
-import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
+import { useIngredientCategories } from '@/shared/i18n/useCategoryNames';
 
 const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-200 dark:border-slate-700 mt-1';
 const LABEL = 'text-[11px] font-bold text-slate-600 dark:text-slate-300';

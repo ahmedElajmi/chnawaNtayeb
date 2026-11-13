@@ -1,4 +1,4 @@
-import type { IngredientCategory } from '@/core/catalog';
+import type { BuiltInIngredientCategory } from '@/core/catalog';
 
 /** Visual identity of a category, used when an ingredient has no photo (display only). */
 export interface CategoryVisual {
@@ -7,7 +7,7 @@ export interface CategoryVisual {
   tile: string;
 }
 
-export const CATEGORY_VISUALS: Record<IngredientCategory, CategoryVisual> = {
+export const CATEGORY_VISUALS: Record<BuiltInIngredientCategory | string, CategoryVisual> = {
   vegetables: {
     emoji: '🥕',
     tile: 'from-emerald-50 to-lime-100 ring-emerald-200/70 dark:from-emerald-950/60 dark:to-lime-900/40 dark:ring-emerald-800/60',

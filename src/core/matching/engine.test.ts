@@ -244,3 +244,16 @@ describe('fridgeSuggestions', () => {
     expect(fridgeSuggestions(initialRecipes, fridge, {}, ctx)).toEqual(matchRecipes(initialRecipes, fridge, {}, ctx));
   });
 });
+
+describe('category filter', () => {
+  it('keeps the recipes in one of the accepted categories', () => {
+    const [a, b, c] = initialRecipes.slice(0, 3);
+    const recipes = [
+      { ...a, category_ids: ['ramadan'] },
+      { ...b, category_ids: ['chorba'] },
+      { ...c, category_ids: [] },
+    ];
+    const kept = browseRecipes(recipes, [], { categoryIds: new Set(['ramadan', 'chorba']) }, ctx);
+    expect(kept.map((r) => r.recipe.id).sort()).toEqual([a.id, b.id].sort());
+  });
+});

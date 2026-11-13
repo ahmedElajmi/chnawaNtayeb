@@ -13,6 +13,7 @@ import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
+import { CategoryGroupingControls, CategoryGroups, useCategoryGrouping } from '../ui/CategoryGroups';
 import { CompletenessMeter, NextActionLink, SegmentedProgress, StatusBadge } from '../review/reviewUi';
 
 /** A recipe of the list: its work copy (or the version online when it has none) and where it stands. */
@@ -56,6 +57,8 @@ const STATUS_ORDER: Record<ItemStatus, number> = {
   online_pending: 5,
   online: 6,
 };
+
+const categoriesOf = (row: RecipeRow) => row.recipe.category_ids ?? [];
 
 const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
 
@@ -116,6 +119,95 @@ export function RecipesTab({
     return [...list].sort((x, y) => STATUS_ORDER[x.status] - STATUS_ORDER[y.status] || byName(x, y));
   }, [searched, current, sort, compareNames]);
   const page = usePagedList(filtered, `${q}|${filter}|${sort}`);
+  const grouping = useCategoryGrouping();
+
+  const renderRow = ({ recipe: r, status, snapshot, completeness }: RecipeRow) => (
+    <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0">
+          {r.image_url ? (
+            <img
+              src={r.image_url}
+              alt={getRecipeName(r)}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <img src="/mark.png" alt="" className="w-full h-full object-contain p-1.5 opacity-70" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2">
+            <Link
+              to={patronPath(PATRON_PAGES.recipes, r.id)}
+              className="text-sm font-bold text-ink hover:text-brand-text hover:underline"
+            >
+              {getRecipeName(r)}
+            </Link>
+            {getSecondaryName(r) && (
+              <span className="text-xs text-accent-text font-semibold">({getSecondaryName(r)})</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-1 mt-1">
+            <StatusBadge status={status} />
+            <RecipeBadges recipe={r} />
+            {parseYouTubeId(r.video_url) && (
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
+                ▶ {t.videoBadge}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
+            <span>{r.prep_time_minutes + r.cook_time_minutes} min</span>
+            <span>·</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {formatPriceRange(getRecipeCost(r, ingredients), 'DT')}
+            </span>
+            {snapshot && (
+              <>
+                <span>·</span>
+                <SegmentedProgress kind="recipe" snapshot={snapshot} workflow={workflow} compact />
+                <span className="tabular-nums">{snapshot.percent} %</span>
+              </>
+            )}
+          </div>
+          <div className="mt-1 max-w-full">
+            <CompletenessMeter kind="recipe" result={completeness} />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 self-end sm:self-center">
+        <NextActionLink kind="recipe" id={r.id} status={status} snapshot={snapshot} />
+        <button
+          onClick={() => onEditRecipe(r)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+          title={t.boEditRecipe}
+          aria-label={t.boEditRecipe}
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDuplicateRecipe(r)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+          title={b.duplicateRecipe}
+          aria-label={`${b.duplicateRecipe} · ${getRecipeName(r)}`}
+        >
+          <Copy className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDeleteRecipe(r)}
+          className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-500"
+          title={t.boDeleteRecipe}
+          aria-label={t.boDeleteRecipe}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -173,103 +265,35 @@ export function RecipesTab({
         </select>
       </label>
 
-      <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {page.visible.map(({ recipe: r, status, snapshot, completeness }) => (
-          <div
-            key={r.id}
-            className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0">
-                {r.image_url ? (
-                  <img
-                    src={r.image_url}
-                    alt={getRecipeName(r)}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <img src="/mark.png" alt="" className="w-full h-full object-contain p-1.5 opacity-70" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-x-2">
-                  <Link
-                    to={patronPath(PATRON_PAGES.recipes, r.id)}
-                    className="text-sm font-bold text-ink hover:text-brand-text hover:underline"
-                  >
-                    {getRecipeName(r)}
-                  </Link>
-                  {getSecondaryName(r) && (
-                    <span className="text-xs text-accent-text font-semibold">({getSecondaryName(r)})</span>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-1 mt-1">
-                  <StatusBadge status={status} />
-                  <RecipeBadges recipe={r} />
-                  {parseYouTubeId(r.video_url) && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
-                      ▶ {t.videoBadge}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
-                  <span>{r.prep_time_minutes + r.cook_time_minutes} min</span>
-                  <span>·</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {formatPriceRange(getRecipeCost(r, ingredients), 'DT')}
-                  </span>
-                  {snapshot && (
-                    <>
-                      <span>·</span>
-                      <SegmentedProgress kind="recipe" snapshot={snapshot} workflow={workflow} compact />
-                      <span className="tabular-nums">{snapshot.percent} %</span>
-                    </>
-                  )}
-                </div>
-                <div className="mt-1 max-w-full">
-                  <CompletenessMeter kind="recipe" result={completeness} />
-                </div>
-              </div>
-            </div>
+      <CategoryGroupingControls kind="recipe" />
 
-            <div className="flex items-center gap-2 self-end sm:self-center">
-              <NextActionLink kind="recipe" id={r.id} status={status} snapshot={snapshot} />
-              <button
-                onClick={() => onEditRecipe(r)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                title={t.boEditRecipe}
-                aria-label={t.boEditRecipe}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDuplicateRecipe(r)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                title={b.duplicateRecipe}
-                aria-label={`${b.duplicateRecipe} · ${getRecipeName(r)}`}
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDeleteRecipe(r)}
-                className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-500"
-                title={t.boDeleteRecipe}
-                aria-label={t.boDeleteRecipe}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+      {grouping.on ? (
+        <CategoryGroups
+          kind="recipe"
+          items={filtered}
+          categoriesOf={categoriesOf}
+          renderItem={renderRow}
+          keyOf={(row) => row.recipe.id}
+          summary={(list) => {
+            const todo = list.filter((row) => row.status !== 'online').length;
+            return todo > 0 ? format(b.groupToDo, { count: todo }) : null;
+          }}
+          resetKey={`${q}|${filter}|${sort}`}
+        />
+      ) : (
+        <>
+          <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
+            {page.visible.map((row) => (
+              <div key={row.recipe.id}>{renderRow(row)}</div>
+            ))}
           </div>
-        ))}
-      </div>
-      <ShowMore
-        list={page}
-        progressLabel={(shown, total) => format(t.listProgress, { shown, total })}
-        buttonLabel={t.listShowMore}
-      />
+          <ShowMore
+            list={page}
+            progressLabel={(shown, total) => format(t.listProgress, { shown, total })}
+            buttonLabel={t.listShowMore}
+          />
+        </>
+      )}
     </div>
   );
 }

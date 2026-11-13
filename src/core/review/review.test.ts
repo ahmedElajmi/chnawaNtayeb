@@ -345,6 +345,15 @@ describe('review queue', () => {
     expect(groupQueue(entries, 'part', workflows).find((g) => g.key === 'recipe:media')!.cells).toHaveLength(1);
   });
 
+  it('groups by category, an item counting in each of its categories', () => {
+    const withCategories = [{ ...entries[0], categories: ['ramadan', 'rapide'] }, { ...entries[1] }];
+    const groups = groupQueue(withCategories, 'category', workflows);
+    expect(groups.map((g) => g.key).sort()).toEqual(['ingredient:-', 'recipe:ramadan', 'recipe:rapide']);
+    const recipeCells = groupQueue(entries.slice(0, 1), 'kind', workflows)[0].cells.length;
+    expect(groups.find((g) => g.key === 'recipe:ramadan')!.cells).toHaveLength(recipeCells);
+    expect(groups.find((g) => g.key === 'recipe:rapide')!.cells).toHaveLength(recipeCells);
+  });
+
   it('counts what waits for the reviewer', () => {
     const counts = queueCounts(entries);
     expect(counts.items).toBe(2);

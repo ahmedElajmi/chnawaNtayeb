@@ -83,6 +83,19 @@ service cloud.firestore {
       allow delete: if canPublish() && isValidId(ingredientId);
     }
 
+    // Categories managed in the backoffice (recipes: several per recipe, ingredients: one each)
+    match /recipe_categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if canPublish() && isValidId(categoryId) && isVersionedWrite(request.resource.data);
+      allow delete: if canPublish() && isValidId(categoryId);
+    }
+
+    match /ingredient_categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if canPublish() && isValidId(categoryId) && isVersionedWrite(request.resource.data);
+      allow delete: if canPublish() && isValidId(categoryId);
+    }
+
     // ------------------------------------------------------------------
     // Validation workflow (docs/encyclopedie/14-refonte-backoffice.md): every kind of content has a
     // private workspace (work copies, validated cell by cell) and a history of published versions.

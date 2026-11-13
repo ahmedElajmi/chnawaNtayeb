@@ -15,6 +15,8 @@ export interface FilterOptions {
    */
   searchMatches?: ReadonlyMap<string, number>;
   healthyOnly?: boolean;
+  /** Managed categories accepted (a category and its sub-categories): a recipe in one of them passes */
+  categoryIds?: ReadonlySet<string>;
 }
 
 type RecipePredicate = (recipe: Recipe) => boolean;
@@ -27,6 +29,8 @@ function predicates(filters: FilterOptions = {}): RecipePredicate[] {
   if (category && category !== 'all') list.push((r) => normalizeCategory(r.category) === category);
   if (cuisineType && cuisineType !== 'all') list.push((r) => r.cuisine_type === cuisineType);
   if (healthyOnly) list.push((r) => !!r.is_healthy);
+  const categories = filters.categoryIds;
+  if (categories) list.push((r) => (r.category_ids ?? []).some((id) => categories.has(id)));
   if (maxBudget) list.push((r) => r.estimated_cost_tnd <= maxBudget);
   if (maxTotalTime) list.push((r) => r.prep_time_minutes + r.cook_time_minutes <= maxTotalTime);
   const matches = filters.searchMatches;

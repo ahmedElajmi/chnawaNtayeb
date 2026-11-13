@@ -1,12 +1,4 @@
-import {
-  INGREDIENT_CATEGORIES,
-  migrateRecipes,
-  parseStoredIngredient,
-  parseStoredRecipe,
-  type Ingredient,
-  type IngredientCategory,
-  type Recipe,
-} from '../catalog';
+import { migrateRecipes, parseStoredIngredient, parseStoredRecipe, type Ingredient, type Recipe } from '../catalog';
 import type { GroceryItem } from '../grocery';
 import type { DayPlan } from '../planning';
 
@@ -32,9 +24,7 @@ function parseGroceryItem(raw: unknown): GroceryItem | null {
     name: raw.name,
     quantity: raw.quantity,
     unit: isText(raw.unit) ? raw.unit : '',
-    category: INGREDIENT_CATEGORIES.includes(raw.category as IngredientCategory)
-      ? (raw.category as IngredientCategory)
-      : 'other',
+    category: typeof raw.category === 'string' && raw.category.trim() ? raw.category : 'other',
     is_checked: raw.is_checked === true,
     ...(isText(raw.ingredient_id) ? { ingredient_id: raw.ingredient_id } : {}),
     ...(raw.is_custom === true ? { is_custom: true } : {}),

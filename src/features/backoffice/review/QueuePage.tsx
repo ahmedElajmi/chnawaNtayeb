@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { ArrowLeft, Check, PlayCircle } from 'lucide-react';
 import {
   groupQueue,
+  NO_CATEGORY_KEY,
   parseCellId,
   type QueueCell,
   type QueueGroup,
@@ -20,6 +21,7 @@ import { CellReviewPanel, PRIMARY, SECONDARY } from './CellReviewPanel';
 import { useIngredientView, useRecipeView, type KindView } from './kindViews';
 import { CELL_STYLE, cellLabel, partLabel } from './reviewUi';
 import { useReviewQueue } from './useReviewQueue';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
 
 const GROUPINGS: { id: QueueGrouping; label: (b: BackofficeTexts) => string }[] = [
   { id: 'item', label: (b) => b.queueByItem },
@@ -27,6 +29,7 @@ const GROUPINGS: { id: QueueGrouping; label: (b: BackofficeTexts) => string }[] 
   { id: 'part', label: (b) => b.queueByPart },
   { id: 'language', label: (b) => b.queueByLanguage },
   { id: 'kind', label: (b) => b.queueByKind },
+  { id: 'category', label: (b) => b.queueGroupCategory },
   { id: 'author', label: (b) => b.queueByAuthor },
 ];
 
@@ -51,6 +54,8 @@ export function QueuePage() {
   const [series, setSeries] = useState<{ title: string; cells: QueueCell[]; index: number } | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const recipeCategories = useCategoryNames('recipe');
+  const ingredientCategories = useCategoryNames('ingredient');
   const itemName = (kind: ReviewKind, id: string) => {
     const entry = stores[kind].entries.find((e) => e.copy.id === id);
     return entry ? (views[kind].name as (item: unknown) => string)(entry.copy.content) : id;
@@ -74,6 +79,10 @@ export function QueuePage() {
         return group.key === 'common' ? b.reviewCommon : languageInfo(group.key as never).selectorLabel;
       case 'kind':
         return kindLabel(group.key as ReviewKind);
+      case 'category': {
+        const names = kind === 'recipe' ? recipeCategories : ingredientCategories;
+        return `${rest === NO_CATEGORY_KEY ? b.noCategory : names.name(rest) || rest} · ${kindLabel(kind!)}`;
+      }
       default:
         return group.key === '?' ? '—' : group.key;
     }

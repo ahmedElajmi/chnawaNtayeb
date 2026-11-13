@@ -1,7 +1,7 @@
 import type { Ingredient } from '@/core/catalog';
 import { languageInfo, localizedField, type Language } from '@/core/shared';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
-import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 
 const Empty = () => <span className="italic text-ink-muted">—</span>;
@@ -16,7 +16,7 @@ export function IngredientCellContent({
   part: string;
   language?: Language;
 }) {
-  const categories = new Map(useIngredientCategories());
+  const categories = useCategoryNames('ingredient');
   if (part === 'identity') {
     const info = languageInfo(language ?? 'fr');
     const name = localizedField(item, 'name')[language ?? 'fr'];
@@ -29,7 +29,7 @@ export function IngredientCellContent({
   if (part === 'details')
     return (
       <p className="text-xs">
-        {categories.get(item.category) ?? item.category} · {item.unit_default || <Empty />}
+        {categories.path(item.category) || item.category} · {item.unit_default || <Empty />}
       </p>
     );
   if (part === 'price')

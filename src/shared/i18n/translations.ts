@@ -28,15 +28,6 @@ export interface TranslationDictionary {
   addBtn: string;
   cookNowAction: string;
   // Categories
-  catVegetables: string;
-  catFruits: string;
-  catMeats: string;
-  catFish: string;
-  catDairyEggs: string;
-  catGrainsPasta: string;
-  catSpicesCondiments: string;
-  catCannedPantry: string;
-  catOther: string;
   // Match Tiers
   tierReadyTitle: string;
   tierReadyDesc: string;
@@ -216,6 +207,8 @@ export interface TranslationDictionary {
   fillFridgeHint: string;
   catalogSoonTitle: string;
   catalogSoonDesc: string;
+  categoriesTitle: string;
+  allCategoriesCrumb: string;
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
@@ -246,15 +239,6 @@ const BASE_TRANSLATIONS = {
     clearSelection: 'Fasakh el kol',
     addBtn: 'Zid',
     cookNowAction: ' ورّيني شنوة نطيب !',
-    catVegetables: 'Khdhra',
-    catFruits: 'Ghallah',
-    catMeats: 'L7am w Djaj',
-    catFish: '7out w Fawakeh Ba7r',
-    catDairyEggs: '3dham w 7libiyat',
-    catGrainsPasta: 'Ma9rouna w 3jin',
-    catSpicesCondiments: 'Fé7at w Hrisa',
-    catCannedPantry: 'Conserves w Mo2na',
-    catOther: '7weyej okhra',
     tierReadyTitle: 'Njem ntayebha tawa !',
     tierReadyDesc: '3andek el ingrédients el kol el lezma f dar',
     tierAlmostTitle: 'Naqsek ken chwaya',
@@ -427,6 +411,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyDesc: 'Ekhtar chwaya ingrédients bech nwarrik chnowa tnajem ttayeb.',
     fillFridgeHint: '3abbi el frigo',
     catalogSoonTitle: 'El maklet jeyin',
+    categoriesTitle: 'Catégories',
+    allCategoriesCrumb: 'El kol',
     catalogSoonDesc: 'Chef Souhed y7adher fihom w ychouf fihom wa7da wa7da. Arja3 ba3d chwaya !',
     catalogEmptyTitle: 'Ma fama 7atta makla b had el filtres',
     catalogEmptyDesc: 'Na7i filtre walla badel el recherche.',
@@ -456,15 +442,6 @@ const BASE_TRANSLATIONS = {
     clearSelection: 'Tout effacer',
     addBtn: 'Ajouter',
     cookNowAction: 'Trouver mes recettes !',
-    catVegetables: 'Légumes',
-    catFruits: 'Fruits',
-    catMeats: 'Viandes & Volailles',
-    catFish: 'Poissons & Fruits de mer',
-    catDairyEggs: 'Produits laitiers & Œufs',
-    catGrainsPasta: 'Féculents, Pâtes & Céréales',
-    catSpicesCondiments: 'Épices, Harissa & Condiments',
-    catCannedPantry: 'Conserves & Épicerie',
-    catOther: 'Autres ingrédients',
     tierReadyTitle: 'Je peux cuisiner tout de suite !',
     tierReadyDesc: 'Vous avez 100% des ingrédients requis chez vous',
     tierAlmostTitle: 'Il ne vous manque presque rien',
@@ -639,6 +616,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyDesc: 'Sélectionnez quelques ingrédients pour voir les recettes que vous pouvez cuisiner.',
     fillFridgeHint: 'remplir le frigo',
     catalogSoonTitle: 'Les recettes arrivent',
+    categoriesTitle: 'Catégories',
+    allCategoriesCrumb: 'Toutes',
     catalogSoonDesc: 'Chef Souhed les prépare et les vérifie une à une. Revenez bientôt !',
     catalogEmptyTitle: 'Aucune recette ne correspond à ces filtres',
     catalogEmptyDesc: 'Retirez un filtre ou modifiez la recherche.',
@@ -667,15 +646,6 @@ const BASE_TRANSLATIONS = {
     clearSelection: 'فسّخ الكل',
     addBtn: 'زيد',
     cookNowAction: 'ورّيني شنوة نطيب !',
-    catVegetables: 'خضرة',
-    catFruits: 'غلال',
-    catMeats: 'لحم ودجاج',
-    catFish: 'حوت وغلال البحر',
-    catDairyEggs: 'عظام ومشتقات الحليب',
-    catGrainsPasta: 'مقرونة وحبوب وعجين',
-    catSpicesCondiments: 'فاحات وهريسة',
-    catCannedPantry: 'معلبات ومونة',
-    catOther: 'حاجات أخرى',
     tierReadyTitle: 'نجم نطيبها توّا !',
     tierReadyDesc: 'عندك كامل المكونات الأساسية في الدار',
     tierAlmostTitle: 'ناقصك كان شوية',
@@ -847,6 +817,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyDesc: 'اختار شوية مكوّنات باش نورّيك شنوة تنجم تطيب.',
     fillFridgeHint: 'املأ الثلاجة',
     catalogSoonTitle: 'الوصفات قادمة',
+    categoriesTitle: 'الأصناف',
+    allCategoriesCrumb: 'الكل',
     catalogSoonDesc: 'يُعدّها الشيف سهيد ويراجعها واحدة تلو الأخرى. عُد قريبًا!',
     catalogEmptyTitle: 'ما فماش وصفة بهالفلاتر',
     catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',

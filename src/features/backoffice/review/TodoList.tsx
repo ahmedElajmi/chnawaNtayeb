@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { catalogHealth } from '@/core/catalog';
-import { useCatalog, useReview } from '@/app/ContainerContext';
+import { useReview } from '@/app/ContainerContext';
 import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES, type PatronPage } from '@/shared/paths';
 import { format } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useIngredientEditor } from '../shell/IngredientEditorContext';
 import { useReviewQueue } from './useReviewQueue';
+import { useTeamRecipes } from './useTeamRecipes';
 
 interface Todo {
   label: string;
@@ -25,15 +26,10 @@ interface Todo {
  */
 export function TodoList() {
   const b = useBackofficeText();
-  const { recipes: online } = useCatalog();
-  const { entries, store, workflow } = useReview('recipe');
+  const { store, workflow } = useReview('recipe');
+  const recipes = useTeamRecipes();
   const { ingredients } = useIngredientEditor();
   const { counts } = useReviewQueue();
-  // Recipes as the team sees them: work copies, then the recipes online without one
-  const recipes = useMemo(() => {
-    const inWorkspace = new Set(entries.map((e) => e.copy.id));
-    return [...entries.map((e) => e.copy.content), ...online.filter((r) => !inWorkspace.has(r.id))];
-  }, [entries, online]);
   const health = useMemo(() => catalogHealth(recipes, ingredients), [recipes, ingredients]);
   const toEnrich = useMemo(
     () => recipes.filter((r) => store.completeness(r).percent < 100).length,

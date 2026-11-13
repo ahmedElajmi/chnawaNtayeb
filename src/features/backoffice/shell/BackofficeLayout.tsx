@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { ChevronDown, Cloud, CloudOff, LogOut, Menu, X } from 'lucide-react';
 import { canPerform } from '@/core/review';
-import { useCatalog, useContainer, usePatron, useReviewSettings, useTeam } from '@/app/ContainerContext';
+import { useContainer, usePatron, useReviewSettings, useTeam } from '@/app/ContainerContext';
 import { PATHS, patronPath } from '@/shared/paths';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useReviewQueue } from '../review/useReviewQueue';
+import { useTeamRecipes } from '../review/useTeamRecipes';
+import { useIngredientEditor } from './IngredientEditorContext';
 import { BACKOFFICE_SECTIONS, sectionOf, type BackofficeSection, type SectionCounts } from './sections';
 
 /** Pages the person signed in may see (rights of their role). */
@@ -142,7 +144,9 @@ export function SubPagesOutlet({ section }: { section: BackofficeSection }) {
 export function BackofficeLayout({ onLogout }: { onLogout: () => void }) {
   const b = useBackofficeText();
   const { pathname } = useLocation();
-  const { recipes, ingredients } = useCatalog();
+  // What the team works on (work copies included), not only what is online
+  const recipes = useTeamRecipes();
+  const { ingredients } = useIngredientEditor();
   const { cloudStatus } = usePatron();
   const [menuOpen, setMenuOpen] = useState(false);
   useCloseOnBack(menuOpen, () => setMenuOpen(false));

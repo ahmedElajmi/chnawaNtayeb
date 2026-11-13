@@ -1,4 +1,4 @@
-import { INGREDIENT_CATEGORIES, type Ingredient, type IngredientCategory, type Recipe, type RecipeStep } from './types';
+import { type Ingredient, type Recipe, type RecipeStep } from './types';
 import { migrateIngredient, migrateRecipes } from './migrations';
 import { normalizeRecipe } from './course';
 import { hasAnyText, localizedField, trimLocalized, withLocalizedField, withoutUndefined } from '../shared';
@@ -144,9 +144,11 @@ export function parseStoredIngredient(raw: unknown): Ingredient | null {
   const textsOk = ['id', 'name_fr', 'unit_default'].every(
     (k) => typeof raw[k] === 'string' && (raw[k] as string).trim() !== ''
   );
-  if (!textsOk || !INGREDIENT_CATEGORIES.includes(raw.category as IngredientCategory)) return null;
+  if (!textsOk) return null;
   const withNames = {
     ...raw,
+    // A category deleted or never known keeps the ingredient readable, in "Other"
+    category: typeof raw.category === 'string' && /^[a-z0-9_-]{1,64}$/.test(raw.category) ? raw.category : 'other',
     name_derja: typeof raw.name_derja === 'string' ? raw.name_derja : '',
     name_ar: typeof raw.name_ar === 'string' ? raw.name_ar : '',
   };

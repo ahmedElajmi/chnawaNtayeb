@@ -8,6 +8,7 @@ import type { RecipeFilters } from '@/features/recipes/recipeFilters';
 import { CHIP_OFF, chip, RecipeFilterBar } from '@/features/recipes/components/RecipeFilterBar';
 import { RecipeListTabs } from '@/features/recipes/components/RecipeListTabs';
 import { RecipeGrid } from '@/features/recipes/RecipeGrid';
+import { RecipeCategoryBrowser } from '@/features/recipes/components/RecipeCategoryBrowser';
 
 /** Recipes suggested for the fridge, grouped by tier (ready / almost / ideas). */
 export function SuggestionsPage() {
@@ -72,6 +73,7 @@ export function SuggestionsPage() {
               ))}
             </div>
           </RecipeFilterBar>
+          <RecipeCategoryBrowser filters={filters} setFilters={setFilters} />
 
           {total === 0 ? (
             emptyState(t.noResultsTitle, t.noResultsDesc)

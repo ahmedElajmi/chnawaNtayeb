@@ -83,26 +83,30 @@ const RECIPE_PARTS: readonly ReviewPart<Recipe>[] = [
       servings: r.base_servings,
       cost: r.estimated_cost_tnd,
       category: r.category,
+      // Managed categories: only when there are some, so recipes without any keep their fingerprint
+      ...(r.category_ids?.length ? { categories: [...r.category_ids].sort() } : {}),
       cuisine: r.cuisine_type,
       difficulty: r.difficulty,
       healthy: Boolean(r.is_healthy),
       ingredients: r.ingredients,
     }),
-    copy: (target, source) =>
-      source
-        ? {
-            ...target,
-            prep_time_minutes: source.prep_time_minutes,
-            cook_time_minutes: source.cook_time_minutes,
-            base_servings: source.base_servings,
-            estimated_cost_tnd: source.estimated_cost_tnd,
-            category: source.category,
-            cuisine_type: source.cuisine_type,
-            difficulty: source.difficulty,
-            is_healthy: Boolean(source.is_healthy),
-            ingredients: source.ingredients,
-          }
-        : target,
+    copy: (target, source) => {
+      if (!source) return target;
+      const { category_ids: _ids, ...rest } = target;
+      return {
+        ...rest,
+        ...(source.category_ids?.length ? { category_ids: source.category_ids } : {}),
+        prep_time_minutes: source.prep_time_minutes,
+        cook_time_minutes: source.cook_time_minutes,
+        base_servings: source.base_servings,
+        estimated_cost_tnd: source.estimated_cost_tnd,
+        category: source.category,
+        cuisine_type: source.cuisine_type,
+        difficulty: source.difficulty,
+        is_healthy: Boolean(source.is_healthy),
+        ingredients: source.ingredients,
+      };
+    },
   },
   {
     id: 'steps',

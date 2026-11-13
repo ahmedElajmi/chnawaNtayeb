@@ -289,6 +289,74 @@ export interface BackofficeTexts {
   confirmDeleteRecipe: string;
   recipeDeleted: string;
   todoRecipesToEnrich: string;
+
+  // Categories
+  close: string;
+  cancel: string;
+  save: string;
+  categories: string;
+  categoriesHint: string;
+  catRecipesTab: string;
+  catIngredientsTab: string;
+  catRecipesHint: string;
+  catIngredientsHint: string;
+  catAdd: string;
+  catNew: string;
+  catEmpty: string;
+  catExpand: string;
+  catCollapse: string;
+  catCountHint: string;
+  catMissingNames: string;
+  catMoveUp: string;
+  catMoveDown: string;
+  catAddChild: string;
+  catEdit: string;
+  catDelete: string;
+  catDeleteConfirm: string;
+  catDeleted: string;
+  catSelect: string;
+  catErrorId: string;
+  catErrorName: string;
+  catErrorNameTaken: string;
+  catErrorParent: string;
+  catErrorLoop: string;
+  catErrorDepth: string;
+  catBlockBuiltIn: string;
+  catBlockChildren: string;
+  catBlockInUse: string;
+  catBlockDenied: string;
+  catAssignFailed: string;
+  catAssignedRecipes: string;
+  catAssignedIngredients: string;
+  catHoldsRecipes: string;
+  catHoldsIngredients: string;
+  catSubIncluded: string;
+  catSearchRecipes: string;
+  catSearchIngredients: string;
+  catAddRecipes: string;
+  catMoveIngredients: string;
+  catAssignHint: string;
+  catMoveHint: string;
+  catRemoveFrom: string;
+  catDiscard: string;
+  catSaved: string;
+  catSavedLocal: string;
+  catName: string;
+  catIcon: string;
+  catParent: string;
+  catNoParent: string;
+  groupByCategory: string;
+  groupLevel: string;
+  noCategory: string;
+  courseLabel: string;
+  courseEntree: string;
+  courseMain: string;
+  courseDessert: string;
+  recipeCategories: string;
+  recipeCategoriesHint: string;
+  recipeNoCategories: string;
+  queueGroupCategory: string;
+  groupToDo: string;
 }
 
 const fr: BackofficeTexts = {
@@ -573,6 +641,76 @@ const fr: BackofficeTexts = {
   confirmDeleteRecipe: 'Supprimer définitivement « {name} » ?',
   recipeDeleted: 'Recette supprimée',
   todoRecipesToEnrich: 'Recettes aux données incomplètes (langues, vidéo, astuce…)',
+  close: 'Fermer',
+  cancel: 'Annuler',
+  save: 'Enregistrer',
+  categories: 'Catégories',
+  categoriesHint: 'Arbre des catégories et affectation',
+  catRecipesTab: 'Recettes',
+  catIngredientsTab: 'Ingrédients',
+  catRecipesHint:
+    'Une recette peut être dans plusieurs catégories, à n’importe quel niveau ; être dans « Chorba » la met aussi dans « Ramadan ». Le type de plat (entrée, plat, dessert) reste à part.',
+  catIngredientsHint:
+    'Chaque ingrédient est dans une seule catégorie. Les catégories d’origine se renomment et se déplacent, mais ne se suppriment pas.',
+  catAdd: 'Nouvelle catégorie',
+  catNew: 'Nouvelle catégorie',
+  catEmpty: 'Aucune catégorie pour le moment.',
+  catExpand: 'Déplier',
+  catCollapse: 'Replier',
+  catCountHint: '{own} directement, {total} avec les sous-catégories',
+  catMissingNames: 'Nom à traduire dans ces langues',
+  catMoveUp: 'Monter',
+  catMoveDown: 'Descendre',
+  catAddChild: 'Ajouter une sous-catégorie',
+  catEdit: 'Modifier la catégorie',
+  catDelete: 'Supprimer la catégorie',
+  catDeleteConfirm: 'Supprimer la catégorie « {name} » ?',
+  catDeleted: 'Catégorie supprimée.',
+  catSelect: 'Choisis une catégorie pour voir et gérer ce qu’elle contient.',
+  catErrorId: 'Identifiant invalide.',
+  catErrorName: 'Le nom en français est obligatoire.',
+  catErrorNameTaken: 'Une catégorie de même niveau porte déjà ce nom.',
+  catErrorParent: 'La catégorie parente n’existe plus.',
+  catErrorLoop: 'Une catégorie ne peut pas aller sous elle-même ni sous une de ses sous-catégories.',
+  catErrorDepth: 'Trop de niveaux : 4 au maximum.',
+  catBlockBuiltIn: 'Une catégorie d’origine ne se supprime pas (elle se renomme ou se déplace).',
+  catBlockChildren: 'Déplace ou supprime d’abord ses sous-catégories.',
+  catBlockInUse: 'Elle contient encore des éléments : retire-les ou déplace-les d’abord.',
+  catBlockDenied: 'Ton rôle ne permet pas de modifier les catégories.',
+  catAssignFailed: '{failed} élément(s) non mis à jour : réessaie.',
+  catAssignedRecipes: '{count} recette(s) mise(s) à jour : la partie « Infos et ingrédients » est à valider.',
+  catAssignedIngredients: '{count} ingrédient(s) déplacé(s) : leur catégorie est à valider.',
+  catHoldsRecipes: '{count} recette(s) directement dans cette catégorie',
+  catHoldsIngredients: '{count} ingrédient(s) dans cette catégorie',
+  catSubIncluded: 'ses sous-catégories comptent aussi pour elle',
+  catSearchRecipes: 'Chercher des recettes à ajouter…',
+  catSearchIngredients: 'Chercher des ingrédients à déplacer ici…',
+  catAddRecipes: 'Ajouter {count} recette(s)',
+  catMoveIngredients: 'Déplacer {count} ingrédient(s) ici',
+  catAssignHint:
+    'L’ajout passe par l’atelier : seule la partie « Infos et ingrédients » de chaque recette revient à valider.',
+  catMoveHint:
+    'Un ingrédient n’a qu’une catégorie : le mettre ici le retire de l’ancienne. Sa partie « Catégorie et unité » revient à valider.',
+  catRemoveFrom: 'Retirer {name} de cette catégorie',
+  catDiscard: 'Abandonner les modifications de cette catégorie ?',
+  catSaved: 'Catégorie enregistrée.',
+  catSavedLocal: 'Enregistrée sur cet appareil seulement : la base n’a pas répondu.',
+  catName: 'Nom',
+  catIcon: 'Icône',
+  catParent: 'Placée sous',
+  catNoParent: '— Aucune (famille) —',
+  groupByCategory: 'Regrouper par catégorie',
+  groupLevel: 'Niveau',
+  noCategory: 'Sans catégorie',
+  courseLabel: 'Type de plat',
+  courseEntree: 'Entrée (salades, soupes, brik…)',
+  courseMain: 'Plat principal',
+  courseDessert: 'Dessert',
+  recipeCategories: 'Catégories',
+  recipeCategoriesHint: 'Coche les catégories de la recette (une sous-catégorie suffit : ses parents suivent).',
+  recipeNoCategories: 'Aucune catégorie : crée-les dans Catégories.',
+  queueGroupCategory: 'Catégorie',
+  groupToDo: '{count} à traiter',
 };
 
 const derja: BackofficeTexts = {
@@ -853,6 +991,76 @@ const derja: BackofficeTexts = {
   confirmDeleteRecipe: 'Tfasa5 « {name} » nihayan ?',
   recipeDeleted: 'El makla tfas5et',
   todoRecipesToEnrich: 'Maklet données mte3hom na9sin (loughat, vidéo, astuce…)',
+  close: 'Sakker',
+  cancel: 'Battel',
+  save: 'Sajjel',
+  categories: 'Catégories',
+  categoriesHint: 'Chajrat el catégories w tawzi3',
+  catRecipesTab: 'Maklet',
+  catIngredientsTab: 'Ingrédients',
+  catRecipesHint:
+    'El makla tnajem tkoun fi barcha catégories, fi ay niveau ; fi « Chorba » ya3ni zeda fi « Ramadan ». Naw3 el makla (entrée, plat, dessert) 3la jnab.',
+  catIngredientsHint:
+    'Kol ingrédient fi catégorie wa7da. El catégories el asliya titbadel esmha w titna9el, ama ma titfasa5ch.',
+  catAdd: 'Catégorie jdida',
+  catNew: 'Catégorie jdida',
+  catEmpty: 'Ma famma 7atta catégorie tawa.',
+  catExpand: '7ell',
+  catCollapse: 'Lamm',
+  catCountHint: '{own} toul, {total} m3a el sous-catégories',
+  catMissingNames: 'Esm lezem yetarjem fi el loughat hedhom',
+  catMoveUp: 'Tla3',
+  catMoveDown: 'Habbet',
+  catAddChild: 'Zid sous-catégorie',
+  catEdit: 'Baddel el catégorie',
+  catDelete: 'Fasa5 el catégorie',
+  catDeleteConfirm: 'Tfasa5 el catégorie « {name} » ?',
+  catDeleted: 'El catégorie tfas5et.',
+  catSelect: 'Ekhtar catégorie bech tchouf w tdabber chnowa fiha.',
+  catErrorId: 'Identifiant mouch s7i7.',
+  catErrorName: 'El esm bel fransawi lezem.',
+  catErrorNameTaken: 'Famma catégorie fi nafs el niveau 3andha nafs el esm.',
+  catErrorParent: 'El catégorie el oum ma 3adech mawjouda.',
+  catErrorLoop: 'Catégorie ma tnajjemch temchi ta7t rou7ha wala ta7t wa7da men sous-catégories mte3ha.',
+  catErrorDepth: 'Barcha niveaux : 4 akther 7aja.',
+  catBlockBuiltIn: 'Catégorie asliya ma titfasa5ch (titbadel esmha wala titna9el).',
+  catBlockChildren: 'Na99el wala fasa5 sous-catégories mte3ha lowel.',
+  catBlockInUse: 'Mazel fiha 7wayej : na77ihom wala na99elhom lowel.',
+  catBlockDenied: 'El role mte3ek ma ysa79ekch tbaddel el catégories.',
+  catAssignFailed: '{failed} 7aja ma tbadlech : 3awed.',
+  catAssignedRecipes: '{count} makla tbadlet : el partie « Ma3loumet w ingrédients » lezem tetvalida.',
+  catAssignedIngredients: '{count} ingrédient tna9el : el catégorie mte3hom lezem tetvalida.',
+  catHoldsRecipes: '{count} makla toul fi el catégorie hedhi',
+  catHoldsIngredients: '{count} ingrédient fi el catégorie hedhi',
+  catSubIncluded: 'el sous-catégories mte3ha ya7sbou zeda',
+  catSearchRecipes: 'Lawwej 3la maklet bech tzidhom…',
+  catSearchIngredients: 'Lawwej 3la ingrédients bech tna99elhom lehna…',
+  catAddRecipes: 'Zid {count} makla',
+  catMoveIngredients: 'Na99el {count} ingrédient lehna',
+  catAssignHint:
+    'El ajout yet3adda bel atelier : ken el partie « Ma3loumet w ingrédients » mta3 kol makla tarja3 lel validation.',
+  catMoveHint:
+    'El ingrédient 3andou catégorie wa7da : ki t7ottou lehna yetna7a mel 9dima. El partie « Catégorie w unité » tarja3 lel validation.',
+  catRemoveFrom: 'Na77i {name} men el catégorie hedhi',
+  catDiscard: 'Tbattel el tbdilat mta3 el catégorie hedhi ?',
+  catSaved: 'El catégorie tsajlet.',
+  catSavedLocal: 'Tsajlet 3al appareil hedha bark : el base ma jewbetch.',
+  catName: 'Esm',
+  catIcon: 'Icône',
+  catParent: 'Ta7t',
+  catNoParent: '— Ma famma chay (3ayla) —',
+  groupByCategory: 'Jamma3 bel catégorie',
+  groupLevel: 'Niveau',
+  noCategory: 'Bla catégorie',
+  courseLabel: 'Naw3 el makla',
+  courseEntree: 'Entrée (slata, chorba, brik…)',
+  courseMain: 'Plat principal',
+  courseDessert: 'Dessert',
+  recipeCategories: 'Catégories',
+  recipeCategoriesHint: 'Cochi el catégories mta3 el makla (sous-catégorie tkaffi : el parents yetb3ouha).',
+  recipeNoCategories: 'Ma famma 7atta catégorie : a3malhom fi Catégories.',
+  queueGroupCategory: 'Catégorie',
+  groupToDo: '{count} lezem yet3amlou',
 };
 
 const ar: BackofficeTexts = {
@@ -1130,6 +1338,73 @@ const ar: BackofficeTexts = {
   confirmDeleteRecipe: 'حذف «{name}» نهائيًا؟',
   recipeDeleted: 'حُذفت الوصفة',
   todoRecipesToEnrich: 'وصفات بياناتها غير مكتملة (اللغات، الفيديو، النصيحة…)',
+  close: 'إغلاق',
+  cancel: 'إلغاء',
+  save: 'حفظ',
+  categories: 'الأصناف',
+  categoriesHint: 'شجرة الأصناف وتوزيع العناصر',
+  catRecipesTab: 'الوصفات',
+  catIngredientsTab: 'المكوّنات',
+  catRecipesHint:
+    'يمكن أن تكون الوصفة في عدة أصناف وعلى أي مستوى؛ وجودها في «شوربة» يضعها أيضًا في «رمضان». نوع الطبق (مقبلات، طبق رئيسي، حلويات) منفصل.',
+  catIngredientsHint: 'كل مكوّن في صنف واحد. الأصناف الأصلية يمكن إعادة تسميتها ونقلها، لكن لا يمكن حذفها.',
+  catAdd: 'صنف جديد',
+  catNew: 'صنف جديد',
+  catEmpty: 'لا توجد أصناف حاليًا.',
+  catExpand: 'توسيع',
+  catCollapse: 'طي',
+  catCountHint: '{own} مباشرة، {total} مع الأصناف الفرعية',
+  catMissingNames: 'اسم يجب ترجمته إلى هذه اللغات',
+  catMoveUp: 'نقل إلى الأعلى',
+  catMoveDown: 'نقل إلى الأسفل',
+  catAddChild: 'إضافة صنف فرعي',
+  catEdit: 'تعديل الصنف',
+  catDelete: 'حذف الصنف',
+  catDeleteConfirm: 'حذف الصنف «{name}»؟',
+  catDeleted: 'حُذف الصنف.',
+  catSelect: 'اختر صنفًا لعرض محتواه وإدارته.',
+  catErrorId: 'معرّف غير صالح.',
+  catErrorName: 'الاسم بالفرنسية إلزامي.',
+  catErrorNameTaken: 'يوجد صنف في المستوى نفسه بهذا الاسم.',
+  catErrorParent: 'الصنف الأب لم يعد موجودًا.',
+  catErrorLoop: 'لا يمكن وضع صنف تحت نفسه أو تحت أحد أصنافه الفرعية.',
+  catErrorDepth: 'مستويات كثيرة: 4 كحد أقصى.',
+  catBlockBuiltIn: 'لا يُحذف صنف أصلي (يمكن إعادة تسميته أو نقله).',
+  catBlockChildren: 'انقل أصنافه الفرعية أو احذفها أولًا.',
+  catBlockInUse: 'ما زال يحتوي على عناصر: أزلها أو انقلها أولًا.',
+  catBlockDenied: 'لا يسمح دورك بتعديل الأصناف.',
+  catAssignFailed: 'تعذّر تحديث {failed} عنصر: أعد المحاولة.',
+  catAssignedRecipes: 'حُدّثت {count} وصفة: جزء «المعلومات والمكوّنات» يحتاج إلى مراجعة.',
+  catAssignedIngredients: 'نُقل {count} مكوّن: صنفها يحتاج إلى مراجعة.',
+  catHoldsRecipes: '{count} وصفة مباشرة في هذا الصنف',
+  catHoldsIngredients: '{count} مكوّن في هذا الصنف',
+  catSubIncluded: 'أصنافه الفرعية تُحتسب له أيضًا',
+  catSearchRecipes: 'ابحث عن وصفات لإضافتها…',
+  catSearchIngredients: 'ابحث عن مكوّنات لنقلها إلى هنا…',
+  catAddRecipes: 'إضافة {count} وصفة',
+  catMoveIngredients: 'نقل {count} مكوّن إلى هنا',
+  catAssignHint: 'تمرّ الإضافة بالورشة: يعود جزء «المعلومات والمكوّنات» فقط من كل وصفة إلى المراجعة.',
+  catMoveHint: 'للمكوّن صنف واحد فقط: وضعه هنا يزيله من الصنف السابق. يعود جزء «الصنف والوحدة» إلى المراجعة.',
+  catRemoveFrom: 'إزالة {name} من هذا الصنف',
+  catDiscard: 'التخلّي عن تعديلات هذا الصنف؟',
+  catSaved: 'حُفظ الصنف.',
+  catSavedLocal: 'حُفظ على هذا الجهاز فقط: لم تستجب قاعدة البيانات.',
+  catName: 'الاسم',
+  catIcon: 'أيقونة',
+  catParent: 'ضمن',
+  catNoParent: '— لا شيء (عائلة) —',
+  groupByCategory: 'التجميع حسب الصنف',
+  groupLevel: 'المستوى',
+  noCategory: 'بدون صنف',
+  courseLabel: 'نوع الطبق',
+  courseEntree: 'مقبلات (سلطات، شوربة، بريك…)',
+  courseMain: 'طبق رئيسي',
+  courseDessert: 'حلويات',
+  recipeCategories: 'الأصناف',
+  recipeCategoriesHint: 'حدّد أصناف الوصفة (يكفي صنف فرعي: تتبعه أصنافه الأم).',
+  recipeNoCategories: 'لا توجد أصناف: أنشئها في «الأصناف».',
+  queueGroupCategory: 'الصنف',
+  groupToDo: '{count} قيد المعالجة',
 };
 
 /** Derja in Arabic letters: only what differs from literary Arabic. To be reviewed by a native speaker. */
@@ -1342,6 +1617,73 @@ const derjaArabic: Partial<BackofficeTexts> = {
   confirmDeleteRecipe: 'تفسخ «{name}» نهائيًا؟',
   recipeDeleted: 'الماكلة تفسخت',
   todoRecipesToEnrich: 'ماكلات الداتا متاعهم ناقصة (لغات، فيديو، نصيحة…)',
+  close: 'سكّر',
+  cancel: 'بطّل',
+  save: 'سجّل',
+  categories: 'الأصناف',
+  categoriesHint: 'شجرة الأصناف والتوزيع',
+  catRecipesTab: 'الماكلات',
+  catIngredientsTab: 'المكوّنات',
+  catRecipesHint:
+    'الماكلة تنجم تكون في برشا أصناف، في أي مستوى؛ في «شربة» يعني زادة في «رمضان». نوع الماكلة (مقبلات، طبق، حلو) وحدو.',
+  catIngredientsHint: 'كل مكوّن في صنف واحد. الأصناف الأصليّة يتبدّل إسمها وتتنقل، أما ما تتفسخش.',
+  catAdd: 'صنف جديد',
+  catNew: 'صنف جديد',
+  catEmpty: 'ما فمّا حتّى صنف توّا.',
+  catExpand: 'حلّ',
+  catCollapse: 'لمّ',
+  catCountHint: '{own} طول، {total} مع الأصناف الصغار',
+  catMissingNames: 'الإسم لازمو يتترجم للغات هاذم',
+  catMoveUp: 'طلّع',
+  catMoveDown: 'هبّط',
+  catAddChild: 'زيد صنف صغير',
+  catEdit: 'بدّل الصنف',
+  catDelete: 'فسخ الصنف',
+  catDeleteConfirm: 'تفسخ الصنف «{name}»؟',
+  catDeleted: 'الصنف تفسخ.',
+  catSelect: 'اختار صنف باش تشوف وتدبّر آش فيه.',
+  catErrorId: 'المعرّف موش صحيح.',
+  catErrorName: 'الإسم بالفرنساوي لازم.',
+  catErrorNameTaken: 'فمّا صنف في نفس المستوى عندو نفس الإسم.',
+  catErrorParent: 'الصنف الأم ما عادش موجود.',
+  catErrorLoop: 'الصنف ما ينجمش يمشي تحت روحو ولا تحت صنف من الصغار متاعو.',
+  catErrorDepth: 'برشا مستويات: 4 أكثر حاجة.',
+  catBlockBuiltIn: 'الصنف الأصلي ما يتفسخش (يتبدّل إسمو ولا يتنقل).',
+  catBlockChildren: 'نقّل ولا فسخ الأصناف الصغار متاعو الأوّل.',
+  catBlockInUse: 'مازال فيه حوايج: نحّيهم ولا نقّلهم الأوّل.',
+  catBlockDenied: 'الدور متاعك ما يسمحلكش تبدّل الأصناف.',
+  catAssignFailed: '{failed} حاجة ما تبدّلتش: عاود.',
+  catAssignedRecipes: '{count} ماكلة تبدّلت: جزء «المعلومات والمكوّنات» لازمو يتصدّق.',
+  catAssignedIngredients: '{count} مكوّن تنقل: الصنف متاعهم لازمو يتصدّق.',
+  catHoldsRecipes: '{count} ماكلة طول في الصنف هذا',
+  catHoldsIngredients: '{count} مكوّن في الصنف هذا',
+  catSubIncluded: 'الأصناف الصغار متاعو يتحسبو زادة',
+  catSearchRecipes: 'لوّج على ماكلات باش تزيدهم…',
+  catSearchIngredients: 'لوّج على مكوّنات باش تنقّلهم لهنا…',
+  catAddRecipes: 'زيد {count} ماكلة',
+  catMoveIngredients: 'نقّل {count} مكوّن لهنا',
+  catAssignHint: 'الزيادة تتعدّى بالورشة: كان جزء «المعلومات والمكوّنات» متاع كل ماكلة يرجع للتصديق.',
+  catMoveHint: 'المكوّن عندو صنف واحد: كي تحطّو هنا يتنحّى من القديم. جزء «الصنف والوحدة» يرجع للتصديق.',
+  catRemoveFrom: 'نحّي {name} من الصنف هذا',
+  catDiscard: 'تبطّل التبديلات متاع الصنف هذا؟',
+  catSaved: 'الصنف تسجّل.',
+  catSavedLocal: 'تسجّل على الجهاز هذا برك: القاعدة ما جاوبتش.',
+  catName: 'الإسم',
+  catIcon: 'أيقونة',
+  catParent: 'تحت',
+  catNoParent: '— حتّى شي (عايلة) —',
+  groupByCategory: 'جمّع بالصنف',
+  groupLevel: 'المستوى',
+  noCategory: 'بلا صنف',
+  courseLabel: 'نوع الماكلة',
+  courseEntree: 'مقبلات (سلاطة، شربة، بريك…)',
+  courseMain: 'الطبق الرئيسي',
+  courseDessert: 'حلو',
+  recipeCategories: 'الأصناف',
+  recipeCategoriesHint: 'علّم على الأصناف متاع الماكلة (صنف صغير يكفي: الأمّهات يتبعوه).',
+  recipeNoCategories: 'ما فمّا حتّى صنف: اعملهم في «الأصناف».',
+  queueGroupCategory: 'الصنف',
+  groupToDo: '{count} لازمهم يتعملو',
 };
 
 const BASE = { fr, derja, ar } satisfies Record<Exclude<Language, 'derja_ar'>, BackofficeTexts>;

@@ -1,4 +1,4 @@
-import { getRole, INGREDIENT_CATEGORIES, parseImageUrl, type Ingredient, type Recipe } from '../catalog';
+import { getRole, parseImageUrl, type Ingredient, type Recipe } from '../catalog';
 import { localizedField, parseYouTubeId, type Language } from '../shared';
 import type { ReviewCell, ReviewItems, ReviewKind } from './parts';
 
@@ -98,7 +98,7 @@ const INGREDIENT_RULES: readonly ReviewRule<Ingredient>[] = [
     id: 'ingredient.category',
     part: 'details',
     level: 'blocking',
-    check: (i) => INGREDIENT_CATEGORIES.includes(i.category) && filled(i.unit_default),
+    check: (i) => filled(i.category) && filled(i.unit_default),
   },
   {
     id: 'ingredient.price',
