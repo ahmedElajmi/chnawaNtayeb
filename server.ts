@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { createApiApp } from './server/app';
+import { appUrlStartupError } from './server/http';
 import { getAdminConfig } from './server/patronAuth';
 import { isFirebaseAdminConfigured } from './server/firebaseAdmin';
 import { createGeminiVisionProvider } from './server/vision/geminiVisionProvider';
@@ -15,6 +16,12 @@ import { getCatalog } from './server/seo';
  * then serves the web app (Vite in development, dist/ in production).
  */
 dotenv.config();
+
+const appUrlError = appUrlStartupError();
+if (appUrlError) {
+  console.error(`[seo] Refusing to start: ${appUrlError}`);
+  process.exit(1);
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
