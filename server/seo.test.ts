@@ -10,18 +10,20 @@ import {
   resolvePage,
   sitemapXml,
   type Catalog,
+  isLegacyPath,
+  legacyRedirect,
 } from './seo';
 
 const BASE = 'https://example.test';
 const catalog: Catalog = { recipes: publishedRecipes(initialRecipes), ingredients: initialIngredients };
 const PUBLIC = [
   '/',
-  '/recettes',
+  '/recipes',
   '/suggestions',
-  '/frigo',
-  '/semaine',
-  '/courses',
-  `/recette/${catalog.recipes[0].slug}`,
+  '/fridge',
+  '/planner',
+  '/grocery',
+  `/recipe/${catalog.recipes[0].slug}`,
 ];
 
 /** A catalog of n recipes (copies of the built-in ones with their own address). */
@@ -46,28 +48,28 @@ describe('server pages for robots', () => {
     expect(p.title).not.toBe('');
   });
 
-  it('/frigo lists the ingredients by category with their price', () => {
-    const p = page('/frigo');
+  it('/fridge lists the ingredients by category with their price', () => {
+    const p = page('/fridge');
     expect(p.body).toContain('Légumes');
     expect(p.body).toContain(initialIngredients[0].name_fr.replace(/'/g, '&#39;'));
     expect(p.body).toMatch(/\d+(\.\d)?( – \d+(\.\d)?)? DT \//);
     expect(p.robots).toContain('index');
-    expect(p.canonical).toBe(`${BASE}/frigo`);
+    expect(p.canonical).toBe(`${BASE}/fridge`);
   });
 
-  it('/suggestions lists the recipes and points to /recettes as the reference', () => {
+  it('/suggestions lists the recipes and points to /recipes as the reference', () => {
     const p = page('/suggestions');
-    expect(p.body).toContain(`href="/recette/${catalog.recipes[0].slug}"`);
-    expect(p.canonical).toBe(`${BASE}/recettes`);
+    expect(p.body).toContain(`href="/recipe/${catalog.recipes[0].slug}"`);
+    expect(p.canonical).toBe(`${BASE}/recipes`);
   });
 
   it('personal screens are described but not indexed', () => {
-    expect(page('/semaine').robots).toBe('noindex, follow');
-    expect(page('/courses').robots).toBe('noindex, follow');
+    expect(page('/planner').robots).toBe('noindex, follow');
+    expect(page('/grocery').robots).toBe('noindex, follow');
   });
 
   it('accepts a trailing slash and /index.html', () => {
-    expect(page('/frigo/').canonical).toBe(`${BASE}/frigo`);
+    expect(page('/fridge/').canonical).toBe(`${BASE}/fridge`);
     expect(page('/index.html').canonical).toBe(`${BASE}/`);
   });
 
@@ -79,7 +81,7 @@ describe('server pages for robots', () => {
   });
 
   it('answers 404 for an unknown recipe', () => {
-    const p = page('/recette/n-existe-pas');
+    const p = page('/recipe/n-existe-pas');
     expect(p.status).toBe(404);
     expect(p.robots).toBe('noindex, follow');
   });
@@ -89,34 +91,34 @@ describe('long lists split into pages', () => {
   const big = bigCatalog(LIST_PAGE_SIZE * 2 + 5);
 
   it('shows one page with the real total and a link to the next one', () => {
-    const p = page('/recettes', big);
+    const p = page('/recipes', big);
     expect(p.title).toContain(`(${LIST_PAGE_SIZE * 2 + 5})`);
-    expect(p.body.match(/href="\/recette\//g)).toHaveLength(LIST_PAGE_SIZE);
-    expect(p.body).toContain('href="/recettes?page=2" rel="next"');
+    expect(p.body.match(/href="\/recipe\//g)).toHaveLength(LIST_PAGE_SIZE);
+    expect(p.body).toContain('href="/recipes?page=2" rel="next"');
     expect(p.body).not.toContain('rel="prev"');
   });
 
   it('the last page links back and has its own address', () => {
-    const p = page('/recettes', big, 3);
-    expect(p.body.match(/href="\/recette\//g)).toHaveLength(5);
-    expect(p.body).toContain('href="/recettes?page=2" rel="prev"');
+    const p = page('/recipes', big, 3);
+    expect(p.body.match(/href="\/recipe\//g)).toHaveLength(5);
+    expect(p.body).toContain('href="/recipes?page=2" rel="prev"');
     expect(p.body).not.toContain('rel="next"');
-    expect(p.canonical).toBe(`${BASE}/recettes?page=3`);
+    expect(p.canonical).toBe(`${BASE}/recipes?page=3`);
   });
 
   it('a page beyond the end is not found', () => {
-    expect(page('/recettes', big, 4).status).toBe(404);
+    expect(page('/recipes', big, 4).status).toBe(404);
   });
 
   it('the home page links to the full list instead of showing everything', () => {
     const p = page('/', big);
-    expect(p.body.match(/href="\/recette\//g)).toHaveLength(LIST_PAGE_SIZE);
+    expect(p.body.match(/href="\/recipe\//g)).toHaveLength(LIST_PAGE_SIZE);
     expect(p.body).toContain(`Toutes les recettes (${LIST_PAGE_SIZE * 2 + 5})`);
   });
 
   it('a short list has no page links', () => {
     const short = { ...catalog, ingredients: initialIngredients.slice(0, 10) };
-    expect(page('/frigo', short).body).not.toContain('aria-label="Pages"');
+    expect(page('/fridge', short).body).not.toContain('aria-label="Pages"');
   });
 
   it('pageOf and parsePageNumber', () => {
@@ -135,31 +137,57 @@ describe('renderHtml', () => {
     '<html><head><meta charset="UTF-8" /><title>x</title><link rel="canonical" href="/" /></head><body><div id="root"></div></body></html>';
 
   it('fills #root and the head', () => {
-    const html = renderHtml(template, page('/frigo'));
+    const html = renderHtml(template, page('/fridge'));
     expect(html).toContain('<div id="root"><main class="seo-fallback">');
-    expect(html).toContain(`<link rel="canonical" href="${BASE}/frigo" />`);
+    expect(html).toContain(`<link rel="canonical" href="${BASE}/fridge" />`);
     expect(html.match(/<title>/g)).toHaveLength(1);
   });
 
   it('escapes the content (no injection) and keeps "$" as is', () => {
     const r = { ...catalog.recipes[0], name_fr: '<script>alert(1)</script> $& $1' };
-    const html = renderHtml(template, page(`/recette/${r.slug}`, { ...catalog, recipes: [r] }));
+    const html = renderHtml(template, page(`/recipe/${r.slug}`, { ...catalog, recipes: [r] }));
     expect(html).not.toContain('<script>alert(1)');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt; $&amp; $1');
+  });
+});
+
+describe('legacy public addresses', () => {
+  it('redirects the French pages to their English replacement', () => {
+    expect(legacyRedirect('/frigo')).toBe('/fridge');
+    expect(legacyRedirect('/recettes')).toBe('/recipes');
+    expect(legacyRedirect('/semaine')).toBe('/planner');
+    expect(legacyRedirect('/courses')).toBe('/grocery');
+    expect(legacyRedirect('/')).toBeNull();
+    expect(legacyRedirect('/admin')).toBeNull();
+  });
+
+  it('redirects the French recipe addresses with their slug', () => {
+    expect(legacyRedirect('/recette/ojja-merguez')).toBe('/recipe/ojja-merguez');
+    expect(isLegacyPath('/recette/quoi-que-ce-soit')).toBe(true);
+    expect(legacyRedirect('/recipe/ojja-merguez')).toBeNull();
   });
 });
 
 describe('sitemap', () => {
   it('lists the home, the lists, the fridge and every recipe', () => {
     const xml = sitemapXml(BASE, catalog);
-    expect(xml).toContain(`<loc>${BASE}/frigo</loc>`);
-    expect(xml).toContain(`<loc>${BASE}/recette/${catalog.recipes[0].slug}</loc>`);
+    expect(xml).toContain(`<loc>${BASE}/fridge</loc>`);
+    expect(xml).toContain(`<loc>${BASE}/recipe/${catalog.recipes[0].slug}</loc>`);
     expect(xml.match(/<url>/g)).toHaveLength(3 + catalog.recipes.length);
   });
 
-  it('never lists a non-public URL', () => {
+  it('never lists a non-public or French-era URL', () => {
     const xml = sitemapXml(BASE, catalog);
-    for (const forbidden of ['/patron', '/api/', '/suggestions', '/semaine', '/courses', '/se connecter']) {
+    for (const forbidden of [
+      '/patron',
+      '/admin',
+      '/api/',
+      '/frigo',
+      '/recettes',
+      '/recette/',
+      '/semaine',
+      '/courses',
+    ]) {
       expect(xml, forbidden).not.toContain(`<loc>${BASE}${forbidden}`);
     }
   });
@@ -174,7 +202,7 @@ describe('sitemap', () => {
       ],
     } as typeof catalog;
     const xml = sitemapXml(BASE, catalog2);
-    expect(xml).not.toContain('/recette/cachee');
-    expect(xml).not.toContain('/recette/sans-nom');
+    expect(xml).not.toContain('/recipe/cachee');
+    expect(xml).not.toContain('/recipe/sans-nom');
   });
 });

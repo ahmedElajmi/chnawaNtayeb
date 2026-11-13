@@ -1,4 +1,5 @@
 import express from 'express';
+import { legacyRedirect } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import type { AdminConfig } from './patronAuth';
 import type { VisionProvider } from './vision/visionProvider';
@@ -22,6 +23,15 @@ export function createApiApp({ adminConfig, vision }: AppDependencies): express.
 
   // Defense in depth: descriptive headers and a CSP over mechanisms the app never uses
   app.use(securityHeadersMiddleware());
+
+  // Addresses of the French era answer with a permanent redirect (SEO transfer, query kept)
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    const target = legacyRedirect(req.path);
+    if (!target) return next();
+    const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+    return res.redirect(301, target + query);
+  });
 
   // Small JSON bodies everywhere, except the photo upload which has its own limit
   const smallJson = express.json({ limit: '100kb' });

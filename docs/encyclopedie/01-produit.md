@@ -19,20 +19,20 @@ sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
 
 ## Les écrans
 
-| Adresse          | Écran         | Rôle                                                                                                             |
-| ---------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `/`              | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                  |
-| `/frigo`         | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), placard, scan photo (IA) ; ajout d'ingrédients réservé au patron |
-| `/recettes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                    |
-| `/suggestions`   | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                    |
-| `/recette/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, ajout aux courses                              |
-| `/semaine`       | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                             |
-| `/courses`       | Qadhya        | Liste de courses (générée depuis le menu ou manuelle), partage WhatsApp                                          |
-| `/patron`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                          |
+| Adresse         | Écran         | Rôle                                                                                                             |
+| --------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                  |
+| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), placard, scan photo (IA) ; ajout d'ingrédients réservé au patron |
+| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                    |
+| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                    |
+| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, ajout aux courses                              |
+| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                             |
+| `/grocery`      | Qadhya        | Liste de courses (générée depuis le menu ou manuelle), partage WhatsApp                                          |
+| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                          |
 
 ## Catalogue et suggestions : deux écrans
 
-- **`/recettes` (Toutes les recettes)** : toutes les recettes publiées, quel que soit le frigo. Les
+- **`/recipes` (Toutes les recettes)** : toutes les recettes publiées, quel que soit le frigo. Les
   recettes faisables passent en premier (prêtes → presque prêtes → idées → les autres).
 - **`/suggestions` (Mes suggestions)** : uniquement les recettes liées au frigo, par niveau. C'est là
   que mène le bouton « Trouver mes recettes ! » du frigo. Frigo vide : invitation à le remplir.

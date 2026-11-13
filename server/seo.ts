@@ -9,7 +9,7 @@ import {
 import { isDeletionMarker, latestRevision } from '../src/core/sync';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { slugify } from '../src/core/shared';
-import { PATHS, recipePath as recipeAddress } from '../src/shared/paths';
+import { LEGACY_PATHS, LEGACY_RECIPE_PREFIX, PATHS, recipePath as recipeAddress } from '../src/shared/paths';
 import { translations } from '../src/shared/i18n/translations';
 import {
   BUILT_IN_INGREDIENT_CATEGORIES,
@@ -538,7 +538,7 @@ const SCREENS: Record<string, (ctx: PageContext) => SeoPage | null> = {
   ),
 };
 
-const RECIPE_PATH = /^\/recette\/([^/]+)$/;
+const RECIPE_PATH = new RegExp('^' + PATHS.recipe.replace(':slug', '([^/]+)') + '$');
 
 /** Address without trailing slash ("/index.html" is the home page). */
 function normalizePath(path: string): string {
@@ -549,7 +549,7 @@ function normalizePath(path: string): string {
 /** True when the server renders this address (decided before reading the catalog). */
 export function isSeoPath(path: string): boolean {
   const p = normalizePath(path);
-  return p in SCREENS || p.startsWith('/recette/');
+  return isLegacyPath(p) || p in SCREENS || p.startsWith(PATHS.recipe.replace(':slug', ''));
 }
 
 /** The page for a public address, or null when the address is left to the app (/patron, files...). */
@@ -562,7 +562,28 @@ export function resolvePage(path: string, base: string, catalog: Catalog, page =
     const r = catalog.recipes.find((x) => x.slug === m[1]);
     return r ? recipePage(base, r, catalog.recipes, catalog.ingredients) : notFoundPage(base, catalog);
   }
-  if (p.startsWith('/recette/')) return notFoundPage(base, catalog);
+  if (p.startsWith(PATHS.recipe.replace(':slug', '')) || isLegacyPath(p)) return notFoundPage(base, catalog);
+  return null;
+}
+
+/**
+ * Public addresses before the English rename: answered with a permanent redirect so the
+ * SEO earned on the French paths transfers to the English ones.
+ */
+export function isLegacyPath(path: string): boolean {
+  const p = normalizePath(path);
+  return p in LEGACY_PATHS || p.startsWith(LEGACY_RECIPE_PREFIX);
+}
+
+/** 301 target of a legacy address (slug and query preserved), null when it is not legacy. */
+export function legacyRedirect(path: string): string | null {
+  const p = normalizePath(path);
+  // Exact page match first: '/recettes' starts with '/recette' too
+  const exact = LEGACY_PATHS[p];
+  if (exact) return exact;
+  if (p.startsWith(LEGACY_RECIPE_PREFIX + '/') || p === LEGACY_RECIPE_PREFIX) {
+    return PATHS.recipe.replace(':slug', p.slice(LEGACY_RECIPE_PREFIX.length + 1) || '');
+  }
   return null;
 }
 

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { matchPath, Navigate, Route, Routes, useLocation, type Location } from 'react-router';
-import { PATHS } from '@/shared/paths';
+import { matchPath, Navigate, Route, Routes, useLocation, type Location, useParams } from 'react-router';
+import { LEGACY_PATHS, LEGACY_RECIPE_PREFIX, PATHS } from '@/shared/paths';
 import { HomePage } from '@/features/home/HomePage';
 import { FridgePage } from '@/features/fridge/FridgePage';
 import { RecipesPage } from '@/features/recipes/RecipesPage';
@@ -18,6 +18,12 @@ const BackofficePage = lazy(() => import('@/features/backoffice/BackofficePage')
  * One address per screen. A recipe (/recette/<slug>) is shown on top of the screen
  * it was opened from, or on top of the recipe list when its address is opened directly.
  */
+/** Old French recipe address: navigates to its English replacement, slug kept. */
+function LegacyRecipeRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={PATHS.recipe.replace(':slug', slug ?? '')} replace />;
+}
+
 export function AppRoutes() {
   const location = useLocation();
   const recipeMatch = matchPath(PATHS.recipe, location.pathname);
@@ -45,6 +51,11 @@ export function AppRoutes() {
               </Suspense>
             }
           />
+          {/* Addresses of the French era: navigate to their English replacement */}
+          {Object.entries(LEGACY_PATHS).map(([from, to]) => (
+            <Route key={from} path={from} element={<Navigate to={to} replace />} />
+          ))}
+          <Route path={`${LEGACY_RECIPE_PREFIX}/:slug`} element={<LegacyRecipeRedirect />} />
           <Route path="*" element={<Navigate to={PATHS.home} replace />} />
         </Route>
       </Routes>
