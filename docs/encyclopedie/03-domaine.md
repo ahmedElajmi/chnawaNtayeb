@@ -62,6 +62,11 @@ sont chiffrés.
 ingrédient, remplaçants compris) et `findDuplicateIngredient` (même nom français, casse et accents
 ignorés).
 
+**Santé du catalogue** (`catalog/health.ts`, testé) : `catalogHealth` compte sur les listes entières ce
+qui reste à faire (recettes à traduire ou sans photo, ingrédients sans photo, à l'unité douteuse, dans
+aucune recette) ; `recipeNeedsTranslation` / `ingredientNeedsTranslation` (un texte écrit en français
+mais vide dans une autre langue ou variante).
+
 **Catégories** (`catalog/course.ts`) : `normalizeCategory` convertit les anciennes valeurs
 (`express`, `kaskrout`, `soupe`) vers les trois catégories ; `isExpress` = 20 minutes ou moins.
 
@@ -93,6 +98,56 @@ ignorés).
 les marques de suppression et les ids retirés, sans modifier la liste reçue), `latestRevision`,
 `isDeletionMarker`, `withoutDeleted`. Testé, y compris sur 20 000 éléments. Voir
 [05 Application et données](05-application-donnees.md).
+
+## `review` : workflow de validation du contenu
+
+Règles pures du workflow de validation (plan complet : [14](14-refonte-backoffice.md)). Utilisées par
+l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans viennent ensuite.
+
+- `parts.ts` : les **parties** de chaque type de contenu (`REVIEW_KINDS` : recette, ingrédient) et la
+  **grille** partie × langue (`reviewCells`). Une partie de texte a une case par langue ou variante
+  (`steps:derja`, colonnes tirées de `LANGUAGES`), les autres une seule case (`media`, `details`,
+  `price`). `cellHashes` donne l'**empreinte** de chaque case : une case ne lit que ses données (la case
+  « Étapes × Derja » ne lit que les textes derja des étapes). Modifier une langue ne change donc que la
+  case de cette langue, et ajouter une étape vide ne change pas les autres langues. `copyCell` reprend une
+  case depuis la version en ligne (publication partielle).
+- `hash.ts` : `contentHash` (JSON aux clés triées, deux passes FNV-1a).
+- `rules.ts` : les **contrôles qualité** de chaque partie (`reviewRules`), avec un niveau par défaut
+  (bloquant, conseillé) que le workflow peut changer ou désactiver ; `checkCell`. Recette : nom,
+  description, photo, vidéo (conseillé), ingrédients connus et publiés, ingrédient clé, temps et portions,
+  étapes (en français au moins une ; dans une autre langue autant qu'en français), astuce (conseillé).
+  Ingrédient : nom, catégorie et unité, prix, photo (conseillé).
+- `decisions.ts` : la **décision** du validateur sur une case (`approved` / `rejected` + note), liée à
+  l'empreinte de ce qu'il a vu ; `cellState` en tire l'état : `incomplete`, `ready`, `approved`,
+  `changed` (validée puis modifiée), `to_fix` (renvoyée, pas encore modifiée) ; `parseCellDecisions`
+  relit ce qui vient de la base.
+- `workflow.ts` : `WorkflowDefinition` (étapes et leurs cases, cases obligatoires, niveau des contrôles,
+  étapes ordonnées ou libres, validation groupée, publication partielle des langues) ;
+  `defaultWorkflow` (recette : nom et description, médias, infos et ingrédients, étapes, astuce, puis
+  une étape par langue) ; `resolveWorkflow` relit un document de la base (l'inconnu est ignoré avec un
+  avertissement, le nom français reste toujours obligatoire) ; `validateWorkflow` refuse un workflow
+  incohérent avant son enregistrement.
+- `roles.ts` : rôles et droits (`canPerform`, `canReviewCell`) ; l'administrateur a tous les droits et
+  `resolveRoles` le remet toujours ; un rôle peut être limité à des langues (traducteur).
+- `progress.ts` : `reviewSnapshot` (état de chaque case, pourcentage de validation, complétude,
+  publiable, étape en cours, case où reprendre), `isStepOpen` (étapes ordonnées), `pendingCells`,
+  `batchApprovableCells`, `composePublication` (version à publier : cases validées, les autres reprises
+  de la version en ligne).
+- `queue.ts` : file « À valider » (`groupQueue` par élément, étape, partie, langue, type ou auteur, avec
+  des totaux sur toute la file ; `queueCounts`) et `workflowImpact` (éléments en ligne qu'un nouveau
+  workflow rendrait à revalider).
+- `workCopy.ts` : la **copie de travail** (`WorkCopy` : contenu, décisions par case, empreintes de la
+  version en ligne, historique borné à 50 événements, `written_at` posé à chaque écriture pour refuser
+  une modification qui ne part pas de la copie enregistrée) ; `parseWorkCopy` (contenu relu par
+  `parseStoredRecipe` / `parseStoredIngredient`), `workCopyFromPublished` (élément déjà en ligne : toutes
+  ses cases validées), `newWorkCopy`, `hasPendingChanges`, `PublishedVersion` et `parsePublishedVersion`.
+- `settings.ts` : `ReviewSettings` (workflows de chaque type + rôles, un seul document),
+  `resolveReviewSettings` (toujours utilisable, avec ce qui a été réparé), `validateReviewSettings`.
+
+- `team.ts` : `TeamMember` (rôle + `can_publish` / `can_manage`, les deux droits que les règles de la
+  base lisent, recopiés depuis le rôle), `memberRights`, `membersToRefresh`, `roleOfMember` (le rôle
+  administrateur ne se donne jamais à un membre), `parseTeamMember`.
+- `progress.ts` donne aussi `itemStatus` (statut affiché dans les listes) et `incompleteRequired`.
 
 ## `search` : recherche texte
 

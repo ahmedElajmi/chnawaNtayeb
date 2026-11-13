@@ -19,6 +19,7 @@ comment chaque partie fonctionne, et comment la faire évoluer.
 | 10  | [Exploitation](10-exploitation.md)                  | Variables d'environnement, lancement, déploiement, Firebase, dépannage   |
 | 11  | [Guides pratiques](11-guides-pratiques.md)          | Recettes pas à pas : ajouter un écran, un plat, un adapter, un scénario… |
 | 12  | [Recherche](12-recherche.md)                        | Moteur de recherche (MiniSearch), étude des moteurs, lectures de la base |
+| 14  | [Refonte du backoffice](14-refonte-backoffice.md)   | Plan : nouveau /patron, workflow de validation, workflows configurables  |
 
 ## Démarrage rapide
 

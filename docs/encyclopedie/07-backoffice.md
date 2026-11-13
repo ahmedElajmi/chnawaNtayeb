@@ -1,5 +1,8 @@
 # 07 · Backoffice patron (`/patron`)
 
+> Refonte en cours (nouvelle navigation : faite ; workflow de validation et workflows configurables : à
+> venir) : [14-refonte-backoffice.md](14-refonte-backoffice.md).
+
 ## Accès
 
 - Adresse `/patron`, ou trois clics sur le logo, ou depuis la fenêtre « Compte ».
@@ -11,17 +14,59 @@
   dans Firestore (statut « Connecté ») ; sinon le backoffice fonctionne en **mode local** :
   les modifications restent sur l'appareil.
 - Le code du backoffice n'est téléchargé que par le patron (chargement à la demande).
+- **Membres de l'équipe** : un compte du site (connexion par e-mail) ajouté dans Workflows › Équipe
+  ouvre `/patron` sans le mot de passe patron, avec les droits de son rôle. Le menu et les adresses ne
+  montrent que les pages permises (`requires` dans le registre : Moteur, Apparence et Données
+  demandent « publier », Workflows « gérer les workflows ») ; les règles de la base vérifient de
+  nouveau chaque écriture. « Se déconnecter » ferme alors la session du compte.
 
-## Onglets (`src/features/backoffice/`)
+## Navigation et pages (`src/features/backoffice/`)
 
-| Onglet          | Fichier                                           | Fonctions                                                       |
-| --------------- | ------------------------------------------------- | --------------------------------------------------------------- |
-| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
-| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
-| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, photo), prix min–max |
-| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                            |
-| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
-| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
+**Une adresse par page** (`PATRON_PAGES`, `ENGINE_PAGES`, `patronPath()` dans `src/shared/paths.ts`) : le
+retour et le rechargement gardent la page. `AppRoutes` envoie `/patron/*` au backoffice, qui déclare ses
+routes à partir du **registre des sections** (`shell/sections.tsx`).
+
+| Page        | Adresse               | Fichier                                             | Fonctions                                                        |
+| ----------- | --------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| Accueil     | `/patron`             | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
+| À valider   | `/patron/a-valider`   | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
+| Recettes    | `/patron/recettes`    | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
+| Ingrédients | `/patron/ingredients` | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
+| Moteur      | `/patron/moteur/…`    | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
+| Apparence   | `/patron/apparence`   | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
+| Workflows   | `/patron/workflows/…` | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
+| Données     | `/patron/donnees`     | `data/DataTab.tsx`                                  | Import dans l'atelier, sauvegarde JSON, synchronisation          |
+
+**Cadre** (`shell/BackofficeLayout.tsx`) :
+
+- ordinateur (1024 px et plus) : menu latéral fixe (sections, nombre de recettes et d'ingrédients,
+  pastille d'état, déconnexion) ;
+- téléphone et tablette : une barre compacte « ☰ Section ● » sous l'en-tête, qui ouvre le menu en
+  panneau ; le point indique l'état. Choisir une page remplace l'entrée du menu dans l'historique : le
+  retour ramène à la page précédente ;
+- **pastille d'état** à la place de l'ancien bandeau : « Publié pour tous » ou « Local seulement », avec
+  l'explication au toucher ;
+- titre et description de la page, puis la page.
+
+**Ajouter une page** = une entrée dans `BACKOFFICE_SECTIONS` (icône, libellés, page ou sous-pages, nombre
+affiché, cadre partagé des sous-pages) + son adresse dans `PATRON_PAGES` + ses libellés : menu, menu
+mobile, adresse et titre suivent.
+
+**Partagé par toutes les pages** (`shell/`) :
+
+- `NotifyProvider` / `useNotify()` : messages de succès et d'erreur (plus de prop `onNotify` à faire
+  descendre) ;
+- `RecipeEditorProvider` / `useRecipeEditor()` : l'éditeur de recette s'ouvre depuis n'importe quelle page
+  (accueil, liste, plus tard la page « À valider ») ;
+- `useAdmin()` : les actions du catalogue (`useCatalogAdmin`) branchées sur ces messages ;
+- `pages.tsx` : chaque page rassemble ce dont son panneau a besoin ; les panneaux ont été déplacés, pas
+  réécrits.
+
+**Libellés traduits** : `i18n/backofficeTexts.ts` (toutes les langues et variantes, la دارجة ne liste que
+ce qui diffère de l'arabe ; chargé seulement avec `/patron`), lus par `useBackofficeText()`. Le cadre, le
+menu, les titres des pages et la barre de publication du moteur sont traduits ; le contenu des autres
+panneaux reste en français jusqu'à leur passage dans ce dictionnaire. Un test vérifie que chaque libellé
+existe dans chaque langue, avec les mêmes `{repères}`.
 
 Les actions sur le catalogue passent par `useCatalogAdmin` (service `CatalogAdmin`, `src/application`) :
 chaque action s'affiche tout de suite sur cet appareil, est écrite dans la base (document complet,
@@ -107,10 +152,103 @@ d'ingrédients affichés est indiqué.
 nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
 d'« Envoyer vers le cloud » pour publier.
 
-## Onglet Moteur
+## Validation des recettes (`/patron/recettes/<id>`)
+
+Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), données :
+[05](05-application-donnees.md), plan : [14](14-refonte-backoffice.md)).
+
+- **Enregistrer** dans l'éditeur écrit dans l'**atelier**, jamais dans la collection publique, puis ouvre
+  la page de validation de la recette. Une nouvelle recette naît hors ligne. Une recette déjà en ligne
+  qui est modifiée pour la première fois part de sa version en ligne, validée : seules les cases
+  touchées repassent à valider, et le public garde l'ancienne version jusqu'à la publication.
+- **Liste** (`RecipesTab`) : copies de l'atelier puis recettes en ligne jamais passées par l'atelier ;
+  chaque ligne a son statut (`StatusBadge` : En ligne, En ligne · modifs en attente, À corriger, Prête à
+  publier, En relecture, À compléter, À valider), une mini-barre segmentée et le pourcentage validé ;
+  filtres Toutes, À valider, À corriger, À compléter, Modifs en attente, En ligne, avec leur nombre sur
+  toute la liste. Le bouton « Validation » ouvre la page de la recette ; l'ancien œil En ligne /
+  Brouillon a disparu (publier passe par la validation).
+- **Page de validation** (`review/RecipeReviewPage.tsx`, une adresse par recette : on y revient, on
+  recharge, on reprend) :
+  - en-tête : nom, statut, Modifier, Aperçu public (la vraie fiche recette, avec ce qui serait publié),
+    Retirer du site, **Publier** quand toutes les cases obligatoires sont validées ;
+  - barre segmentée (une case = un segment, sa couleur = son état) avec le pourcentage validé et la
+    complétude, puis le **fil d'étapes** du workflow (une étape fermée est grisée si le workflow est
+    ordonné) ;
+  - **Reprendre** ouvre la première case non validée ; « Valider les N parties prêtes » valide d'un coup
+    les cases prêtes sans point bloquant (avec la liste en confirmation) ;
+  - **grille partie × langue** (`review/reviewUi.tsx`) : chaque case montre son état (icône + couleur,
+    `*` = obligatoire) ; une partie commune occupe toute la ligne ;
+  - **case choisie** : son contenu dans l'atelier et, s'il diffère, sa version en ligne à côté ; la note
+    de correction ; ses contrôles (bloquants, conseillés) ; **Valider** (impossible pour une case à
+    compléter), **À corriger** avec une note obligatoire, **Suivant** ; après une validation, la case
+    suivante non validée s'ouvre.
+- **Notes de correction dans l'éditeur** : les cases renvoyées s'affichent en haut du formulaire, avec
+  leur note.
+- **Hors connexion à la base** (mode local) : l'atelier garde la modification sur l'appareil, avec un
+  message d'erreur, comme le catalogue.
+- **Premier passage au workflow** : Données › « Importer les recettes dans l'atelier » (une fois, sans
+  danger) : les recettes en ligne deviennent des copies validées, les brouillons quittent le site.
+- **Ingrédients** : même chemin que les recettes. L'éditeur d'ingrédient et « Enregistrer les prix »
+  écrivent dans l'atelier (`IngredientEditorProvider`, `shell/`) ; chaque ingrédient a sa page de
+  validation (`/patron/ingredients/<id>` : nom par langue, catégorie et unité, prix, photo). Une recette
+  ne peut être publiée qu'avec des ingrédients en ligne (contrôle « Ingrédients en ligne »).
+- La page de validation (`review/ReviewPage.tsx`) est la même pour tous les types de contenu : ce qui
+  change (nom, liste, éditeur, contenu d'une case, aperçu) est décrit par une « vue » par type
+  (`review/kindViews.tsx`). Le panneau d'une case (`review/CellReviewPanel.tsx`) sert aussi à la
+  relecture en série. En bas de page, l'**historique** : ce qui est arrivé à l'élément (enregistré,
+  validé, renvoyé, publié…), les versions publiées et « Rétablir » (republie une version).
+- Les thèmes et les réglages du moteur gardent leur propre publication (brouillon, scénarios du chef,
+  historique des versions) : ils n'ont pas de textes par langue à valider case par case.
+
+## Page « À valider » (`/patron/a-valider`)
+
+- Comptes sur toute la file : parties à valider, éléments concernés, à corriger, prêts à publier ;
+  le nombre de parties en attente s'affiche aussi dans le menu.
+- **Regrouper par** élément, étape, partie, langue (« Étapes × دارجة »), type ou auteur
+  (`groupQueue`, `?groupe=` dans l'adresse) ; chaque groupe a son nombre et une barre colorée.
+- **Relire** : les cases du groupe défilent d'un élément à l'autre (« 3 / 12 ») avec le même panneau
+  que la fiche ; raccourcis clavier `V` valider, `C` à corriger, `→` suivant ; grands boutons sur
+  téléphone.
+- **Valider les N parties prêtes** (si le workflow le permet) : seulement les cases sans point bloquant,
+  après une confirmation qui les liste ; une écriture par élément.
+
+## Accueil « À faire »
+
+`review/TodoList.tsx`, au-dessus des chiffres clés : parties à valider, éléments renvoyés, prêts à
+publier, puis ce qui manque au catalogue (`catalogHealth`, `@/core/catalog` : recettes à traduire, sans
+photo ; ingrédients à l'unité ou au prix douteux, sans photo, dans aucune recette). Chaque ligne ouvre la
+liste filtrée (`?filtre=` : les listes de recettes et d'ingrédients lisent leur filtre dans l'adresse).
+
+## Workflows (`/patron/workflows/…`)
+
+Trois sous-pages qui partagent un brouillon (`ReviewSettingsDraftProvider`) et une barre
+d'enregistrement (version en vigueur, avertissements de lecture, problèmes qui empêchent
+d'enregistrer, note, historique des versions avec « Ouvrir dans le brouillon ») :
+
+- **Étapes** (`etapes`), par type de contenu : options (étapes dans l'ordre, validation groupée,
+  publication sans attendre une langue facultative) ; étapes réordonnables, nom dans chaque langue,
+  rôles qui valident l'étape ; pour chaque **partie × langue** : son étape (ou aucune) et si elle est
+  obligatoire (le nom en français l'est toujours) ; niveau de chaque contrôle (bloquant, conseillé,
+  désactivé). **Aperçu d'impact** avant d'enregistrer : combien d'éléments en ligne auraient des parties
+  obligatoires non validées (`ReviewStore.impactOf`, calculé sur l'appareil).
+- **Rôles** (`roles`) : nom, droits (modifier, envoyer, valider, publier, gérer les workflows, gérer les
+  rôles et l'équipe), limite à des langues (traducteur) ; l'administrateur ne se modifie pas ; un rôle
+  donné à des membres ne se supprime pas.
+- **Équipe** (`equipe`) : ajouter un compte par son e-mail (la personne doit s'être connectée une fois
+  sur le site), changer son rôle, le retirer. À chaque enregistrement des rôles, les droits recopiés
+  sur les membres sont remis à jour (`TeamStore.refreshRights`).
+
+## Moteur (`/patron/moteur`)
 
 Permet de régler le moteur « Warini chnowa ntayeb » sans toucher au code
 (fonctionnement du moteur : [04](04-moteur-matching.md)).
+
+Six sous-pages, chacune avec son adresse : `simulateur` (ouverte par défaut), `scenarios`,
+`mises-en-avant`, `remplacements`, `reglages` (seuils et poids, puis ordre), `historique`. Le brouillon est
+partagé par toutes (`matching/MatchingDraftContext.tsx`) : on peut changer un réglage puis aller voir
+les scénarios sans le perdre. La barre de publication (version en ligne, brouillon, note, scénarios
+cassés, export / import) reste en haut de chaque sous-page (`EnginePublishBar`). Quitter le moteur
+abandonne le brouillon, comme avant.
 
 1. **Brouillon** : chaque modification reste un brouillon tant qu'elle n'est pas publiée.
 2. **Simulateur** : un frigo (ou un frigo type), et côte à côte les suggestions publiées et celles

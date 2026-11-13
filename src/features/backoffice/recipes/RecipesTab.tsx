@@ -1,54 +1,109 @@
-import { useState } from 'react';
-import { Copy, Eye, EyeOff, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import type { Recipe } from '@/core/catalog';
+import { useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import { ClipboardCheck, Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { recipeNeedsTranslation, type Recipe } from '@/core/catalog';
+import type { ItemStatus, ReviewSnapshot, WorkflowDefinition } from '@/core/review';
 import { normalizeText, parseYouTubeId } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { usePagedList } from '@/shared/hooks/usePagedList';
+import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
 import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
-import type { CatalogAdminActions } from '../useCatalogAdmin';
+import type { BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
+import { SegmentedProgress, StatusBadge } from '../review/reviewUi';
+
+/** A recipe of the list: its work copy (or the version online when it has none) and where it stands. */
+export interface RecipeRow {
+  recipe: Recipe;
+  status: ItemStatus;
+  /** Absent for a recipe online that never went through the workspace */
+  snapshot?: ReviewSnapshot;
+}
+
+type Filter = 'all' | 'online' | 'pending' | 'review' | 'to_fix' | 'incomplete' | 'no-photo' | 'to-translate';
+
+const FILTERS: { id: Filter; label: (b: BackofficeTexts) => string; match: (row: RecipeRow) => boolean }[] = [
+  { id: 'all', label: (b) => b.filterAll, match: () => true },
+  {
+    id: 'review',
+    label: (b) => b.filterToReview,
+    match: ({ status: s }) => s === 'ready' || s === 'in_review' || s === 'publishable',
+  },
+  { id: 'to_fix', label: (b) => b.filterToFix, match: ({ status }) => status === 'to_fix' },
+  { id: 'incomplete', label: (b) => b.filterIncomplete, match: ({ status }) => status === 'incomplete' },
+  { id: 'pending', label: (b) => b.filterPending, match: ({ status }) => status === 'online_pending' },
+  { id: 'online', label: (b) => b.filterOnline, match: ({ status: s }) => s === 'online' || s === 'online_pending' },
+  { id: 'no-photo', label: (b) => b.filterNoPhoto, match: ({ recipe }) => !recipe.image_url?.trim() },
+  { id: 'to-translate', label: (b) => b.filterToTranslate, match: ({ recipe }) => recipeNeedsTranslation(recipe) },
+];
+
+const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
 
 interface RecipesTabProps {
-  recipes: Recipe[];
-  admin: CatalogAdminActions;
+  rows: RecipeRow[];
+  workflow: WorkflowDefinition;
   onAddRecipe: () => void;
   onEditRecipe: (recipe: Recipe) => void;
   /** Opens the editor on a copy of the recipe (new, unpublished) */
   onDuplicateRecipe: (recipe: Recipe) => void;
+  onDeleteRecipe: (recipe: Recipe) => void;
 }
 
-export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplicateRecipe }: RecipesTabProps) {
+/**
+ * Recipes of the backoffice: online ones and those in the validation workspace, with their status, a
+ * small progress bar, and filters whose counts are taken on the whole list. Publishing goes through
+ * the validation page of each recipe.
+ */
+export function RecipesTab({
+  rows,
+  workflow,
+  onAddRecipe,
+  onEditRecipe,
+  onDuplicateRecipe,
+  onDeleteRecipe,
+}: RecipesTabProps) {
   const { t, getRecipeName, getSecondaryName } = useLanguage();
+  const b = useBackofficeText();
   const { ingredients } = useCatalog();
   const [search, setSearch] = useState('');
+  const [params] = useSearchParams();
+  const [filter, setFilter] = useState<Filter>(() => {
+    const asked = params.get(LIST_FILTER_PARAM);
+    return FILTERS.some((f) => f.id === asked) ? (asked as Filter) : 'all';
+  });
   const q = normalizeText(search.trim());
-  const filtered = q
-    ? recipes.filter((r) => [r.name_fr, r.name_derja, r.name_ar].some((n) => normalizeText(n).includes(q)))
-    : recipes;
-  const page = usePagedList(filtered, q);
-
-  const togglePublish = (recipe: Recipe) => {
-    const updated = { ...recipe, is_published: !recipe.is_published };
-    admin.saveRecipe(
-      updated,
-      `Recette "${getRecipeName(recipe)}" ${updated.is_published ? 'publiée' : 'passée en brouillon'}`
-    );
-  };
+  const searched = useMemo(
+    () =>
+      q
+        ? rows.filter(({ recipe: r }) =>
+            [r.name_fr, r.name_derja, r.name_ar, r.name_derja_ar ?? ''].some((n) => normalizeText(n).includes(q))
+          )
+        : rows,
+    [rows, q]
+  );
+  const counts = useMemo(
+    () => Object.fromEntries(FILTERS.map((f) => [f.id, searched.filter(f.match).length])),
+    [searched]
+  ) as Record<Filter, number>;
+  const current = FILTERS.find((f) => f.id === filter)!;
+  const filtered = useMemo(() => searched.filter(current.match), [searched, current]);
+  const page = usePagedList(filtered, `${q}|${filter}`);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une recette par nom..."
             aria-label="Rechercher une recette"
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"
+            className="w-full ps-9 pe-4 py-2 rounded-xl bg-card border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"
           />
         </div>
         <button
@@ -60,13 +115,31 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
         </button>
       </div>
 
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1" role="group">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            aria-pressed={filter === f.id}
+            onClick={() => setFilter(f.id)}
+            className={`${CHIP} ${
+              filter === f.id
+                ? 'bg-brand text-on-brand border-brand'
+                : 'bg-card border-line text-ink hover:border-brand'
+            }`}
+          >
+            {f.label(b)} <span className="tabular-nums opacity-80">{counts[f.id]}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="divide-y divide-slate-100 dark:divide-slate-700/80 rounded-2xl bg-card border border-line overflow-hidden shadow-xs">
-        {page.visible.map((r) => (
+        {page.visible.map(({ recipe: r, status, snapshot }) => (
           <div
             key={r.id}
             className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0">
                 {r.image_url ? (
                   <img
@@ -81,14 +154,15 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                   <img src="/mark.png" alt="" className="w-full h-full object-contain p-1.5 opacity-70" />
                 )}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2">
                   <span className="text-sm font-bold text-ink">{getRecipeName(r)}</span>
                   {getSecondaryName(r) && (
                     <span className="text-xs text-accent-text font-semibold">({getSecondaryName(r)})</span>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1 mt-1">
+                  <StatusBadge status={status} />
                   <RecipeBadges recipe={r} />
                   {parseYouTubeId(r.video_url) && (
                     <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
@@ -96,30 +170,31 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
                   <span>{r.prep_time_minutes + r.cook_time_minutes} min</span>
                   <span>·</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
                     {formatPriceRange(getRecipeCost(r, ingredients), 'DT')}
                   </span>
-                  <span>·</span>
-                  <span className="capitalize">{r.cuisine_type}</span>
+                  {snapshot && (
+                    <>
+                      <span>·</span>
+                      <SegmentedProgress kind="recipe" snapshot={snapshot} workflow={workflow} compact />
+                      <span className="tabular-nums">{snapshot.percent} %</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 self-end sm:self-center">
-              <button
-                onClick={() => togglePublish(r)}
-                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  r.is_published
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                }`}
+              <Link
+                to={patronPath(PATRON_PAGES.recipes, r.id)}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-brand/10 text-brand-text hover:bg-brand/20 transition"
               >
-                {r.is_published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                <span>{r.is_published ? 'En ligne' : 'Brouillon'}</span>
-              </button>
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                <span>{b.reviewTitle}</span>
+              </Link>
               <button
                 onClick={() => onEditRecipe(r)}
                 className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
@@ -137,7 +212,7 @@ export function RecipesTab({ recipes, admin, onAddRecipe, onEditRecipe, onDuplic
                 <Copy className="w-4 h-4" />
               </button>
               <button
-                onClick={() => admin.deleteRecipe(r)}
+                onClick={() => onDeleteRecipe(r)}
                 className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-500"
                 title={t.boDeleteRecipe}
                 aria-label={t.boDeleteRecipe}

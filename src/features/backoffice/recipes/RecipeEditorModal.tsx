@@ -34,6 +34,9 @@ interface RecipeEditorModalProps {
   ingredients: Ingredient[];
   onSave: (recipe: Recipe) => void;
   onClose: () => void;
+  /** Parts sent back by the reviewer, with their notes (shown at the top of the form) */
+  reviewNotes?: { label: string; note: string }[];
+  reviewNotesTitle?: string;
 }
 
 const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-200 dark:border-slate-700 mt-1';
@@ -84,6 +87,8 @@ export function RecipeEditorModal({
   ingredients,
   onSave,
   onClose,
+  reviewNotes = [],
+  reviewNotesTitle = '',
 }: RecipeEditorModalProps) {
   const [draft, setDraft] = useState<Recipe>(recipe);
   const { language, getRecipeName, getIngredientName } = useLanguage();
@@ -173,6 +178,22 @@ export function RecipeEditorModal({
 
             <EditorLanguageProvider value={lang}>
               <div className="px-4 sm:px-6 py-4 space-y-8">
+                {reviewNotes.length > 0 && (
+                  <div
+                    role="note"
+                    className="p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-900 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-200 text-xs space-y-1"
+                  >
+                    <p className="font-bold">{reviewNotesTitle}</p>
+                    <ul className="space-y-0.5">
+                      {reviewNotes.map(({ label, note }) => (
+                        <li key={label}>
+                          <span className="font-semibold">{label}</span>
+                          {note && ` : ${note}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {autosave.offer && (
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl border border-brand/40 bg-brand/10 text-xs">
                     <History className="w-4 h-4 text-brand-text shrink-0" />

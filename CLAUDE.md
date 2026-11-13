@@ -91,7 +91,9 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
   suggestion jugée fausse devient d'abord un scénario du chef, créé dans /patron › Moteur (stocké
   en base, collection `matching_scenarios` ; aucune liste de scénarios dans le code).
-- Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx`.
+- Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx` + si elle est publique, sa page serveur dans
+  `SCREENS` (`server/seo.ts`) : les robots qui ne lancent pas le JavaScript doivent voir son contenu (copie lisible
+  dans `fallback`, masquée aux visiteurs, listes par pages de 100).
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
   dans `/patron` : aucun formulaire de création dans l'interface publique.
 - **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe
@@ -101,8 +103,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   ne liste que ce qui diffère de sa famille, ex. `src/shared/i18n/derjaArabic.ts`) : affichage, éditeurs,
   sauvegarde et recherche la prennent en compte sans autre changement.
 - Textes affichés dans toutes les langues (`src/shared/i18n/translations.ts`). **Le backoffice suit la langue
-  courante** comme le reste du site (contenu, onglet de saisie ; libellés : à traduire avec la refonte du
-  backoffice, encore en français en attendant).
+  courante** comme le reste du site : contenu, onglet de saisie et libellés, lus dans
+  `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` (tout nouveau libellé du
+  backoffice va dans ce dictionnaire, dans toutes les langues ; les panneaux pas encore passés restent en
+  français).
 - **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
   `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
   (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
@@ -113,6 +117,22 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   compris) ni un ordre de langues codé en dur. Catégories : `useIngredientCategories` (`src/shared/i18n`).
   L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
   (une langue vide → sa liste de repli, le français en dernier).
+- **Workflow de validation** (`@/core/review`, plan : `docs/encyclopedie/14-refonte-backoffice.md`) :
+  un nouveau type de contenu validé = ses parties (`parts.ts`) + ses contrôles (`rules.ts`) + son workflow
+  par défaut ; une case de texte par langue (jamais une empreinte qui mélange les langues) ; tout
+  workflow ou rôle lu de la base passe par `resolveWorkflow` / `resolveRoles`, tout workflow modifié par
+  `validateWorkflow`. Atelier : `ReviewBoard` / `ReviewStore` (`src/application/review/`), collections
+  `<collection>_workspace` et `<collection>_versions` ; une publication écrit version publique, copie de
+  travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
+  la copie dont elle part (jamais d'écrasement silencieux). **Une recette n'est jamais écrite directement
+  dans la collection publique** : l'éditeur enregistre dans l'atelier (`useReview('recipe').store.save`),
+  la publication passe par la page de validation (`/patron/recettes/<id>`). **De même pour les
+  ingrédients** (`useIngredientEditor`, `/patron/ingredients/<id>`). Rôles : une page du backoffice
+  réservée à un droit le déclare (`requires` dans `BACKOFFICE_SECTIONS`) ; toute écriture publique
+  passe par `canPublish()` dans `firestore.rules`, la gestion (workflows, rôles, équipe) par
+  `canManage()` ; les droits d'un membre sont recopiés sur sa fiche `admins/{uid}`
+  (`TeamStore.refreshRights` après chaque changement de rôle). Libellés de la validation :
+  `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
@@ -139,8 +159,12 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
   `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
-  `parseStoredRecipes` / `parseStoredIngredients`. Libellés du backoffice : en français en attendant
-  leur traduction (refonte du backoffice).
+  `parseStoredRecipes` / `parseStoredIngredients`. Libellés : `useBackofficeText()`.
+- **Pages du backoffice** : une adresse par page (`PATRON_PAGES` / `ENGINE_PAGES` + `patronPath()` dans
+  `src/shared/paths.ts`) ; une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`
+  (`src/features/backoffice/shell/sections.tsx`), jamais un onglet ajouté à la main. Messages avec
+  `useNotify()`, éditeur de recette avec `useRecipeEditor()`, actions du catalogue avec `useAdmin()`.
+  Refonte et workflow de validation : `docs/encyclopedie/14-refonte-backoffice.md`.
 - **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
   relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
   conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`).

@@ -28,9 +28,11 @@ Toutes les adresses sont définies dans `src/shared/paths.ts` (aussi utilisé pa
 | `/recette/:slug` | `features/recipes/RecipeDetailRoute.tsx`   |
 | `/semaine`       | `features/planner/PlannerPage.tsx`         |
 | `/courses`       | `features/grocery/GroceryPage.tsx`         |
-| `/patron`        | `features/backoffice/BackofficePage.tsx`   |
+| `/patron/*`      | `features/backoffice/BackofficePage.tsx`   |
 
-Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie à `/patron`.
+Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie à `/patron`. Les pages du
+backoffice (`/patron/recettes`, `/patron/moteur/scenarios`…) sont déclarées par son registre des sections
+(voir [07](07-backoffice.md)) ; une adresse inconnue sous `/patron` renvoie à `/patron`.
 
 ## Comportements de navigation
 

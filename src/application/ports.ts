@@ -4,6 +4,7 @@ import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
 import type { CollectionChanges, Versioned } from '@/core/sync';
+import type { PublishedVersion, ReviewItems, ReviewKind, ReviewSettings, TeamMember, WorkCopy } from '@/core/review';
 import type { SearchDocument, SearchHit } from '@/core/search';
 
 /**
@@ -247,4 +248,71 @@ export interface RecipeDraftRepository {
   load(key: string): StoredRecipeDraft | null;
   save(key: string, draft: StoredRecipeDraft): void;
   discard(key: string): void;
+}
+
+// ---------------------------------------------------------------------------
+// Content validation (workflow): a private workspace per kind of content, followed like any shared
+// collection (SharedCollectionSource), and the review settings (workflows + roles).
+// ---------------------------------------------------------------------------
+
+export type WorkspaceWriteResult = WriteResult & {
+  /** Someone else saved this item meanwhile: nothing was written */
+  conflict?: boolean;
+  /** The database could not be reached: the change is kept on this device only */
+  local?: boolean;
+};
+
+/** Writes to the workspace of one kind of content. Every write is complete and versioned by the database. */
+export interface ReviewWorkspaceWriter<K extends ReviewKind> {
+  /**
+   * Saves a work copy, unless the stored one is no longer the one this change starts from:
+   * `expected` = its `written_at` (null = the item must not exist in the workspace yet).
+   */
+  save(copy: WorkCopy<K>, expected: number | null): Promise<WorkspaceWriteResult>;
+  /** Writes many work copies at once (first switch to the workflow); existing ones are kept. */
+  importAll(copies: WorkCopy<K>[]): Promise<WriteResult & { imported?: number }>;
+  /** Removes a work copy (the item is deleted). */
+  remove(id: string): Promise<WriteResult>;
+  /**
+   * In one atomic write: the public item, its work copy and a new version in the history.
+   * Refused (conflict) like `save`.
+   */
+  publish(
+    item: ReviewItems[K],
+    copy: WorkCopy<K>,
+    version: PublishedVersion<K>,
+    expected: number | null
+  ): Promise<WorkspaceWriteResult>;
+  /** In one atomic write: the item leaves the public collection (deletion marker) and its work copy is kept. */
+  unpublish(copy: WorkCopy<K>, expected: number | null): Promise<WorkspaceWriteResult>;
+  /** Validated versions of an item, newest first (raw: read back by the domain). */
+  listVersions(itemId: string): Promise<unknown[]>;
+}
+
+/** Review settings as stored: raw document, always read through `resolveReviewSettings`. */
+export interface StoredReviewSettings {
+  version: number;
+  settings: unknown;
+  updatedAt: string;
+  note: string;
+}
+
+/** Workflows and roles, edited by the admin; every saved version is kept. */
+export interface ReviewSettingsRepository {
+  /** Follows the active settings live; returns the stop function. */
+  follow(onChange: (active: StoredReviewSettings | null) => void, onError: () => void): () => void;
+  publish(settings: ReviewSettings, note: string): Promise<WriteResult & { version?: number }>;
+  listVersions(): Promise<StoredReviewSettings[]>;
+}
+
+/** Accounts of the team and their roles (read through `parseTeamMember`). */
+export interface TeamRepository {
+  /** Follows every member (managers only); returns the stop function. */
+  follow(onChange: (members: unknown[]) => void, onError: () => void): () => void;
+  /** The member record of one account (each member can read their own), null when it is not a member. */
+  getMember(uid: string): Promise<unknown | null>;
+  /** Account that signed in on the site with this e-mail address (null when none). */
+  findAccountByEmail(email: string): Promise<{ uid: string; email: string } | null>;
+  put(member: TeamMember): Promise<WriteResult>;
+  remove(uid: string): Promise<WriteResult>;
 }

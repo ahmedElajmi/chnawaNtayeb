@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import type { SearchKind, Store } from '@/application';
+import type { ReviewStore, SearchKind, Store } from '@/application';
+import type { ReviewKind } from '@/core/review';
 import { recipeCostRange, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
 import type { Container } from './container';
 
@@ -57,6 +58,25 @@ export const useKitchen = () => {
 export const useMatchingSettings = () => {
   const { matchingSettings } = useContainer();
   return { ...useStore(matchingSettings), matchingSettings };
+};
+
+/** Validation workflow of one kind of content (work copies and where each one stands). */
+export const useReview = <K extends ReviewKind>(kind: K) => {
+  const { review } = useContainer();
+  const store = (kind === 'recipe' ? review.recipes : review.ingredients) as unknown as ReviewStore<K>;
+  return { ...useStore(store), store };
+};
+
+/** The team (members and the member record of the signed-in account). */
+export const useTeam = () => {
+  const { team } = useContainer();
+  return { ...useStore(team), team };
+};
+
+/** Workflows and roles of the team. */
+export const useReviewSettings = () => {
+  const { review } = useContainer();
+  return { ...useStore(review.settings), reviewSettings: review.settings };
 };
 
 export const useMatchingScenarios = () => {

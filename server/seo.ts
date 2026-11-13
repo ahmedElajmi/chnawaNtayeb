@@ -1,5 +1,7 @@
 import type { Recipe, Ingredient } from '../src/core/catalog';
 import {
+  INGREDIENT_CATEGORIES,
+  ingredientPriceRange,
   initialRecipes,
   initialIngredients,
   normalizeCategory,
@@ -9,20 +11,33 @@ import {
 import { isDeletionMarker, latestRevision } from '../src/core/sync';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { slugify } from '../src/core/shared';
-import { recipePath as recipeAddress } from '../src/shared/paths';
+import { PATHS, recipePath as recipeAddress } from '../src/shared/paths';
+import { translations } from '../src/shared/i18n/translations';
+import { CATEGORY_LABEL_KEYS } from '../src/shared/i18n/categoryLabels';
+import { formatPriceRange } from '../src/shared/i18n/formatPrice';
 import { getAdminFirestore } from './firebaseAdmin';
 
 /**
  * Server-side SEO (the client router has one address per screen, see src/shared/paths.ts):
- * - every recipe has its own address /recette/<slug>
- * - the HTML sent for /, /recettes and /recette/<slug> already contains the
- *   right title, description, canonical URL, social cards, schema.org data
- *   and a readable version of the content (React replaces it once loaded)
+ * - every public screen (/, /frigo, /recettes, /suggestions, /semaine, /courses) and every
+ *   recipe (/recette/<slug>) is sent with its own title, description, canonical URL, social
+ *   cards, schema.org data and a readable copy of its content, so robots that do not run
+ *   JavaScript (AI assistants, many crawlers) see the catalog
+ * - the readable copy is hidden from visitors (index.html: .seo-fallback) and replaced by React
+ * - long lists are split into pages of LIST_PAGE_SIZE (?page=2...), with the real total
  * - sitemap.xml lists every published recipe
  */
 
 /** How often the server asks the database for changes (only what changed is read). */
 const REFRESH_MS = 60 * 1000;
+
+/** Items per page in the readable copy of a list (robots follow the "next page" links). */
+export const LIST_PAGE_SIZE = 100;
+
+export interface Catalog {
+  recipes: Recipe[];
+  ingredients: Ingredient[];
+}
 
 /** One collection kept in memory, updated incrementally like the devices (see src/core/sync). */
 interface SyncedCollection<T> {
@@ -32,7 +47,7 @@ interface SyncedCollection<T> {
 
 let recipesCopy: SyncedCollection<Recipe> = { items: new Map(), revision: null };
 let ingredientsCopy: SyncedCollection<Ingredient> = { items: new Map(), revision: null };
-let cache: { at: number; recipes: Recipe[]; ingredients: Ingredient[] } | null = null;
+let cache: (Catalog & { at: number }) | null = null;
 
 async function refresh<T extends { id: string; revision?: number }>(
   db: Firestore,
@@ -58,7 +73,7 @@ async function refresh<T extends { id: string; revision?: number }>(
 }
 
 /** Published catalog: Firestore when the server has admin access (admin edits included), built-in catalog otherwise. */
-export async function getCatalog(): Promise<{ recipes: Recipe[]; ingredients: Ingredient[] }> {
+export async function getCatalog(): Promise<Catalog> {
   if (cache && Date.now() - cache.at < REFRESH_MS) return cache;
   let recipes: Recipe[] = initialRecipes;
   let ingredients: Ingredient[] = initialIngredients;
@@ -76,11 +91,15 @@ export async function getCatalog(): Promise<{ recipes: Recipe[]; ingredients: In
       if (cache) return cache;
     }
   }
-  recipes = recipes
+  cache = { at: Date.now(), recipes: publishedRecipes(recipes), ingredients };
+  return cache;
+}
+
+/** Published recipes only, each with its address and a known course. */
+export function publishedRecipes(recipes: Recipe[]): Recipe[] {
+  return recipes
     .filter((r) => r && r.is_published !== false && r.name_fr)
     .map((r) => ({ ...r, slug: r.slug || slugify(r.name_fr), category: normalizeCategory(r.category) }));
-  cache = { at: Date.now(), recipes, ingredients };
-  return cache;
 }
 
 export function recipePath(r: Pick<Recipe, 'slug'>): string {
@@ -105,12 +124,20 @@ function jsonLd(data: unknown): string {
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
 }
 
+/** The readable copy: hidden from visitors by index.html (.seo-fallback), replaced by React. */
+function fallback(content: string): string {
+  return `<main class="seo-fallback">\n${content}\n</main>`;
+}
+
 function truncate(s: string, max: number): string {
   if (s.length <= max) return s;
   const cut = s.slice(0, max - 1);
   return cut.slice(0, cut.lastIndexOf(' ') > 80 ? cut.lastIndexOf(' ') : cut.length) + '…';
 }
 
+const FR = translations.fr;
+
+const COURSE_ORDER = ['plat_principal', 'entree', 'dessert'] as const;
 const COURSE_FR: Record<string, string> = { entree: 'Entrée', plat_principal: 'Plat principal', dessert: 'Dessert' };
 const COURSE_PLURAL: Record<string, string> = {
   entree: 'Entrées',
@@ -131,6 +158,83 @@ function ingredientLines(r: Recipe, ingredients: Ingredient[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Paging (readable copy of long lists)
+// ---------------------------------------------------------------------------
+
+interface ListPage<T> {
+  items: T[];
+  /** Position of the first item in the whole list (0-based) */
+  offset: number;
+  page: number;
+  pages: number;
+  total: number;
+}
+
+/** One page of a list; null when the page does not exist. */
+export function pageOf<T>(all: T[], page: number, size = LIST_PAGE_SIZE): ListPage<T> | null {
+  const pages = Math.max(1, Math.ceil(all.length / size));
+  if (!Number.isInteger(page) || page < 1 || page > pages) return null;
+  const offset = (page - 1) * size;
+  return { items: all.slice(offset, offset + size), offset, page, pages, total: all.length };
+}
+
+/** "?page=n" query value → page number (anything else is the first page). */
+export function parsePageNumber(value: unknown): number {
+  return typeof value === 'string' && /^\d{1,6}$/.test(value) ? Number(value) : 1;
+}
+
+function pageAddress(path: string, page: number): string {
+  return page > 1 ? `${path}?page=${page}` : path;
+}
+
+function pagerNav(path: string, list: ListPage<unknown>): string {
+  if (list.pages <= 1) return '';
+  const prev = list.page > 1 ? `<a href="${pageAddress(path, list.page - 1)}" rel="prev">Page précédente</a> · ` : '';
+  const next =
+    list.page < list.pages ? ` · <a href="${pageAddress(path, list.page + 1)}" rel="next">Page suivante</a>` : '';
+  return `<nav aria-label="Pages">${prev}Page ${list.page} sur ${list.pages}${next}</nav>`;
+}
+
+function pageSuffix(list: ListPage<unknown>): string {
+  return list.page > 1 ? ` (page ${list.page})` : '';
+}
+
+/** Groups the items in the given order of groups (empty groups left out). */
+function grouped<T, K extends string>(items: T[], order: readonly K[], key: (item: T) => K): [K, T[]][] {
+  return order.map((k) => [k, items.filter((x) => key(x) === k)] as [K, T[]]).filter(([, xs]) => xs.length > 0);
+}
+
+/** Recipes in the order the readable copy lists them (by course, catalog order inside). */
+function recipesByCourse(recipes: Recipe[]): Recipe[] {
+  return grouped(recipes, COURSE_ORDER, (r) => r.category as (typeof COURSE_ORDER)[number]).flatMap(([, xs]) => xs);
+}
+
+function recipeLinks(recipes: Recipe[]): string {
+  return grouped(recipes, COURSE_ORDER, (r) => r.category as (typeof COURSE_ORDER)[number])
+    .map(
+      ([c, items]) =>
+        `<section><h2>${COURSE_PLURAL[c]}</h2><ul>${items
+          .map((r) => `<li><a href="${recipePath(r)}">${esc(r.name_fr)}</a></li>`)
+          .join('')}</ul></section>`
+    )
+    .join('');
+}
+
+function recipeItemList(base: string, list: ListPage<Recipe>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    numberOfItems: list.total,
+    itemListElement: list.items.map((r, i) => ({
+      '@type': 'ListItem',
+      position: list.offset + i + 1,
+      url: `${base}${recipePath(r)}`,
+      name: r.name_fr,
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Pages
 // ---------------------------------------------------------------------------
 
@@ -146,22 +250,19 @@ export interface SeoPage {
   body: string;
 }
 
+interface PageContext {
+  base: string;
+  catalog: Catalog;
+  /** Requested page of a list (1 = first) */
+  page: number;
+}
+
 const SITE_NAME = 'Chnowa Ntayeb';
+const INDEX = 'index, follow, max-image-preview:large';
+const NO_INDEX = 'noindex, follow';
 const HOME_TITLE = 'Chnowa Ntayeb - شنوة نطيب؟ | Recettes tunisiennes by Chef Souhed';
 const HOME_DESCRIPTION =
   "Qu'est-ce qu'on cuisine aujourd'hui ? Plus de 100 recettes tunisiennes et du monde by Chef Souhed : idées repas avec ce qui reste dans votre frigo, menu de la semaine et liste de courses.";
-
-function recipeLinks(recipes: Recipe[]): string {
-  return (['plat_principal', 'entree', 'dessert'] as const)
-    .map((c) => {
-      const items = recipes.filter((r) => r.category === c);
-      if (!items.length) return '';
-      return `<section><h2>${COURSE_PLURAL[c]}</h2><ul>${items
-        .map((r) => `<li><a href="${recipePath(r)}">${esc(r.name_fr)}</a></li>`)
-        .join('')}</ul></section>`;
-    })
-    .join('');
-}
 
 function websiteLd(base: string) {
   return {
@@ -189,38 +290,123 @@ function websiteLd(base: string) {
   };
 }
 
-export function homePage(base: string, recipes: Recipe[], path: '/' | '/recettes'): SeoPage {
-  const isList = path === '/recettes';
-  const title = isList ? `Toutes les recettes (${recipes.length}) | ${SITE_NAME} by Chef Souhed` : HOME_TITLE;
-  const description = isList
-    ? `${recipes.length} recettes tunisiennes et internationales expliquées pas à pas by Chef Souhed : entrées, plats principaux et desserts, avec temps, budget et astuces.`
-    : HOME_DESCRIPTION;
-  const list = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    itemListElement: recipes.map((r, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${base}${recipePath(r)}`,
-      name: r.name_fr,
-    })),
-  };
-  const body = `<main class="seo-fallback">
-<h1>${isList ? 'Toutes les recettes Chnowa Ntayeb' : 'Chnowa Ntayeb ? Qu\u2019est-ce qu\u2019on cuisine aujourd\u2019hui ?'}</h1>
-<p>${esc(description)}</p>
-<nav aria-label="Recettes">${recipeLinks(recipes)}</nav>
-</main>`;
+function websitePage(
+  base: string,
+  fields: Partial<SeoPage> & Pick<SeoPage, 'title' | 'description' | 'canonical' | 'body'>
+): SeoPage {
   return {
     status: 200,
-    title,
-    description,
-    canonical: `${base}${path}`,
     ogType: 'website',
     image: `${base}/og-image.png`,
-    robots: 'index, follow, max-image-preview:large',
-    jsonLd: jsonLd(websiteLd(base)) + (isList ? jsonLd(list) : ''),
-    body,
+    robots: INDEX,
+    jsonLd: jsonLd(websiteLd(base)),
+    ...fields,
   };
+}
+
+function homePage({ base, catalog }: PageContext): SeoPage {
+  const list = pageOf(recipesByCourse(catalog.recipes), 1)!;
+  const more = list.pages > 1 ? `<p><a href="${PATHS.recipes}">Toutes les recettes (${list.total})</a></p>` : '';
+  return websitePage(base, {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    canonical: `${base}/`,
+    body: fallback(`<h1>Chnowa Ntayeb ? Qu\u2019est-ce qu\u2019on cuisine aujourd\u2019hui ?</h1>
+<p>${esc(HOME_DESCRIPTION)}</p>
+<p><a href="${PATHS.fridge}">Choisir les ingrédients de mon frigo</a> · <a href="${PATHS.recipes}">Toutes les recettes</a></p>
+<nav aria-label="Recettes">${recipeLinks(list.items)}</nav>
+${more}`),
+  });
+}
+
+function recipesPage({ base, catalog, page }: PageContext): SeoPage | null {
+  const list = pageOf(recipesByCourse(catalog.recipes), page);
+  if (!list) return null;
+  const description = `${list.total} recettes tunisiennes et internationales expliquées pas à pas by Chef Souhed : entrées, plats principaux et desserts, avec temps, budget et astuces.`;
+  return websitePage(base, {
+    title: `Toutes les recettes (${list.total})${pageSuffix(list)} | ${SITE_NAME} by Chef Souhed`,
+    description,
+    canonical: `${base}${pageAddress(PATHS.recipes, list.page)}`,
+    jsonLd: jsonLd(websiteLd(base)) + jsonLd(recipeItemList(base, list)),
+    body: fallback(`<h1>Toutes les recettes Chnowa Ntayeb</h1>
+<p>${esc(description)}</p>
+<nav aria-label="Recettes">${recipeLinks(list.items)}</nav>
+${pagerNav(PATHS.recipes, list)}`),
+  });
+}
+
+/** Same recipes as /recettes until the visitor fills the fridge: the catalog page is the reference. */
+function suggestionsPage({ base, catalog, page }: PageContext): SeoPage | null {
+  const list = pageOf(recipesByCourse(catalog.recipes), page);
+  if (!list) return null;
+  const description =
+    'Idées de recettes tunisiennes et du monde à partir des ingrédients de votre frigo, classées selon ce qui vous manque, by Chef Souhed.';
+  return websitePage(base, {
+    title: `Idées de recettes avec votre frigo${pageSuffix(list)} | ${SITE_NAME}`,
+    description,
+    canonical: `${base}${pageAddress(PATHS.recipes, list.page)}`,
+    body: fallback(`<h1>Que cuisiner avec ce qu’il y a dans votre frigo ?</h1>
+<p>${esc(description)} <a href="${PATHS.fridge}">Choisissez vos ingrédients</a> pour voir les recettes possibles.</p>
+<nav aria-label="Recettes">${recipeLinks(list.items)}</nav>
+${pagerNav(PATHS.suggestions, list)}`),
+  });
+}
+
+function ingredientLine(i: Ingredient): string {
+  const ar = i.name_ar && i.name_ar !== i.name_fr ? ` <span lang="ar" dir="rtl">${esc(i.name_ar)}</span>` : '';
+  const price = formatPriceRange(ingredientPriceRange(i), FR.currency);
+  return `<li>${esc(i.name_fr)}${ar} : ${esc(price)} / ${esc(i.unit_default)}</li>`;
+}
+
+function fridgePage({ base, catalog, page }: PageContext): SeoPage | null {
+  const sorted = grouped(catalog.ingredients, INGREDIENT_CATEGORIES, (i) => i.category).flatMap(([, xs]) =>
+    [...xs].sort((a, b) => a.name_fr.localeCompare(b.name_fr, 'fr'))
+  );
+  const list = pageOf(sorted, page);
+  if (!list) return null;
+  const description = `Choisissez parmi ${list.total} ingrédients ce que vous avez dans votre frigo : Chnowa Ntayeb vous propose les recettes tunisiennes possibles, avec le prix indicatif de chaque ingrédient.`;
+  const sections = grouped(list.items, INGREDIENT_CATEGORIES, (i) => i.category)
+    .map(
+      ([c, items]) =>
+        `<section><h2>${esc(String(FR[CATEGORY_LABEL_KEYS[c]]))}</h2><ul>${items.map(ingredientLine).join('')}</ul></section>`
+    )
+    .join('');
+  const itemList = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Ingrédients',
+    numberOfItems: list.total,
+    itemListElement: list.items.map((i, n) => ({
+      '@type': 'ListItem',
+      position: list.offset + n + 1,
+      name: i.name_fr,
+    })),
+  };
+  return websitePage(base, {
+    title: `Mon frigo : ${list.total} ingrédients${pageSuffix(list)} | ${SITE_NAME}`,
+    description,
+    canonical: `${base}${pageAddress(PATHS.fridge, list.page)}`,
+    jsonLd: jsonLd(websiteLd(base)) + jsonLd(itemList),
+    body: fallback(`<h1>Qu’avez-vous dans votre frigo ?</h1>
+<p>${esc(description)}</p>
+<nav aria-label="Ingrédients">${sections}</nav>
+${pagerNav(PATHS.fridge, list)}
+<p><a href="${PATHS.recipes}">Voir toutes les recettes</a></p>`),
+  });
+}
+
+/** Screens whose content is personal (kept on the device): described, not indexed. */
+function personalPage(path: string, title: string, description: string) {
+  return ({ base }: PageContext): SeoPage =>
+    websitePage(base, {
+      title: `${title} | ${SITE_NAME}`,
+      description,
+      canonical: `${base}${path}`,
+      robots: NO_INDEX,
+      body: fallback(`<h1>${esc(title)}</h1>
+<p>${esc(description)}</p>
+<p><a href="${PATHS.fridge}">Mon frigo</a> · <a href="${PATHS.recipes}">Toutes les recettes</a></p>`),
+    });
 }
 
 export function recipePage(base: string, r: Recipe, recipes: Recipe[], ingredients: Ingredient[]): SeoPage {
@@ -271,8 +457,8 @@ export function recipePage(base: string, r: Recipe, recipes: Recipe[], ingredien
     ],
   };
   const related = recipes.filter((x) => x.id !== r.id && x.category === r.category).slice(0, 8);
-  const body = `<main class="seo-fallback">
-<nav aria-label="Fil d'Ariane"><a href="/">${SITE_NAME}</a> › <a href="/recettes">Recettes</a> › ${esc(r.name_fr)}</nav>
+  const body =
+    fallback(`<nav aria-label="Fil d'Ariane"><a href="/">${SITE_NAME}</a> › <a href="/recettes">Recettes</a> › ${esc(r.name_fr)}</nav>
 <article>
 <h1>${esc(r.name_fr)}</h1>
 <p lang="ar" dir="rtl">${esc(r.name_ar)}</p>
@@ -289,8 +475,7 @@ export function recipePage(base: string, r: Recipe, recipes: Recipe[], ingredien
 <h2>L'astuce de Chef Souhed</h2>
 <p>${esc(r.chef_tip.fr)}</p>
 </article>
-${related.length ? `<aside><h2>À découvrir aussi</h2><ul>${related.map((x) => `<li><a href="${recipePath(x)}">${esc(x.name_fr)}</a></li>`).join('')}</ul></aside>` : ''}
-</main>`;
+${related.length ? `<aside><h2>À découvrir aussi</h2><ul>${related.map((x) => `<li><a href="${recipePath(x)}">${esc(x.name_fr)}</a></li>`).join('')}</ul></aside>` : ''}`);
   return {
     status: 200,
     title,
@@ -298,33 +483,65 @@ ${related.length ? `<aside><h2>À découvrir aussi</h2><ul>${related.map((x) => 
     canonical: `${base}${recipePath(r)}`,
     ogType: 'article',
     image: absoluteImage(r, base),
-    robots: 'index, follow, max-image-preview:large',
+    robots: INDEX,
     jsonLd: jsonLd(ld) + jsonLd(breadcrumb),
     body,
   };
 }
 
-export function notFoundPage(base: string, recipes: Recipe[]): SeoPage {
+export function notFoundPage(base: string, catalog: Catalog): SeoPage {
   return {
-    ...homePage(base, recipes, '/'),
+    ...homePage({ base, catalog, page: 1 }),
     status: 404,
-    title: `Recette introuvable | ${SITE_NAME}`,
-    robots: 'noindex, follow',
+    title: `Page introuvable | ${SITE_NAME}`,
+    robots: NO_INDEX,
     canonical: `${base}/`,
   };
 }
 
-/** Resolves the SEO page for a path, or null when the path is not a public page (left to the SPA as is). */
-export async function resolvePage(path: string, base: string): Promise<SeoPage | null> {
-  const { recipes, ingredients } = await getCatalog();
-  if (path === '/' || path === '/index.html') return homePage(base, recipes, '/');
-  if (path === '/recettes' || path === '/recettes/') return homePage(base, recipes, '/recettes');
-  const m = path.match(/^\/recette\/([a-z0-9-]+)\/?$/);
+/** Public screens rendered by the server (a new public address gets its builder here). */
+const SCREENS: Record<string, (ctx: PageContext) => SeoPage | null> = {
+  [PATHS.home]: homePage,
+  [PATHS.recipes]: recipesPage,
+  [PATHS.suggestions]: suggestionsPage,
+  [PATHS.fridge]: fridgePage,
+  [PATHS.planner]: personalPage(
+    PATHS.planner,
+    'Menu de la semaine',
+    'Préparez votre menu de la semaine avec les recettes tunisiennes de Chef Souhed : entrée, plat et dessert pour chaque jour, selon votre budget.'
+  ),
+  [PATHS.grocery]: personalPage(
+    PATHS.grocery,
+    'Liste de courses',
+    'La liste de courses de votre menu de la semaine, avec le prix indicatif des ingrédients qui vous manquent.'
+  ),
+};
+
+const RECIPE_PATH = /^\/recette\/([^/]+)$/;
+
+/** Address without trailing slash ("/index.html" is the home page). */
+function normalizePath(path: string): string {
+  if (path === '/index.html') return PATHS.home;
+  return path.length > 1 ? path.replace(/\/+$/, '') : path;
+}
+
+/** True when the server renders this address (decided before reading the catalog). */
+export function isSeoPath(path: string): boolean {
+  const p = normalizePath(path);
+  return p in SCREENS || p.startsWith('/recette/');
+}
+
+/** The page for a public address, or null when the address is left to the app (/patron, files...). */
+export function resolvePage(path: string, base: string, catalog: Catalog, page = 1): SeoPage | null {
+  const p = normalizePath(path);
+  const screen = SCREENS[p];
+  if (screen) return screen({ base, catalog, page }) ?? notFoundPage(base, catalog);
+  const m = p.match(RECIPE_PATH);
   if (m) {
-    const r = recipes.find((x) => x.slug === m[1]);
-    return r ? recipePage(base, r, recipes, ingredients) : notFoundPage(base, recipes);
+    const r = catalog.recipes.find((x) => x.slug === m[1]);
+    return r ? recipePage(base, r, catalog.recipes, catalog.ingredients) : notFoundPage(base, catalog);
   }
-  if (path.startsWith('/recette/')) return notFoundPage(base, recipes);
+  if (p.startsWith('/recette/')) return notFoundPage(base, catalog);
   return null;
 }
 
@@ -352,17 +569,18 @@ export function renderHtml(template: string, page: SeoPage): string {
     .replace(/<meta\s+property="og:(type|title|description|url|image)"[^>]*>\s*/gi, '')
     .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, '')
     .replace(/<!-- SEO:JSONLD -->[\s\S]*?<!-- \/SEO:JSONLD -->\s*/i, '');
-  html = html.replace(/(<meta charset="UTF-8" \/>)/i, `$1\n    ${head}`);
-  html = html.replace('<div id="root"></div>', `<div id="root">${page.body}</div>`);
+  // Functions as replacement: "$" in the content must stay as is
+  html = html.replace(/(<meta charset="UTF-8" \/>)/i, (tag) => `${tag}\n    ${head}`);
+  html = html.replace('<div id="root"></div>', () => `<div id="root">${page.body}</div>`);
   return html;
 }
 
-export async function sitemapXml(base: string): Promise<string> {
-  const { recipes } = await getCatalog();
+export function sitemapXml(base: string, catalog: Catalog): string {
   const urls = [
     { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
-    { loc: `${base}/recettes`, priority: '0.9', changefreq: 'daily' },
-    ...recipes.map((r) => ({ loc: `${base}${recipePath(r)}`, priority: '0.8', changefreq: 'monthly' })),
+    { loc: `${base}${PATHS.recipes}`, priority: '0.9', changefreq: 'daily' },
+    { loc: `${base}${PATHS.fridge}`, priority: '0.7', changefreq: 'weekly' },
+    ...catalog.recipes.map((r) => ({ loc: `${base}${recipePath(r)}`, priority: '0.8', changefreq: 'monthly' })),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
