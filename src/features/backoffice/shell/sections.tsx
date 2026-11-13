@@ -9,11 +9,13 @@ import {
   Palette,
   SlidersHorizontal,
   Users,
+  UserRound,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
 import {
   CATEGORY_PAGES,
+  CLIENTS_PAGES,
   ENGINE_PAGES,
   PATRON_PAGES,
   patronPath,
@@ -21,6 +23,7 @@ import {
   type PatronPage,
 } from '@/shared/paths';
 import { IngredientCategoriesPage, RecipeCategoriesPage } from '../categories/CategoriesPage';
+import { ClientsPage } from '../users/ClientsPage';
 import { CountriesPage } from '../users/CountriesPage';
 import { QueuePage } from '../review/QueuePage';
 import {
@@ -174,12 +177,24 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     element: <AppearancePage />,
   },
   {
-    page: PATRON_PAGES.users,
-    icon: Users,
-    label: (b) => b.usersTitle,
-    hint: (b) => b.usersHint,
+    page: PATRON_PAGES.team,
+    icon: UserRound,
+    label: (b) => b.teamTitle,
+    hint: (b) => b.teamHint,
     requires: 'manage_roles',
-    element: <CountriesPage />,
+    element: <TeamPage />,
+  },
+  {
+    page: PATRON_PAGES.clients,
+    icon: Users,
+    label: (b) => b.clientsTitle,
+    hint: (b) => b.clientsHint,
+    requires: 'manage_roles',
+    frame: WorkflowsFrame,
+    subPages: [
+      { page: CLIENTS_PAGES.directory, label: (b) => b.clientsTitle, element: <ClientsPage /> },
+      { page: CLIENTS_PAGES.countries, label: (b) => b.countriesTitle, element: <CountriesPage /> },
+    ],
   },
   {
     page: PATRON_PAGES.workflows,
@@ -191,7 +206,6 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     subPages: [
       { page: WORKFLOW_PAGES.steps, label: (b) => b.workflowsSteps, element: <WorkflowStepsPage /> },
       { page: WORKFLOW_PAGES.roles, label: (b) => b.workflowsRoles, element: <RolesEditorPage /> },
-      { page: WORKFLOW_PAGES.team, label: (b) => b.workflowsTeam, element: <TeamPage /> },
     ],
   },
   {

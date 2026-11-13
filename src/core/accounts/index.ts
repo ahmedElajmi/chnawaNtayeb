@@ -1,4 +1,13 @@
-export type { AccountType, Address, CountryRecord, FieldError, RegistrationInput, Region, UserProfile } from './types';
+export type {
+  AccountSummary,
+  AccountType,
+  Address,
+  CountryRecord,
+  FieldError,
+  RegistrationInput,
+  Region,
+  UserProfile,
+} from './types';
 export {
   countryById,
   countryName,

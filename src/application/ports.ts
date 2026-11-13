@@ -1,5 +1,5 @@
 import type { DayPlan } from '@/core/planning';
-import type { RegistrationInput, UserProfile } from '@/core/accounts';
+import type { AccountSummary, RegistrationInput, UserProfile } from '@/core/accounts';
 import type { GroceryItem } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
@@ -218,6 +218,34 @@ export interface AccountProfileRepository {
   read(uid: string): Promise<UserProfile | null>;
   /** Writes the whole profile back (complete document, no merge). */
   write(profile: UserProfile): Promise<boolean>;
+}
+
+/**
+ * Backoffice directory of every account (clients and employees): paged by uid, searched by
+ * e-mail prefix. Never exposes the favorites or the fridge of anyone.
+ */
+export type AccountTypeFilter = 'all' | 'client' | 'employee';
+
+export interface AccountDirectoryQuery {
+  /** Show one kind of account, or every one */
+  type: AccountTypeFilter;
+  /** E-mail prefix (empty: no search) */
+  search?: string;
+  limit: number;
+  /** First uid of the next page (startAfter), null from the beginning */
+  cursor?: string | null;
+}
+
+export interface AccountDirectoryPage {
+  items: AccountSummary[];
+  /** Whole filtered set (never the page length) */
+  total: number;
+  /** uid to pass back as `cursor`, null when there is no more */
+  nextCursor: string | null;
+}
+
+export interface AccountDirectoryRepository {
+  list(query: AccountDirectoryQuery): Promise<AccountDirectoryPage>;
 }
 
 /** Creates staff accounts on the server (patron session required): the client never mints a right. */

@@ -77,3 +77,14 @@ export interface FieldError {
   field: string;
   message: 'required' | 'email' | 'password-length' | 'phone' | 'address' | 'language' | 'name-length';
 }
+
+/** Lightweight view of an account for the backoffice directory (never the favorites or the fridge). */
+export interface AccountSummary {
+  uid: string;
+  type: AccountType;
+  email?: string;
+  displayName?: string;
+  phone?: string;
+  isAnonymous: boolean;
+  lastLogin?: string;
+}

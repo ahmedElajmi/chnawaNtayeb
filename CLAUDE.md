@@ -207,6 +207,9 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   - UI : `PhoneInput` et `AddressFields` (`src/shared/ui`) sans logique métier ; drapeaux calculés depuis le
     code ISO, noms de pays via `Intl.DisplayNames`.
   - Aucun droit ne vient d'un e-mail écrit dans le code ou les règles : `isOwner` = jeton patron du serveur.
+  - Backoffice : sections dédiées **Équipe** (créer un employé, rôles) et **Clients** (annuaire paginé des
+    comptes + pays) ; le filtre de type de l'annuaire lit le champ stocké (`type` absent = visible sous
+    « tous », retypé `client` à la prochaine connexion).
 - **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) ;
   normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ;
   sans réponse du moteur, l'ancien filtre par nom sert de repli. Un nouveau champ texte localisé
@@ -217,6 +220,9 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   récapitulatif des ingrédients choisis en haut du frigo ; « appuyez encore pour quitter » sur
   l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`) ; bouton « haut de page »
   (`ScrollToTopButton`, dans `AppLayout`, au-dessus de la barre collante du frigo).
+- **Endpoints d'API en anglais** : toute route du serveur et tout appel client `/api/...` est nommée en
+  anglais (`/api/accounts/employees`, `/api/vision/scan-fridge`). Les slugs des pages publiques restent en
+  français par choix produit (`/frigo`, `/recettes`).
 - Code et commentaires en anglais ; documentation en français.
 
 ## Git
