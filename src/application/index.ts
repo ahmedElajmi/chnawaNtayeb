@@ -9,3 +9,6 @@ export * from './patron/PatronStore';
 export * from './matching/MatchingSettingsStore';
 export * from './matching/MatchingScenariosStore';
 export * from './search/CatalogSearch';
+export * from './review/ReviewSettingsStore';
+export * from './review/ReviewStore';
+export * from './review/ReviewBoard';

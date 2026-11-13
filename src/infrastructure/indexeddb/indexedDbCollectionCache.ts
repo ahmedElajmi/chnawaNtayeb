@@ -8,11 +8,12 @@ import type { CollectionCopy, LocalCollectionCache } from '@/application';
  * unlike localStorage (about 5 MB).
  */
 
-export const COLLECTIONS = ['recipes', 'ingredients'] as const;
+export const COLLECTIONS = ['recipes', 'ingredients', 'recipes_workspace', 'ingredients_workspace'] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
 const DB_NAME = 'chnowa';
-const DB_VERSION = 1;
+// 2: workspaces of the validation workflow (stores created on upgrade, existing ones kept)
+const DB_VERSION = 2;
 const META = 'meta';
 
 interface Meta {

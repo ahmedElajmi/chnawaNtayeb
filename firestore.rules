@@ -62,6 +62,82 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------
+    // Validation workflow (docs/encyclopedie/14-refonte-backoffice.md): every kind of content has a
+    // private workspace (work copies, validated cell by cell) and a history of published versions.
+    // The public collections above only receive validated versions, written in the same transaction.
+    // The app reads everything back through the domain (parseWorkCopy, resolveReviewSettings);
+    // the rules check the envelope and the size. Rights per role (editor, reviewer) come with team
+    // accounts: until then every write needs the admin.
+    // ------------------------------------------------------------------
+
+    function isValidWorkCopy(d, kind) {
+      return isVersionedWrite(d) && (('deleted' in d) || (
+        d.keys().hasOnly(['kind', 'content', 'decisions', 'published_hashes', 'published_at', 'history',
+                          'updated_by', 'updated_at', 'written_at', 'revision'])
+        && d.kind == kind
+        && d.content is map
+        && d.decisions is map
+        && d.history is list && d.history.size() <= 50
+        && (!('published_hashes' in d) || d.published_hashes is map)
+        && (!('published_at' in d) || d.published_at is number)
+        && d.updated_by is string && d.updated_by.size() <= 128
+        && d.updated_at is number
+        && d.written_at is number));
+    }
+
+    function isValidVersion(d, kind) {
+      return d.keys().hasOnly(['id', 'item_id', 'kind', 'content', 'published_at', 'published_by', 'note'])
+        && d.kind == kind
+        && isValidId(d.item_id)
+        && d.content is map
+        && d.published_at is number
+        && d.published_by is string && d.published_by.size() <= 128
+        && optionalString(d, 'note', 200);
+    }
+
+    match /recipes_workspace/{itemId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && isValidId(itemId) && isValidWorkCopy(request.resource.data, 'recipe');
+      allow delete: if isAdmin() && isValidId(itemId);
+    }
+
+    match /ingredients_workspace/{itemId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && isValidId(itemId) && isValidWorkCopy(request.resource.data, 'ingredient');
+      allow delete: if isAdmin() && isValidId(itemId);
+    }
+
+    // Published versions: never modified nor deleted
+    match /recipes_versions/{versionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(versionId) && isValidVersion(request.resource.data, 'recipe');
+    }
+
+    match /ingredients_versions/{versionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(versionId) && isValidVersion(request.resource.data, 'ingredient');
+    }
+
+    // Workflows and roles of the team (one document) and every saved version of it
+    function isValidReviewSettings(d) {
+      return d.keys().hasOnly(['version', 'settings', 'updated_at', 'note'])
+        && d.version is int && d.version > 0
+        && d.settings is map
+        && d.updated_at is string && d.updated_at.size() <= 40
+        && d.note is string && d.note.size() <= 200;
+    }
+
+    match /settings/review {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && isValidReviewSettings(request.resource.data);
+    }
+
+    match /review_settings_versions/{versionId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(versionId) && isValidReviewSettings(request.resource.data);
+    }
+
+    // ------------------------------------------------------------------
     // Themes created in the backoffice
     // Every value is checked so a theme can never carry arbitrary CSS or URLs.
     // ------------------------------------------------------------------

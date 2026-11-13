@@ -121,7 +121,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   un nouveau type de contenu validé = ses parties (`parts.ts`) + ses contrôles (`rules.ts`) + son workflow
   par défaut ; une case de texte par langue (jamais une empreinte qui mélange les langues) ; tout
   workflow ou rôle lu de la base passe par `resolveWorkflow` / `resolveRoles`, tout workflow modifié par
-  `validateWorkflow`.
+  `validateWorkflow`. Atelier : `ReviewBoard` / `ReviewStore` (`src/application/review/`), collections
+  `<collection>_workspace` et `<collection>_versions` ; une publication écrit version publique, copie de
+  travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
+  la copie dont elle part (jamais d'écrasement silencieux).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
