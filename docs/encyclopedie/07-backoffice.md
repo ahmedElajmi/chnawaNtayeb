@@ -1,7 +1,7 @@
 # 07 · Backoffice patron (`/patron`)
 
-> Refonte prévue (nouvelle navigation, workflow de validation, workflows configurables) :
-> [14-refonte-backoffice.md](14-refonte-backoffice.md).
+> Refonte en cours (nouvelle navigation : faite ; workflow de validation et workflows configurables : à
+> venir) : [14-refonte-backoffice.md](14-refonte-backoffice.md).
 
 ## Accès
 
@@ -15,16 +15,51 @@
   les modifications restent sur l'appareil.
 - Le code du backoffice n'est téléchargé que par le patron (chargement à la demande).
 
-## Onglets (`src/features/backoffice/`)
+## Navigation et pages (`src/features/backoffice/`)
 
-| Onglet          | Fichier                                           | Fonctions                                                       |
-| --------------- | ------------------------------------------------- | --------------------------------------------------------------- |
-| Tableau de bord | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
-| Recettes        | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
-| Ingrédients     | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, photo), prix min–max |
-| Moteur          | `matching/`                                       | Réglages du moteur (voir ci-dessous)                            |
-| Thèmes          | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
-| Données         | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
+**Une adresse par page** (`PATRON_PAGES`, `ENGINE_PAGES`, `patronPath()` dans `src/shared/paths.ts`) : le
+retour et le rechargement gardent la page. `AppRoutes` envoie `/patron/*` au backoffice, qui déclare ses
+routes à partir du **registre des sections** (`shell/sections.tsx`).
+
+| Page        | Adresse               | Fichier                                           | Fonctions                                                       |
+| ----------- | --------------------- | ------------------------------------------------- | --------------------------------------------------------------- |
+| Accueil     | `/patron`             | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
+| Recettes    | `/patron/recettes`    | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
+| Ingrédients | `/patron/ingredients` | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, photo), prix min–max |
+| Moteur      | `/patron/moteur/…`    | `matching/`                                       | Six sous-pages (voir ci-dessous)                                |
+| Apparence   | `/patron/apparence`   | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
+| Données     | `/patron/donnees`     | `data/DataTab.tsx`                                | Sauvegarde/restauration JSON, synchronisation avec la base      |
+
+**Cadre** (`shell/BackofficeLayout.tsx`) :
+
+- ordinateur (1024 px et plus) : menu latéral fixe (sections, nombre de recettes et d'ingrédients,
+  pastille d'état, déconnexion) ;
+- téléphone et tablette : une barre compacte « ☰ Section ● » sous l'en-tête, qui ouvre le menu en
+  panneau ; le point indique l'état. Choisir une page remplace l'entrée du menu dans l'historique : le
+  retour ramène à la page précédente ;
+- **pastille d'état** à la place de l'ancien bandeau : « Publié pour tous » ou « Local seulement », avec
+  l'explication au toucher ;
+- titre et description de la page, puis la page.
+
+**Ajouter une page** = une entrée dans `BACKOFFICE_SECTIONS` (icône, libellés, page ou sous-pages, nombre
+affiché, cadre partagé des sous-pages) + son adresse dans `PATRON_PAGES` + ses libellés : menu, menu
+mobile, adresse et titre suivent.
+
+**Partagé par toutes les pages** (`shell/`) :
+
+- `NotifyProvider` / `useNotify()` : messages de succès et d'erreur (plus de prop `onNotify` à faire
+  descendre) ;
+- `RecipeEditorProvider` / `useRecipeEditor()` : l'éditeur de recette s'ouvre depuis n'importe quelle page
+  (accueil, liste, plus tard la page « À valider ») ;
+- `useAdmin()` : les actions du catalogue (`useCatalogAdmin`) branchées sur ces messages ;
+- `pages.tsx` : chaque page rassemble ce dont son panneau a besoin ; les panneaux ont été déplacés, pas
+  réécrits.
+
+**Libellés traduits** : `i18n/backofficeTexts.ts` (toutes les langues et variantes, la دارجة ne liste que
+ce qui diffère de l'arabe ; chargé seulement avec `/patron`), lus par `useBackofficeText()`. Le cadre, le
+menu, les titres des pages et la barre de publication du moteur sont traduits ; le contenu des autres
+panneaux reste en français jusqu'à leur passage dans ce dictionnaire. Un test vérifie que chaque libellé
+existe dans chaque langue, avec les mêmes `{repères}`.
 
 Les actions sur le catalogue passent par `useCatalogAdmin` (service `CatalogAdmin`, `src/application`) :
 chaque action s'affiche tout de suite sur cet appareil, est écrite dans la base (document complet,
@@ -110,10 +145,17 @@ d'ingrédients affichés est indiqué.
 nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
 d'« Envoyer vers le cloud » pour publier.
 
-## Onglet Moteur
+## Moteur (`/patron/moteur`)
 
 Permet de régler le moteur « Warini chnowa ntayeb » sans toucher au code
 (fonctionnement du moteur : [04](04-moteur-matching.md)).
+
+Six sous-pages, chacune avec son adresse : `simulateur` (ouverte par défaut), `scenarios`,
+`mises-en-avant`, `remplacements`, `reglages` (seuils et poids, puis ordre), `historique`. Le brouillon est
+partagé par toutes (`matching/MatchingDraftContext.tsx`) : on peut changer un réglage puis aller voir
+les scénarios sans le perdre. La barre de publication (version en ligne, brouillon, note, scénarios
+cassés, export / import) reste en haut de chaque sous-page (`EnginePublishBar`). Quitter le moteur
+abandonne le brouillon, comme avant.
 
 1. **Brouillon** : chaque modification reste un brouillon tant qu'elle n'est pas publiée.
 2. **Simulateur** : un frigo (ou un frigo type), et côte à côte les suggestions publiées et celles

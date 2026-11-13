@@ -1,7 +1,8 @@
 # 14 · Refonte du backoffice et workflow de validation (plan)
 
-> **Statut : plan validé, pas encore réalisé.** Cette page garde la refonte de `/patron` et le workflow de
-> validation du contenu, pour les reprendre. Le fonctionnement actuel est décrit dans
+> **Statut : en cours.** Fait : le cadre (partie C, étape 1 : adresses, menu, registre des sections,
+> libellés traduits du cadre, moteur en sous-pages). À faire : le workflow de validation (étapes 2 à 6),
+> l'accueil « À faire » et la page Données (étape 7). Le fonctionnement actuel est décrit dans
 > [07-backoffice.md](07-backoffice.md).
 
 ## Partie A — Refonte de `/patron`

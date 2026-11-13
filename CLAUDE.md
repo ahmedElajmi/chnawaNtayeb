@@ -103,8 +103,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   ne liste que ce qui diffère de sa famille, ex. `src/shared/i18n/derjaArabic.ts`) : affichage, éditeurs,
   sauvegarde et recherche la prennent en compte sans autre changement.
 - Textes affichés dans toutes les langues (`src/shared/i18n/translations.ts`). **Le backoffice suit la langue
-  courante** comme le reste du site (contenu, onglet de saisie ; libellés : à traduire avec la refonte du
-  backoffice, encore en français en attendant).
+  courante** comme le reste du site : contenu, onglet de saisie et libellés, lus dans
+  `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` (tout nouveau libellé du
+  backoffice va dans ce dictionnaire, dans toutes les langues ; les panneaux pas encore passés restent en
+  français).
 - **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
   `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
   (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
@@ -141,8 +143,12 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
   `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
-  `parseStoredRecipes` / `parseStoredIngredients`. Libellés du backoffice : en français en attendant
-  leur traduction (refonte du backoffice).
+  `parseStoredRecipes` / `parseStoredIngredients`. Libellés : `useBackofficeText()`.
+- **Pages du backoffice** : une adresse par page (`PATRON_PAGES` / `ENGINE_PAGES` + `patronPath()` dans
+  `src/shared/paths.ts`) ; une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`
+  (`src/features/backoffice/shell/sections.tsx`), jamais un onglet ajouté à la main. Messages avec
+  `useNotify()`, éditeur de recette avec `useRecipeEditor()`, actions du catalogue avec `useAdmin()`.
+  Refonte et workflow de validation : `docs/encyclopedie/14-refonte-backoffice.md`.
 - **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
   relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
   conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`).
