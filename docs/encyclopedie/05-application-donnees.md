@@ -18,9 +18,10 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `CatalogSearch`         | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))    |
 | `ReviewSettingsStore`   | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée         |
 | `ReviewStore<K>`        | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer      |
+| `TeamStore`             | membres de l'équipe, fiche du compte connecté             | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles     |
 | `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                    |
 
-Hooks d'accès : `useReview(kind)`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useReview(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
@@ -41,6 +42,7 @@ Hooks d'accès : `useReview(kind)`, `useReviewSettings()`, `useSearchMatches(kin
 | `SearchEngine`               | Recherche texte (recettes, ingrédients)        | `infrastructure/minisearch/miniSearchEngine`        |
 | `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication       | `infrastructure/firebase/firestoreReviewWorkspace`  |
 | `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions          | `infrastructure/firebase/firestoreReviewSettings`   |
+| `TeamRepository`             | Membres de l'équipe (`admins`)                 | `infrastructure/firebase/firestoreTeam`             |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par
@@ -54,22 +56,22 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 
 ### Firestore (base partagée, source de vérité)
 
-| Collection / document             | Contenu                                  | Lecture                   | Écriture                         |
-| --------------------------------- | ---------------------------------------- | ------------------------- | -------------------------------- |
-| `recipes/{id}`                    | Recettes                                 | publique                  | patron                           |
-| `ingredients/{id}`                | Ingrédients et prix                      | publique                  | patron                           |
-| `themes/{id}`                     | Thèmes créés dans le backoffice          | thèmes publiés : publique | patron (validés champ par champ) |
-| `settings/matching`               | Réglages actifs du moteur                | publique                  | patron                           |
-| `matching_settings_versions/v<n>` | Historique des réglages (jamais modifié) | patron                    | patron (création seulement)      |
-| `matching_scenarios/{id}`         | Scénarios du chef                        | patron                    | patron (enveloppe validée)       |
-| `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron          | lui-même (champs limités)        |
-| `admins/{uid}`                    | Comptes administrateurs supplémentaires  | patron                    | patron                           |
-| `recipes_workspace/{id}`          | Copies de travail des recettes (atelier) | patron                    | patron (enveloppe validée)       |
-| `ingredients_workspace/{id}`      | Copies de travail des ingrédients        | patron                    | patron (enveloppe validée)       |
-| `recipes_versions/{id}-{t}`       | Versions publiées d'une recette          | patron                    | patron (création seulement)      |
-| `ingredients_versions/{id}-{t}`   | Versions publiées d'un ingrédient        | patron                    | patron (création seulement)      |
-| `settings/review`                 | Workflows et rôles en vigueur            | patron                    | patron                           |
-| `review_settings_versions/v<n>`   | Historique des workflows et rôles        | patron                    | patron (création seulement)      |
+| Collection / document             | Contenu                                  | Lecture                           | Écriture                         |
+| --------------------------------- | ---------------------------------------- | --------------------------------- | -------------------------------- |
+| `recipes/{id}`                    | Recettes                                 | publique                          | patron                           |
+| `ingredients/{id}`                | Ingrédients et prix                      | publique                          | patron                           |
+| `themes/{id}`                     | Thèmes créés dans le backoffice          | thèmes publiés : publique         | patron (validés champ par champ) |
+| `settings/matching`               | Réglages actifs du moteur                | publique                          | patron                           |
+| `matching_settings_versions/v<n>` | Historique des réglages (jamais modifié) | patron                            | patron (création seulement)      |
+| `matching_scenarios/{id}`         | Scénarios du chef                        | patron                            | patron (enveloppe validée)       |
+| `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron                  | lui-même (champs limités)        |
+| `admins/{uid}`                    | Membres de l'équipe (rôle, droits)       | le membre lui-même, gestionnaires | gestionnaires (champs vérifiés)  |
+| `recipes_workspace/{id}`          | Copies de travail des recettes (atelier) | patron                            | patron (enveloppe validée)       |
+| `ingredients_workspace/{id}`      | Copies de travail des ingrédients        | patron                            | patron (enveloppe validée)       |
+| `recipes_versions/{id}-{t}`       | Versions publiées d'une recette          | patron                            | patron (création seulement)      |
+| `ingredients_versions/{id}-{t}`   | Versions publiées d'un ingrédient        | patron                            | patron (création seulement)      |
+| `settings/review`                 | Workflows et rôles en vigueur            | patron                            | patron                           |
+| `review_settings_versions/v<n>`   | Historique des workflows et rôles        | patron                            | patron (création seulement)      |
 
 **Atelier du workflow de validation** (`ReviewBoard`, `src/application/review/`) : chaque type de contenu
 a un atelier privé (`<collection>_workspace`), suivi par le même `SyncedCollectionStore` que le
@@ -82,9 +84,10 @@ une version dans l'historique (`<collection>_versions`). Chaque écriture de l'a
 copie elle part (`written_at`) : si quelqu'un a enregistré entre-temps, rien n'est écrit et le message
 demande de recharger. `importPublished` fait le premier passage au workflow : ce qui est en ligne
 devient une copie validée, une recette en brouillon passe dans l'atelier et quitte la collection
-publique. Les recettes passent par l'atelier (éditeur, page de validation : voir [07](07-backoffice.md)) ;
-les ingrédients s'écrivent encore directement via `CatalogAdmin`. Le seul compte est le patron, avec le
-rôle administrateur. Une écriture refusée ou impossible (base injoignable, mode local) garde la
+publique. Recettes et ingrédients passent par l'atelier (éditeurs, pages de validation : voir
+[07](07-backoffice.md)). **Qui agit** (`ReviewBoard.actor()`, défini dans `container.ts`) : la session
+patron a le rôle administrateur ; sinon le compte connecté sur le site, s'il est membre de l'équipe
+(`TeamStore`), agit avec son rôle ; sinon aucun droit. Une écriture refusée ou impossible (base injoignable, mode local) garde la
 modification sur l'appareil (`local: true`, message d'erreur), comme le catalogue ; un conflit
 (`written_at`) n'écrit rien.
 

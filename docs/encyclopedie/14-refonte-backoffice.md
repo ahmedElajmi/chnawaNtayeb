@@ -1,12 +1,11 @@
 # 14 · Refonte du backoffice et workflow de validation (plan)
 
-> **Statut : en cours.** Fait : le cadre (partie C, étape 1 : adresses, menu, registre des sections,
-> libellés traduits du cadre, moteur en sous-pages), les règles du workflow (étape 2, `src/core/review`)
-> et ses données (étape 3 : atelier, versions, réglages, règles Firestore, import), l'écran de validation
-> des recettes (étape 4). À faire : la page « À valider » regroupée (étape 5), l'éditeur de workflows et
-> de rôles (étape 6), le passage des ingrédients au workflow, l'accueil « À faire » et la page Données
-> (étape 7). Le fonctionnement actuel est décrit dans
-> [07-backoffice.md](07-backoffice.md).
+> **Statut : réalisé.** Cadre, règles, atelier, pages de validation (recettes et ingrédients), page
+> « À valider » regroupée avec relecture en série, accueil « À faire », éditeur de workflows et de
+> rôles, équipe avec droits vérifiés par la base. Restent en dehors du workflow case par case : les
+> thèmes et les réglages du moteur (publication propre avec brouillon et historique), et les
+> catégories et textes du CMS, qui n'existent pas encore (à créer directement sur ce mécanisme). Le
+> fonctionnement est décrit dans [07-backoffice.md](07-backoffice.md).
 
 ## Partie A — Refonte de `/patron`
 

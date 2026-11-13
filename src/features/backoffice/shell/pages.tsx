@@ -15,7 +15,9 @@ import { useBackofficeText } from '../i18n/useBackofficeText';
 import { ThemeEditor } from '../themes/ThemeEditor';
 import { useNotify } from './NotifyContext';
 import { useRecipeEditor } from './RecipeEditorContext';
+import { useIngredientEditor } from './IngredientEditorContext';
 import { useAdmin } from './useAdmin';
+import { TodoList } from '../review/TodoList';
 
 /*
  * Backoffice pages: each one gathers what its panel needs from the shared context (catalog,
@@ -28,13 +30,16 @@ export function HomePage() {
   const admin = useAdmin();
   const { addRecipe } = useRecipeEditor();
   return (
-    <DashboardTab
-      recipes={recipes}
-      ingredients={ingredients}
-      onAddRecipe={addRecipe}
-      onOpenIngredients={() => navigate(patronPath(PATRON_PAGES.ingredients))}
-      onDownloadBackup={admin.downloadBackup}
-    />
+    <div className="space-y-4">
+      <TodoList />
+      <DashboardTab
+        recipes={recipes}
+        ingredients={ingredients}
+        onAddRecipe={addRecipe}
+        onOpenIngredients={() => navigate(patronPath(PATRON_PAGES.ingredients))}
+        onDownloadBackup={admin.downloadBackup}
+      />
+    </div>
   );
 }
 
@@ -84,9 +89,14 @@ export function RecipesPage() {
 }
 
 export function IngredientsPage() {
-  const { recipes, ingredients } = useCatalog();
-  const admin = useAdmin();
-  return <IngredientsTab ingredients={ingredients} recipes={recipes} admin={admin} />;
+  const { recipes } = useCatalog();
+  const { entries } = useReview('ingredient');
+  const { ingredients } = useIngredientEditor();
+  const statusOf = useMemo(() => {
+    const byId = new Map(entries.map((e) => [e.copy.id, itemStatus(e.snapshot, e.online, e.pending)]));
+    return (id: string) => byId.get(id) ?? 'online';
+  }, [entries]);
+  return <IngredientsTab ingredients={ingredients} recipes={recipes} statusOf={statusOf} />;
 }
 
 export function AppearancePage() {

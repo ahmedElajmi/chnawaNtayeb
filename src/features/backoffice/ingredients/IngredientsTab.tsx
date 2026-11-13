@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pencil, Plus, Search } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
+import { ClipboardCheck, Pencil, Plus, Search } from 'lucide-react';
 import {
   countIngredientUsage,
   hasImplausibleUnitPrice,
@@ -10,8 +11,11 @@ import {
 } from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
-import type { CatalogAdminActions } from '../useCatalogAdmin';
-import { IngredientEditorModal, NEW_INGREDIENT } from './IngredientEditorModal';
+import type { ItemStatus } from '@/core/review';
+import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
+import { StatusBadge } from '../review/reviewUi';
+import { useBackofficeText } from '../i18n/useBackofficeText';
+import { useIngredientEditor } from '../shell/IngredientEditorContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { usePagedList } from '@/shared/hooks/usePagedList';
 import { ShowMore } from '@/shared/ui/ShowMore';
@@ -33,18 +37,25 @@ const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
 const CHIP = 'shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition';
 
 interface IngredientListProps {
+  /** Ingredients as the team sees them (work copy, else the version online) */
   ingredients: Ingredient[];
   recipes: Recipe[];
-  admin: CatalogAdminActions;
+  /** Validation status of each ingredient */
+  statusOf: (id: string) => ItemStatus;
 }
 
-function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
+function IngredientList({ ingredients, recipes, statusOf }: IngredientListProps) {
+  const b = useBackofficeText();
+  const { addIngredient, editIngredient, savePrices } = useIngredientEditor();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<IngredientCategory | 'all'>('all');
-  const [quick, setQuick] = useState<QuickFilter>('all');
+  const [params] = useSearchParams();
+  const [quick, setQuick] = useState<QuickFilter>(() => {
+    const asked = params.get(LIST_FILTER_PARAM);
+    return QUICK_FILTERS.some((f) => f.id === asked) ? (asked as QuickFilter) : 'all';
+  });
   const usage = useMemo(() => countIngredientUsage(recipes), [recipes]);
   const [prices, setPrices] = useState<Record<string, PriceRange>>({});
-  const [editing, setEditing] = useState<Ingredient | null>(null);
   const categories = useIngredientCategories();
   const categoryLabel = new Map(categories);
   const { getIngredientName, getSecondaryName, compareNames } = useLanguage();
@@ -90,7 +101,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
           {edited > 0 && (
             <button
               onClick={async () => {
-                if (await admin.savePrices(ingredients, prices)) setPrices({});
+                if (await savePrices(ingredients, prices)) setPrices({});
               }}
               className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-accent text-on-accent text-xs sm:text-sm font-bold hover:bg-accent-strong transition shadow-md"
             >
@@ -98,7 +109,7 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
             </button>
           )}
           <button
-            onClick={() => setEditing(NEW_INGREDIENT)}
+            onClick={addIngredient}
             className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-on-brand text-xs sm:text-sm font-bold hover:bg-brand-strong transition shadow-sm"
           >
             <Plus className="w-4 h-4" />
@@ -159,6 +170,9 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                       <span className="text-xs text-accent-text font-semibold ms-1.5">({getSecondaryName(ing)})</span>
                     )}
                   </p>
+                  <div className="mt-0.5">
+                    <StatusBadge status={statusOf(ing.id)} />
+                  </div>
                   <p className="text-[11px] text-slate-400 truncate">
                     {categoryLabel.get(ing.category) ?? ing.category} · Unité : {ing.unit_default} ·{' '}
                     {usage.get(ing.id) ? `${usage.get(ing.id)} recette(s)` : 'aucune recette'}
@@ -189,9 +203,17 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
                   className={`${PRICE_INPUT} ${invalid ? 'border-rose-400 dark:border-rose-500' : ''}`}
                 />
                 <span className="text-xs font-bold text-slate-500">DT</span>
+                <Link
+                  to={patronPath(PATRON_PAGES.ingredients, ing.id)}
+                  aria-label={`${b.reviewTitle} : ${getIngredientName(ing)}`}
+                  title={b.reviewTitle}
+                  className="ms-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                </Link>
                 <button
                   type="button"
-                  onClick={() => setEditing(ing)}
+                  onClick={() => editIngredient(ing)}
                   aria-label={`Modifier ${getIngredientName(ing)}`}
                   title="Modifier les noms, l'unité, la catégorie et la photo"
                   className="ml-1 p-1.5 rounded-lg text-ink-muted hover:text-brand-text hover:bg-brand/10"
@@ -208,26 +230,10 @@ function IngredientList({ ingredients, recipes, admin }: IngredientListProps) {
         progressLabel={(shown, total) => `${shown} ingrédient(s) affiché(s) sur ${total}`}
         buttonLabel="Afficher plus"
       />
-
-      {editing && (
-        <IngredientEditorModal
-          ingredient={editing}
-          catalog={ingredients}
-          onClose={() => setEditing(null)}
-          onSave={async (ingredient) => {
-            setEditing(null);
-            if (ingredient.id) await admin.saveIngredient(ingredient);
-            else {
-              const { id: _new, ...data } = ingredient;
-              await admin.addIngredient(data);
-            }
-          }}
-        />
-      )}
     </div>
   );
 }
 
-export function IngredientsTab({ ingredients, recipes, admin }: IngredientListProps) {
-  return <IngredientList ingredients={ingredients} recipes={recipes} admin={admin} />;
+export function IngredientsTab(props: IngredientListProps) {
+  return <IngredientList {...props} />;
 }

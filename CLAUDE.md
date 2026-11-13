@@ -126,7 +126,12 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
   la copie dont elle part (jamais d'écrasement silencieux). **Une recette n'est jamais écrite directement
   dans la collection publique** : l'éditeur enregistre dans l'atelier (`useReview('recipe').store.save`),
-  la publication passe par la page de validation (`/patron/recettes/<id>`). Libellés de la validation :
+  la publication passe par la page de validation (`/patron/recettes/<id>`). **De même pour les
+  ingrédients** (`useIngredientEditor`, `/patron/ingredients/<id>`). Rôles : une page du backoffice
+  réservée à un droit le déclare (`requires` dans `BACKOFFICE_SECTIONS`) ; toute écriture publique
+  passe par `canPublish()` dans `firestore.rules`, la gestion (workflows, rôles, équipe) par
+  `canManage()` ; les droits d'un membre sont recopiés sur sa fiche `admins/{uid}`
+  (`TeamStore.refreshRights` après chaque changement de rôle). Libellés de la validation :
   `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).

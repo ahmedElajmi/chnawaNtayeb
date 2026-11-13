@@ -19,12 +19,24 @@ export const PATHS = {
  */
 export const PATRON_PAGES = {
   home: '',
+  review: 'a-valider',
   recipes: 'recettes',
   ingredients: 'ingredients',
   engine: 'moteur',
   appearance: 'apparence',
   data: 'donnees',
+  workflows: 'workflows',
 } as const;
+
+/** Sub-pages of /patron/workflows. */
+export const WORKFLOW_PAGES = {
+  steps: 'etapes',
+  roles: 'roles',
+  team: 'equipe',
+} as const;
+
+/** Filter of a backoffice list given in its address (`?filtre=to_fix`), so the home page can link to it. */
+export const LIST_FILTER_PARAM = 'filtre';
 
 /** Sub-pages of /patron/moteur. */
 export const ENGINE_PAGES = {

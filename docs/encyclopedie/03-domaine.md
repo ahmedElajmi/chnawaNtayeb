@@ -62,6 +62,11 @@ sont chiffrés.
 ingrédient, remplaçants compris) et `findDuplicateIngredient` (même nom français, casse et accents
 ignorés).
 
+**Santé du catalogue** (`catalog/health.ts`, testé) : `catalogHealth` compte sur les listes entières ce
+qui reste à faire (recettes à traduire ou sans photo, ingrédients sans photo, à l'unité douteuse, dans
+aucune recette) ; `recipeNeedsTranslation` / `ingredientNeedsTranslation` (un texte écrit en français
+mais vide dans une autre langue ou variante).
+
 **Catégories** (`catalog/course.ts`) : `normalizeCategory` convertit les anciennes valeurs
 (`express`, `kaskrout`, `soupe`) vers les trois catégories ; `isExpress` = 20 minutes ou moins.
 
@@ -138,6 +143,11 @@ l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans vi
   ses cases validées), `newWorkCopy`, `hasPendingChanges`, `PublishedVersion` et `parsePublishedVersion`.
 - `settings.ts` : `ReviewSettings` (workflows de chaque type + rôles, un seul document),
   `resolveReviewSettings` (toujours utilisable, avec ce qui a été réparé), `validateReviewSettings`.
+
+- `team.ts` : `TeamMember` (rôle + `can_publish` / `can_manage`, les deux droits que les règles de la
+  base lisent, recopiés depuis le rôle), `memberRights`, `membersToRefresh`, `roleOfMember` (le rôle
+  administrateur ne se donne jamais à un membre), `parseTeamMember`.
+- `progress.ts` donne aussi `itemStatus` (statut affiché dans les listes) et `incompleteRequired`.
 
 ## `search` : recherche texte
 

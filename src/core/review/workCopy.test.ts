@@ -66,3 +66,17 @@ describe('review settings', () => {
     expect(settings.roles.map((r) => r.id)).toEqual(['admin', 'editor']);
   });
 });
+
+describe('team rights', () => {
+  it('copies on a member what the database rules check', async () => {
+    const { memberRights, membersToRefresh, parseTeamMember, roleOfMember, DEFAULT_ROLES } = await import('./index');
+    const reviewer = DEFAULT_ROLES.find((r) => r.id === 'reviewer')!;
+    expect(memberRights(reviewer)).toEqual({ can_publish: true, can_manage: false });
+    expect(memberRights(DEFAULT_ROLES[0])).toEqual({ can_publish: true, can_manage: true });
+    expect(memberRights(undefined)).toEqual({ can_publish: false, can_manage: false });
+    const member = parseTeamMember({ uid: 'u', role: 'reviewer', email: 'a@b.c', can_publish: false })!;
+    expect(membersToRefresh([member], DEFAULT_ROLES)).toEqual([{ ...member, can_publish: true }]);
+    expect(roleOfMember({ ...member, role: 'admin' }, DEFAULT_ROLES)).toBeNull();
+    expect(parseTeamMember({ role: 'x' })).toBeNull();
+  });
+});

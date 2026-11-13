@@ -71,6 +71,11 @@ export class ReviewBoard {
     return value;
   }
 
+  /** Who acts on this device, with their role. */
+  actor(): { id: string; role: RoleDefinition } {
+    return this.deps.actor();
+  }
+
   /** Follows the settings and both workspaces (admin only); returns the stop function. */
   start(): () => void {
     const stops = [this.settings.start(), this.ingredients.start(), this.recipes.start()];

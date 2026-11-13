@@ -4,7 +4,7 @@ import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
 import type { CollectionChanges, Versioned } from '@/core/sync';
-import type { PublishedVersion, ReviewItems, ReviewKind, ReviewSettings, WorkCopy } from '@/core/review';
+import type { PublishedVersion, ReviewItems, ReviewKind, ReviewSettings, TeamMember, WorkCopy } from '@/core/review';
 import type { SearchDocument, SearchHit } from '@/core/search';
 
 /**
@@ -303,4 +303,16 @@ export interface ReviewSettingsRepository {
   follow(onChange: (active: StoredReviewSettings | null) => void, onError: () => void): () => void;
   publish(settings: ReviewSettings, note: string): Promise<WriteResult & { version?: number }>;
   listVersions(): Promise<StoredReviewSettings[]>;
+}
+
+/** Accounts of the team and their roles (read through `parseTeamMember`). */
+export interface TeamRepository {
+  /** Follows every member (managers only); returns the stop function. */
+  follow(onChange: (members: unknown[]) => void, onError: () => void): () => void;
+  /** The member record of one account (each member can read their own), null when it is not a member. */
+  getMember(uid: string): Promise<unknown | null>;
+  /** Account that signed in on the site with this e-mail address (null when none). */
+  findAccountByEmail(email: string): Promise<{ uid: string; email: string } | null>;
+  put(member: TeamMember): Promise<WriteResult>;
+  remove(uid: string): Promise<WriteResult>;
 }

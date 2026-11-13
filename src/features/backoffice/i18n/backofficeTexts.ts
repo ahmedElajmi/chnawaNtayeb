@@ -132,6 +132,114 @@ export interface BackofficeTexts {
   ruleTimes: string;
   ruleSteps: string;
   ruleTip: string;
+
+  // Queue, home, workflows, roles, team
+  event_save: string;
+  event_approve: string;
+  event_reject: string;
+  event_publish: string;
+  event_unpublish: string;
+  event_restore: string;
+  event_import: string;
+  reviewCancel: string;
+  reviewVersions: string;
+  reviewNoVersions: string;
+  reviewRestore: string;
+  reviewRestoreConfirm: string;
+  reviewPricesSaved: string;
+  partName: string;
+  partPhoto: string;
+  partCategory: string;
+  partPrice: string;
+  ruleCategory: string;
+  rulePrice: string;
+  filterNoPhoto: string;
+  filterToTranslate: string;
+  queueTitle: string;
+  queueHint: string;
+  queueGroupBy: string;
+  queueByItem: string;
+  queueByStep: string;
+  queueByPart: string;
+  queueByLanguage: string;
+  queueByKind: string;
+  queueByAuthor: string;
+  queueCells: string;
+  queueReview: string;
+  queueBack: string;
+  queueOpenItem: string;
+  queueSeriesDone: string;
+  queueEmpty: string;
+  queueCountPending: string;
+  queueCountItems: string;
+  queueCountToFix: string;
+  queueCountPublishable: string;
+  todoTitle: string;
+  todoNothing: string;
+  todoReview: string;
+  todoToFix: string;
+  todoPublishable: string;
+  todoRecipesToTranslate: string;
+  todoRecipesWithoutPhoto: string;
+  todoIngredientsUnitCheck: string;
+  todoIngredientsWithoutPhoto: string;
+  todoIngredientsUnused: string;
+  workflowsTitle: string;
+  workflowsHint: string;
+  workflowsSteps: string;
+  workflowsRoles: string;
+  workflowsTeam: string;
+  workflowsVersion: string;
+  workflowsDefault: string;
+  workflowsIdle: string;
+  workflowsNote: string;
+  workflowsSave: string;
+  workflowsSaved: string;
+  workflowsOpenVersion: string;
+  workflowsImpact: string;
+  workflowsNoImpact: string;
+  workflowsOptions: string;
+  workflowsSequential: string;
+  workflowsBatch: string;
+  workflowsPartial: string;
+  workflowsAddStep: string;
+  workflowsNewStep: string;
+  workflowsMoveUp: string;
+  workflowsMoveDown: string;
+  workflowsDeleteStep: string;
+  workflowsDeleteStepHint: string;
+  workflowsNoCell: string;
+  workflowsReviewers: string;
+  workflowsCells: string;
+  workflowsCellsHint: string;
+  workflowsStepOf: string;
+  workflowsNotReviewed: string;
+  workflowsRequired: string;
+  workflowsRuleOff: string;
+  workflowsDefaultLevel: string;
+  permEdit: string;
+  permSubmit: string;
+  permReview: string;
+  permPublish: string;
+  permManageWorkflows: string;
+  permManageRoles: string;
+  rolesMembers: string;
+  rolesAdminHint: string;
+  rolesDelete: string;
+  rolesInUse: string;
+  rolesLanguages: string;
+  rolesLanguagesHint: string;
+  rolesNewName: string;
+  rolesAdd: string;
+  teamHint: string;
+  teamEmail: string;
+  teamRole: string;
+  teamAdd: string;
+  teamAdded: string;
+  teamUpdated: string;
+  teamRemove: string;
+  teamRemoved: string;
+  teamEmpty: string;
 }
 
 const fr: BackofficeTexts = {
@@ -205,7 +313,7 @@ const fr: BackofficeTexts = {
   reviewAdvice: 'conseillé',
   reviewAllDone: 'Tout est validé.',
   reviewNotFound: 'Recette introuvable.',
-  reviewBack: 'Retour aux recettes',
+  reviewBack: 'Retour à la liste',
   reviewHistory: 'Historique',
   reviewStepLocked: 'Valide d’abord les étapes précédentes.',
   reviewApproveReady: 'Valider les {count} parties prêtes',
@@ -259,6 +367,118 @@ const fr: BackofficeTexts = {
   ruleTimes: 'Temps et portions',
   ruleSteps: 'Étapes écrites (toutes traduites)',
   ruleTip: 'Astuce du chef',
+
+  event_save: 'Enregistré',
+  event_approve: 'Validé',
+  event_reject: 'Renvoyé',
+  event_publish: 'Publié',
+  event_unpublish: 'Retiré du site',
+  event_restore: 'Version rétablie',
+  event_import: 'Importé',
+  reviewCancel: 'Annuler',
+  reviewVersions: 'Versions publiées',
+  reviewNoVersions: 'Aucune version publiée.',
+  reviewRestore: 'Rétablir',
+  reviewRestoreConfirm: 'Rétablir cette version et la publier de nouveau ?',
+  reviewPricesSaved: '{count} prix enregistré(s) dans l’atelier : à valider avant publication.',
+  partName: 'Nom',
+  partPhoto: 'Photo',
+  partCategory: 'Catégorie et unité',
+  partPrice: 'Prix',
+  ruleCategory: 'Catégorie et unité',
+  rulePrice: 'Prix (min ≤ max)',
+  filterNoPhoto: 'Sans photo',
+  filterToTranslate: 'À traduire',
+  queueTitle: 'À valider',
+  queueHint: 'Tout ce qui attend ta validation, regroupé',
+  queueGroupBy: 'Regrouper par',
+  queueByItem: 'Élément',
+  queueByStep: 'Étape',
+  queueByPart: 'Partie',
+  queueByLanguage: 'Langue',
+  queueByKind: 'Type',
+  queueByAuthor: 'Auteur',
+  queueCells: '{count} partie(s)',
+  queueReview: 'Relire',
+  queueBack: 'Retour aux groupes',
+  queueOpenItem: 'Ouvrir la fiche',
+  queueSeriesDone: 'Série terminée.',
+  queueEmpty: 'Rien n’attend ta validation.',
+  queueCountPending: 'Parties à valider',
+  queueCountItems: 'Éléments concernés',
+  queueCountToFix: 'À corriger',
+  queueCountPublishable: 'Prêts à publier',
+  todoTitle: 'À faire',
+  todoNothing: 'Rien à faire pour l’instant.',
+  todoReview: 'Parties à valider',
+  todoToFix: 'Éléments renvoyés à corriger',
+  todoPublishable: 'Prêts à publier',
+  todoRecipesToTranslate: 'Recettes à traduire',
+  todoRecipesWithoutPhoto: 'Recettes sans photo',
+  todoIngredientsUnitCheck: 'Ingrédients : unité ou prix à vérifier',
+  todoIngredientsWithoutPhoto: 'Ingrédients sans photo',
+  todoIngredientsUnused: 'Ingrédients dans aucune recette',
+  workflowsTitle: 'Workflows',
+  workflowsHint: 'Étapes de validation, rôles et équipe',
+  workflowsSteps: 'Étapes',
+  workflowsRoles: 'Rôles',
+  workflowsTeam: 'Équipe',
+  workflowsVersion: 'En vigueur : version {version}',
+  workflowsDefault: 'En vigueur : réglages par défaut',
+  workflowsIdle: 'Modifie une étape ou un rôle : l’effet sur les éléments en ligne s’affiche avant d’enregistrer.',
+  workflowsNote: 'Note de version (ex. : derja obligatoire)',
+  workflowsSave: 'Enregistrer',
+  workflowsSaved: 'Workflows enregistrés : ils s’appliquent à toute l’équipe.',
+  workflowsOpenVersion: 'Ouvrir dans le brouillon',
+  workflowsImpact:
+    '{count} élément(s) en ligne auraient des parties obligatoires non validées : ils restent en ligne, marqués à valider.',
+  workflowsNoImpact: 'Aucun élément en ligne n’est touché par ces réglages.',
+  workflowsOptions: 'Options',
+  workflowsSequential:
+    'Étapes dans l’ordre : une étape s’ouvre quand les parties obligatoires des précédentes sont validées',
+  workflowsBatch: 'Validation groupée des parties prêtes (avec confirmation)',
+  workflowsPartial: 'Publier sans attendre une langue facultative (elle garde sa version en ligne)',
+  workflowsAddStep: 'Ajouter une étape',
+  workflowsNewStep: 'Étape',
+  workflowsMoveUp: 'Monter',
+  workflowsMoveDown: 'Descendre',
+  workflowsDeleteStep: 'Supprimer l’étape',
+  workflowsDeleteStepHint:
+    'Une étape avec une partie obligatoire ne peut pas être supprimée : déplace d’abord la partie.',
+  workflowsNoCell: 'Aucune partie : choisis-en ci-dessous.',
+  workflowsReviewers: 'Validée par :',
+  workflowsCells: 'Parties à valider',
+  workflowsCellsHint: 'Pour chaque partie × langue : son étape, et si elle est obligatoire pour publier.',
+  workflowsStepOf: 'Étape de',
+  workflowsNotReviewed: '— non validée',
+  workflowsRequired: 'Obligatoire',
+  workflowsRuleOff: 'désactivé',
+  workflowsDefaultLevel: 'par défaut',
+  permEdit: 'Modifier',
+  permSubmit: 'Envoyer à la validation',
+  permReview: 'Valider',
+  permPublish: 'Publier',
+  permManageWorkflows: 'Gérer les workflows',
+  permManageRoles: 'Gérer les rôles et l’équipe',
+  rolesMembers: '{count} membre(s)',
+  rolesAdminHint: 'L’administrateur a tous les droits et ne peut pas être modifié.',
+  rolesDelete: 'Supprimer le rôle',
+  rolesInUse: 'Rôle donné à des membres : change d’abord leur rôle.',
+  rolesLanguages: 'Limité aux langues :',
+  rolesLanguagesHint:
+    'Aucune case cochée : toutes les parties. Sinon, seulement les textes de ces langues (traducteur).',
+  rolesNewName: 'Nom du nouveau rôle',
+  rolesAdd: 'Ajouter un rôle',
+  teamHint:
+    'Un membre se connecte sur le site avec son propre compte, puis ouvre /patron : il travaille avec les droits de son rôle. Ajoute-le par l’adresse e-mail de son compte.',
+  teamEmail: 'Adresse e-mail du compte',
+  teamRole: 'Rôle',
+  teamAdd: 'Ajouter',
+  teamAdded: 'Membre ajouté.',
+  teamUpdated: 'Rôle modifié.',
+  teamRemove: 'Retirer',
+  teamRemoved: 'Membre retiré.',
+  teamEmpty: 'Aucun membre pour l’instant : seul le compte patron a accès.',
 };
 
 const derja: BackofficeTexts = {
@@ -332,7 +552,7 @@ const derja: BackofficeTexts = {
   reviewAdvice: 'mostahsen',
   reviewAllDone: 'Kol chay tsadda9.',
   reviewNotFound: 'El makla mouch mawjouda.',
-  reviewBack: 'Arja3 lel maklet',
+  reviewBack: 'Arja3 lel liste',
   reviewHistory: 'Historique',
   reviewStepLocked: 'Sadda9 9bal 3al marahel elli 9balha.',
   reviewApproveReady: 'Sadda9 3al {count} aqsem el wejdin',
@@ -386,6 +606,115 @@ const derja: BackofficeTexts = {
   ruleTimes: 'Wa9t w 9asmet',
   ruleSteps: 'Marahel mektoubin (kol chay mtarjem)',
   ruleTip: 'Nasi7a mta3 el chef',
+
+  event_save: 'Tsajjel',
+  event_approve: 'Tsadda9',
+  event_reject: 'Traja3',
+  event_publish: 'Tnachar',
+  event_unpublish: 'Tna77a mel site',
+  event_restore: 'Version traj3et',
+  event_import: 'Tjeb',
+  reviewCancel: 'Batel',
+  reviewVersions: 'Les versions elli tnachrou',
+  reviewNoVersions: 'Ma fammech version mnachra.',
+  reviewRestore: 'Raja3ha',
+  reviewRestoreConfirm: 'Traja3 el version hedhi w tonchorha marra okhra ?',
+  reviewPricesSaved: '{count} soum tsajjel fel atelier : lazem yetsadda9 9bal ma yetnchar.',
+  partName: 'Esm',
+  partPhoto: 'Taswira',
+  partCategory: 'Catégorie w unité',
+  partPrice: 'Soum',
+  ruleCategory: 'Catégorie w unité',
+  rulePrice: 'Soum (min ≤ max)',
+  filterNoPhoto: 'Bla taswira',
+  filterToTranslate: 'Lazem tetarjem',
+  queueTitle: 'Lel validation',
+  queueHint: 'Kol chay yestanna validation mte3ek, mjamma3',
+  queueGroupBy: 'Jamma3 7asb',
+  queueByItem: 'Element',
+  queueByStep: 'Mar7la',
+  queueByPart: '9asm',
+  queueByLanguage: 'Lougha',
+  queueByKind: 'Naw3',
+  queueByAuthor: 'Elli ktebha',
+  queueCells: '{count} 9asm',
+  queueReview: 'A9ra',
+  queueBack: 'Arja3 lel groupes',
+  queueOpenItem: '7ell el fiche',
+  queueSeriesDone: 'Kammelt el série.',
+  queueEmpty: 'Ma fammech chay yestanna validation mte3ek.',
+  queueCountPending: 'Aqsem lel validation',
+  queueCountItems: 'Elements',
+  queueCountToFix: 'Lazem tetsala7',
+  queueCountPublishable: 'Wejdin lel nachr',
+  todoTitle: 'Chnowa ba9i',
+  todoNothing: 'Ma fammech chay tawa.',
+  todoReview: 'Aqsem lel validation',
+  todoToFix: 'Elements traj3ou lel tasli7',
+  todoPublishable: 'Wejdin lel nachr',
+  todoRecipesToTranslate: 'Maklet lazem tetarjem',
+  todoRecipesWithoutPhoto: 'Maklet bla taswira',
+  todoIngredientsUnitCheck: 'Ingrédients : unité walla soum lazem yetchaf',
+  todoIngredientsWithoutPhoto: 'Ingrédients bla taswira',
+  todoIngredientsUnused: 'Ingrédients fi 7atta makla',
+  workflowsTitle: 'Workflows',
+  workflowsHint: 'Marahel el validation, roles w équipe',
+  workflowsSteps: 'Marahel',
+  workflowsRoles: 'Roles',
+  workflowsTeam: 'Équipe',
+  workflowsVersion: 'Tawa : version {version}',
+  workflowsDefault: 'Tawa : réglages par défaut',
+  workflowsIdle: 'Baddel mar7la walla role : chnowa yetbaddel 3al elements en ligne yodhher 9bal ma tsajjel.',
+  workflowsNote: 'Note 3al version (mathalan : derja lazma)',
+  workflowsSave: 'Sajjel',
+  workflowsSaved: 'Tsajjlou : yetbaddlou 3al équipe lkol.',
+  workflowsOpenVersion: '7ellha fel brouillon',
+  workflowsImpact:
+    '{count} element en ligne ywalli fihom aqsem lazmin mouch mtsadd9in : yo93dou en ligne, w lazem yetsadda9 3lihom.',
+  workflowsNoImpact: 'Ma fammech element en ligne yetbaddel.',
+  workflowsOptions: 'Options',
+  workflowsSequential: 'Marahel bel tartib : mar7la tet7al ki el aqsem el lazmin elli 9balha yetsadda9 3lihom',
+  workflowsBatch: 'Validation mjamma3a lel aqsem el wejdin (m3a ta2kid)',
+  workflowsPartial: 'Onchor bla ma testanna lougha mouch lazma (to93od kif ma hiya en ligne)',
+  workflowsAddStep: 'Zid mar7la',
+  workflowsNewStep: 'Mar7la',
+  workflowsMoveUp: 'Tla3',
+  workflowsMoveDown: 'Hbet',
+  workflowsDeleteStep: 'Fasakh el mar7la',
+  workflowsDeleteStepHint: 'Mar7la fiha 9asm lazem ma tetfsa5ech : 7arrek el 9asm 9bal.',
+  workflowsNoCell: 'Ma fammech 9asm : ikhtar men ta7t.',
+  workflowsReviewers: 'Ysadda9 3liha :',
+  workflowsCells: 'Aqsem lel validation',
+  workflowsCellsHint: 'L kol 9asm × lougha : el mar7la mte3ou, w kenou lazem bech yetnchar.',
+  workflowsStepOf: 'Mar7la mta3',
+  workflowsNotReviewed: '— ma tetsadda9ech',
+  workflowsRequired: 'Lazem',
+  workflowsRuleOff: 'mtaffi',
+  workflowsDefaultLevel: 'par défaut',
+  permEdit: 'Baddel',
+  permSubmit: 'Ab3ath lel validation',
+  permReview: 'Sadda9',
+  permPublish: 'Onchor',
+  permManageWorkflows: 'Tsayyer el workflows',
+  permManageRoles: 'Tsayyer el roles w el équipe',
+  rolesMembers: '{count} membre',
+  rolesAdminHint: 'El admin 3andou el 7ou9ou9 lkol w ma yetbaddelch.',
+  rolesDelete: 'Fasakh el role',
+  rolesInUse: 'Role 3and membres : baddel el role mte3hom 9bal.',
+  rolesLanguages: 'Ken lel loughat :',
+  rolesLanguagesHint: 'Ma fammech case : el aqsem lkol. Sinon, ken nsous el loughat hedhom (traducteur).',
+  rolesNewName: 'Esm el role el jdid',
+  rolesAdd: 'Zid role',
+  teamHint:
+    'Membre yodkhol lel site b compte mte3ou, ba3d y7ell /patron : yekhdem b 7ou9ou9 el role mte3ou. Zidou bel e-mail mta3 el compte mte3ou.',
+  teamEmail: 'E-mail mta3 el compte',
+  teamRole: 'Role',
+  teamAdd: 'Zid',
+  teamAdded: 'Membre tzed.',
+  teamUpdated: 'Role tbaddel.',
+  teamRemove: 'Na77i',
+  teamRemoved: 'Membre tna77a.',
+  teamEmpty: 'Ma fammech membre tawa : ken compte patron 3andou accès.',
 };
 
 const ar: BackofficeTexts = {
@@ -459,7 +788,7 @@ const ar: BackofficeTexts = {
   reviewAdvice: 'مستحسن',
   reviewAllDone: 'تمت المصادقة على كل شيء.',
   reviewNotFound: 'الوصفة غير موجودة.',
-  reviewBack: 'العودة إلى الوصفات',
+  reviewBack: 'العودة إلى القائمة',
   reviewHistory: 'السجلّ',
   reviewStepLocked: 'صادق أولًا على المراحل السابقة.',
   reviewApproveReady: 'المصادقة على {count} أجزاء جاهزة',
@@ -513,6 +842,114 @@ const ar: BackofficeTexts = {
   ruleTimes: 'الوقت والحصص',
   ruleSteps: 'المراحل مكتوبة (ومترجمة كلها)',
   ruleTip: 'نصيحة الطاهي',
+
+  event_save: 'حُفظ',
+  event_approve: 'صودق عليه',
+  event_reject: 'أُرجع',
+  event_publish: 'نُشر',
+  event_unpublish: 'سُحب من الموقع',
+  event_restore: 'استُعيدت نسخة',
+  event_import: 'استُورد',
+  reviewCancel: 'إلغاء',
+  reviewVersions: 'النسخ المنشورة',
+  reviewNoVersions: 'لا توجد نسخة منشورة.',
+  reviewRestore: 'استعادة',
+  reviewRestoreConfirm: 'استعادة هذه النسخة ونشرها من جديد؟',
+  reviewPricesSaved: 'حُفظ {count} سعر في الورشة: تجب المصادقة قبل النشر.',
+  partName: 'الاسم',
+  partPhoto: 'الصورة',
+  partCategory: 'الصنف والوحدة',
+  partPrice: 'السعر',
+  ruleCategory: 'الصنف والوحدة',
+  rulePrice: 'السعر (الأدنى ≤ الأقصى)',
+  filterNoPhoto: 'بلا صورة',
+  filterToTranslate: 'للترجمة',
+  queueTitle: 'للمصادقة',
+  queueHint: 'كل ما ينتظر مصادقتك، مجمّعًا',
+  queueGroupBy: 'تجميع حسب',
+  queueByItem: 'العنصر',
+  queueByStep: 'المرحلة',
+  queueByPart: 'الجزء',
+  queueByLanguage: 'اللغة',
+  queueByKind: 'النوع',
+  queueByAuthor: 'الكاتب',
+  queueCells: '{count} جزء',
+  queueReview: 'مراجعة',
+  queueBack: 'العودة إلى المجموعات',
+  queueOpenItem: 'فتح البطاقة',
+  queueSeriesDone: 'انتهت السلسلة.',
+  queueEmpty: 'لا شيء ينتظر مصادقتك.',
+  queueCountPending: 'أجزاء للمصادقة',
+  queueCountItems: 'عناصر معنية',
+  queueCountToFix: 'تحتاج تصحيحًا',
+  queueCountPublishable: 'جاهزة للنشر',
+  todoTitle: 'ما يجب فعله',
+  todoNothing: 'لا شيء الآن.',
+  todoReview: 'أجزاء للمصادقة',
+  todoToFix: 'عناصر أُرجعت للتصحيح',
+  todoPublishable: 'جاهزة للنشر',
+  todoRecipesToTranslate: 'وصفات للترجمة',
+  todoRecipesWithoutPhoto: 'وصفات بلا صورة',
+  todoIngredientsUnitCheck: 'مكوّنات: وحدة أو سعر للتحقق',
+  todoIngredientsWithoutPhoto: 'مكوّنات بلا صورة',
+  todoIngredientsUnused: 'مكوّنات غير مستعملة في أي وصفة',
+  workflowsTitle: 'مسارات المراجعة',
+  workflowsHint: 'مراحل المراجعة والأدوار والفريق',
+  workflowsSteps: 'المراحل',
+  workflowsRoles: 'الأدوار',
+  workflowsTeam: 'الفريق',
+  workflowsVersion: 'المعتمد: الإصدار {version}',
+  workflowsDefault: 'المعتمد: الإعدادات الافتراضية',
+  workflowsIdle: 'عدّل مرحلة أو دورًا: يظهر الأثر على العناصر المنشورة قبل الحفظ.',
+  workflowsNote: 'ملاحظة الإصدار (مثال: الدارجة إلزامية)',
+  workflowsSave: 'حفظ',
+  workflowsSaved: 'حُفظت المسارات: تنطبق على كل الفريق.',
+  workflowsOpenVersion: 'فتح في المسودة',
+  workflowsImpact: 'سيصبح لدى {count} عنصر منشور أجزاء إلزامية غير مصادق عليها: تبقى منشورة وتُعلَّم للمصادقة.',
+  workflowsNoImpact: 'لا يتأثر أي عنصر منشور بهذه الإعدادات.',
+  workflowsOptions: 'خيارات',
+  workflowsSequential: 'مراحل مرتّبة: تُفتح المرحلة عند المصادقة على الأجزاء الإلزامية للمراحل السابقة',
+  workflowsBatch: 'مصادقة جماعية على الأجزاء الجاهزة (مع تأكيد)',
+  workflowsPartial: 'النشر دون انتظار لغة اختيارية (تحتفظ بنسختها المنشورة)',
+  workflowsAddStep: 'إضافة مرحلة',
+  workflowsNewStep: 'مرحلة',
+  workflowsMoveUp: 'إلى الأعلى',
+  workflowsMoveDown: 'إلى الأسفل',
+  workflowsDeleteStep: 'حذف المرحلة',
+  workflowsDeleteStepHint: 'لا يمكن حذف مرحلة فيها جزء إلزامي: انقل الجزء أولًا.',
+  workflowsNoCell: 'لا يوجد جزء: اختر من الأسفل.',
+  workflowsReviewers: 'يصادق عليها:',
+  workflowsCells: 'الأجزاء للمصادقة',
+  workflowsCellsHint: 'لكل جزء × لغة: مرحلته، وهل هو إلزامي للنشر.',
+  workflowsStepOf: 'مرحلة',
+  workflowsNotReviewed: '— بلا مصادقة',
+  workflowsRequired: 'إلزامي',
+  workflowsRuleOff: 'معطّل',
+  workflowsDefaultLevel: 'افتراضي',
+  permEdit: 'تعديل',
+  permSubmit: 'إرسال للمصادقة',
+  permReview: 'مصادقة',
+  permPublish: 'نشر',
+  permManageWorkflows: 'إدارة المسارات',
+  permManageRoles: 'إدارة الأدوار والفريق',
+  rolesMembers: '{count} عضو',
+  rolesAdminHint: 'للمسؤول كل الصلاحيات ولا يمكن تعديله.',
+  rolesDelete: 'حذف الدور',
+  rolesInUse: 'دور مُسند لأعضاء: غيّر دورهم أولًا.',
+  rolesLanguages: 'مقتصر على اللغات:',
+  rolesLanguagesHint: 'دون اختيار: كل الأجزاء. وإلا فنصوص هذه اللغات فقط (مترجم).',
+  rolesNewName: 'اسم الدور الجديد',
+  rolesAdd: 'إضافة دور',
+  teamHint:
+    'يدخل العضو إلى الموقع بحسابه الخاص ثم يفتح /patron: يعمل بصلاحيات دوره. أضفه بعنوان البريد الإلكتروني لحسابه.',
+  teamEmail: 'البريد الإلكتروني للحساب',
+  teamRole: 'الدور',
+  teamAdd: 'إضافة',
+  teamAdded: 'أُضيف العضو.',
+  teamUpdated: 'عُدّل الدور.',
+  teamRemove: 'إزالة',
+  teamRemoved: 'أُزيل العضو.',
+  teamEmpty: 'لا أعضاء حاليًا: حساب المسؤول وحده له الوصول.',
 };
 
 /** Derja in Arabic letters: only what differs from literary Arabic. To be reviewed by a native speaker. */
@@ -551,7 +988,7 @@ const derjaArabic: Partial<BackofficeTexts> = {
   reviewBlocking: 'يلزم',
   reviewAllDone: 'كل شي تصدّق.',
   reviewNotFound: 'الماكلة موش موجودة.',
-  reviewBack: 'ارجع للماكلات',
+  reviewBack: 'ارجع للقائمة',
   reviewHistory: 'التاريخ',
   reviewStepLocked: 'صدّق قبل على المراحل اللي قبلها.',
   reviewApproveReady: 'صدّق على {count} أقسام واجدين',
@@ -592,6 +1029,96 @@ const derjaArabic: Partial<BackofficeTexts> = {
   ruleKnownIngredients: 'مكوّنات من الكتالوغ',
   ruleSteps: 'المراحل مكتوبة (ومترجمة الكل)',
   ruleTip: 'نصيحة الشاف',
+  event_save: 'تسجّل',
+  event_approve: 'تصدّق',
+  event_reject: 'ترجّع',
+  event_publish: 'تنشر',
+  event_unpublish: 'تنحّى من الموقع',
+  event_restore: 'نسخة ترجّعت',
+  event_import: 'تجاب',
+  reviewCancel: 'بطّل',
+  reviewVersions: 'النسخ اللي تنشرو',
+  reviewNoVersions: 'ما فمّاش نسخة منشورة.',
+  reviewRestore: 'رجّعها',
+  reviewRestoreConfirm: 'ترجّع النسخة هذي وتنشرها مرّة أخرى؟',
+  reviewPricesSaved: '{count} سوم تسجّل في الورشة: لازم يتصدّق قبل ما يتنشر.',
+  partName: 'الإسم',
+  partPhoto: 'التصويرة',
+  partPrice: 'السوم',
+  rulePrice: 'السوم (الأدنى ≤ الأقصى)',
+  filterNoPhoto: 'بلا تصويرة',
+  filterToTranslate: 'لازم تترجم',
+  queueTitle: 'للتصديق',
+  queueHint: 'كل شي يستنّى تصديقك، مجمّع',
+  queueGroupBy: 'جمّع حسب',
+  queueByPart: 'القسم',
+  queueByAuthor: 'اللي كتبها',
+  queueCells: '{count} قسم',
+  queueReview: 'اقرا',
+  queueBack: 'ارجع للمجموعات',
+  queueOpenItem: 'حلّ البطاقة',
+  queueSeriesDone: 'كمّلت السلسلة.',
+  queueEmpty: 'ما فمّا شي يستنّى تصديقك.',
+  queueCountPending: 'أقسام للتصديق',
+  queueCountItems: 'عناصر',
+  queueCountToFix: 'لازم تتصلّح',
+  queueCountPublishable: 'واجدين للنشر',
+  todoTitle: 'شنوّة باقي',
+  todoNothing: 'ما فمّا شي توّا.',
+  todoReview: 'أقسام للتصديق',
+  todoToFix: 'عناصر ترجّعت للتصليح',
+  todoPublishable: 'واجدين للنشر',
+  todoRecipesToTranslate: 'ماكلات لازم تترجم',
+  todoRecipesWithoutPhoto: 'ماكلات بلا تصويرة',
+  todoIngredientsUnitCheck: 'مكوّنات: وحدة ولا سوم لازم يتشاف',
+  todoIngredientsWithoutPhoto: 'مكوّنات بلا تصويرة',
+  todoIngredientsUnused: 'مكوّنات ما فيها حتّى ماكلة',
+  workflowsVersion: 'توّا: الإصدار {version}',
+  workflowsDefault: 'توّا: الإعدادات الافتراضية',
+  workflowsIdle: 'بدّل مرحلة ولا دور: يبان شنوّة يتبدّل على العناصر المنشورة قبل ما تسجّل.',
+  workflowsNote: 'ملاحظة الإصدار (مثلًا: الدارجة لازمة)',
+  workflowsSave: 'سجّل',
+  workflowsSaved: 'تسجّلو: يمشيو على الفريق الكل.',
+  workflowsOpenVersion: 'حلّها في المسودّة',
+  workflowsImpact: '{count} عنصر منشور يولّي فيهم أقسام لازمة موش متصدّقة: يقعدو منشورين ولازمهم تصديق.',
+  workflowsNoImpact: 'حتّى عنصر منشور ما يتبدّل.',
+  workflowsSequential: 'مراحل بالترتيب: المرحلة تتحلّ كي الأقسام اللازمة اللي قبلها يتصدّقو',
+  workflowsBatch: 'تصديق مجمّع للأقسام الواجدين (مع تأكيد)',
+  workflowsPartial: 'انشر بلا ما تستنّى لغة موش لازمة (تقعد كيف ما هي منشورة)',
+  workflowsAddStep: 'زيد مرحلة',
+  workflowsMoveUp: 'طلّع',
+  workflowsMoveDown: 'هبّط',
+  workflowsDeleteStep: 'فسّخ المرحلة',
+  workflowsDeleteStepHint: 'مرحلة فيها قسم لازم ما تتفسخش: حرّك القسم قبل.',
+  workflowsNoCell: 'ما فمّاش قسم: اختار من لوطا.',
+  workflowsReviewers: 'يصدّق عليها:',
+  workflowsCells: 'الأقسام للتصديق',
+  workflowsCellsHint: 'لكل قسم × لغة: المرحلة متاعو، وكان لازم باش يتنشر.',
+  workflowsNotReviewed: '— ما تتصدّقش',
+  workflowsRequired: 'لازم',
+  workflowsRuleOff: 'مطفي',
+  permEdit: 'بدّل',
+  permSubmit: 'ابعث للتصديق',
+  permReview: 'صدّق',
+  permPublish: 'انشر',
+  permManageWorkflows: 'تصرّف في المسارات',
+  permManageRoles: 'تصرّف في الأدوار والفريق',
+  rolesAdminHint: 'المسؤول عندو الصلاحيات الكل وما يتبدّلش.',
+  rolesDelete: 'فسّخ الدور',
+  rolesInUse: 'دور عند أعضاء: بدّل دورهم قبل.',
+  rolesLanguages: 'كان للغات:',
+  rolesLanguagesHint: 'بلا اختيار: الأقسام الكل. وإلّا كان نصوص اللغات هاذم (مترجم).',
+  rolesNewName: 'إسم الدور الجديد',
+  rolesAdd: 'زيد دور',
+  teamHint:
+    'العضو يدخل للموقع بالحساب متاعو، وبعد يحلّ /patron: يخدم بصلاحيات الدور متاعو. زيدو بالإيمايل متاع الحساب.',
+  teamEmail: 'الإيمايل متاع الحساب',
+  teamAdd: 'زيد',
+  teamAdded: 'العضو تزاد.',
+  teamUpdated: 'الدور تبدّل.',
+  teamRemove: 'نحّي',
+  teamRemoved: 'العضو تنحّى.',
+  teamEmpty: 'ما فمّاش أعضاء توّا: كان حساب الباترون عندو الدخول.',
 };
 
 const BASE = { fr, derja, ar } satisfies Record<Exclude<Language, 'derja_ar'>, BackofficeTexts>;

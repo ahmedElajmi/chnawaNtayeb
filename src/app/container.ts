@@ -9,9 +9,10 @@ import {
   RecipeDrafts,
   ReviewBoard,
   ReviewSettingsStore,
+  TeamStore,
   SyncedCollectionStore,
 } from '@/application';
-import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type WorkCopy } from '@/core/review';
+import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type RoleDefinition, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
   initialRecipes,
@@ -33,10 +34,14 @@ import { firestoreMatchingSettings } from '@/infrastructure/firebase/firestoreMa
 import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
 import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firestoreReviewWorkspace';
 import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
+import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
 import { firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
 import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
+
+/** Rights of an account that is neither the patron nor a member of the team. */
+const NO_RIGHTS: RoleDefinition = { id: 'none', label: {}, permissions: [] };
 
 /** A device copy older than this is read again in full (deletion markers may have been purged). */
 const FULL_REFRESH_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
@@ -73,8 +78,12 @@ export function createContainer() {
   // Validation workflow: private workspaces (admin only, started from the backoffice)
   const recipesWorkspace = createFirestoreReviewWorkspace<'recipe'>('recipes');
   const ingredientsWorkspace = createFirestoreReviewWorkspace<'ingredient'>('ingredients');
+  const patron = new PatronStore(patronHttpGateway, () => catalogAdmin.seedIfEmpty());
+  const reviewSettings = new ReviewSettingsStore(firestoreReviewSettings);
+  const team = new TeamStore(firestoreTeam, { now, roles: () => reviewSettings.getState().settings.roles });
+  const adminRole = DEFAULT_ROLES.find((r) => r.id === ADMIN_ROLE_ID)!;
   const review = new ReviewBoard({
-    settings: new ReviewSettingsStore(firestoreReviewSettings),
+    settings: reviewSettings,
     catalog,
     recipes: {
       workspace: new SyncedCollectionStore<WorkCopy<'recipe'>>({
@@ -98,8 +107,13 @@ export function createContainer() {
       }),
       writer: ingredientsWorkspace.writer,
     },
-    // One patron account for now: the admin. Team accounts and their roles come with the roles editor.
-    actor: () => ({ id: 'patron', role: DEFAULT_ROLES.find((r) => r.id === ADMIN_ROLE_ID)! }),
+    // The patron session is the admin; a team member acts with the role given by the admin
+    actor: () => {
+      if (patron.getState().status === 'signed-in') return { id: 'patron', role: adminRole };
+      const me = team.getState().me;
+      const role = team.myRole();
+      return me && role ? { id: me.email || me.uid, role } : { id: 'nobody', role: NO_RIGHTS };
+    },
     now,
   });
   const kitchen = new KitchenStore(localKitchenRepository);
@@ -115,7 +129,8 @@ export function createContainer() {
     // Text search on the device copy of the catalog (swap the engines here, e.g. for a server one)
     search: new CatalogSearch(catalog, { recipes: createMiniSearchEngine(), ingredients: createMiniSearchEngine() }),
     kitchen,
-    patron: new PatronStore(patronHttpGateway, () => catalogAdmin.seedIfEmpty()),
+    patron,
+    team,
     matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),
     matchingScenarios: new MatchingScenariosStore(firestoreMatchingScenarios, {
       randomSuffix: () => crypto.randomUUID().slice(0, 6),

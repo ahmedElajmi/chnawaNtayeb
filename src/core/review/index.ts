@@ -8,3 +8,4 @@ export * from './progress';
 export * from './queue';
 export * from './workCopy';
 export * from './settings';
+export * from './team';
