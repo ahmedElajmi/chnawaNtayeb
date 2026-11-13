@@ -170,6 +170,8 @@ export const DERJA_ARABIC: Partial<TranslationDictionary> = {
   suggestionsEmptyTitle: 'الفريجيدار فارغ',
   suggestionsEmptyDesc: 'اختار شويّة مكوّنات باش نورّيك شنوة تنجم تطيب.',
   fillFridgeHint: 'عبّي الفريجيدار',
+  catalogSoonTitle: 'الماكلات جايين',
+  catalogSoonDesc: 'الشاف سهيد يحضّر فيهم ويثبّت فيهم وحدة وحدة. ارجع بعد شويّة!',
   catalogEmptyTitle: 'ما فمّا حتى ماكلة بالفلتر هذا',
   catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
   resetFiltersLabel: 'فسّخ الفلتر',

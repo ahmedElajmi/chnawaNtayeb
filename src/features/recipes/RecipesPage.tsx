@@ -1,5 +1,5 @@
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { useKitchen } from '@/app/ContainerContext';
+import { useCatalog, useKitchen } from '@/app/ContainerContext';
 import { PATHS } from '@/shared/paths';
 import { useRecipeCatalog, useRecipeFiltersInUrl, useRecipeMatches } from './hooks';
 import { RecipeFilterBar } from './components/RecipeFilterBar';
@@ -14,6 +14,7 @@ export function RecipesPage() {
   const catalog = useRecipeCatalog(filters);
   const { ready, almost, ideas } = useRecipeMatches(filters);
   const { fridge } = useKitchen();
+  const { recipes } = useCatalog();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -25,7 +26,12 @@ export function RecipesPage() {
       />
       <RecipeFilterBar filters={filters} setFilters={setFilters} />
 
-      {catalog.length === 0 ? (
+      {recipes.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl bg-card border border-slate-200 dark:border-slate-700 space-y-2">
+          <p className="text-base font-bold text-ink">{t.catalogSoonTitle}</p>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">{t.catalogSoonDesc}</p>
+        </div>
+      ) : catalog.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-card border border-slate-200 dark:border-slate-700 space-y-3">
           <p className="text-base font-bold text-ink">{t.catalogEmptyTitle}</p>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">{t.catalogEmptyDesc}</p>

@@ -214,6 +214,8 @@ export interface TranslationDictionary {
   suggestionsEmptyTitle: string;
   suggestionsEmptyDesc: string;
   fillFridgeHint: string;
+  catalogSoonTitle: string;
+  catalogSoonDesc: string;
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
@@ -424,6 +426,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyTitle: 'El frigo fera8',
     suggestionsEmptyDesc: 'Ekhtar chwaya ingrédients bech nwarrik chnowa tnajem ttayeb.',
     fillFridgeHint: '3abbi el frigo',
+    catalogSoonTitle: 'El maklet jeyin',
+    catalogSoonDesc: 'Chef Souhed y7adher fihom w ychouf fihom wa7da wa7da. Arja3 ba3d chwaya !',
     catalogEmptyTitle: 'Ma fama 7atta makla b had el filtres',
     catalogEmptyDesc: 'Na7i filtre walla badel el recherche.',
     resetFiltersLabel: 'Fasakh el filtres',
@@ -634,6 +638,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyTitle: 'Votre frigo est vide',
     suggestionsEmptyDesc: 'Sélectionnez quelques ingrédients pour voir les recettes que vous pouvez cuisiner.',
     fillFridgeHint: 'remplir le frigo',
+    catalogSoonTitle: 'Les recettes arrivent',
+    catalogSoonDesc: 'Chef Souhed les prépare et les vérifie une à une. Revenez bientôt !',
     catalogEmptyTitle: 'Aucune recette ne correspond à ces filtres',
     catalogEmptyDesc: 'Retirez un filtre ou modifiez la recherche.',
     resetFiltersLabel: 'Effacer les filtres',
@@ -840,6 +846,8 @@ const BASE_TRANSLATIONS = {
     suggestionsEmptyTitle: 'الفريجيدار فارغ',
     suggestionsEmptyDesc: 'اختار شوية مكوّنات باش نورّيك شنوة تنجم تطيب.',
     fillFridgeHint: 'املأ الثلاجة',
+    catalogSoonTitle: 'الوصفات قادمة',
+    catalogSoonDesc: 'يُعدّها الشيف سهيد ويراجعها واحدة تلو الأخرى. عُد قريبًا!',
     catalogEmptyTitle: 'ما فماش وصفة بهالفلاتر',
     catalogEmptyDesc: 'نحّي فلتر ولا بدّل البحث.',
     resetFiltersLabel: 'فسّخ الفلاتر',

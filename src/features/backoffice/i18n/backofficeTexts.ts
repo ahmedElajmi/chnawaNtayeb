@@ -94,10 +94,6 @@ export interface BackofficeTexts {
   reviewUnpublished: string;
   reviewEditorNotes: string;
   reviewSaved: string;
-  reviewImportTitle: string;
-  reviewImportHint: string;
-  reviewImport: string;
-  reviewImported: string;
   partIdentity: string;
   partMedia: string;
   partDetails: string;
@@ -240,6 +236,59 @@ export interface BackofficeTexts {
   teamRemove: string;
   teamRemoved: string;
   teamEmpty: string;
+
+  // Next action, completeness, reset
+  event_reset: string;
+  actionValidate: string;
+  actionValidateChanges: string;
+  actionPublish: string;
+  actionFix: string;
+  actionComplete: string;
+  actionHint: string;
+  completenessFull: string;
+  completenessPercent: string;
+  completenessMissing: string;
+  completenessTitle: string;
+  completenessHint: string;
+  filterToEnrich: string;
+  sortLabel: string;
+  sortStatus: string;
+  sortName: string;
+  sortCompleteness: string;
+  recipesListHint: string;
+  ingredientsListHint: string;
+  resetTitle: string;
+  resetHint: string;
+  resetButton: string;
+  resetConfirm: string;
+  resetDone: string;
+  resetFailed: string;
+  reviewOnlineNoCopy: string;
+
+  // Lists
+  searchRecipes: string;
+  duplicateRecipe: string;
+  searchIngredients: string;
+
+  // Ingredient list
+  ingFixedPrice: string;
+  ingUnusedFilter: string;
+  ingUnitCheck: string;
+  allCategories: string;
+  ingSavePrices: string;
+  ingAdd: string;
+  ingPriceHint: string;
+  ingShown: string;
+  ingUnit: string;
+  ingUsedIn: string;
+  ingNoRecipe: string;
+  ingPriceMin: string;
+  ingPriceMax: string;
+  ingEdit: string;
+  ingEditHint: string;
+  confirmDeleteRecipe: string;
+  recipeDeleted: string;
+  todoRecipesToEnrich: string;
 }
 
 const fr: BackofficeTexts = {
@@ -328,11 +377,6 @@ const fr: BackofficeTexts = {
   reviewUnpublished: 'Retiré du site (gardé dans l’atelier).',
   reviewEditorNotes: 'À corriger d’après la validation :',
   reviewSaved: 'Enregistré dans l’atelier : à valider avant publication.',
-  reviewImportTitle: 'Workflow de validation',
-  reviewImportHint:
-    'Crée une copie dans l’atelier pour chaque recette : celles en ligne sont marquées validées, les brouillons quittent le site et restent dans l’atelier. Sans danger, à faire une fois.',
-  reviewImport: 'Importer les recettes dans l’atelier',
-  reviewImported: '{count} recette(s) ajoutée(s) à l’atelier.',
   partIdentity: 'Nom et description',
   partMedia: 'Médias',
   partDetails: 'Infos et ingrédients',
@@ -479,6 +523,56 @@ const fr: BackofficeTexts = {
   teamRemove: 'Retirer',
   teamRemoved: 'Membre retiré.',
   teamEmpty: 'Aucun membre pour l’instant : seul le compte patron a accès.',
+  event_reset: 'Remis à valider',
+  actionValidate: 'Valider ({percent} %)',
+  actionValidateChanges: 'Valider les changements',
+  actionPublish: 'Publier',
+  actionFix: 'Corriger',
+  actionComplete: 'Compléter',
+  actionHint: 'Ouvre la fiche : les parties à valider une à une, puis la publication.',
+  completenessFull: 'Complète',
+  completenessPercent: 'Données à {percent} %',
+  completenessMissing: 'Manque : {list}',
+  completenessTitle: 'Complétude des données',
+  completenessHint: 'Tout ce qui peut être rempli (langues facultatives, vidéo, astuce…), même après validation.',
+  filterToEnrich: 'À enrichir',
+  sortLabel: 'Trier',
+  sortStatus: 'Par statut',
+  sortName: 'Par nom',
+  sortCompleteness: 'Moins complètes d’abord',
+  recipesListHint: 'Une recette n’est visible sur le site qu’une fois validée et publiée.',
+  ingredientsListHint: 'Un ingrédient n’est visible sur le site qu’une fois validé et publié.',
+  resetTitle: 'Remettre toutes les recettes à valider',
+  resetHint:
+    'Chaque recette repart de zéro : toutes ses parties sont à valider et elle est retirée du site jusqu’à sa publication. Le contenu et l’historique sont gardés.',
+  resetButton: 'Tout remettre à valider',
+  resetConfirm:
+    '{count} recette(s) vont repasser « à valider » et seront retirées du site : le site n’affichera plus que les recettes que tu publieras. Continuer ?',
+  resetDone: '{count} recette(s) remise(s) à valider, dont {offline} retirée(s) du site.',
+  resetFailed: '{failed} recette(s) n’ont pas pu être traitées : relance pour les reprendre.',
+  reviewOnlineNoCopy: 'En ligne et validée : rien à faire. Une modification passera par la validation.',
+  searchRecipes: 'Rechercher une recette par nom…',
+  duplicateRecipe: 'Dupliquer : nouvelle recette à partir de celle-ci',
+  searchIngredients: 'Rechercher un ingrédient…',
+  ingFixedPrice: 'Prix fixe (min = max)',
+  ingUnusedFilter: 'Dans aucune recette',
+  ingUnitCheck: 'Unité à vérifier',
+  allCategories: 'Toutes catégories',
+  ingSavePrices: 'Enregistrer les prix ({count})',
+  ingAdd: 'Ajouter un ingrédient',
+  ingPriceHint:
+    'Prix du marché en fourchette (min – max) pour une unité d’achat. Noms, photo et catégorie : bouton crayon.',
+  ingShown: '{shown} ingrédient(s) affiché(s) sur {total}',
+  ingUnit: 'Unité : {unit}',
+  ingUsedIn: '{count} recette(s)',
+  ingNoRecipe: 'aucune recette',
+  ingPriceMin: 'Prix minimum de {name} en DT',
+  ingPriceMax: 'Prix maximum de {name} en DT',
+  ingEdit: 'Modifier {name}',
+  ingEditHint: 'Modifier les noms, l’unité, la catégorie et la photo',
+  confirmDeleteRecipe: 'Supprimer définitivement « {name} » ?',
+  recipeDeleted: 'Recette supprimée',
+  todoRecipesToEnrich: 'Recettes aux données incomplètes (langues, vidéo, astuce…)',
 };
 
 const derja: BackofficeTexts = {
@@ -567,11 +661,6 @@ const derja: BackofficeTexts = {
   reviewUnpublished: 'Tna77at mel site (9a3da fel atelier).',
   reviewEditorNotes: 'Lazem tetsala7 7asb el validation :',
   reviewSaved: 'Tsajjel fel atelier : lazem yetsadda9 9bal ma yetnchar.',
-  reviewImportTitle: 'Workflow mta3 el validation',
-  reviewImportHint:
-    'Ya3mel copie fel atelier l kol makla : elli en ligne tetsadda9, el brouillons yokhrjou mel site w yo93dou fel atelier. Ma fih 7ata khatar, marra wa7da.',
-  reviewImport: 'Importi el maklet lel atelier',
-  reviewImported: '{count} makla tzadet lel atelier.',
   partIdentity: 'Esm w wasf',
   partMedia: 'Tsawer w vidéo',
   partDetails: 'Ma3loumet w ingrédients',
@@ -715,6 +804,55 @@ const derja: BackofficeTexts = {
   teamRemove: 'Na77i',
   teamRemoved: 'Membre tna77a.',
   teamEmpty: 'Ma fammech membre tawa : ken compte patron 3andou accès.',
+  event_reset: 'Rja3 lel validation',
+  actionValidate: 'Validi ({percent} %)',
+  actionValidateChanges: 'Validi el tbdil',
+  actionPublish: 'Onchor',
+  actionFix: 'Sale7',
+  actionComplete: 'Kammel',
+  actionHint: 'Y7ell el fiche : el parties bech tvalidiha wa7da wa7da, ba3d tonchor.',
+  completenessFull: 'Kemla',
+  completenessPercent: 'Données {percent} %',
+  completenessMissing: 'Na9es : {list}',
+  completenessTitle: 'Kmel el données',
+  completenessHint: 'Kol chay ynajem yet3abba (loughat ekhtiyariya, vidéo, astuce…), 7atta ba3d el validation.',
+  filterToEnrich: 'Lezem tkammel',
+  sortLabel: 'Rattab',
+  sortStatus: 'Bel 7ala',
+  sortName: 'Bel esm',
+  sortCompleteness: 'Elli na9sin lowlin',
+  recipesListHint: 'El makla ma tban fel site ken ba3d ma tetvalida w tetnchor.',
+  ingredientsListHint: 'El ingrédient ma ybanech fel site ken ba3d ma yetvalida w yetnchor.',
+  resetTitle: 'Rajja3 el maklet lkol lel validation',
+  resetHint:
+    'Kol makla tebda men jdid : el parties lkol lezem tetvalida w tetna7a mel site 7atta tetnchor. El contenu w el historique yob9aw.',
+  resetButton: 'Rajja3 kol chay lel validation',
+  resetConfirm:
+    '{count} makla bech yarj3ou « lel validation » w yetna7aw mel site : el site ma ywarri ken el maklet elli tonchorha. Nkamlou ?',
+  resetDone: '{count} makla rj3ou lel validation, menhom {offline} tna7aw mel site.',
+  resetFailed: '{failed} makla ma t3addech : 3awed bech nkammlouhom.',
+  reviewOnlineNoCopy: 'Fel ligne w validée : ma famma chay. Ay tbdil yet3adda bel validation.',
+  searchRecipes: 'Lawwej 3la makla b esmha…',
+  duplicateRecipe: 'Doubli : makla jdida men hedhi',
+  searchIngredients: 'Lawwej 3la ingrédient…',
+  ingFixedPrice: 'Soum thabet (min = max)',
+  ingUnusedFilter: 'Fi 7atta makla',
+  ingUnitCheck: 'Unité lezem tetchecka',
+  allCategories: 'Kol el catégories',
+  ingSavePrices: 'Sajjel el as3ar ({count})',
+  ingAdd: 'Zid ingrédient',
+  ingPriceHint: 'Soum el marché bin min w max l unité chra. Asami, taswira w catégorie : bouton el 9lam.',
+  ingShown: '{shown} ingrédient men {total}',
+  ingUnit: 'Unité : {unit}',
+  ingUsedIn: '{count} makla',
+  ingNoRecipe: '7atta makla',
+  ingPriceMin: 'A9al soum l {name} bel dinar',
+  ingPriceMax: 'Akther soum l {name} bel dinar',
+  ingEdit: 'Baddel {name}',
+  ingEditHint: 'Baddel el asami, el unité, el catégorie w el taswira',
+  confirmDeleteRecipe: 'Tfasa5 « {name} » nihayan ?',
+  recipeDeleted: 'El makla tfas5et',
+  todoRecipesToEnrich: 'Maklet données mte3hom na9sin (loughat, vidéo, astuce…)',
 };
 
 const ar: BackofficeTexts = {
@@ -803,11 +941,6 @@ const ar: BackofficeTexts = {
   reviewUnpublished: 'سُحب من الموقع (محفوظ في الورشة).',
   reviewEditorNotes: 'يجب تصحيحه حسب المراجعة:',
   reviewSaved: 'حُفظ في الورشة: تجب المصادقة قبل النشر.',
-  reviewImportTitle: 'مسار المراجعة',
-  reviewImportHint:
-    'ينشئ نسخة في الورشة لكل وصفة: المنشورة تُعتبر مصادقًا عليها، والمسودات تُسحب من الموقع وتبقى في الورشة. آمن، يكفي مرة واحدة.',
-  reviewImport: 'استيراد الوصفات إلى الورشة',
-  reviewImported: 'أُضيفت {count} وصفة إلى الورشة.',
   partIdentity: 'الاسم والوصف',
   partMedia: 'الصور والفيديو',
   partDetails: 'المعلومات والمكوّنات',
@@ -950,6 +1083,53 @@ const ar: BackofficeTexts = {
   teamRemove: 'إزالة',
   teamRemoved: 'أُزيل العضو.',
   teamEmpty: 'لا أعضاء حاليًا: حساب المسؤول وحده له الوصول.',
+  event_reset: 'أُعيد إلى المراجعة',
+  actionValidate: 'مراجعة ({percent} %)',
+  actionValidateChanges: 'مراجعة التعديلات',
+  actionPublish: 'نشر',
+  actionFix: 'تصحيح',
+  actionComplete: 'إكمال',
+  actionHint: 'يفتح البطاقة: الأجزاء المطلوب مراجعتها واحدًا تلو الآخر، ثم النشر.',
+  completenessFull: 'مكتملة',
+  completenessPercent: 'البيانات {percent} %',
+  completenessMissing: 'ينقص: {list}',
+  completenessTitle: 'اكتمال البيانات',
+  completenessHint: 'كل ما يمكن تعبئته (اللغات الاختيارية، الفيديو، النصيحة…)، حتى بعد المراجعة.',
+  filterToEnrich: 'للإثراء',
+  sortLabel: 'ترتيب',
+  sortStatus: 'حسب الحالة',
+  sortName: 'حسب الاسم',
+  sortCompleteness: 'الأقل اكتمالًا أولًا',
+  recipesListHint: 'لا تظهر الوصفة على الموقع إلا بعد مراجعتها ونشرها.',
+  ingredientsListHint: 'لا يظهر المكوّن على الموقع إلا بعد مراجعته ونشره.',
+  resetTitle: 'إعادة كل الوصفات إلى المراجعة',
+  resetHint: 'تبدأ كل وصفة من جديد: كل أجزائها تحتاج إلى مراجعة، وتُسحب من الموقع حتى نشرها. يُحتفظ بالمحتوى وبالسجل.',
+  resetButton: 'إعادة الكل إلى المراجعة',
+  resetConfirm: 'ستعود {count} وصفة إلى «للمراجعة» وتُسحب من الموقع: لن يعرض الموقع إلا الوصفات التي تنشرها. متابعة؟',
+  resetDone: 'أُعيدت {count} وصفة إلى المراجعة، منها {offline} سُحبت من الموقع.',
+  resetFailed: 'تعذّرت معالجة {failed} وصفة: أعد المحاولة لإكمالها.',
+  reviewOnlineNoCopy: 'منشورة ومُراجَعة: لا شيء مطلوب. أي تعديل سيمرّ بالمراجعة.',
+  searchRecipes: 'ابحث عن وصفة باسمها…',
+  duplicateRecipe: 'تكرار: وصفة جديدة انطلاقًا من هذه',
+  searchIngredients: 'ابحث عن مكوّن…',
+  ingFixedPrice: 'سعر ثابت (الأدنى = الأعلى)',
+  ingUnusedFilter: 'غير مستعمل في أي وصفة',
+  ingUnitCheck: 'وحدة يجب التحقق منها',
+  allCategories: 'كل الأصناف',
+  ingSavePrices: 'حفظ الأسعار ({count})',
+  ingAdd: 'إضافة مكوّن',
+  ingPriceHint: 'سعر السوق كمجال (أدنى – أعلى) لوحدة شراء. الأسماء والصورة والصنف: زر القلم.',
+  ingShown: '{shown} مكوّن معروض من {total}',
+  ingUnit: 'الوحدة: {unit}',
+  ingUsedIn: '{count} وصفة',
+  ingNoRecipe: 'لا توجد وصفة',
+  ingPriceMin: 'أدنى سعر لـ{name} بالدينار',
+  ingPriceMax: 'أعلى سعر لـ{name} بالدينار',
+  ingEdit: 'تعديل {name}',
+  ingEditHint: 'تعديل الأسماء والوحدة والصنف والصورة',
+  confirmDeleteRecipe: 'حذف «{name}» نهائيًا؟',
+  recipeDeleted: 'حُذفت الوصفة',
+  todoRecipesToEnrich: 'وصفات بياناتها غير مكتملة (اللغات، الفيديو، النصيحة…)',
 };
 
 /** Derja in Arabic letters: only what differs from literary Arabic. To be reviewed by a native speaker. */
@@ -1001,10 +1181,6 @@ const derjaArabic: Partial<BackofficeTexts> = {
   reviewUnpublished: 'تنحّات من الموقع (قاعدة في الورشة).',
   reviewEditorNotes: 'لازم يتصلّح حسب المراجعة:',
   reviewSaved: 'تسجّل في الورشة: لازم يتصدّق قبل ما يتنشر.',
-  reviewImportHint:
-    'يعمل نسخة في الورشة لكل ماكلة: المنشورة تتصدّق، والمسودّات تخرج من الموقع وتقعد في الورشة. ما فيهاش خطر، مرّة برك.',
-  reviewImport: 'جيب الماكلات للورشة',
-  reviewImported: '{count} ماكلة تزادت للورشة.',
   partIdentity: 'الإسم والوصف',
   partMedia: 'التصاور والفيديو',
   partTip: 'نصيحة الشاف',
@@ -1119,6 +1295,53 @@ const derjaArabic: Partial<BackofficeTexts> = {
   teamRemove: 'نحّي',
   teamRemoved: 'العضو تنحّى.',
   teamEmpty: 'ما فمّاش أعضاء توّا: كان حساب الباترون عندو الدخول.',
+  event_reset: 'رجع للمراجعة',
+  actionValidate: 'صدّق ({percent} %)',
+  actionValidateChanges: 'صدّق على التبديلات',
+  actionPublish: 'انشر',
+  actionFix: 'صلّح',
+  actionComplete: 'كمّل',
+  actionHint: 'يحلّ الفيش: الأجزاء اللي تصدّق عليها وحدة وحدة، بعد تنشر.',
+  completenessFull: 'كاملة',
+  completenessPercent: 'الداتا {percent} %',
+  completenessMissing: 'ناقص: {list}',
+  completenessTitle: 'كمال الداتا',
+  completenessHint: 'كل شي ينجم يتعبّى (لغات اختيارية، فيديو، نصيحة…)، حتى بعد التصديق.',
+  filterToEnrich: 'لازمها تتكمّل',
+  sortLabel: 'رتّب',
+  sortStatus: 'بالحالة',
+  sortName: 'بالإسم',
+  sortCompleteness: 'الناقصين الأوّلين',
+  recipesListHint: 'الماكلة ما تبانش في السيت كان كي تتصدّق وتتنشر.',
+  ingredientsListHint: 'المكوّن ما يبانش في السيت كان كي يتصدّق ويتنشر.',
+  resetTitle: 'رجّع الماكلات الكل للتصديق',
+  resetHint: 'كل ماكلة تبدى من جديد: الأجزاء الكل لازمها تتصدّق وتتنحّى من السيت حتى تتنشر. المحتوى والتاريخ يقعدو.',
+  resetButton: 'رجّع كل شي للتصديق',
+  resetConfirm: '{count} ماكلة باش يرجعو «للتصديق» ويتنحّاو من السيت: السيت ما يورّي كان الماكلات اللي تنشرها. نكمّلو؟',
+  resetDone: '{count} ماكلة رجعو للتصديق، منهم {offline} تنحّاو من السيت.',
+  resetFailed: '{failed} ماكلة ما تعدّاتش: عاود باش نكمّلوهم.',
+  reviewOnlineNoCopy: 'منشورة ومتصدّقة: ما فمّا شي. أي تبديل يتعدّى بالتصديق.',
+  searchRecipes: 'لوّج على ماكلة بإسمها…',
+  duplicateRecipe: 'دوبلي: ماكلة جديدة من هذي',
+  searchIngredients: 'لوّج على مكوّن…',
+  ingFixedPrice: 'سوم ثابت (الأدنى = الأعلى)',
+  ingUnusedFilter: 'في حتّى ماكلة',
+  ingUnitCheck: 'الوحدة لازمها تتثبّت',
+  allCategories: 'الأصناف الكل',
+  ingSavePrices: 'سجّل الأسوام ({count})',
+  ingAdd: 'زيد مكوّن',
+  ingPriceHint: 'سوم السوق بين الأدنى والأعلى لوحدة شرا. الأسامي والتصويرة والصنف: بوتون القلم.',
+  ingShown: '{shown} مكوّن من {total}',
+  ingUnit: 'الوحدة: {unit}',
+  ingUsedIn: '{count} ماكلة',
+  ingNoRecipe: 'حتّى ماكلة',
+  ingPriceMin: 'أقل سوم لـ{name} بالدينار',
+  ingPriceMax: 'أكثر سوم لـ{name} بالدينار',
+  ingEdit: 'بدّل {name}',
+  ingEditHint: 'بدّل الأسامي والوحدة والصنف والتصويرة',
+  confirmDeleteRecipe: 'تفسخ «{name}» نهائيًا؟',
+  recipeDeleted: 'الماكلة تفسخت',
+  todoRecipesToEnrich: 'ماكلات الداتا متاعهم ناقصة (لغات، فيديو، نصيحة…)',
 };
 
 const BASE = { fr, derja, ar } satisfies Record<Exclude<Language, 'derja_ar'>, BackofficeTexts>;
