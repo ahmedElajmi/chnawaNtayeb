@@ -27,6 +27,7 @@ export const PATRON_PAGES = {
   data: 'donnees',
   workflows: 'workflows',
   categories: 'categories',
+  users: 'utilisateurs',
 } as const;
 
 /** Sub-pages of /patron/categories (one tree per kind of content). */

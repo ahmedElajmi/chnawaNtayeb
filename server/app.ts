@@ -2,6 +2,7 @@ import express from 'express';
 import { securityHeadersMiddleware } from './headers';
 import type { AdminConfig } from './patronAuth';
 import type { VisionProvider } from './vision/visionProvider';
+import { accountRoutes } from './routes/accountRoutes';
 import { patronRoutes } from './routes/patronRoutes';
 import { seoRoutes } from './routes/seoRoutes';
 import { VISION_PATH, visionRoutes } from './routes/visionRoutes';
@@ -30,6 +31,7 @@ export function createApiApp({ adminConfig, vision }: AppDependencies): express.
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
   app.use(patronRoutes(adminConfig));
+  app.use(accountRoutes(adminConfig));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
   return app;

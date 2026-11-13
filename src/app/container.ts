@@ -13,6 +13,7 @@ import {
   TeamStore,
   SyncedCollectionStore,
 } from '@/application';
+import { AccountProfileStore, CountriesStore } from '@/application';
 import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type RoleDefinition, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
@@ -23,6 +24,7 @@ import {
 } from '@/core/catalog';
 import { createId } from '@/core/shared';
 import { BUILT_IN_CATEGORIES, parseStoredCategories, type CategoryKind, type ContentCategory } from '@/core/categories';
+import { initialCountries, parseStoredCountries, type CountryRecord } from '@/core/accounts';
 import { localKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
@@ -31,6 +33,7 @@ import { storage } from '@/infrastructure/local/storage';
 import { createIndexedDbCollectionCache } from '@/infrastructure/indexeddb/indexedDbCollectionCache';
 import {
   firestoreCloudName,
+  firestoreCountries,
   firestoreIngredientCategories,
   firestoreIngredients,
   firestoreRecipeCategories,
@@ -42,7 +45,8 @@ import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
 import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firestoreReviewWorkspace';
 import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
 import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
-import { firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
+import { firebaseAccountProfile, firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
+import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
 import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
 import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
@@ -144,6 +148,18 @@ export function createContainer() {
       canPublish,
       BUILT_IN_CATEGORIES[kind]
     );
+  // Countries: public, followed like the catalog; enabled/edited by an account allowed to publish
+  const countriesCollection = new SyncedCollectionStore<CountryRecord>({
+    source: firestoreCountries.source,
+    cache: createIndexedDbCollectionCache<CountryRecord>('countries'),
+    read: parseStoredCountries,
+    builtIn: () => initialCountries,
+    now,
+    fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
+  });
+  const countries = new CountriesStore(countriesCollection, firestoreCountries.writer, canPublish);
+  const accountProfile = new AccountProfileStore(firebaseAccountProfile, () => countries.getState().countries);
+
   const categories = {
     recipe: categoryStore('recipe', firestoreRecipeCategories, 'recipe_categories'),
     ingredient: categoryStore('ingredient', firestoreIngredientCategories, 'ingredient_categories'),
@@ -164,6 +180,8 @@ export function createContainer() {
     kitchen,
     patron,
     team,
+    countries,
+    accountProfile,
     matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),
     matchingScenarios: new MatchingScenariosStore(firestoreMatchingScenarios, {
       randomSuffix: () => crypto.randomUUID().slice(0, 6),
@@ -173,6 +191,7 @@ export function createContainer() {
     preferences: localPreferences,
     themes: firestoreThemeRepository,
     userAuth: firebaseUserAuth,
+    accountCreation: accountHttpGateway,
     catalogAdmin,
     // Validation workflow (workspaces, workflows, roles): followed only in the backoffice
     review,

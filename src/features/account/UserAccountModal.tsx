@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
-import { User, LogIn, LogOut, CheckCircle, Sparkles, X, Mail, Lock, Shield, Loader2, UserPlus } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  User,
+  LogIn,
+  LogOut,
+  CheckCircle,
+  Sparkles,
+  X,
+  Mail,
+  Lock,
+  Shield,
+  Loader2,
+  UserPlus,
+  Pencil,
+  KeyRound,
+} from 'lucide-react';
 import type { AppUser, UserAuthError } from '@/application';
-import { useContainer } from '@/app/ContainerContext';
+import { useAccountProfile, useContainer, useCountries } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { LANGUAGES, type Language } from '@/core/shared';
+import { validateRegistration, type Address, type FieldError } from '@/core/accounts';
 import type { TranslationDictionary } from '@/shared/i18n/translations';
 import { ModalShell } from '@/shared/ui/ModalShell';
+import { PhoneInput } from '@/shared/ui/PhoneInput';
+import { AddressFields } from '@/shared/ui/AddressFields';
 
 /** Text of a failed sign-in, in the current language (the gateway only gives a code). */
 function authErrorText(t: TranslationDictionary, error: UserAuthError, minPasswordLength: number): string {
@@ -28,6 +46,22 @@ function authErrorText(t: TranslationDictionary, error: UserAuthError, minPasswo
   }
 }
 
+/** One field-level error message, in the current language. */
+function fieldErrorText(t: TranslationDictionary, error: FieldError): string {
+  const keyOf: Record<FieldError['message'], keyof TranslationDictionary> = {
+    required: 'accountFieldRequired',
+    email: 'accountEmail',
+    'password-length': 'accountPasswordMin',
+    phone: 'accountFieldPhone',
+    address: 'accountFieldAddress',
+    language: 'accountFieldLanguage',
+    'name-length': 'accountNamePlaceholder',
+  };
+  return String(t[keyOf[error.message]]);
+}
+
+const EMPTY_ADDRESS: Address = { line: '', region: '', city: '', postalCode: '', country: 'TN' };
+
 interface UserAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,13 +76,38 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   onOpenPatronLogin,
 }) => {
   const { userAuth } = useContainer();
-  const { t } = useLanguage();
+  const { profile: accountProfile, accountProfileStore } = useAccountProfile();
+  const { countries: allCountries, enabled } = useCountries();
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Registration extras (all optional except the name)
+  const [displayName, setDisplayName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [withAddress, setWithAddress] = useState(false);
+  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [preferredLanguage, setPreferredLanguage] = useState<Language>(language);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   // Sign-in and sign-up are two explicit actions: a wrong password never creates an account
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  // Profile editing (signed-in accounts)
+  const [editing, setEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savedNote, setSavedNote] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  useEffect(() => {
+    if (savedNote) {
+      const timer = setTimeout(() => setSavedNote(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [savedNote]);
+
+  const addressErrors = useMemo(() => new Set(fieldErrors.map((e) => e.field)), [fieldErrors]);
 
   if (!isOpen) return null;
 
@@ -57,11 +116,36 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setErrorMsg(null);
+    setFieldErrors([]);
+    if (mode === 'register') {
+      const input = {
+        email,
+        password,
+        displayName: displayName || undefined,
+        phone: phone || undefined,
+        address: withAddress ? address : undefined,
+        preferredLanguage,
+      };
+      const errors = validateRegistration(input, enabled, userAuth.minPasswordLength);
+      if (errors.length) {
+        setFieldErrors(errors);
+        return;
+      }
+    }
+    setIsLoading(true);
     try {
-      if (mode === 'register') await userAuth.register(email, password);
-      else await userAuth.loginWithEmail(email, password);
+      if (mode === 'register') {
+        await userAuth.register({
+          email,
+          password,
+          displayName: displayName || undefined,
+          phone: phone || undefined,
+          address: withAddress ? address : undefined,
+          preferredLanguage,
+        });
+        await setLanguage(preferredLanguage);
+      } else await userAuth.loginWithEmail(email, password);
       setPassword('');
       onClose();
     } catch (err) {
@@ -96,8 +180,52 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
     }
   };
 
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    setFieldErrors([]);
+    setSavingProfile(true);
+    try {
+      const result = await accountProfileStore.update(currentUser.uid, {
+        displayName,
+        phone,
+        address: withAddress ? address : undefined,
+        preferredLanguage,
+      });
+      if (!result.ok) setFieldErrors(result.errors);
+      else {
+        setEditing(false);
+        setSavedNote(true);
+        if (preferredLanguage !== language) void setLanguage(preferredLanguage);
+      }
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const changeMyPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    setErrorMsg(null);
+    setIsLoading(true);
+    try {
+      await userAuth.changePassword(currentPassword, newPassword);
+      setChangingPassword(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setSavedNote(true);
+    } catch (err) {
+      showError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const isPatronSession = !!currentUser && userAuth.isPatronAccount(currentUser);
-  const isAdmin = isPatronSession || (!!currentUser && userAuth.isOwner(currentUser));
+  // Admin gate: the patron session, or an account that is a member of the team
+  const isAdmin = isPatronSession || (!!currentUser && accountProfile?.type === 'employee');
+  const profile = accountProfile ?? null;
+  const realAccount = !!currentUser && !currentUser.isAnonymous && !isPatronSession;
 
   return (
     <ModalShell onDismiss={onClose}>
@@ -124,6 +252,11 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
         {errorMsg && (
           <div className="mt-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200">
             {errorMsg}
+          </div>
+        )}
+        {savedNote && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300">
+            {t.accountSaved}
           </div>
         )}
 
@@ -155,6 +288,168 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               </div>
             </div>
 
+            {/* Profile of a real account: view, then edit (guests and patron sessions have no profile) */}
+            {realAccount && !editing && (
+              <div className="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-700/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-ink">{t.accountProfileTitle}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisplayName(profile?.displayName ?? '');
+                      setPhone(profile?.phone ?? '');
+                      setAddress(profile?.address ?? EMPTY_ADDRESS);
+                      setWithAddress(!!profile?.address);
+                      setPreferredLanguage((profile?.preferredLanguage as Language | undefined) ?? language);
+                      setEditing(true);
+                    }}
+                    className="text-xs font-bold text-accent-text inline-flex items-center gap-1 hover:underline"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    {t.accountEditProfile}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">{profile?.displayName ?? t.accountProfileUnavailable}</p>
+                {profile?.phone && (
+                  <p className="text-xs text-slate-500" dir="ltr">
+                    {profile.phone}
+                  </p>
+                )}
+                {profile?.address && (
+                  <p className="text-xs text-slate-500 truncate">
+                    {[profile.address.line, profile.address.city].filter(Boolean).join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {realAccount && editing && (
+              <form
+                onSubmit={saveProfile}
+                className="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-700/80 space-y-3"
+              >
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t.accountName}
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder={t.accountNamePlaceholder}
+                    maxLength={60}
+                    className={`mt-1 w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand${addressErrors.has('displayName') ? ' border-rose-400' : ''}`}
+                  />
+                </label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t.accountPhone} <span className="font-normal text-slate-400">{t.accountPhoneOptional}</span>
+                  <div className="mt-1">
+                    <PhoneInput value={phone} onChange={setPhone} options={allCountries} language={language} />
+                  </div>
+                  {addressErrors.has('phone') && (
+                    <p className="mt-1 text-[10px] text-rose-600">{t.accountFieldPhone}</p>
+                  )}
+                </label>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !withAddress;
+                      setWithAddress(next);
+                      if (next && !address.line && !address.city)
+                        setAddress({ ...EMPTY_ADDRESS, country: enabled[0]?.id ?? 'TN' });
+                    }}
+                    className="text-xs font-bold text-accent-text hover:underline"
+                  >
+                    {withAddress ? t.accountAddressTitle : t.accountAddressAdd}
+                  </button>
+                  {withAddress && (
+                    <div className="mt-2">
+                      <AddressFields
+                        address={address}
+                        onChange={setAddress}
+                        countries={enabled}
+                        language={language}
+                        errors={addressErrors}
+                        placeholders={{
+                          line: t.accountAddressLine,
+                          region: t.accountAddressRegion,
+                          city: t.accountAddressCity,
+                          postal: t.accountAddressPostal,
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t.accountPreferredLanguage}
+                  <select
+                    value={preferredLanguage}
+                    onChange={(e) => setPreferredLanguage(e.target.value as Language)}
+                    className={`mt-1 w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand${addressErrors.has('preferredLanguage') ? ' border-rose-400' : ''}`}
+                  >
+                    {LANGUAGES.map((l) => (
+                      <option key={l.code} value={l.code}>
+                        {l.selectorLabel}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {fieldErrors.length > 0 && !fieldErrors.every((e) => e.field.startsWith('address.')) && (
+                  <p className="text-[10px] text-rose-600">{fieldErrorText(t, fieldErrors[0])}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="w-full py-2 rounded-xl bg-brand text-on-brand font-bold text-xs hover:bg-brand-strong transition disabled:opacity-50"
+                >
+                  {savingProfile ? <Loader2 className="w-4 h-4 animate-spin inline" /> : t.boSave}
+                </button>
+              </form>
+            )}
+
+            {/* Password change, for real accounts only */}
+            {realAccount && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setChangingPassword((v) => !v)}
+                  className="text-xs font-bold text-slate-500 hover:text-ink inline-flex items-center gap-1"
+                >
+                  <KeyRound className="w-3 h-3" />
+                  {t.accountChangePassword}
+                </button>
+                {changingPassword && (
+                  <form onSubmit={changeMyPassword} className="mt-2 space-y-2 text-left">
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder={t.accountCurrentPassword}
+                      autoComplete="current-password"
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+                    />
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t.accountNewPassword}
+                      autoComplete="new-password"
+                      minLength={userAuth.minPasswordLength}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-2 rounded-xl bg-brand text-on-brand font-bold text-xs hover:bg-brand-strong transition disabled:opacity-50"
+                    >
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : t.accountChangePassword}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
             <p className="text-xs text-slate-500 leading-relaxed">{t.accountActiveNote}</p>
 
             <button
@@ -183,6 +478,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   onClick={() => {
                     setMode(id);
                     setErrorMsg(null);
+                    setFieldErrors([]);
                   }}
                   className={`py-1.5 rounded-lg text-xs font-semibold transition ${
                     mode === id ? 'bg-brand text-on-brand' : 'text-ink-muted hover:text-ink'
@@ -203,7 +499,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.accountEmailPlaceholder}
                     autoComplete="email"
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+                    className={`w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand${addressErrors.has('email') ? ' border-rose-400' : ''}`}
                     required
                   />
                 </div>
@@ -220,7 +516,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                     placeholder="••••••••"
                     autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                     minLength={mode === 'register' ? userAuth.minPasswordLength : undefined}
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+                    className={`w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand${addressErrors.has('password') ? ' border-rose-400' : ''}`}
                     required
                   />
                 </div>
@@ -230,6 +526,79 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   </p>
                 )}
               </div>
+
+              {/* Registration extras: name, phone, optional address, preferred language */}
+              {mode === 'register' && (
+                <>
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.accountName}</label>
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder={t.accountNamePlaceholder}
+                      maxLength={60}
+                      className={`mt-1 w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand${addressErrors.has('displayName') ? ' border-rose-400' : ''}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {t.accountPhone} <span className="font-normal text-slate-400">{t.accountPhoneOptional}</span>
+                    </label>
+                    <div className="mt-1">
+                      <PhoneInput value={phone} onChange={setPhone} options={allCountries} language={language} />
+                    </div>
+                    {addressErrors.has('phone') && (
+                      <p className="mt-1 text-[10px] text-rose-600">{t.accountFieldPhone}</p>
+                    )}
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !withAddress;
+                        setWithAddress(next);
+                        if (next && !address.line && !address.city)
+                          setAddress({ ...EMPTY_ADDRESS, country: enabled[0]?.id ?? 'TN' });
+                      }}
+                      className="text-xs font-bold text-accent-text hover:underline"
+                    >
+                      {withAddress ? t.accountAddressTitle : t.accountAddressAdd}
+                    </button>
+                    {withAddress && (
+                      <div className="mt-2">
+                        <AddressFields
+                          address={address}
+                          onChange={setAddress}
+                          countries={enabled}
+                          language={language}
+                          errors={addressErrors}
+                          placeholders={{
+                            line: t.accountAddressLine,
+                            region: t.accountAddressRegion,
+                            city: t.accountAddressCity,
+                            postal: t.accountAddressPostal,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {t.accountPreferredLanguage}
+                    <select
+                      value={preferredLanguage}
+                      onChange={(e) => setPreferredLanguage(e.target.value as Language)}
+                      className="mt-1 w-full px-3 py-2 text-xs sm:text-sm rounded-xl bg-card border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+                    >
+                      {LANGUAGES.map((l) => (
+                        <option key={l.code} value={l.code}>
+                          {l.selectorLabel}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </>
+              )}
 
               <button
                 type="submit"

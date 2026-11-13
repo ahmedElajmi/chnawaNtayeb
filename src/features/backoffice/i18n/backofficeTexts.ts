@@ -241,6 +241,25 @@ interface CoreTexts {
   teamRemove: string;
   teamRemoved: string;
   teamEmpty: string;
+  teamName: string;
+  teamCreate: string;
+  teamCreatedTitle: string;
+  teamCreatedHint: string;
+  teamCreateFailed: string;
+  usersTitle: string;
+  usersHint: string;
+  countriesEnabled: string;
+  countriesDisabled: string;
+  countriesRegions: string;
+  countriesRegionsHint: string;
+  countriesSaveRegions: string;
+  countriesAdd: string;
+  countriesIso: string;
+  countriesDial: string;
+  countriesPostal: string;
+  countriesImport: string;
+  countriesImported: string;
+  countriesAlreadyThere: string;
 
   // Next action, completeness, reset
   event_reset: string;
@@ -611,6 +630,26 @@ const fr: CoreTexts = {
   teamUpdated: 'Rôle modifié.',
   teamRemove: 'Retirer',
   teamRemoved: 'Membre retiré.',
+  teamName: 'Nom affiché',
+  teamCreate: 'Créer le compte',
+  teamCreatedTitle: 'Compte employé créé.',
+  teamCreatedHint: 'Mot de passe temporaire à donner à l’employé (il le change à sa première connexion) :',
+  teamCreateFailed: 'Création impossible : {reason}.',
+  usersTitle: 'Utilisateurs & pays',
+  usersHint:
+    'Les pays que les clients peuvent choisir (téléphone, adresse) : active celui que tu veux, ajoute ses régions.',
+  countriesEnabled: 'Activé',
+  countriesDisabled: 'Désactivé',
+  countriesRegions: '{count} régions',
+  countriesRegionsHint: 'Une ligne par région : id | nom français | nom arabe',
+  countriesSaveRegions: 'Enregistrer les régions',
+  countriesAdd: 'Ajouter le pays',
+  countriesIso: 'Code ISO (TN)',
+  countriesDial: 'Indicatif (+216)',
+  countriesPostal: 'Chiffres du code postal (4)',
+  countriesImport: 'Importer la liste complète',
+  countriesImported: 'Liste complète importée : active les pays que tu veux.',
+  countriesAlreadyThere: 'Pays déjà présents : {list}',
   teamEmpty: 'Aucun membre pour l’instant : seul le compte patron a accès.',
   event_reset: 'Remis à valider',
   actionValidate: 'Valider ({percent} %)',
@@ -977,6 +1016,25 @@ const derja: CoreTexts = {
   teamUpdated: 'Role tbaddel.',
   teamRemove: 'Na77i',
   teamRemoved: 'Membre tna77a.',
+  teamName: 'Esm elli yetbeyyen',
+  teamCreate: 'A3mel el compte',
+  teamCreatedTitle: 'Compte mte3 el khedma tsajjel.',
+  teamCreatedHint: 'Mot de passe mou3a9at bech ta3tih l khedma (yetbeddel f awel 3omra) :',
+  teamCreateFailed: 'Matnajemch tsajjel : {reason}.',
+  usersTitle: 'Utilisateurs w blad',
+  usersHint: 'El blad elli el clients ynajjem yekhtarou (telifoun, 3ounwen) : fa33el elli t7eb, zid wilayetha.',
+  countriesEnabled: 'Fa33el',
+  countriesDisabled: 'Tfi',
+  countriesRegions: '{count} wilayat',
+  countriesRegionsHint: 'Star lel wilaya : id | esm b fran9i | esm b 3arbi',
+  countriesSaveRegions: 'Sajjel el wilayat',
+  countriesAdd: 'Zid el bled',
+  countriesIso: 'Code ISO (TN)',
+  countriesDial: 'Indicatif (+216)',
+  countriesPostal: '3adad ar9am el code postal (4)',
+  countriesImport: 'Jib el lista el kamla',
+  countriesImported: 'El lista el kamlajet : fa33el elli t7eb.',
+  countriesAlreadyThere: 'Blad mawjoudin : {list}',
   teamEmpty: 'Ma fammech membre tawa : ken compte patron 3andou accès.',
   event_reset: 'Rja3 lel validation',
   actionValidate: 'Validi ({percent} %)',
@@ -1341,6 +1399,25 @@ const ar: CoreTexts = {
   teamUpdated: 'عُدّل الدور.',
   teamRemove: 'إزالة',
   teamRemoved: 'أُزيل العضو.',
+  teamName: 'الاسم المعروض',
+  teamCreate: 'إنشاء الحساب',
+  teamCreatedTitle: 'تم إنشاء حساب الموظف.',
+  teamCreatedHint: 'كلمة مرور مؤقتة تعطيها للموظف (يغيّرها في أول دخول):',
+  teamCreateFailed: 'تعذّر الإنشاء: {reason}.',
+  usersTitle: 'المستخدمون والبلدان',
+  usersHint: 'البلدان التي يختارها الزوار (الهاتف، العنوان): فعّل ما تريد وأضف ولاياته.',
+  countriesEnabled: 'مُفعّل',
+  countriesDisabled: 'موقوف',
+  countriesRegions: '{count} ولايات',
+  countriesRegionsHint: 'سطر لكل ولاية: المعرّف | الاسم بالفرنسية | الاسم بالعربية',
+  countriesSaveRegions: 'حفظ الولايات',
+  countriesAdd: 'إضافة البلد',
+  countriesIso: 'رمز ISO (TN)',
+  countriesDial: 'الرمز الدولي (+216)',
+  countriesPostal: 'أرقام الرمز البريدي (4)',
+  countriesImport: 'استيراد القائمة الكاملة',
+  countriesImported: 'استُوردت القائمة الكاملة: فعّل ما تريد.',
+  countriesAlreadyThere: 'بلدان موجودة: {list}',
   teamEmpty: 'لا أعضاء حاليًا: حساب المسؤول وحده له الوصول.',
   event_reset: 'أُعيد إلى المراجعة',
   actionValidate: 'مراجعة ({percent} %)',
@@ -1634,6 +1711,25 @@ const derjaArabic: CoreTexts = {
   teamUpdated: 'الدور تبدّل.',
   teamRemove: 'نحّي',
   teamRemoved: 'العضو تنحّى.',
+  teamName: 'الاسم المعروض',
+  teamCreate: 'أعمل الحساب',
+  teamCreatedTitle: 'حساب الخدمة تسجّل.',
+  teamCreatedHint: 'كلمة السر المؤقتة باش تعطيها للخدمة (تبدّلها في أول مرة):',
+  teamCreateFailed: 'ما تنجّمش تسجّل : {reason}.',
+  usersTitle: 'المستخدمين والبلاد',
+  usersHint: 'البلاد اللي الزوار ينجموا يختارو (التيليفون، العنوان) : فعّل اللي تحب، زيد ولاياتها.',
+  countriesEnabled: 'مفعّل',
+  countriesDisabled: 'طفى',
+  countriesRegions: '{count} ولايات',
+  countriesRegionsHint: 'سطر للولاية : id | الاسم بالفرنسية | الاسم بالعربية',
+  countriesSaveRegions: 'سجّل الولايات',
+  countriesAdd: 'زيد البلاد',
+  countriesIso: 'كود ISO (TN)',
+  countriesDial: 'المؤشّر (+216)',
+  countriesPostal: 'عدد أرقام الكود البريدي (4)',
+  countriesImport: 'جيب الليستة الكاملة',
+  countriesImported: 'الليستة الكاملة جات : فعّل اللي تحب.',
+  countriesAlreadyThere: 'بلاد موجودين : {list}',
   teamEmpty: 'ما فمّاش أعضاء توّا: كان حساب الباترون عندو الدخول.',
   event_reset: 'رجع للمراجعة',
   actionValidate: 'صدّق ({percent} %)',

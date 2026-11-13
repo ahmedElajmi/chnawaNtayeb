@@ -59,3 +59,33 @@ export async function createPatronFirebaseToken(): Promise<string | null> {
   if (!adminApp) return null;
   return getAuth(adminApp).createCustomToken(PATRON_FIREBASE_UID, { patron: true });
 }
+
+export type CreateUserResult =
+  | { ok: true; uid: string; temporaryPassword: string }
+  | { ok: false; reason: 'not-configured' | 'email-in-use' | 'invalid-email' | 'unknown' };
+
+/**
+ * Creates an employee account with a temporary password (the employee changes it at first
+ * sign-in). Done server-side only: the browser never creates an account it could promote.
+ */
+export async function createEmployeeAccount(email: string, displayName: string): Promise<CreateUserResult> {
+  const adminApp = getAdminApp();
+  if (!adminApp) return { ok: false, reason: 'not-configured' };
+  // 4 random groups of 3 characters: strong enough for a first login, readable over the phone
+  const temporaryPassword = Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 5)).join('-');
+  try {
+    const user = await getAuth(adminApp).createUser({
+      email,
+      password: temporaryPassword,
+      displayName: displayName.slice(0, 60),
+      emailVerified: false,
+    });
+    return { ok: true, uid: user.uid, temporaryPassword };
+  } catch (err) {
+    const code = (err as { errorInfo?: { code?: string } })?.errorInfo?.code ?? '';
+    if (code === 'auth/email-already-exists') return { ok: false, reason: 'email-in-use' };
+    if (code === 'auth/invalid-email') return { ok: false, reason: 'invalid-email' };
+    console.error('[accounts] createUser failed:', err);
+    return { ok: false, reason: 'unknown' };
+  }
+}

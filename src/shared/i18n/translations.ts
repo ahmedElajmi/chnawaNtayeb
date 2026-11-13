@@ -263,6 +263,29 @@ export interface TranslationDictionary {
   accountOr: string;
   accountGuestContinue: string;
   accountPatronAccess: string;
+  accountName: string;
+  accountNamePlaceholder: string;
+  accountPhone: string;
+  accountPhoneOptional: string;
+  accountAddressAdd: string;
+  accountAddressTitle: string;
+  accountAddressLine: string;
+  accountAddressRegion: string;
+  accountAddressCity: string;
+  accountAddressPostal: string;
+  accountPreferredLanguage: string;
+  accountProfileTitle: string;
+  accountEditProfile: string;
+  accountSaved: string;
+  accountChangePassword: string;
+  accountCurrentPassword: string;
+  accountNewPassword: string;
+  accountPasswordChanged: string;
+  accountFieldRequired: string;
+  accountFieldPhone: string;
+  accountFieldAddress: string;
+  accountFieldLanguage: string;
+  accountProfileUnavailable: string;
   authErrorInvalidCredentials: string;
   authErrorEmailInUse: string;
   authErrorWeakPassword: string;
@@ -558,7 +581,30 @@ export const translations = {
     accountPasswordMin: '{n} 7orouf 3al a9al.',
     accountOr: 'Walla',
     accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
-    accountPatronAccess: 'Dokhoul el idara (/patron)',
+    accountPatronAccess: 'Edkhel ka patron',
+    accountName: 'Esmek',
+    accountNamePlaceholder: 'Esmek el kamel',
+    accountPhone: 'Telifoun',
+    accountPhoneOptional: '(fakultatif)',
+    accountAddressAdd: 'Zid 3ounwen',
+    accountAddressTitle: '3ounwen',
+    accountAddressLine: 'Zenka, 3imara…',
+    accountAddressRegion: 'Wilaya',
+    accountAddressCity: 'Bled',
+    accountAddressPostal: 'Code postal',
+    accountPreferredLanguage: 'Loughet l affichage',
+    accountProfileTitle: 'Profil mte3i',
+    accountEditProfile: 'Beddel profil',
+    accountSaved: 'Tsajjel !',
+    accountChangePassword: 'Beddel mot de passe',
+    accountCurrentPassword: 'Mot de passe el 9dim',
+    accountNewPassword: 'Mot de passe el jdid',
+    accountPasswordChanged: 'Mot de passe etbeddel !',
+    accountFieldRequired: 'Champ lazem',
+    accountFieldPhone: 'Rakm ghalet',
+    accountFieldAddress: '3ounwen ghalet',
+    accountFieldLanguage: 'Lougha ma3roufach',
+    accountProfileUnavailable: 'Profil matnajemch tet9ra tawa',
     authErrorInvalidCredentials: 'Email walla mot de passe ghalet.',
     authErrorEmailInUse: 'Famma deja compte b el email hedha. Odkhel bih khir.',
     authErrorWeakPassword: 'Mot de passe dh3if barcha ({n} 7orouf 3al a9al).',
@@ -849,7 +895,30 @@ export const translations = {
     accountPasswordMin: '{n} caractères minimum.',
     accountOr: 'Ou',
     accountGuestContinue: 'Continuer en 1 clic (invité)',
-    accountPatronAccess: 'Accès sécurisé gérance (/patron)',
+    accountPatronAccess: 'Accès patron',
+    accountName: 'Nom affiché',
+    accountNamePlaceholder: 'Votre nom complet',
+    accountPhone: 'Téléphone',
+    accountPhoneOptional: '(facultatif)',
+    accountAddressAdd: 'Ajouter une adresse',
+    accountAddressTitle: 'Adresse',
+    accountAddressLine: 'Rue, immeuble, appartement…',
+    accountAddressRegion: 'Gouvernorat',
+    accountAddressCity: 'Ville',
+    accountAddressPostal: 'Code postal',
+    accountPreferredLanguage: 'Langue préférée',
+    accountProfileTitle: 'Mon profil',
+    accountEditProfile: 'Modifier mon profil',
+    accountSaved: 'Enregistré !',
+    accountChangePassword: 'Changer le mot de passe',
+    accountCurrentPassword: 'Mot de passe actuel',
+    accountNewPassword: 'Nouveau mot de passe',
+    accountPasswordChanged: 'Mot de passe modifié !',
+    accountFieldRequired: 'Champ requis',
+    accountFieldPhone: 'Numéro invalide',
+    accountFieldAddress: 'Adresse invalide',
+    accountFieldLanguage: 'Langue inconnue',
+    accountProfileUnavailable: 'Profil illisible pour le moment',
     authErrorInvalidCredentials: 'E-mail ou mot de passe incorrect.',
     authErrorEmailInUse: 'Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.',
     authErrorWeakPassword: 'Mot de passe trop faible ({n} caractères minimum).',
@@ -1134,7 +1203,30 @@ export const translations = {
     accountPasswordMin: '{n} أحرف على الأقل.',
     accountOr: 'أو',
     accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
-    accountPatronAccess: 'دخول الإدارة الآمن (/patron)',
+    accountPatronAccess: 'دخول المسؤول',
+    accountName: 'الاسم المعروض',
+    accountNamePlaceholder: 'اسمك الكامل',
+    accountPhone: 'الهاتف',
+    accountPhoneOptional: '(اختياري)',
+    accountAddressAdd: 'إضافة عنوان',
+    accountAddressTitle: 'العنوان',
+    accountAddressLine: 'الشارع، العمارة، الشقة…',
+    accountAddressRegion: 'الولاية',
+    accountAddressCity: 'المدينة',
+    accountAddressPostal: 'الرمز البريدي',
+    accountPreferredLanguage: 'لغة العرض المفضلة',
+    accountProfileTitle: 'ملفي الشخصي',
+    accountEditProfile: 'تعديل ملفي',
+    accountSaved: 'تم الحفظ!',
+    accountChangePassword: 'تغيير كلمة المرور',
+    accountCurrentPassword: 'كلمة المرور الحالية',
+    accountNewPassword: 'كلمة المرور الجديدة',
+    accountPasswordChanged: 'تم تغيير كلمة المرور!',
+    accountFieldRequired: 'حقل مطلوب',
+    accountFieldPhone: 'رقم غير صالح',
+    accountFieldAddress: 'عنوان غير صالح',
+    accountFieldLanguage: 'لغة غير معروفة',
+    accountProfileUnavailable: 'تعذّرت قراءة الملف الآن',
     authErrorInvalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     authErrorEmailInUse: 'يوجد حساب بهذا البريد الإلكتروني. سجّل الدخول بدلًا من ذلك.',
     authErrorWeakPassword: 'كلمة المرور ضعيفة جدًا ({n} أحرف على الأقل).',
