@@ -50,8 +50,32 @@ l'application (Vite en développement, `dist/` en production).
 
 ## SEO
 
-Les adresses `/`, `/recettes` et `/recette/<slug>` sont envoyées avec leur titre, leur description,
-l'adresse canonique, les cartes de partage, les données schema.org (recette) et un contenu lisible ;
-l'application remplace ensuite ce contenu. `/suggestions` dépend du frigo de chacun : pas de page SEO.
-Une recette inconnue renvoie une page 404. Le catalogue
-utilisé est celui de Firestore si le serveur y a accès (cache de 10 minutes), sinon le catalogue intégré.
+Beaucoup de robots et d'assistants IA (ChatGPT…) ne lancent pas le JavaScript : ils ne voient que le HTML
+envoyé par le serveur. **Chaque adresse publique** est donc envoyée avec son titre, sa description,
+l'adresse canonique, les cartes de partage, les données schema.org et une **copie lisible** de son contenu
+(`server/seo.ts`, table `SCREENS`) :
+
+| Adresse                | Copie lisible                                                   | Indexée                 |
+| ---------------------- | --------------------------------------------------------------- | ----------------------- |
+| `/`                    | présentation + recettes (1re page) + lien vers toutes           | oui                     |
+| `/recettes`            | toutes les recettes par plat, `ItemList`                        | oui                     |
+| `/recette/<slug>`      | recette complète (ingrédients, étapes, astuce), `Recipe`        | oui                     |
+| `/frigo`               | tous les ingrédients par catégorie avec leur fourchette de prix | oui                     |
+| `/suggestions`         | explication + recettes                                          | canonique → `/recettes` |
+| `/semaine`, `/courses` | titre et explication (contenu personnel, gardé sur l'appareil)  | non (`noindex, follow`) |
+
+- **Invisible pour les visiteurs** : la copie est toujours dans `<main class="seo-fallback">` (fonction
+  `fallback`), masquée par `index.html` (le logo s'affiche pendant le chargement, le texte seulement sans
+  JavaScript) puis remplacée par React. Un test vérifie que chaque page l'utilise.
+- **Listes par pages** : au plus `LIST_PAGE_SIZE` (100) éléments, total réel affiché, liens
+  « Page suivante / précédente » (`?page=2`, `rel="next"`) que les robots suivent ; une page au-delà de
+  la fin renvoie 404. L'accueil montre la 1re page et renvoie vers `/recettes`.
+- **Peu importe l'en-tête `Accept`** : toute requête GET ou HEAD sur une adresse publique reçoit la page
+  (certains robots n'envoient pas `text/html`). Les autres adresses (`/patron`, fichiers, `/api`) ne
+  passent pas par le catalogue (`isSeoPath`).
+- Une recette ou une adresse de liste inconnue renvoie une page 404 (`noindex`).
+- **Nouvelle adresse publique** : ajouter son constructeur dans `SCREENS` (sinon les robots la voient vide).
+- Le catalogue utilisé est celui de Firestore si le serveur y a accès (seulement les changements, au plus
+  une fois par minute et seulement quand une page est demandée), sinon le catalogue intégré. Il est lu
+  dès le démarrage du serveur (`server.ts`) pour que le premier robot après un réveil n'attende pas la base.
+- Tests : `server/seo.test.ts`.

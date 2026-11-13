@@ -8,6 +8,7 @@ import { getAdminConfig } from './server/patronAuth';
 import { isFirebaseAdminConfigured } from './server/firebaseAdmin';
 import { createGeminiVisionProvider } from './server/vision/geminiVisionProvider';
 import { seoPages } from './server/routes/seoRoutes';
+import { getCatalog } from './server/seo';
 
 /**
  * Entry point: reads the configuration, builds the API (server/app.ts),
@@ -55,6 +56,8 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Chnowa Ntayeb server running on http://0.0.0.0:${PORT} (${isDev ? 'development' : 'production'})`);
+    // Read the catalog now: the first robot after a wake-up does not wait for the database
+    getCatalog().catch((e) => console.warn('[seo] catalog preload failed:', (e as Error).message));
   });
 }
 

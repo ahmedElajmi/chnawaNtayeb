@@ -321,14 +321,14 @@ couvre déjà l'essentiel :
 
 ### Ce qui coûte encore
 
-| Cas                                                                           | Lectures                                                           |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises          |
-| Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)         |
-| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                     |
-| Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer)      |
-| Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes           |
-| Réveil du serveur Render (SEO)                                                | **toute** la collection, à chaque réveil (plusieurs fois par jour) |
+| Cas                                                                           | Lectures                                                                                                |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises                                               |
+| Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)                                              |
+| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                                                          |
+| Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer)                                           |
+| Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes                                                |
+| Réveil du serveur Render (SEO)                                                | **toute** la collection, à chaque réveil (évité par le moniteur UptimeRobot, voir `10-exploitation.md`) |
 
 Le quota gratuit de Firestore est de **50 000 lectures par jour**. Exemple : 2 000 recettes + 500
 ingrédients, 300 visites par jour dont 30 nouveaux appareils, 20 éléments modifiés par jour, 10 réveils
