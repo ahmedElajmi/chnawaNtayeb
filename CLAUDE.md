@@ -115,6 +115,11 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   compris) ni un ordre de langues codé en dur. Catégories : `useIngredientCategories` (`src/shared/i18n`).
   L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
   (une langue vide → sa liste de repli, le français en dernier).
+- **Workflow de validation** (`@/core/review`, plan : `docs/encyclopedie/14-refonte-backoffice.md`) :
+  un nouveau type de contenu validé = ses parties (`parts.ts`) + ses contrôles (`rules.ts`) + son workflow
+  par défaut ; une case de texte par langue (jamais une empreinte qui mélange les langues) ; tout
+  workflow ou rôle lu de la base passe par `resolveWorkflow` / `resolveRoles`, tout workflow modifié par
+  `validateWorkflow`.
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
