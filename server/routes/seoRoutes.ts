@@ -16,6 +16,7 @@ export function seoRoutes(): express.Router {
     res.header('Content-Type', 'text/plain');
     res.send(`User-agent: *
 Allow: /
+Disallow: /admin
 Disallow: /patron
 Disallow: /api/
 

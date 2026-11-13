@@ -32,48 +32,56 @@ export function patronRoutes(adminConfig: AdminConfig): express.Router {
     }
   };
 
-  router.post('/api/auth/patron-login', loginLimiter, async (req, res) => {
-    if (!adminConfig.ok) {
-      return res.status(503).json({ success: false, error: 'Accès patron non configuré sur le serveur.' });
+  // One-release aliases: cached PWA clients still call the older /api/auth paths
+  router.post(
+    ['/admin/api/login', '/api/auth/admin-login', '/api/auth/patron-login'],
+    loginLimiter,
+    async (req, res) => {
+      if (!adminConfig.ok) {
+        return res.status(503).json({ success: false, error: 'Accès patron non configuré sur le serveur.' });
+      }
+      const { username, password } = req.body ?? {};
+      if (
+        typeof username !== 'string' ||
+        typeof password !== 'string' ||
+        username.length > 100 ||
+        password.length > 200
+      ) {
+        return res.status(400).json({ success: false, error: 'Requête invalide.' });
+      }
+      // Both comparisons always run (no early exit) so timing does not reveal which field is wrong
+      const userOk = safeEqual(username.trim(), adminConfig.username);
+      const passOk = safeEqual(password, adminConfig.password);
+      if (!userOk || !passOk) {
+        return res.status(401).json({ success: false, error: 'Identifiants patron incorrects.' });
+      }
+      const { token, payload } = createSessionToken(adminConfig.username, adminConfig.secret);
+      return res.json({
+        success: true,
+        token,
+        expiresAt: payload.exp,
+        user: { username: adminConfig.username, role: 'admin' },
+        firebaseToken: await safeCreateFirebaseToken(),
+      });
     }
-    const { username, password } = req.body ?? {};
-    if (
-      typeof username !== 'string' ||
-      typeof password !== 'string' ||
-      username.length > 100 ||
-      password.length > 200
-    ) {
-      return res.status(400).json({ success: false, error: 'Requête invalide.' });
-    }
-    // Both comparisons always run (no early exit) so timing does not reveal which field is wrong
-    const userOk = safeEqual(username.trim(), adminConfig.username);
-    const passOk = safeEqual(password, adminConfig.password);
-    if (!userOk || !passOk) {
-      return res.status(401).json({ success: false, error: 'Identifiants patron incorrects.' });
-    }
-    const { token, payload } = createSessionToken(adminConfig.username, adminConfig.secret);
-    return res.json({
-      success: true,
-      token,
-      expiresAt: payload.exp,
-      user: { username: adminConfig.username, role: 'admin' },
-      firebaseToken: await safeCreateFirebaseToken(),
-    });
-  });
+  );
 
-  router.get('/api/auth/patron-verify', (req, res) => {
+  router.get(['/admin/api/verify', '/api/auth/admin-verify', '/api/auth/patron-verify'], (req, res) => {
     const session = requireSession(req);
     if (!session) return res.status(401).json({ valid: false });
     return res.json({ valid: true, user: { username: session.username, role: 'admin' }, expiresAt: session.expiresAt });
   });
 
   // Re-issues a Firebase custom token for an existing patron session (e.g. after a page reload)
-  router.post('/api/auth/patron-firebase-token', async (req, res) => {
-    if (!requireSession(req)) return res.status(401).json({ error: 'Session patron invalide.' });
-    const firebaseToken = await safeCreateFirebaseToken();
-    if (!firebaseToken) return res.status(503).json({ error: 'Synchronisation cloud non configurée.' });
-    return res.json({ firebaseToken });
-  });
+  router.post(
+    ['/admin/api/firebase-token', '/api/auth/admin-firebase-token', '/api/auth/patron-firebase-token'],
+    async (req, res) => {
+      if (!requireSession(req)) return res.status(401).json({ error: 'Session patron invalide.' });
+      const firebaseToken = await safeCreateFirebaseToken();
+      if (!firebaseToken) return res.status(503).json({ error: 'Synchronisation cloud non configurée.' });
+      return res.json({ firebaseToken });
+    }
+  );
 
   return router;
 }

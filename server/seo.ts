@@ -597,11 +597,16 @@ export function renderHtml(template: string, page: SeoPage): string {
 }
 
 export function sitemapXml(base: string, catalog: Catalog): string {
+  // Only ever public URLs: the published recipes, defensively re-filtered whatever the caller passed.
   const urls = [
     { loc: `${base}/`, priority: '1.0', changefreq: 'daily' },
     { loc: `${base}${PATHS.recipes}`, priority: '0.9', changefreq: 'daily' },
     { loc: `${base}${PATHS.fridge}`, priority: '0.7', changefreq: 'weekly' },
-    ...catalog.recipes.map((r) => ({ loc: `${base}${recipePath(r)}`, priority: '0.8', changefreq: 'monthly' })),
+    ...publishedRecipes(catalog.recipes).map((r) => ({
+      loc: `${base}${recipePath(r)}`,
+      priority: '0.8',
+      changefreq: 'monthly',
+    })),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -8,7 +8,7 @@ import { getPatronToken } from '@/infrastructure/http/patronAuth';
 export const accountHttpGateway: AccountCreationGateway = {
   async createEmployee({ email, displayName }) {
     try {
-      const response = await fetch('/api/accounts/employees', {
+      const response = await fetch('/admin/api/employees', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

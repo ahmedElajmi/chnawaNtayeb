@@ -64,7 +64,7 @@ const BLOCKER: Record<CategoryWriteBlocker, (b: BackofficeTexts) => string> = {
   denied: (b) => b.catBlockDenied,
 };
 
-/** /patron/categories/recettes */
+/** /admin/categories/recipes */
 export function RecipeCategoriesPage() {
   const recipes = useTeamRecipes();
   const { store } = useReview('recipe');
@@ -85,7 +85,7 @@ export function RecipeCategoriesPage() {
   );
 }
 
-/** /patron/categories/ingredients */
+/** /admin/categories/ingredients */
 export function IngredientCategoriesPage() {
   const { ingredients } = useIngredientEditor();
   const { store } = useReview('ingredient');

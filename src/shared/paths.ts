@@ -10,11 +10,11 @@ export const PATHS = {
   recipe: '/recette/:slug',
   planner: '/semaine',
   grocery: '/courses',
-  patron: '/patron',
+  patron: '/admin',
 } as const;
 
 /**
- * Pages of the backoffice, under /patron (one address per page, so back and reload keep it).
+ * Pages of the backoffice, under /admin (one address per page, so back and reload keep it).
  * The routes themselves are declared by the backoffice section registry.
  */
 export const PATRON_PAGES = {
@@ -31,28 +31,28 @@ export const PATRON_PAGES = {
   clients: 'clients',
 } as const;
 
-/** Sub-pages of /patron/categories (one tree per kind of content). */
+/** Sub-pages of /admin/categories (one tree per kind of content). */
 export const CATEGORY_PAGES = {
   recipes: 'recettes',
   ingredients: 'ingredients',
 } as const;
 
-/** Sub-pages of /patron/clients. */
+/** Sub-pages of /admin/clients. */
 export const CLIENTS_PAGES = {
-  directory: 'comptes',
-  countries: 'pays',
+  directory: 'accounts',
+  countries: 'countries',
 } as const;
 
-/** Sub-pages of /patron/workflows. */
+/** Sub-pages of /admin/workflows. */
 export const WORKFLOW_PAGES = {
-  steps: 'etapes',
+  steps: 'steps',
   roles: 'roles',
 } as const;
 
 /** Filter of a backoffice list given in its address (`?filtre=to_fix`), so the home page can link to it. */
 export const LIST_FILTER_PARAM = 'filtre';
 
-/** Sub-pages of /patron/moteur. */
+/** Sub-pages of /admin/moteur. */
 export const ENGINE_PAGES = {
   simulator: 'simulateur',
   scenarios: 'scenarios',
@@ -64,7 +64,7 @@ export const ENGINE_PAGES = {
 
 export type PatronPage = (typeof PATRON_PAGES)[keyof typeof PATRON_PAGES];
 
-/** Address of a backoffice page (and sub-page): patronPath('moteur', 'scenarios') = /patron/moteur/scenarios. */
+/** Address of a backoffice page (and sub-page): patronPath('engine', 'scenarios') = /admin/engine/scenarios. */
 export function patronPath(page: PatronPage = PATRON_PAGES.home, subPage?: string): string {
   return [PATHS.patron, page, subPage].filter(Boolean).join('/');
 }

@@ -6,7 +6,7 @@ import { auth } from '@/infrastructure/firebase/client';
  *
  * The browser never decides who is admin: it only stores the signed token
  * returned by the server and asks the server to verify it. A token that was
- * invented or edited by hand is rejected by /api/auth/patron-verify.
+ * invented or edited by hand is rejected by /admin/api/verify.
  */
 
 const TOKEN_KEY = 'patron_session_token';
@@ -56,7 +56,7 @@ function loginErrorOf(status: number): PatronLoginError {
 export async function loginPatron(username: string, password: string): Promise<PatronLoginResult> {
   let res: Response;
   try {
-    res = await fetch('/api/auth/patron-login', {
+    res = await fetch('/admin/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -80,7 +80,7 @@ export async function verifyPatronSession(): Promise<boolean> {
   const token = getPatronToken();
   if (!token) return false;
   try {
-    const res = await fetch('/api/auth/patron-verify', { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch('/admin/api/verify', { headers: { Authorization: `Bearer ${token}` } });
     if (res.ok) return true;
     if (res.status === 401) clearPatronToken();
     return false;
@@ -99,7 +99,7 @@ export async function ensurePatronCloudSession(): Promise<CloudStatus> {
   const token = getPatronToken();
   if (!token) return 'local-only';
   try {
-    const res = await fetch('/api/auth/patron-firebase-token', {
+    const res = await fetch('/admin/api/firebase-token', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });

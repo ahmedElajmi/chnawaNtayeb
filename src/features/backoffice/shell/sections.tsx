@@ -218,7 +218,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
   },
 ];
 
-/** The section an address belongs to (the home page only for /patron itself). */
+/** The section an address belongs to (the home page only for /admin itself). */
 export function sectionOf(pathname: string): BackofficeSection {
   const path = pathname.replace(/\/+$/, '');
   return (

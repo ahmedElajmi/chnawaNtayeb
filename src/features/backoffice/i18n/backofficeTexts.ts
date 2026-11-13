@@ -7,7 +7,7 @@ import { panelsTexts } from './texts/panels';
 
 /**
  * Labels of the backoffice, in every language and variant (they follow the current language like the
- * rest of the site). Kept apart from the public dictionary: it is only downloaded with /patron.
+ * rest of the site). Kept apart from the public dictionary: it is only downloaded with /admin.
  * Shared labels live here; each area has its own file in ./texts (defineTexts), every language
  * written in full (derja in Arabic letters included).
  */
@@ -634,7 +634,7 @@ const fr: CoreTexts = {
   rolesNewName: 'Nom du nouveau rôle',
   rolesAdd: 'Ajouter un rôle',
   teamHint:
-    'Un membre se connecte sur le site avec son propre compte, puis ouvre /patron : il travaille avec les droits de son rôle. Ajoute-le par l’adresse e-mail de son compte.',
+    'Un membre se connecte sur le site avec son propre compte, puis ouvre /admin : il travaille avec les droits de son rôle. Ajoute-le par l’adresse e-mail de son compte.',
   teamEmail: 'Adresse e-mail du compte',
   teamRole: 'Rôle',
   teamAdd: 'Ajouter',
@@ -1032,7 +1032,7 @@ const derja: CoreTexts = {
   rolesNewName: 'Esm el role el jdid',
   rolesAdd: 'Zid role',
   teamHint:
-    'Membre yodkhol lel site b compte mte3ou, ba3d y7ell /patron : yekhdem b 7ou9ou9 el role mte3ou. Zidou bel e-mail mta3 el compte mte3ou.',
+    'Membre yodkhol lel site b compte mte3ou, ba3d y7ell /admin : yekhdem b 7ou9ou9 el role mte3ou. Zidou bel e-mail mta3 el compte mte3ou.',
   teamEmail: 'E-mail mta3 el compte',
   teamRole: 'Role',
   teamAdd: 'Zid',
@@ -1427,7 +1427,7 @@ const ar: CoreTexts = {
   rolesNewName: 'اسم الدور الجديد',
   rolesAdd: 'إضافة دور',
   teamHint:
-    'يدخل العضو إلى الموقع بحسابه الخاص ثم يفتح /patron: يعمل بصلاحيات دوره. أضفه بعنوان البريد الإلكتروني لحسابه.',
+    'يدخل العضو إلى الموقع بحسابه الخاص ثم يفتح /admin: يعمل بصلاحيات دوره. أضفه بعنوان البريد الإلكتروني لحسابه.',
   teamEmail: 'البريد الإلكتروني للحساب',
   teamRole: 'الدور',
   teamAdd: 'إضافة',
@@ -1751,8 +1751,7 @@ const derjaArabic: CoreTexts = {
   rolesLanguagesHint: 'بلا اختيار: الأقسام الكل. وإلّا كان نصوص اللغات هاذم (مترجم).',
   rolesNewName: 'إسم الدور الجديد',
   rolesAdd: 'زيد دور',
-  teamHint:
-    'العضو يدخل للموقع بالحساب متاعو، وبعد يحلّ /patron: يخدم بصلاحيات الدور متاعو. زيدو بالإيمايل متاع الحساب.',
+  teamHint: 'العضو يدخل للموقع بالحساب متاعو، وبعد يحلّ /admin: يخدم بصلاحيات الدور متاعو. زيدو بالإيمايل متاع الحساب.',
   teamEmail: 'الإيمايل متاع الحساب',
   teamAdd: 'زيد',
   teamAdded: 'العضو تزاد.',
