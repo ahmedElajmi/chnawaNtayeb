@@ -139,7 +139,13 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const { id: by, role } = this.deps.actor();
     if (!canPerform(role, 'edit')) return denied('modifier ce contenu');
     const at = this.deps.now();
-    const existing = this.deps.workspace.getState().items.find((c) => c.id === content.id);
+    // An item online without a work copy yet starts from its version online, validated:
+    // only what this change touches goes back to review
+    const online = this.deps.published.getState().items.find((i) => i.id === content.id);
+    const existing =
+      this.deps.workspace.getState().items.find((c) => c.id === content.id) ??
+      (online ? workCopyFromPublished(this.deps.kind, online, by, at) : undefined);
+    const stored = this.deps.workspace.getState().items.some((c) => c.id === content.id);
     const copy: WorkCopy<K> = existing
       ? {
           ...existing,
@@ -149,7 +155,21 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
           updated_at: at,
         }
       : newWorkCopy(this.deps.kind, content, by, at);
-    return this.write(copy, existing?.written_at ?? null, (c, expected) => this.deps.writer.save(c, expected));
+    return this.write(copy, stored ? existing!.written_at : null, (c, expected) => this.deps.writer.save(c, expected));
+  }
+
+  /** Deletes an item for good: taken offline when it is online, and its work copy removed. */
+  async discard(id: string): Promise<WriteResult> {
+    const { role } = this.deps.actor();
+    if (!canPerform(role, 'publish')) return denied('supprimer');
+    const entry = this.entry(id);
+    if (entry?.online) {
+      const out = await this.unpublish(id);
+      if (!out.ok && !out.local) return out;
+    }
+    const result = await this.deps.writer.remove(id);
+    this.deps.workspace.removeLocal(id);
+    return result;
   }
 
   /**
@@ -169,11 +189,11 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const workflow = this.getState().workflow;
     const at = this.deps.now();
     let decisions = entry.copy.decisions;
-    for (const id of cells) {
-      const cell = parseCellId(kind, id);
-      const review = entry.snapshot.cells[id];
-      if (!cell || !review) return { ok: false, error: `Case inconnue : ${id}.` };
-      if (!canReviewCell(role, stepOfCell(workflow, id), cell)) return denied('valider cette partie');
+    for (const cellId of cells) {
+      const cell = parseCellId(kind, cellId);
+      const review = entry.snapshot.cells[cellId];
+      if (!cell || !review) return { ok: false, error: `Case inconnue : ${cellId}.` };
+      if (!canReviewCell(role, stepOfCell(workflow, cellId), cell)) return denied('valider cette partie');
       if (verdict === 'approved' && review.state === 'incomplete')
         return {
           ok: false,
@@ -181,7 +201,13 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
         };
       if (verdict === 'rejected' && !note?.trim())
         return { ok: false, error: 'Écris une note pour dire quoi corriger.' };
-      decisions = decideCell(decisions, id, { verdict, hash: cellHash(kind, entry.copy.content, cell), by, at, note });
+      decisions = decideCell(decisions, cellId, {
+        verdict,
+        hash: cellHash(kind, entry.copy.content, cell),
+        by,
+        at,
+        note,
+      });
     }
     const copy: WorkCopy<K> = {
       ...entry.copy,
@@ -238,7 +264,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const result = await this.write(copy, entry.copy.written_at, (c, expected) =>
       this.deps.writer.publish(item, c, version, expected)
     );
-    if (result.ok) this.deps.published.putLocal(item);
+    if (result.ok || result.local) this.deps.published.putLocal(item);
     return result;
   }
 
@@ -254,7 +280,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const result = await this.write(copy, entry.copy.written_at, (c, expected) =>
       this.deps.writer.unpublish(c, expected)
     );
-    if (result.ok) this.deps.published.removeLocal(id);
+    if (result.ok || result.local) this.deps.published.removeLocal(id);
     return result;
   }
 
@@ -336,6 +362,8 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
       return result;
     }
     if (result.conflict) return { ok: false, conflict: true, error: CONFLICT };
-    return result;
+    // Database unreachable or refused: like the catalog, the change stays on this device
+    this.deps.workspace.putLocal(written);
+    return { ok: false, local: true, error: `Enregistré sur cet appareil seulement. ${result.error}` };
   }
 }

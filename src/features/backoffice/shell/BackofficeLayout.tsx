@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { ChevronDown, Cloud, CloudOff, LogOut, Menu, X } from 'lucide-react';
-import { useCatalog, usePatron } from '@/app/ContainerContext';
+import { useCatalog, useContainer, usePatron } from '@/app/ContainerContext';
 import { PATHS, patronPath } from '@/shared/paths';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
@@ -133,6 +133,9 @@ export function BackofficeLayout({ onLogout }: { onLogout: () => void }) {
   const { cloudStatus } = usePatron();
   const [menuOpen, setMenuOpen] = useState(false);
   useCloseOnBack(menuOpen, () => setMenuOpen(false));
+  // The validation workspace (admin only) is followed while the backoffice is open
+  const { review } = useContainer();
+  useEffect(() => review.start(), [review]);
 
   const section = sectionOf(pathname);
   const counts: SectionCounts = { recipes: recipes.length, ingredients: ingredients.length };

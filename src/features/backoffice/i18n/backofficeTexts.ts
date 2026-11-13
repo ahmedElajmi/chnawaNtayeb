@@ -54,6 +54,84 @@ export interface BackofficeTexts {
   engineExport: string;
   engineImport: string;
   engineResetDraft: string;
+
+  // Validation workflow
+  reviewTitle: string;
+  reviewResume: string;
+  reviewValidated: string;
+  reviewCompleteness: string;
+  reviewApprove: string;
+  reviewReject: string;
+  reviewSendBack: string;
+  reviewNotePlaceholder: string;
+  reviewNext: string;
+  reviewEdit: string;
+  reviewPreview: string;
+  reviewPublish: string;
+  reviewPublishHint: string;
+  reviewUnpublish: string;
+  reviewOnlineVersion: string;
+  reviewWorkVersion: string;
+  reviewNothingOnline: string;
+  reviewChecks: string;
+  reviewNoChecks: string;
+  reviewBlocking: string;
+  reviewAdvice: string;
+  reviewAllDone: string;
+  reviewNotFound: string;
+  reviewBack: string;
+  reviewHistory: string;
+  reviewStepLocked: string;
+  reviewApproveReady: string;
+  reviewCommon: string;
+  reviewPart: string;
+  reviewSelectCell: string;
+  reviewChangedSinceValidation: string;
+  reviewNoteFrom: string;
+  reviewApproved: string;
+  reviewSentBack: string;
+  reviewPublished: string;
+  reviewUnpublished: string;
+  reviewEditorNotes: string;
+  reviewSaved: string;
+  reviewImportTitle: string;
+  reviewImportHint: string;
+  reviewImport: string;
+  reviewImported: string;
+  partIdentity: string;
+  partMedia: string;
+  partDetails: string;
+  partSteps: string;
+  partTip: string;
+  stateIncomplete: string;
+  stateReady: string;
+  stateApproved: string;
+  stateChanged: string;
+  stateToFix: string;
+  itemOnline: string;
+  itemOnlinePending: string;
+  itemToFix: string;
+  itemPublishable: string;
+  itemInReview: string;
+  itemIncomplete: string;
+  itemReady: string;
+  filterAll: string;
+  filterOnline: string;
+  filterPending: string;
+  filterToReview: string;
+  filterToFix: string;
+  filterIncomplete: string;
+  ruleName: string;
+  ruleDescription: string;
+  rulePhoto: string;
+  ruleVideo: string;
+  ruleIngredients: string;
+  ruleKeyIngredient: string;
+  ruleKnownIngredients: string;
+  rulePublishedIngredients: string;
+  ruleTimes: string;
+  ruleSteps: string;
+  ruleTip: string;
 }
 
 const fr: BackofficeTexts = {
@@ -103,6 +181,84 @@ const fr: BackofficeTexts = {
   engineExport: 'Exporter (JSON)',
   engineImport: 'Importer',
   engineResetDraft: 'Brouillon = défaut',
+
+  reviewTitle: 'Validation',
+  reviewResume: 'Reprendre',
+  reviewValidated: '{percent} % validé',
+  reviewCompleteness: 'Complétude {percent} %',
+  reviewApprove: 'Valider',
+  reviewReject: 'À corriger',
+  reviewSendBack: 'Renvoyer',
+  reviewNotePlaceholder: 'Ce qu’il faut corriger…',
+  reviewNext: 'Suivant',
+  reviewEdit: 'Modifier',
+  reviewPreview: 'Aperçu public',
+  reviewPublish: 'Publier',
+  reviewPublishHint: 'Les parties validées seront publiées ; les autres gardent leur version en ligne.',
+  reviewUnpublish: 'Retirer du site',
+  reviewOnlineVersion: 'En ligne',
+  reviewWorkVersion: 'Dans l’atelier',
+  reviewNothingOnline: 'Pas encore en ligne',
+  reviewChecks: 'Contrôles',
+  reviewNoChecks: 'Aucun contrôle pour cette partie.',
+  reviewBlocking: 'bloquant',
+  reviewAdvice: 'conseillé',
+  reviewAllDone: 'Tout est validé.',
+  reviewNotFound: 'Recette introuvable.',
+  reviewBack: 'Retour aux recettes',
+  reviewHistory: 'Historique',
+  reviewStepLocked: 'Valide d’abord les étapes précédentes.',
+  reviewApproveReady: 'Valider les {count} parties prêtes',
+  reviewCommon: 'Commune',
+  reviewPart: 'Partie',
+  reviewSelectCell: 'Choisis une case de la grille.',
+  reviewChangedSinceValidation: 'Modifiée depuis sa validation : à valider de nouveau.',
+  reviewNoteFrom: 'Note : {note}',
+  reviewApproved: 'Partie validée.',
+  reviewSentBack: 'Partie renvoyée avec ta note.',
+  reviewPublished: 'Publié : visible par tous.',
+  reviewUnpublished: 'Retiré du site (gardé dans l’atelier).',
+  reviewEditorNotes: 'À corriger d’après la validation :',
+  reviewSaved: 'Enregistré dans l’atelier : à valider avant publication.',
+  reviewImportTitle: 'Workflow de validation',
+  reviewImportHint:
+    'Crée une copie dans l’atelier pour chaque recette : celles en ligne sont marquées validées, les brouillons quittent le site et restent dans l’atelier. Sans danger, à faire une fois.',
+  reviewImport: 'Importer les recettes dans l’atelier',
+  reviewImported: '{count} recette(s) ajoutée(s) à l’atelier.',
+  partIdentity: 'Nom et description',
+  partMedia: 'Médias',
+  partDetails: 'Infos et ingrédients',
+  partSteps: 'Étapes',
+  partTip: 'Astuce du chef',
+  stateIncomplete: 'À compléter',
+  stateReady: 'Prête',
+  stateApproved: 'Validée',
+  stateChanged: 'Modifiée',
+  stateToFix: 'À corriger',
+  itemOnline: 'En ligne',
+  itemOnlinePending: 'En ligne · modifs en attente',
+  itemToFix: 'À corriger',
+  itemPublishable: 'Prête à publier',
+  itemInReview: 'En relecture',
+  itemIncomplete: 'À compléter',
+  itemReady: 'À valider',
+  filterAll: 'Toutes',
+  filterOnline: 'En ligne',
+  filterPending: 'Modifs en attente',
+  filterToReview: 'À valider',
+  filterToFix: 'À corriger',
+  filterIncomplete: 'À compléter',
+  ruleName: 'Nom écrit',
+  ruleDescription: 'Description écrite',
+  rulePhoto: 'Photo valide (lien https)',
+  ruleVideo: 'Vidéo YouTube',
+  ruleIngredients: 'Au moins un ingrédient',
+  ruleKeyIngredient: 'Un ingrédient clé',
+  ruleKnownIngredients: 'Ingrédients du catalogue',
+  rulePublishedIngredients: 'Ingrédients en ligne',
+  ruleTimes: 'Temps et portions',
+  ruleSteps: 'Étapes écrites (toutes traduites)',
+  ruleTip: 'Astuce du chef',
 };
 
 const derja: BackofficeTexts = {
@@ -152,6 +308,84 @@ const derja: BackofficeTexts = {
   engineExport: 'Exporti (JSON)',
   engineImport: 'Importi',
   engineResetDraft: 'Brouillon = par défaut',
+
+  reviewTitle: 'Validation',
+  reviewResume: 'Kammel',
+  reviewValidated: '{percent} % validé',
+  reviewCompleteness: 'Kmel {percent} %',
+  reviewApprove: 'Sadda9',
+  reviewReject: 'Lazem tetsala7',
+  reviewSendBack: 'Raja3ha',
+  reviewNotePlaceholder: 'Chnowa lazem yetsala7…',
+  reviewNext: 'Elli ba3dou',
+  reviewEdit: 'Baddel',
+  reviewPreview: 'Chnowa ychouf el public',
+  reviewPublish: 'Onchor',
+  reviewPublishHint: 'El aqsem elli tsadda9 3lihom yetnachrou ; el ba9i yo93od kif ma howa en ligne.',
+  reviewUnpublish: 'Na77iha mel site',
+  reviewOnlineVersion: 'En ligne',
+  reviewWorkVersion: 'Fel atelier',
+  reviewNothingOnline: 'Mazelet mouch en ligne',
+  reviewChecks: 'Contrôles',
+  reviewNoChecks: 'Ma fammech contrôle lel 9asm hedha.',
+  reviewBlocking: 'ylazem',
+  reviewAdvice: 'mostahsen',
+  reviewAllDone: 'Kol chay tsadda9.',
+  reviewNotFound: 'El makla mouch mawjouda.',
+  reviewBack: 'Arja3 lel maklet',
+  reviewHistory: 'Historique',
+  reviewStepLocked: 'Sadda9 9bal 3al marahel elli 9balha.',
+  reviewApproveReady: 'Sadda9 3al {count} aqsem el wejdin',
+  reviewCommon: 'Mouchtarka',
+  reviewPart: '9asm',
+  reviewSelectCell: 'Ikhtar case mel grille.',
+  reviewChangedSinceValidation: 'Tbaddlet ba3d ma tsadda9 3liha : lazem tetsadda9 marra okhra.',
+  reviewNoteFrom: 'Mlahdha : {note}',
+  reviewApproved: '9asm tsadda9.',
+  reviewSentBack: '9asm traja3 m3a el mlahdha.',
+  reviewPublished: 'Tnachret : el kol ychoufha.',
+  reviewUnpublished: 'Tna77at mel site (9a3da fel atelier).',
+  reviewEditorNotes: 'Lazem tetsala7 7asb el validation :',
+  reviewSaved: 'Tsajjel fel atelier : lazem yetsadda9 9bal ma yetnchar.',
+  reviewImportTitle: 'Workflow mta3 el validation',
+  reviewImportHint:
+    'Ya3mel copie fel atelier l kol makla : elli en ligne tetsadda9, el brouillons yokhrjou mel site w yo93dou fel atelier. Ma fih 7ata khatar, marra wa7da.',
+  reviewImport: 'Importi el maklet lel atelier',
+  reviewImported: '{count} makla tzadet lel atelier.',
+  partIdentity: 'Esm w wasf',
+  partMedia: 'Tsawer w vidéo',
+  partDetails: 'Ma3loumet w ingrédients',
+  partSteps: 'El marahel',
+  partTip: 'Nasi7a mta3 el chef',
+  stateIncomplete: 'Lazem tetkammel',
+  stateReady: 'Wejda',
+  stateApproved: 'Tsadda9',
+  stateChanged: 'Tbaddlet',
+  stateToFix: 'Lazem tetsala7',
+  itemOnline: 'En ligne',
+  itemOnlinePending: 'En ligne · tabdilat testanna',
+  itemToFix: 'Lazem tetsala7',
+  itemPublishable: 'Wejda lel nachr',
+  itemInReview: 'Fel mouraja3a',
+  itemIncomplete: 'Lazem tetkammel',
+  itemReady: 'Testanna validation',
+  filterAll: 'El kol',
+  filterOnline: 'En ligne',
+  filterPending: 'Tabdilat testanna',
+  filterToReview: 'Lel validation',
+  filterToFix: 'Lazem tetsala7',
+  filterIncomplete: 'Lazem tetkammel',
+  ruleName: 'Esm mektoub',
+  ruleDescription: 'Wasf mektoub',
+  rulePhoto: 'Taswira s7i7a (lien https)',
+  ruleVideo: 'Vidéo YouTube',
+  ruleIngredients: 'Ingrédient wa7ed 3al a9al',
+  ruleKeyIngredient: 'Ingrédient asesi',
+  ruleKnownIngredients: 'Ingrédients mel catalogue',
+  rulePublishedIngredients: 'Ingrédients en ligne',
+  ruleTimes: 'Wa9t w 9asmet',
+  ruleSteps: 'Marahel mektoubin (kol chay mtarjem)',
+  ruleTip: 'Nasi7a mta3 el chef',
 };
 
 const ar: BackofficeTexts = {
@@ -201,6 +435,84 @@ const ar: BackofficeTexts = {
   engineExport: 'تصدير (JSON)',
   engineImport: 'استيراد',
   engineResetDraft: 'المسودة = الافتراضي',
+
+  reviewTitle: 'المراجعة',
+  reviewResume: 'متابعة',
+  reviewValidated: '{percent} % تمت المصادقة عليه',
+  reviewCompleteness: 'الاكتمال {percent} %',
+  reviewApprove: 'مصادقة',
+  reviewReject: 'يحتاج تصحيحًا',
+  reviewSendBack: 'إرجاع',
+  reviewNotePlaceholder: 'ما الذي يجب تصحيحه…',
+  reviewNext: 'التالي',
+  reviewEdit: 'تعديل',
+  reviewPreview: 'معاينة للعموم',
+  reviewPublish: 'نشر',
+  reviewPublishHint: 'تُنشر الأجزاء المصادق عليها، وتحتفظ البقية بنسختها المنشورة.',
+  reviewUnpublish: 'سحب من الموقع',
+  reviewOnlineVersion: 'المنشور',
+  reviewWorkVersion: 'في الورشة',
+  reviewNothingOnline: 'غير منشور بعد',
+  reviewChecks: 'عمليات التحقق',
+  reviewNoChecks: 'لا توجد عمليات تحقق لهذا الجزء.',
+  reviewBlocking: 'إلزامي',
+  reviewAdvice: 'مستحسن',
+  reviewAllDone: 'تمت المصادقة على كل شيء.',
+  reviewNotFound: 'الوصفة غير موجودة.',
+  reviewBack: 'العودة إلى الوصفات',
+  reviewHistory: 'السجلّ',
+  reviewStepLocked: 'صادق أولًا على المراحل السابقة.',
+  reviewApproveReady: 'المصادقة على {count} أجزاء جاهزة',
+  reviewCommon: 'مشتركة',
+  reviewPart: 'الجزء',
+  reviewSelectCell: 'اختر خانة من الجدول.',
+  reviewChangedSinceValidation: 'عُدّلت بعد المصادقة عليها: تحتاج مصادقة جديدة.',
+  reviewNoteFrom: 'ملاحظة: {note}',
+  reviewApproved: 'تمت المصادقة على الجزء.',
+  reviewSentBack: 'أُرجع الجزء مع ملاحظتك.',
+  reviewPublished: 'نُشر: مرئي للجميع.',
+  reviewUnpublished: 'سُحب من الموقع (محفوظ في الورشة).',
+  reviewEditorNotes: 'يجب تصحيحه حسب المراجعة:',
+  reviewSaved: 'حُفظ في الورشة: تجب المصادقة قبل النشر.',
+  reviewImportTitle: 'مسار المراجعة',
+  reviewImportHint:
+    'ينشئ نسخة في الورشة لكل وصفة: المنشورة تُعتبر مصادقًا عليها، والمسودات تُسحب من الموقع وتبقى في الورشة. آمن، يكفي مرة واحدة.',
+  reviewImport: 'استيراد الوصفات إلى الورشة',
+  reviewImported: 'أُضيفت {count} وصفة إلى الورشة.',
+  partIdentity: 'الاسم والوصف',
+  partMedia: 'الصور والفيديو',
+  partDetails: 'المعلومات والمكوّنات',
+  partSteps: 'المراحل',
+  partTip: 'نصيحة الطاهي',
+  stateIncomplete: 'غير مكتمل',
+  stateReady: 'جاهز',
+  stateApproved: 'مصادق عليه',
+  stateChanged: 'معدّل',
+  stateToFix: 'يحتاج تصحيحًا',
+  itemOnline: 'منشور',
+  itemOnlinePending: 'منشور · تعديلات في الانتظار',
+  itemToFix: 'يحتاج تصحيحًا',
+  itemPublishable: 'جاهز للنشر',
+  itemInReview: 'قيد المراجعة',
+  itemIncomplete: 'غير مكتمل',
+  itemReady: 'في انتظار المصادقة',
+  filterAll: 'الكل',
+  filterOnline: 'المنشورة',
+  filterPending: 'تعديلات في الانتظار',
+  filterToReview: 'للمصادقة',
+  filterToFix: 'تحتاج تصحيحًا',
+  filterIncomplete: 'غير مكتملة',
+  ruleName: 'الاسم مكتوب',
+  ruleDescription: 'الوصف مكتوب',
+  rulePhoto: 'صورة صالحة (رابط https)',
+  ruleVideo: 'فيديو يوتيوب',
+  ruleIngredients: 'مكوّن واحد على الأقل',
+  ruleKeyIngredient: 'مكوّن أساسي',
+  ruleKnownIngredients: 'مكوّنات من الفهرس',
+  rulePublishedIngredients: 'مكوّنات منشورة',
+  ruleTimes: 'الوقت والحصص',
+  ruleSteps: 'المراحل مكتوبة (ومترجمة كلها)',
+  ruleTip: 'نصيحة الطاهي',
 };
 
 /** Derja in Arabic letters: only what differs from literary Arabic. To be reviewed by a native speaker. */
@@ -220,6 +532,66 @@ const derjaArabic: Partial<BackofficeTexts> = {
   engineDraft: 'مسودّة موش منشورة',
   enginePublish: 'انشر',
   engineCancel: 'بطّل',
+  reviewResume: 'كمّل',
+  reviewValidated: '{percent} % متصادق عليه',
+  reviewCompleteness: 'الكمال {percent} %',
+  reviewApprove: 'صدّق',
+  reviewReject: 'لازم تتصلّح',
+  reviewSendBack: 'رجّعها',
+  reviewNotePlaceholder: 'شنوّة لازم يتصلّح…',
+  reviewNext: 'اللي بعدو',
+  reviewEdit: 'بدّل',
+  reviewPreview: 'شنوّة يشوف العموم',
+  reviewPublish: 'انشر',
+  reviewPublishHint: 'الأقسام المصدّقة تتنشر، والباقي يقعد كيف ما هو منشور.',
+  reviewUnpublish: 'نحّيها من الموقع',
+  reviewNothingOnline: 'مازالت موش منشورة',
+  reviewChecks: 'التثبّت',
+  reviewNoChecks: 'ما فمّاش تثبّت للقسم هذا.',
+  reviewBlocking: 'يلزم',
+  reviewAllDone: 'كل شي تصدّق.',
+  reviewNotFound: 'الماكلة موش موجودة.',
+  reviewBack: 'ارجع للماكلات',
+  reviewHistory: 'التاريخ',
+  reviewStepLocked: 'صدّق قبل على المراحل اللي قبلها.',
+  reviewApproveReady: 'صدّق على {count} أقسام واجدين',
+  reviewPart: 'القسم',
+  reviewSelectCell: 'اختار خانة من الجدول.',
+  reviewChangedSinceValidation: 'تبدّلت بعد ما تصدّقت: لازمها تصديق جديد.',
+  reviewApproved: 'القسم تصدّق.',
+  reviewSentBack: 'القسم ترجّع مع الملاحظة.',
+  reviewPublished: 'تنشرت: الكل يشوفها.',
+  reviewUnpublished: 'تنحّات من الموقع (قاعدة في الورشة).',
+  reviewEditorNotes: 'لازم يتصلّح حسب المراجعة:',
+  reviewSaved: 'تسجّل في الورشة: لازم يتصدّق قبل ما يتنشر.',
+  reviewImportHint:
+    'يعمل نسخة في الورشة لكل ماكلة: المنشورة تتصدّق، والمسودّات تخرج من الموقع وتقعد في الورشة. ما فيهاش خطر، مرّة برك.',
+  reviewImport: 'جيب الماكلات للورشة',
+  reviewImported: '{count} ماكلة تزادت للورشة.',
+  partIdentity: 'الإسم والوصف',
+  partMedia: 'التصاور والفيديو',
+  partTip: 'نصيحة الشاف',
+  stateIncomplete: 'لازم تتكمّل',
+  stateReady: 'واجدة',
+  stateApproved: 'متصدّقة',
+  stateChanged: 'تبدّلت',
+  stateToFix: 'لازم تتصلّح',
+  itemOnline: 'منشورة',
+  itemOnlinePending: 'منشورة · تبديلات تستنّى',
+  itemToFix: 'لازم تتصلّح',
+  itemPublishable: 'واجدة للنشر',
+  itemInReview: 'في المراجعة',
+  itemIncomplete: 'لازم تتكمّل',
+  itemReady: 'تستنّى التصديق',
+  filterPending: 'تبديلات تستنّى',
+  filterToReview: 'للتصديق',
+  filterToFix: 'لازم تتصلّح',
+  filterIncomplete: 'لازم تتكمّل',
+  ruleName: 'الإسم مكتوب',
+  rulePhoto: 'تصويرة صحيحة (رابط https)',
+  ruleKnownIngredients: 'مكوّنات من الكتالوغ',
+  ruleSteps: 'المراحل مكتوبة (ومترجمة الكل)',
+  ruleTip: 'نصيحة الشاف',
 };
 
 const BASE = { fr, derja, ar } satisfies Record<Exclude<Language, 'derja_ar'>, BackofficeTexts>;

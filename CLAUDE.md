@@ -124,7 +124,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   `validateWorkflow`. Atelier : `ReviewBoard` / `ReviewStore` (`src/application/review/`), collections
   `<collection>_workspace` et `<collection>_versions` ; une publication écrit version publique, copie de
   travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
-  la copie dont elle part (jamais d'écrasement silencieux).
+  la copie dont elle part (jamais d'écrasement silencieux). **Une recette n'est jamais écrite directement
+  dans la collection publique** : l'éditeur enregistre dans l'atelier (`useReview('recipe').store.save`),
+  la publication passe par la page de validation (`/patron/recettes/<id>`). Libellés de la validation :
+  `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`

@@ -163,6 +163,27 @@ describe('ReviewStore', () => {
     expect(store.entry('r1')!.online).toBe(false);
   });
 
+  it('starts from the version online when an online item is edited for the first time', async () => {
+    const { store, memory } = await setup();
+    await memory.published.writer.put({ ...recipe, id: 'live', is_published: true });
+    await Promise.resolve();
+    await store.save({ ...recipe, id: 'live', is_published: true, name_derja: 'Esm jdid' });
+    const entry = store.entry('live')!;
+    const changed = Object.entries(entry.snapshot.cells).filter(([, c]) => c.state !== 'approved');
+    expect(changed.map(([id]) => id)).toEqual(['identity:derja']);
+    expect(entry.online).toBe(true);
+  });
+
+  it('deletes an item: offline, and out of the workspace', async () => {
+    const { store, published } = await setup();
+    await store.save(recipe);
+    await store.decide('r1', requiredCells, 'approved');
+    await store.publish('r1');
+    expect((await store.discard('r1')).ok).toBe(true);
+    expect(store.entry('r1')).toBeUndefined();
+    expect(published.getState().items.find((r) => r.id === 'r1')).toBeUndefined();
+  });
+
   it('imports what is online as validated, and moves drafts to the workspace', async () => {
     const { store, memory, published } = await setup();
     const online = { ...recipe, id: 'online', is_published: true };

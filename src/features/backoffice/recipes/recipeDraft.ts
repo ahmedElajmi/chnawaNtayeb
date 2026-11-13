@@ -29,7 +29,8 @@ export function newRecipeDraft(now = Date.now()): Recipe {
     ],
     steps: [{ step_number: 1, instruction_fr: '', instruction_derja: '', instruction_ar: '' }],
     chef_tip: { fr: '', derja: '', ar: '' },
-    is_published: true,
+    // Online only once validated and published (validation workflow)
+    is_published: false,
   };
 }
 

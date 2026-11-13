@@ -34,7 +34,13 @@ export default function BackofficePage() {
           <Route element={<BackofficeLayout onLogout={logout} />}>
             {BACKOFFICE_SECTIONS.map((section) => {
               if (section.page === PATRON_PAGES.home) return <Route key="home" index element={section.element} />;
-              if (!section.subPages) return <Route key={section.page} path={section.page} element={section.element} />;
+              if (!section.subPages)
+                return [
+                  <Route key={section.page} path={section.page} element={section.element} />,
+                  ...(section.routes ?? []).map((r) => (
+                    <Route key={`${section.page}/${r.path}`} path={`${section.page}/${r.path}`} element={r.element} />
+                  )),
+                ];
               return (
                 <Route key={section.page} path={section.page} element={<SubPagesOutlet section={section} />}>
                   <Route index element={<Navigate to={section.subPages[0].page} replace />} />
