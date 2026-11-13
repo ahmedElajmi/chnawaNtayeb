@@ -62,7 +62,7 @@ lecture publique. Chaque document : `id` (ISO 2 lettres), `dial` (`+216`), `enab
 
 ## Créer un employé
 
-Backoffice › **Utilisateurs & pays** pour les pays, **Passerelles de travail › Équipe** pour les membres :
+Backoffice › **Équipe** pour les membres, **Clients › Pays** pour les pays, **Clients › Comptes** pour l'annuaire :
 
 1. Le patron saisit l'e-mail, le nom affiché et le rôle, puis « **Créer le compte** ».
 2. Le serveur (`POST /api/accounts/employees`, session patron obligatoire, Admin SDK) crée le compte Firebase
@@ -71,6 +71,14 @@ Backoffice › **Utilisateurs & pays** pour les pays, **Passerelles de travail �
 4. L'employé se connecte avec le mot de passe temporaire et le change dans Mon profil.
 
 Le client ne crée jamais un droit : la création passe par le serveur, la promotion passe par l'équipe.
+
+## L'annuaire des comptes (backoffice › Clients › Comptes)
+
+Liste paginée (24 par page, total exact via agrégation), recherche par **préfixe d'e-mail**, filtre par type
+(tous / clients / employés). Chaque ligne : nom, e-mail, téléphone, badge de type, dernière connexion —
+jamais les favoris ni le frigo de qui que ce soit. Port `AccountDirectoryRepository` (+ contrat), store
+`AccountDirectoryStore`, adaptateur `firestoreAccountDirectory`. Le filtre de type lit le champ stocké :
+un ancien document sans `type` n'apparaît que sous « tous » (il est retypé `client` à sa prochaine connexion).
 
 ## Évolutions prévues (portes déjà ouvertes)
 

@@ -260,6 +260,18 @@ interface CoreTexts {
   countriesImport: string;
   countriesImported: string;
   countriesAlreadyThere: string;
+  countriesTitle: string;
+  teamTitle: string;
+  clientsTitle: string;
+  clientsHint: string;
+  clientsAll: string;
+  clientsOnly: string;
+  employeesOnly: string;
+  clientsSearch: string;
+  clientsEmpty: string;
+  clientsGuest: string;
+  clientsNoEmail: string;
+  clientsShowMore: string;
 
   // Next action, completeness, reset
   event_reset: string;
@@ -650,6 +662,18 @@ const fr: CoreTexts = {
   countriesImport: 'Importer la liste complète',
   countriesImported: 'Liste complète importée : active les pays que tu veux.',
   countriesAlreadyThere: 'Pays déjà présents : {list}',
+  countriesTitle: 'Pays',
+  teamTitle: 'Équipe',
+  clientsTitle: 'Clients',
+  clientsHint: 'Tous les comptes du site : recherche par e-mail, filtre par type, page par page.',
+  clientsAll: 'Tous',
+  clientsOnly: 'Clients',
+  employeesOnly: 'Employés',
+  clientsSearch: 'Rechercher un e-mail…',
+  clientsEmpty: 'Aucun compte pour ces critères.',
+  clientsGuest: 'Invité',
+  clientsNoEmail: 'Sans e-mail (invité)',
+  clientsShowMore: 'Afficher plus',
   teamEmpty: 'Aucun membre pour l’instant : seul le compte patron a accès.',
   event_reset: 'Remis à valider',
   actionValidate: 'Valider ({percent} %)',
@@ -1035,6 +1059,18 @@ const derja: CoreTexts = {
   countriesImport: 'Jib el lista el kamla',
   countriesImported: 'El lista el kamlajet : fa33el elli t7eb.',
   countriesAlreadyThere: 'Blad mawjoudin : {list}',
+  countriesTitle: 'Blad',
+  teamTitle: 'Khedma',
+  clientsTitle: 'Clients',
+  clientsHint: 'El comptes el kol mte3 el site : lawaj b e-mail, filtre b nawe3, saf7a b saf7a.',
+  clientsAll: 'El kol',
+  clientsOnly: 'Clients',
+  employeesOnly: 'Khedma',
+  clientsSearch: 'Lawajli 3la e-mail…',
+  clientsEmpty: '7ata compte b hedhi el me9ayes.',
+  clientsGuest: 'Dhif',
+  clientsNoEmail: 'Bla e-mail (dhif)',
+  clientsShowMore: 'Warri zyada',
   teamEmpty: 'Ma fammech membre tawa : ken compte patron 3andou accès.',
   event_reset: 'Rja3 lel validation',
   actionValidate: 'Validi ({percent} %)',
@@ -1418,6 +1454,18 @@ const ar: CoreTexts = {
   countriesImport: 'استيراد القائمة الكاملة',
   countriesImported: 'استُوردت القائمة الكاملة: فعّل ما تريد.',
   countriesAlreadyThere: 'بلدان موجودة: {list}',
+  countriesTitle: 'البلدان',
+  teamTitle: 'الفريق',
+  clientsTitle: 'العملاء',
+  clientsHint: 'كل حسابات الموقع: بحث بالبريد، تصفية حسب النوع، صفحة بصفحة.',
+  clientsAll: 'الكل',
+  clientsOnly: 'عملاء',
+  employeesOnly: 'موظفون',
+  clientsSearch: 'ابحث عن بريد…',
+  clientsEmpty: 'لا حساب بهذه المعايير.',
+  clientsGuest: 'ضيف',
+  clientsNoEmail: 'بدون بريد (ضيف)',
+  clientsShowMore: 'عرض المزيد',
   teamEmpty: 'لا أعضاء حاليًا: حساب المسؤول وحده له الوصول.',
   event_reset: 'أُعيد إلى المراجعة',
   actionValidate: 'مراجعة ({percent} %)',
@@ -1730,6 +1778,18 @@ const derjaArabic: CoreTexts = {
   countriesImport: 'جيب الليستة الكاملة',
   countriesImported: 'الليستة الكاملة جات : فعّل اللي تحب.',
   countriesAlreadyThere: 'بلاد موجودين : {list}',
+  countriesTitle: 'البلاد',
+  teamTitle: 'الخدامة',
+  clientsTitle: 'الكليان',
+  clientsHint: 'الكومبتات الكل متاع الموقع : لوج بالإيميل، تصفية بالنوع، صفحة بصفحة.',
+  clientsAll: 'الكل',
+  clientsOnly: 'كليان',
+  employeesOnly: 'خدامة',
+  clientsSearch: 'لوج على إيميل…',
+  clientsEmpty: 'حتى كومبت بهذي المعايير.',
+  clientsGuest: 'ضيف',
+  clientsNoEmail: 'بلا إيميل (ضيف)',
+  clientsShowMore: 'وري زادة',
   teamEmpty: 'ما فمّاش أعضاء توّا: كان حساب الباترون عندو الدخول.',
   event_reset: 'رجع للمراجعة',
   actionValidate: 'صدّق ({percent} %)',

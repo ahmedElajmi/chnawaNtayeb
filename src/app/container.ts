@@ -13,7 +13,7 @@ import {
   TeamStore,
   SyncedCollectionStore,
 } from '@/application';
-import { AccountProfileStore, CountriesStore } from '@/application';
+import { AccountDirectoryStore, AccountProfileStore, CountriesStore } from '@/application';
 import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type RoleDefinition, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
@@ -45,6 +45,7 @@ import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
 import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firestoreReviewWorkspace';
 import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
 import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
+import { firestoreAccountDirectory } from '@/infrastructure/firebase/firestoreAccountDirectory';
 import { firebaseAccountProfile, firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
 import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
@@ -159,6 +160,7 @@ export function createContainer() {
   });
   const countries = new CountriesStore(countriesCollection, firestoreCountries.writer, canPublish);
   const accountProfile = new AccountProfileStore(firebaseAccountProfile, () => countries.getState().countries);
+  const accountDirectory = new AccountDirectoryStore(firestoreAccountDirectory);
 
   const categories = {
     recipe: categoryStore('recipe', firestoreRecipeCategories, 'recipe_categories'),
@@ -182,6 +184,7 @@ export function createContainer() {
     team,
     countries,
     accountProfile,
+    accountDirectory,
     matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),
     matchingScenarios: new MatchingScenariosStore(firestoreMatchingScenarios, {
       randomSuffix: () => crypto.randomUUID().slice(0, 6),

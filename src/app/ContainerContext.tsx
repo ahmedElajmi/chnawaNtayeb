@@ -97,6 +97,12 @@ export const useAccountProfile = () => {
   return { ...useStore(accountProfile), accountProfileStore: accountProfile };
 };
 
+/** Backoffice directory of every account (paged, searchable). */
+export const useAccountDirectory = () => {
+  const { accountDirectory } = useContainer();
+  return useStore(accountDirectory);
+};
+
 /** Workflows and roles of the team. */
 export const useReviewSettings = () => {
   const { review } = useContainer();

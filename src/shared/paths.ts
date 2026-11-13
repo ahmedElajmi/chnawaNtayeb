@@ -27,7 +27,8 @@ export const PATRON_PAGES = {
   data: 'donnees',
   workflows: 'workflows',
   categories: 'categories',
-  users: 'utilisateurs',
+  team: 'equipe',
+  clients: 'clients',
 } as const;
 
 /** Sub-pages of /patron/categories (one tree per kind of content). */
@@ -36,11 +37,16 @@ export const CATEGORY_PAGES = {
   ingredients: 'ingredients',
 } as const;
 
+/** Sub-pages of /patron/clients. */
+export const CLIENTS_PAGES = {
+  directory: 'comptes',
+  countries: 'pays',
+} as const;
+
 /** Sub-pages of /patron/workflows. */
 export const WORKFLOW_PAGES = {
   steps: 'etapes',
   roles: 'roles',
-  team: 'equipe',
 } as const;
 
 /** Filter of a backoffice list given in its address (`?filtre=to_fix`), so the home page can link to it. */

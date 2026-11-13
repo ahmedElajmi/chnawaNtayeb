@@ -617,7 +617,6 @@ export function TeamPage() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-ink-muted">{b.teamHint}</p>
       <form
         className={`${CARD} flex flex-wrap items-end gap-2 space-y-0`}
         onSubmit={async (e) => {
