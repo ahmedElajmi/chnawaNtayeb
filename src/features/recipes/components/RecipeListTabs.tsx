@@ -7,7 +7,8 @@ import { useRecipesHref } from '../filterMemory';
 interface RecipeListTabsProps {
   active: RecipeListPath;
   catalogCount: number;
-  suggestionsCount: number;
+  /** Null when the fridge is empty: the tab invites to fill it instead of showing a count */
+  suggestionsCount: number | null;
 }
 
 /** Switch between the whole catalog and the fridge suggestions, keeping the filters. */
@@ -43,7 +44,15 @@ export function RecipeListTabs({ active, catalogCount, suggestionsCount }: Recip
           >
             <Icon className="hidden min-[360px]:block w-4 h-4 shrink-0" />
             <span className="truncate">{label}</span>
-            <span className={`shrink-0 ${isActive ? 'opacity-90' : 'opacity-70'}`}>({count})</span>
+            {count === null ? (
+              <span
+                className={`hidden min-[400px]:inline truncate font-medium ${isActive ? 'opacity-90' : 'opacity-70'}`}
+              >
+                · {t.fillFridgeHint}
+              </span>
+            ) : (
+              <span className={`shrink-0 ${isActive ? 'opacity-90' : 'opacity-70'}`}>({count})</span>
+            )}
           </Link>
         );
       })}

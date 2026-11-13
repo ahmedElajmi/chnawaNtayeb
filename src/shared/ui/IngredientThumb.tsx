@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Ingredient } from '@/core/catalog';
-import { CATEGORY_VISUALS } from './ingredientVisuals';
+import { useCategories } from '@/app/ContainerContext';
+import { ingredientVisualOf } from './ingredientVisualOf';
 
 type ThumbSize = 'xs' | 'sm' | 'md' | 'lg';
 
@@ -28,7 +29,8 @@ export function IngredientThumb({ ingredient, size = 'sm', round = false, classN
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const s = SIZES[size];
   const radius = round ? 'rounded-full' : s.radius;
-  const visual = CATEGORY_VISUALS[ingredient.category] ?? CATEGORY_VISUALS.other;
+  const { tree } = useCategories('ingredient');
+  const visual = ingredientVisualOf(tree, ingredient.category);
   const photo = ingredient.image_url && ingredient.image_url !== failedUrl ? ingredient.image_url : null;
 
   if (photo) {

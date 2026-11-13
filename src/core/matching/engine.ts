@@ -116,6 +116,21 @@ export function matchRecipes(
   return { ready: byTier('ready'), almost: byTier('almost'), ideas: byTier('ideas'), totalMatches: related.length };
 }
 
+const NO_SUGGESTIONS: MatchResults = { ready: [], almost: [], ideas: [], totalMatches: 0 };
+
+/**
+ * Fridge suggestions shown to the user: with an empty fridge every recipe would be an "idea",
+ * which is the catalog, not a suggestion, so there are none. Every screen counts them this way.
+ */
+export function fridgeSuggestions(
+  recipes: Recipe[],
+  fridgeIds: string[],
+  filters?: FilterOptions,
+  ctx: MatchContext = {}
+): MatchResults {
+  return fridgeIds.length === 0 ? NO_SUGGESTIONS : matchRecipes(recipes, fridgeIds, filters, ctx);
+}
+
 /**
  * The whole catalog (with the filters applied), each recipe analyzed against the fridge:
  * the fridge suggestions first (ready → almost → ideas), then every other recipe.

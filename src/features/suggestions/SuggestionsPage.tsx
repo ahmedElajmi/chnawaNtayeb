@@ -8,8 +8,7 @@ import type { RecipeFilters } from '@/features/recipes/recipeFilters';
 import { CHIP_OFF, chip, RecipeFilterBar } from '@/features/recipes/components/RecipeFilterBar';
 import { RecipeListTabs } from '@/features/recipes/components/RecipeListTabs';
 import { RecipeGrid } from '@/features/recipes/RecipeGrid';
-
-const NO_MATCHES = { ready: [], almost: [], ideas: [] };
+import { RecipeCategoryBrowser } from '@/features/recipes/components/RecipeCategoryBrowser';
 
 /** Recipes suggested for the fridge, grouped by tier (ready / almost / ideas). */
 export function SuggestionsPage() {
@@ -17,10 +16,8 @@ export function SuggestionsPage() {
   const { fridge } = useKitchen();
   const [filters, setFilters] = useRecipeFiltersInUrl(PATHS.suggestions);
   const catalog = useRecipeCatalog(filters);
-  const matches = useRecipeMatches(filters);
-  // With an empty fridge every recipe is an "idea": that is the catalog, not a suggestion
+  const { ready, almost, ideas } = useRecipeMatches(filters);
   const fridgeIsEmpty = fridge.length === 0;
-  const { ready, almost, ideas } = fridgeIsEmpty ? NO_MATCHES : matches;
   const total = ready.length + almost.length + ideas.length;
 
   const tiers: { id: RecipeFilters['tier']; title: string; desc: string; dot: string; list: MatchingResult[] }[] = [
@@ -48,7 +45,11 @@ export function SuggestionsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="sr-only">{t.recipesSuggestionsTab}</h1>
-      <RecipeListTabs active={PATHS.suggestions} catalogCount={catalog.length} suggestionsCount={total} />
+      <RecipeListTabs
+        active={PATHS.suggestions}
+        catalogCount={catalog.length}
+        suggestionsCount={fridgeIsEmpty ? null : total}
+      />
 
       {fridgeIsEmpty ? (
         emptyState(t.suggestionsEmptyTitle, t.suggestionsEmptyDesc)
@@ -72,6 +73,7 @@ export function SuggestionsPage() {
               ))}
             </div>
           </RecipeFilterBar>
+          <RecipeCategoryBrowser filters={filters} setFilters={setFilters} />
 
           {total === 0 ? (
             emptyState(t.noResultsTitle, t.noResultsDesc)

@@ -94,8 +94,14 @@ backoffice (`/patron/recettes`, `/patron/moteur/scenarios`…) sont déclarées 
 
 ## Langues (`shared/i18n/translations.ts`)
 
-Un dictionnaire typé par langue (`derja`, `derja_ar`, `fr`, `ar`) ; la derja en lettres arabes reprend
-l'arabe littéraire et remplace ce qui existe en derja (`derjaArabic.ts`). Sélecteurs (en-tête,
+Un dictionnaire typé par langue (`derja`, `derja_ar`, `fr`, `ar`), chacun écrit en entier : la derja en
+lettres arabes (`derjaArabic.ts`) est de la derja tunisienne, jamais empruntée à l'arabe littéraire, et
+l'arabe (`ar`) est de l'arabe littéraire sans aucun mot de derja (باش، شنوة، فريجيدار…). Vérifié par
+`translations.test.ts` : toutes les clés du français présentes et non vides dans chaque langue, mêmes
+`{marques}`, aucun mot de derja dans `ar`. Aucun texte affiché en dur dans les écrans publics (accueil,
+en-tête, compte, accès patron, Réglages) : tout passe par `t`. Les erreurs de connexion (visiteur et patron)
+arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `PatronLoginError` dans
+`src/application/ports.ts`) que l'écran traduit. Sélecteurs (en-tête,
 Réglages › Langue) : Derja, دارجة, Français, العربية الفصحى (`SELECTOR_ORDER`). `useLanguage()` fournit `t` (les textes),
 `language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
 `getStepText`, `getChefTip`, `getSecondaryName`, `compareNames`) qui passent toutes par `pickLocalized` du

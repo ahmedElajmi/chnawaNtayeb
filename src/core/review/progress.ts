@@ -1,6 +1,6 @@
 import { cellState, AWAITS_REVIEW, type CellDecisions, type CellState } from './decisions';
-import { cellHash, copyCell, parseCellId, type ReviewItems, type ReviewKind } from './parts';
-import { checkCell, type ReviewContext, type RuleResult } from './rules';
+import { cellHash, copyCell, parseCellId, reviewCells, type ReviewItems, type ReviewKind } from './parts';
+import { checkCell, type ReviewContext, type RuleLevel, type RuleResult } from './rules';
 import { workflowCells, type WorkflowDefinition } from './workflow';
 
 export interface CellReview {
@@ -153,4 +153,40 @@ export function itemStatus(snapshot: ReviewSnapshot, online: boolean, pending: b
   if (snapshot.incompleteRequired > 0) return 'incomplete';
   if (states.includes('approved')) return 'in_review';
   return 'ready';
+}
+
+/** A check that fails on a cell: what is missing to make the item complete. */
+export interface MissingData {
+  cell: string;
+  rule: string;
+}
+
+export interface ContentCompleteness {
+  /** Checks passed among every check of every cell (optional languages included), 0–100 */
+  percent: number;
+  missing: MissingData[];
+}
+
+/**
+ * How complete the data of an item is, whatever its validation: every cell of the grid (optional
+ * languages and variants included) and every check that is not switched off, advice included. An item
+ * can be validated at 100 % and complete at 70 %. Whether ingredients are online is a publication matter,
+ * not data, so it is left out.
+ */
+export function contentCompleteness<K extends ReviewKind>(
+  kind: K,
+  item: ReviewItems[K],
+  ctx: ReviewContext,
+  levels: Readonly<Record<string, RuleLevel>> = {}
+): ContentCompleteness {
+  const dataCtx: ReviewContext = { ingredients: ctx.ingredients };
+  let total = 0;
+  const missing: MissingData[] = [];
+  for (const cell of reviewCells(kind)) {
+    for (const check of checkCell(kind, item, cell, dataCtx, levels)) {
+      total += 1;
+      if (!check.passed) missing.push({ cell: cell.id, rule: check.rule });
+    }
+  }
+  return { percent: total ? Math.round(((total - missing.length) / total) * 100) : 100, missing };
 }

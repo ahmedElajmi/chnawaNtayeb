@@ -4,7 +4,8 @@ import type { Ingredient } from '@/core/catalog';
 import { normalizeText } from '@/core/shared';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { useIngredientCategories } from '@/shared/i18n/useIngredientCategories';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 const MAX_RESULTS = 30;
 
@@ -28,16 +29,17 @@ export function IngredientSearch({
   ingredients,
   onSelect,
   exclude = [],
-  placeholder = 'Chercher un ingrédient…',
+  placeholder,
   autoFocus = false,
   onCancel,
   className = '',
 }: IngredientSearchProps) {
+  const b = useBackofficeText();
   const listId = useId();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(autoFocus);
   const [active, setActive] = useState(0);
-  const categoryLabel = new Map(useIngredientCategories());
+  const categoryNames = useCategoryNames('ingredient');
   const { getIngredientName, getSecondaryName, compareNames } = useLanguage();
 
   const results = useMemo(() => {
@@ -47,7 +49,7 @@ export function IngredientSearch({
     return ingredients
       .filter((i) => !excluded.has(i.id) && (!q || names(i).some((n) => n.includes(q))))
       .map((i) => ({ i, starts: q && names(i).some((n) => n.startsWith(q)) ? 0 : 1 }))
-      .sort((a, b) => a.starts - b.starts || compareNames(a.i, b.i))
+      .sort((x, y) => x.starts - y.starts || compareNames(x.i, y.i))
       .slice(0, MAX_RESULTS)
       .map((r) => r.i);
   }, [ingredients, exclude, query, compareNames]);
@@ -71,7 +73,7 @@ export function IngredientSearch({
         // oxlint-disable-next-line jsx-a11y/no-autofocus -- opened on purpose by the chef ("change" / "add")
         autoFocus={autoFocus}
         value={query}
-        placeholder={placeholder}
+        placeholder={placeholder ?? b.edSearchIngredient}
         onFocus={() => setOpen(true)}
         onBlur={() => {
           setOpen(false);
@@ -107,11 +109,7 @@ export function IngredientSearch({
           role="listbox"
           className="absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl bg-card border border-line shadow-xl py-1"
         >
-          {results.length === 0 && (
-            <li className="px-3 py-2 text-[11px] text-ink-muted">
-              Aucun ingrédient trouvé. Ajoutez-le d'abord dans l'onglet Ingrédients.
-            </li>
-          )}
+          {results.length === 0 && <li className="px-3 py-2 text-[11px] text-ink-muted">{b.edNoIngredientFound}</li>}
           {results.map((ingredient, index) => (
             <li
               key={ingredient.id}
@@ -130,7 +128,7 @@ export function IngredientSearch({
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-ink truncate">{getIngredientName(ingredient)}</span>
                 <span className="block text-[10px] text-ink-muted truncate">
-                  {[getSecondaryName(ingredient), categoryLabel.get(ingredient.category)].filter(Boolean).join(' · ')}
+                  {[getSecondaryName(ingredient), categoryNames.name(ingredient.category)].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="text-[10px] text-ink-muted shrink-0">{ingredient.unit_default}</span>

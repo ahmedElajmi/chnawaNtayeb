@@ -37,7 +37,7 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
 
     const listText = unbought.map((i) => `☐ ${i.name} (${i.quantity} ${i.unit})`).join('\n');
 
-    const msg = `🛒 *Liste de Courses Qadhya (Chnowa Ntayeb)* :\n\n${listText}\n\n📱 Envoyé depuis Chnowa Ntayeb (by Chef Souhed) 🇹🇳`;
+    const msg = `🛒 *${t.groceryTitle} (Chnowa Ntayeb)* :\n\n${listText}\n\n📱 ${t.shareSentFrom} Chnowa Ntayeb (by Chef Souhed) 🇹🇳`;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   };

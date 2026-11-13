@@ -18,34 +18,40 @@ import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { useGuardedClose } from '@/shared/hooks/useGuardedClose';
 import { cls, IngredientChips, IngredientSelect, RecipeChips, RecipeSelect } from './ui';
 import { ModalShell } from '@/shared/ui/ModalShell';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-export const CHECK_LABEL: Record<ScenarioCheckKind, string> = {
-  first: 'Recette en tête d’un niveau',
-  tier: 'Recette dans un niveau',
-  contains: 'Recettes toutes dans un niveau',
-  top: 'Recette parmi les N premières',
-  noCourse: 'Aucun plat d’un type',
-  toBuy: 'Ingrédients à acheter',
-  fridgeUsed: 'Ingrédients du frigo utilisés',
-  substitution: 'Remplacement d’ingrédient',
-  minScore: 'Score minimum',
-};
+export const checkLabels = (b: BackofficeTexts): Record<ScenarioCheckKind, string> => ({
+  first: b.engCheckFirst,
+  tier: b.engCheckTier,
+  contains: b.engCheckContains,
+  top: b.engCheckTop,
+  noCourse: b.engCheckNoCourse,
+  toBuy: b.engCheckToBuy,
+  fridgeUsed: b.engCheckFridgeUsed,
+  substitution: b.engCheckSubstitution,
+  minScore: b.engCheckMinScore,
+});
 
-const TIER_LABEL: Record<MatchTier | 'absent', string> = {
-  ready: 'Prête',
-  almost: 'Presque prête',
-  ideas: 'Idée',
-  absent: 'Absente',
-};
+const tierLabels = (b: BackofficeTexts): Record<MatchTier | 'absent', string> => ({
+  ready: b.engTierReady,
+  almost: b.engTierAlmost,
+  ideas: b.engTierIdea,
+  absent: b.engTierAbsent,
+});
 const TIERS: MatchTier[] = ['ready', 'almost', 'ideas'];
-const COURSE_LABEL: Record<MealCategory, string> = { entree: 'Entrée', plat_principal: 'Plat', dessert: 'Dessert' };
-const CUISINES: [CuisineType, string][] = [
-  ['traditionnelle', 'Traditionnelle'],
-  ['rapide', 'Rapide'],
-  ['economique', 'Économique'],
-  ['familiale', 'Familiale'],
-  ['vegetarienne', 'Végétarienne'],
-  ['internationale', 'Internationale'],
+const courseLabels = (b: BackofficeTexts): Record<MealCategory, string> => ({
+  entree: b.engCourseStarter,
+  plat_principal: b.engCourseMain,
+  dessert: b.engCourseDessert,
+});
+const cuisines = (b: BackofficeTexts): [CuisineType, string][] => [
+  ['traditionnelle', b.engCuisineTraditional],
+  ['rapide', b.engCuisineQuick],
+  ['economique', b.engCuisineBudget],
+  ['familiale', b.engCuisineFamily],
+  ['vegetarienne', b.engCuisineVegetarian],
+  ['internationale', b.engCuisineInternational],
 ];
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -58,16 +64,18 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function TierSelect({ value, onChange }: { value: MatchTier; onChange: (t: MatchTier) => void }) {
+  const b = useBackofficeText();
+  const tierLabel = tierLabels(b);
   return (
     <select
       className={`${cls.input} max-w-full`}
       value={value}
       onChange={(e) => onChange(e.target.value as MatchTier)}
-      aria-label="Niveau"
+      aria-label={b.engTier}
     >
       {TIERS.map((t) => (
         <option key={t} value={t}>
-          {TIER_LABEL[t]}
+          {tierLabel[t]}
         </option>
       ))}
     </select>
@@ -116,9 +124,12 @@ function CheckFields({
   ingredients: Ingredient[];
   onChange: (c: ScenarioCheck) => void;
 }) {
+  const b = useBackofficeText();
+  const tierLabel = tierLabels(b);
+  const courseLabel = courseLabels(b);
   const recipe =
     'recipeId' in check ? (
-      <Field label="Recette">
+      <Field label={b.engRecipe}>
         <RecipeSelect
           recipes={recipes}
           value={check.recipeId}
@@ -132,7 +143,7 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="En tête du niveau">
+          <Field label={b.engFirstOfTier}>
             <TierSelect value={check.tier} onChange={(tier) => onChange({ ...check, tier })} />
           </Field>
         </>
@@ -141,7 +152,7 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Niveau(x) accepté(s)">
+          <Field label={b.engAcceptedTiers}>
             <div className="flex flex-wrap gap-3 text-xs text-ink">
               {([...TIERS, 'absent'] as const).map((t) => (
                 <label key={t} className="inline-flex items-center gap-1">
@@ -155,7 +166,7 @@ function CheckFields({
                       })
                     }
                   />
-                  {TIER_LABEL[t]}
+                  {tierLabel[t]}
                 </label>
               ))}
             </div>
@@ -165,14 +176,14 @@ function CheckFields({
     case 'contains':
       return (
         <>
-          <Field label="Recettes">
+          <Field label={b.engRecipes}>
             <RecipeChips
               ids={check.recipeIds}
               recipes={recipes}
               onChange={(recipeIds) => onChange({ ...check, recipeIds })}
             />
           </Field>
-          <Field label="Toutes dans le niveau">
+          <Field label={b.engAllInTier}>
             <TierSelect value={check.tier} onChange={(tier) => onChange({ ...check, tier })} />
           </Field>
         </>
@@ -181,23 +192,23 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Parmi les N premières suggestions (prêtes puis presque prêtes)">
+          <Field label={b.engTopN}>
             <NumberInput label="N" value={check.top} min={1} max={50} onChange={(top) => onChange({ ...check, top })} />
           </Field>
         </>
       );
     case 'noCourse':
       return (
-        <Field label="Aucune suggestion de type">
+        <Field label={b.engNoSuggestionOfType}>
           <select
             className={cls.input}
             value={check.course}
-            aria-label="Type de plat"
+            aria-label={b.engCourseType}
             onChange={(e) => onChange({ ...check, course: e.target.value as MealCategory })}
           >
             {MEAL_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {COURSE_LABEL[c]}
+                {courseLabel[c]}
               </option>
             ))}
           </select>
@@ -207,7 +218,7 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Exactement ces ingrédients à acheter (vide = rien à acheter)">
+          <Field label={b.engExactlyToBuy}>
             <IngredientChips
               ids={check.ingredientIds}
               ingredients={ingredients}
@@ -220,9 +231,9 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Nombre d’ingrédients du frigo utilisés">
+          <Field label={b.engFridgeUsedCount}>
             <NumberInput
-              label="Nombre"
+              label={b.engNumber}
               value={check.count}
               min={0}
               max={100}
@@ -235,27 +246,27 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Dans cette recette">
+          <Field label={b.engInThisRecipe}>
             <div className="flex flex-wrap items-center gap-2 text-xs text-ink">
               <IngredientSelect
                 ingredients={ingredients}
                 value={check.substituteId}
-                placeholder="Remplaçant"
+                placeholder={b.engSubstitute}
                 onChange={(substituteId) => onChange({ ...check, substituteId })}
               />
               <select
                 className={cls.input}
                 value={check.allowed ? 'yes' : 'no'}
-                aria-label="Autorisé"
+                aria-label={b.engAllowed}
                 onChange={(e) => onChange({ ...check, allowed: e.target.value === 'yes' })}
               >
-                <option value="yes">remplace</option>
-                <option value="no">ne remplace pas</option>
+                <option value="yes">{b.engReplaces}</option>
+                <option value="no">{b.engDoesNotReplace}</option>
               </select>
               <IngredientSelect
                 ingredients={ingredients}
                 value={check.ingredientId}
-                placeholder="Ingrédient de la recette"
+                placeholder={b.engRecipeIngredient}
                 onChange={(ingredientId) => onChange({ ...check, ingredientId })}
               />
             </div>
@@ -266,9 +277,9 @@ function CheckFields({
       return (
         <>
           {recipe}
-          <Field label="Score minimum (%)">
+          <Field label={b.engMinScorePercent}>
             <NumberInput
-              label="Score"
+              label={b.engScore}
               value={check.min}
               min={0}
               max={100}
@@ -302,15 +313,14 @@ export function ScenarioEditorModal({
   onClose: () => void;
 }) {
   useCloseOnBack(true, onClose);
+  const b = useBackofficeText();
+  const checkLabel = checkLabels(b);
+  const courseLabel = courseLabels(b);
   const [draft, setDraft] = useState<MatchingScenario>(scenario);
   const [newKind, setNewKind] = useState<ScenarioCheckKind>('first');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dismiss = useGuardedClose(
-    JSON.stringify(draft) !== JSON.stringify(scenario),
-    onClose,
-    'Abandonner les modifications de ce scénario ?'
-  );
+  const dismiss = useGuardedClose(JSON.stringify(draft) !== JSON.stringify(scenario), onClose, b.engDiscardScenario);
   const set = (patch: Partial<MatchingScenario>) => setDraft((d) => ({ ...d, ...patch }));
   const setChecks = (checks: ScenarioCheck[]) => set({ checks });
 
@@ -344,14 +354,14 @@ export function ScenarioEditorModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={isNew ? 'Nouveau scénario' : `Modifier : ${scenario.title}`}
+        aria-label={isNew ? b.engNewScenario : format(b.engEditTitle, { title: scenario.title })}
         className="w-full max-w-2xl min-w-0 bg-surface rounded-2xl border border-line p-4 sm:p-6 shadow-2xl max-h-[92vh] flex flex-col"
       >
         <div className="flex items-center justify-between gap-2 pb-3 border-b border-line">
           <h3 className="font-extrabold text-base text-ink min-w-0 truncate">
-            {isNew ? 'Nouveau scénario' : `Modifier : ${scenario.title}`}
+            {isNew ? b.engNewScenario : format(b.engEditTitle, { title: scenario.title })}
           </h3>
-          <button onClick={onClose} className="text-ink-muted hover:text-ink p-1 shrink-0" aria-label="Fermer">
+          <button onClick={onClose} className="text-ink-muted hover:text-ink p-1 shrink-0" aria-label={b.close}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -367,67 +377,67 @@ export function ScenarioEditorModal({
             </p>
           )}
 
-          <Field label="Titre (ce que l’on doit voir avec ce frigo)">
+          <Field label={b.engScenarioTitleField}>
             <input
               value={draft.title}
               maxLength={200}
               onChange={(e) => set({ title: e.target.value })}
-              placeholder="Ex. : Œufs + tomates : la tastira ne manque que de piment"
+              placeholder={b.engScenarioTitlePlaceholder}
               className={`${cls.input} w-full`}
             />
           </Field>
 
-          <Field label="Frigo">
+          <Field label={b.engFridge}>
             <IngredientChips
               ids={draft.fridge}
               ingredients={ingredients}
               onChange={(fridge) => set({ fridge })}
-              addLabel="Ajouter au frigo…"
+              addLabel={b.engAddToFridge}
             />
           </Field>
 
-          <Field label="Placard">
+          <Field label={b.engPantry}>
             <label className="inline-flex items-center gap-1.5 text-xs text-ink">
               <input
                 type="checkbox"
                 checked={draft.pantry !== undefined}
                 onChange={(e) => set({ pantry: e.target.checked ? [] : undefined })}
               />
-              Placard personnalisé (sinon : placard par défaut)
+              {b.engCustomPantry}
             </label>
             {draft.pantry !== undefined && (
               <IngredientChips
                 ids={draft.pantry}
                 ingredients={ingredients}
                 onChange={(pantry) => set({ pantry })}
-                addLabel="Ajouter au placard…"
+                addLabel={b.engAddToPantry}
               />
             )}
           </Field>
 
-          <Field label="Filtres (optionnels)">
+          <Field label={b.engFilters}>
             <div className="flex flex-wrap gap-2">
               <select
                 className={cls.input}
                 value={filters.category ?? ''}
-                aria-label="Type de plat"
+                aria-label={b.engCourseType}
                 onChange={(e) => setFilter('category', e.target.value)}
               >
-                <option value="">Tous les plats</option>
+                <option value="">{b.engAllCourses}</option>
                 {MEAL_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {COURSE_LABEL[c]}
+                    {courseLabel[c]}
                   </option>
                 ))}
               </select>
               <select
                 className={cls.input}
                 value={filters.cuisineType ?? ''}
-                aria-label="Cuisine"
+                aria-label={b.engCuisine}
                 onChange={(e) => setFilter('cuisineType', e.target.value)}
               >
-                <option value="">Toutes les cuisines</option>
-                {CUISINES.map(([id, label]) => (
+                <option value="">{b.engAllCuisines}</option>
+                {cuisines(b).map(([id, label]) => (
                   <option key={id} value={id}>
                     {label}
                   </option>
@@ -437,20 +447,20 @@ export function ScenarioEditorModal({
           </Field>
 
           <div className="space-y-2">
-            <p className={cls.label}>Vérifications</p>
+            <p className={cls.label}>{b.engChecks}</p>
             <ol className="space-y-2">
               {draft.checks.map((check, i) => (
                 <li key={i} className="p-3 rounded-xl bg-card border border-line space-y-2 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-ink">
-                      {i + 1}. {CHECK_LABEL[check.kind]}
+                      {i + 1}. {checkLabel[check.kind]}
                     </span>
                     <button
                       type="button"
                       className={cls.danger}
                       onClick={() => setChecks(draft.checks.filter((_, k) => k !== i))}
                     >
-                      Retirer
+                      {b.engRemove}
                     </button>
                   </div>
                   <CheckFields
@@ -466,12 +476,12 @@ export function ScenarioEditorModal({
               <select
                 className={`${cls.input} max-w-full`}
                 value={newKind}
-                aria-label="Type de vérification"
+                aria-label={b.engCheckType}
                 onChange={(e) => setNewKind(e.target.value as ScenarioCheckKind)}
               >
                 {SCENARIO_CHECK_KINDS.map((k) => (
                   <option key={k} value={k}>
-                    {CHECK_LABEL[k]}
+                    {checkLabel[k]}
                   </option>
                 ))}
               </select>
@@ -480,7 +490,7 @@ export function ScenarioEditorModal({
                 className={`${cls.secondary} inline-flex items-center gap-1`}
                 onClick={() => setChecks([...draft.checks, emptyCheck(newKind)])}
               >
-                <Plus className="w-3.5 h-3.5" /> Ajouter la vérification
+                <Plus className="w-3.5 h-3.5" /> {b.engAddCheck}
               </button>
             </div>
           </div>
@@ -489,7 +499,7 @@ export function ScenarioEditorModal({
           <div className="p-3 rounded-xl border border-line bg-card space-y-1 text-xs">
             {errors.length > 0 ? (
               <>
-                <p className="font-bold text-ink">À compléter avant d’enregistrer :</p>
+                <p className="font-bold text-ink">{b.engToComplete}</p>
                 <ul className="ml-4 list-disc text-ink-muted">
                   {errors.map((e) => (
                     <li key={e}>{e}</li>
@@ -498,12 +508,12 @@ export function ScenarioEditorModal({
               </>
             ) : result.passed ? (
               <p className="flex items-center gap-1.5 font-bold text-emerald-600">
-                <CheckCircle2 className="w-4 h-4 shrink-0" /> Respecté avec les réglages du brouillon
+                <CheckCircle2 className="w-4 h-4 shrink-0" /> {b.engPassedWithDraft}
               </p>
             ) : (
               <>
                 <p className="flex items-center gap-1.5 font-bold text-rose-600">
-                  <XCircle className="w-4 h-4 shrink-0" /> Non respecté avec les réglages du brouillon
+                  <XCircle className="w-4 h-4 shrink-0" /> {b.engFailedWithDraft}
                 </p>
                 <ul className="ml-6 list-disc text-ink-muted">
                   {result.failures.map((f) => (
@@ -517,7 +527,7 @@ export function ScenarioEditorModal({
 
         <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-line">
           <button type="button" className={cls.secondary} onClick={onClose}>
-            Annuler
+            {b.cancel}
           </button>
           <button
             type="button"
@@ -525,7 +535,7 @@ export function ScenarioEditorModal({
             disabled={saving || errors.length > 0}
             onClick={() => void save()}
           >
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? b.engSaving : b.save}
           </button>
         </div>
       </div>

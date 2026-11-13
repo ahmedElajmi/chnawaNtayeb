@@ -4,6 +4,7 @@ import {
   cellHash,
   cellHashes,
   composePublication,
+  contentCompleteness,
   decideCell,
   hasPendingChanges,
   newWorkCopy,
@@ -12,8 +13,10 @@ import {
   reviewSnapshot,
   stepOfCell,
   withEvent,
+  workCopyForReview,
   workCopyFromPublished,
   workflowImpact,
+  type ContentCompleteness,
   type PublishedVersion,
   type QueueEntry,
   type ReviewContext,
@@ -60,8 +63,14 @@ export interface ReviewStoreDeps<K extends ReviewKind> {
   now: () => number;
 }
 
-const CONFLICT = 'Cet élément a été modifié entre-temps par quelqu’un d’autre : recharge avant de continuer.';
-const denied = (what: string): WriteResult => ({ ok: false, error: `Ton rôle ne permet pas de ${what}.` });
+/** Items sent back to review at the same time */
+const RESET_BATCH = 10;
+
+/*
+ * Errors are codes (`err:<code>`): the interface says them in the current language (no text here).
+ */
+const CONFLICT = 'err:conflict';
+const denied = (_what: string): WriteResult => ({ ok: false, error: 'err:denied' });
 
 /**
  * Validation of one kind of content (recipes, ingredients): the team edits work copies in a private
@@ -74,6 +83,11 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     { copy: WorkCopy<K>; workflow: WorkflowDefinition; ctx: ReviewContext; entry: ReviewEntry<K> }
   >();
   private publishedIds = new Set<string>();
+  /** Completeness of each item content (an unchanged object keeps its result) */
+  private completenessMemo = new WeakMap<
+    object,
+    { workflow: WorkflowDefinition; ctx: ReviewContext; result: ContentCompleteness }
+  >();
 
   constructor(private readonly deps: ReviewStoreDeps<K>) {
     super({ entries: [], workflow: deps.settings.getState().settings.workflows[deps.kind], synced: false });
@@ -122,6 +136,17 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
 
   entry(id: string): ReviewEntry<K> | undefined {
     return this.memo.get(id)?.entry;
+  }
+
+  /** How complete the data of an item is (validated or not); computed once per content and workflow. */
+  completeness(item: ReviewItems[K]): ContentCompleteness {
+    const workflow = this.getState().workflow;
+    const ctx = this.deps.context();
+    const cached = this.completenessMemo.get(item);
+    if (cached && cached.workflow === workflow && cached.ctx === ctx) return cached.result;
+    const result = contentCompleteness(this.deps.kind, item, ctx, workflow.ruleLevels);
+    this.completenessMemo.set(item, { workflow, ctx, result });
+    return result;
   }
 
   /** Items online that a new workflow would send back to review (computed on this device). */
@@ -192,7 +217,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     note?: string
   ): Promise<WorkspaceWriteResult> {
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const { kind } = this.deps;
     const { id: by, role } = this.deps.actor();
     const workflow = this.getState().workflow;
@@ -201,15 +226,14 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     for (const cellId of cells) {
       const cell = parseCellId(kind, cellId);
       const review = entry.snapshot.cells[cellId];
-      if (!cell || !review) return { ok: false, error: `Case inconnue : ${cellId}.` };
+      if (!cell || !review) return { ok: false, error: 'err:unknown-cell' };
       if (!canReviewCell(role, stepOfCell(workflow, cellId), cell)) return denied('valider cette partie');
       if (verdict === 'approved' && review.state === 'incomplete')
         return {
           ok: false,
-          error: 'Cette partie n’est pas complète : corrige les points bloquants avant de la valider.',
+          error: 'err:incomplete-cell',
         };
-      if (verdict === 'rejected' && !note?.trim())
-        return { ok: false, error: 'Écris une note pour dire quoi corriger.' };
+      if (verdict === 'rejected' && !note?.trim()) return { ok: false, error: 'err:note-required' };
       decisions = decideCell(decisions, cellId, {
         verdict,
         hash: cellHash(kind, entry.copy.content, cell),
@@ -237,7 +261,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const { id: by, role } = this.deps.actor();
     if (!canPerform(role, 'publish')) return denied('publier');
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const online = this.deps.published.getState().items.find((i) => i.id === id) ?? null;
     const composed = composePublication(
       this.deps.kind,
@@ -246,8 +270,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
       entry.snapshot,
       this.getState().workflow
     );
-    if (!composed)
-      return { ok: false, error: 'Toutes les parties obligatoires doivent être validées avant de publier.' };
+    if (!composed) return { ok: false, error: 'err:not-publishable' };
     const item = this.deps.kind === 'recipe' ? ({ ...composed, is_published: true } as ReviewItems[K]) : composed;
     const at = this.deps.now();
     const version: PublishedVersion<K> = {
@@ -282,7 +305,7 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     const { id: by, role } = this.deps.actor();
     if (!canPerform(role, 'publish')) return denied('retirer du site');
     const entry = this.entry(id);
-    if (!entry) return { ok: false, error: 'Élément introuvable dans l’atelier.' };
+    if (!entry) return { ok: false, error: 'err:not-found' };
     const at = this.deps.now();
     const { published_hashes: _h, published_at: _a, ...rest } = entry.copy;
     const copy: WorkCopy<K> = { ...rest, history: withEvent(entry.copy.history, { action: 'unpublish', by, at }) };
@@ -330,32 +353,53 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
   }
 
   /**
-   * First switch to the workflow: every item online without a work copy gets one, marked validated
-   * (it is what the public already sees). Items already in the workspace are left alone.
+   * Sends every item back to review: online ones are taken off the site (until they are validated and
+   * published again), every decision is dropped, work copies keep their content and history.
    */
-  async importPublished(): Promise<WriteResult & { imported?: number }> {
+  async resetAllForReview(
+    onProgress?: (done: number, total: number) => void
+  ): Promise<WriteResult | { ok: boolean; reset: number; unpublished: number; failed: number }> {
     const { id: by, role } = this.deps.actor();
-    if (!canPerform(role, 'manage_workflows')) return denied('lancer l’import');
-    const existing = new Set(this.deps.workspace.getState().items.map((c) => c.id));
-    const at = this.deps.now();
-    const copies = this.deps.published
-      .getState()
-      .items.filter((item) => !existing.has(item.id))
-      .map((item) =>
-        this.deps.kind === 'recipe' && (item as ReviewItems['recipe']).is_published === false
-          ? newWorkCopy(this.deps.kind, item, by, at)
-          : workCopyFromPublished(this.deps.kind, item, by, at)
+    if (!canPerform(role, 'manage_workflows') || !canPerform(role, 'publish')) return denied('remettre tout à valider');
+    const copies = new Map(this.deps.workspace.getState().items.map((c) => [c.id, c]));
+    const online = new Map(this.deps.published.getState().items.map((i) => [i.id, i]));
+    // A draft with nothing validated is already where it should be
+    const ids = [...new Set([...copies.keys(), ...online.keys()])].filter((id) => {
+      const copy = copies.get(id);
+      return online.has(id) || !copy || Object.keys(copy.decisions).length > 0 || !!copy.published_hashes;
+    });
+    let reset = 0;
+    let unpublished = 0;
+    let failed = 0;
+    const one = async (id: string) => {
+      const previous = copies.get(id);
+      const isOnline = online.has(id);
+      const copy = workCopyForReview(
+        this.deps.kind,
+        previous?.content ?? online.get(id)!,
+        by,
+        this.deps.now(),
+        previous
       );
-    if (copies.length === 0) return { ok: true, imported: 0 };
-    const result = await this.deps.writer.importAll(copies);
-    if (!result.ok) return result;
-    copies.forEach((c) => this.deps.workspace.putLocal(c));
-    // Recipes that were drafts leave the public collection: drafts now live in the workspace only
-    for (const copy of copies.filter((c) => !c.published_hashes)) {
-      const out = await this.deps.writer.unpublish(copy, copy.written_at);
-      if (out.ok) this.deps.published.removeLocal(copy.id);
+      const result = await this.write(copy, previous ? previous.written_at : null, (c, expected) =>
+        isOnline ? this.deps.writer.unpublish(c, expected) : this.deps.writer.save(c, expected)
+      );
+      if (!result.ok && !result.local) {
+        failed += 1;
+        return;
+      }
+      reset += 1;
+      if (isOnline) {
+        this.deps.published.removeLocal(id);
+        unpublished += 1;
+      }
+    };
+    // A few writes at a time: quick on hundreds of items, without flooding the database
+    for (let i = 0; i < ids.length; i += RESET_BATCH) {
+      await Promise.all(ids.slice(i, i + RESET_BATCH).map(one));
+      onProgress?.(Math.min(i + RESET_BATCH, ids.length), ids.length);
     }
-    return { ok: true, imported: copies.length };
+    return { ok: failed === 0, reset, unpublished, failed };
   }
 
   private async write(
@@ -373,6 +417,6 @@ export class ReviewStore<K extends ReviewKind> extends Store<ReviewState<K>> {
     if (result.conflict) return { ok: false, conflict: true, error: CONFLICT };
     // Database unreachable or refused: like the catalog, the change stays on this device
     this.deps.workspace.putLocal(written);
-    return { ok: false, local: true, error: `Enregistré sur cet appareil seulement. ${result.error}` };
+    return { ok: false, local: true, error: 'err:saved-locally' };
   }
 }

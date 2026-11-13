@@ -160,7 +160,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
           {getRecipeName(recipe)}
         </p>
         <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
-          <span>{recipe.prep_time_minutes + recipe.cook_time_minutes} min</span>
+          <span>{t.minutesValue.replace('{n}', String(recipe.prep_time_minutes + recipe.cook_time_minutes))}</span>
           <span className="flex items-center gap-1.5">
             <button
               onClick={(e) => {
@@ -263,7 +263,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
             <button
               onClick={() => {
                 onGenerateGroceryList();
-                showToast('Liste de courses consolidée générée !');
+                showToast(t.groceryGenerated);
               }}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-on-brand text-xs sm:text-sm font-bold hover:bg-brand-strong transition shadow-md shadow-brand/20 active:scale-95"
             >
@@ -366,7 +366,7 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
                     <p className="text-xs sm:text-sm font-bold text-ink truncate">{getRecipeName(r)}</p>
                     <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
                       <span>
-                        {r.prep_time_minutes + r.cook_time_minutes} min ·{' '}
+                        {t.minutesValue.replace('{n}', String(r.prep_time_minutes + r.cook_time_minutes))} ·{' '}
                         {formatPriceRange(getRecipeCost(r, allIngredients), t.currency)}
                       </span>
                       {r.is_healthy && (

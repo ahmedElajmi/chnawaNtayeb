@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { ReviewStore, SearchKind, Store } from '@/application';
 import type { ReviewKind } from '@/core/review';
+import type { CategoryKind } from '@/core/categories';
 import { recipeCostRange, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
 import type { Container } from './container';
 
@@ -26,6 +27,13 @@ export function useStore<S extends object>(store: Store<S>): S {
 export const useCatalog = () => {
   const { catalog } = useContainer();
   return { ...useStore(catalog), catalog };
+};
+
+/** Managed categories of recipes or ingredients (list and tree), with their store for edits. */
+export const useCategories = (kind: CategoryKind) => {
+  const { categories } = useContainer();
+  const store = categories[kind];
+  return { ...useStore(store), store };
 };
 
 /**

@@ -28,9 +28,11 @@ describe('parseBackup', () => {
       ],
       chef_tip: { fr: 'Astuce', derja: 'Nasi7a', ar: 'نصيحة', derja_ar: 'نصيحة الشاف' },
       video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      category_ids: ['ramadan', 'rapide'],
     };
     const ingredient = {
       ...initialIngredients[0],
+      category: 'volaille',
       name_derja_ar: 'طماطم',
       price_min_tnd: 2,
       price_max_tnd: 3,

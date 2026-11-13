@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 import type { Ingredient, Recipe } from '@/core/catalog';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-/** Shared look of the "Moteur" tab. */
+/** Shared look of the engine tab. */
 export const cls = {
   input: 'px-2.5 py-1.5 rounded-lg bg-surface border border-line text-xs text-ink',
   primary:
@@ -42,7 +44,7 @@ export function IngredientSelect({
   ingredients,
   value,
   onChange,
-  placeholder = 'Choisir un ingrédient',
+  placeholder: placeholderProp,
   exclude = [],
 }: {
   ingredients: Ingredient[];
@@ -52,6 +54,8 @@ export function IngredientSelect({
   exclude?: string[];
 }) {
   const { getIngredientName, compareNames } = useLanguage();
+  const b = useBackofficeText();
+  const placeholder = placeholderProp ?? b.engChooseIngredient;
   return (
     <select
       value={value}
@@ -76,7 +80,7 @@ export function RecipeSelect({
   recipes,
   value,
   onChange,
-  placeholder = 'Choisir une recette',
+  placeholder: placeholderProp,
   exclude = [],
 }: {
   recipes: Recipe[];
@@ -86,6 +90,8 @@ export function RecipeSelect({
   exclude?: string[];
 }) {
   const { getRecipeName, compareNames } = useLanguage();
+  const b = useBackofficeText();
+  const placeholder = placeholderProp ?? b.engChooseRecipe;
   return (
     <select
       value={value}
@@ -111,7 +117,7 @@ export function IngredientChips({
   ids,
   ingredients,
   onChange,
-  addLabel = 'Ajouter…',
+  addLabel,
 }: {
   ids: string[];
   ingredients: Ingredient[];
@@ -119,6 +125,7 @@ export function IngredientChips({
   addLabel?: string;
 }) {
   const { getIngredientName } = useLanguage();
+  const b = useBackofficeText();
   const name = (id: string) => {
     const found = ingredients.find((i) => i.id === id);
     return found ? getIngredientName(found) : id;
@@ -133,7 +140,7 @@ export function IngredientChips({
           {name(id)}
           <button
             onClick={() => onChange(ids.filter((x) => x !== id))}
-            aria-label={`Retirer ${name(id)}`}
+            aria-label={format(b.engRemoveItem, { name: name(id) })}
             className="px-1 hover:text-rose-600"
           >
             ×
@@ -144,7 +151,7 @@ export function IngredientChips({
         ingredients={ingredients}
         value=""
         exclude={ids}
-        placeholder={addLabel}
+        placeholder={addLabel ?? b.engAddEllipsis}
         onChange={(id) => id && onChange([...ids, id])}
       />
     </div>
@@ -162,6 +169,7 @@ export function RecipeChips({
   onChange: (ids: string[]) => void;
 }) {
   const { getRecipeName } = useLanguage();
+  const b = useBackofficeText();
   const name = (id: string) => {
     const found = recipes.find((r) => r.id === id);
     return found ? getRecipeName(found) : id;
@@ -176,7 +184,7 @@ export function RecipeChips({
           <span className="truncate">{name(id)}</span>
           <button
             onClick={() => onChange(ids.filter((x) => x !== id))}
-            aria-label={`Retirer ${name(id)}`}
+            aria-label={format(b.engRemoveItem, { name: name(id) })}
             className="px-1 hover:text-rose-600"
           >
             ×
@@ -187,7 +195,7 @@ export function RecipeChips({
         recipes={recipes}
         value=""
         exclude={ids}
-        placeholder="Ajouter une recette…"
+        placeholder={b.engAddRecipe}
         onChange={(id) => id && onChange([...ids, id])}
       />
     </div>

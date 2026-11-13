@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ImageOff, Loader2, Trash2 } from 'lucide-react';
 import { parseYouTubeId } from '@/core/shared';
 import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 const INPUT_BASE = 'w-full px-3 py-2 text-xs rounded-lg bg-card border mt-1';
 const LABEL = 'text-[11px] font-bold text-slate-600 dark:text-slate-300';
@@ -18,6 +19,7 @@ export function RecipeImageField({
   title: string;
   onChange: (value: string) => void;
 }) {
+  const b = useBackofficeText();
   const url = value.trim();
   // Status is remembered per link: a new link starts loading again
   const [status, setStatus] = useState<{ url: string; state: PhotoStatus }>({ url: '', state: 'loading' });
@@ -26,7 +28,7 @@ export function RecipeImageField({
   return (
     <div className="space-y-2">
       <label className={`block ${LABEL}`}>
-        Photo de la recette (lien de l'image)
+        {b.edPhotoLabel}
         <input
           type="url"
           inputMode="url"
@@ -48,7 +50,7 @@ export function RecipeImageField({
             <img
               key={url}
               src={url}
-              alt="Aperçu de la photo"
+              alt={b.edPhotoAlt}
               referrerPolicy="no-referrer"
               onLoad={() => setStatus({ url, state: 'ok' })}
               onError={() => setStatus({ url, state: 'error' })}
@@ -56,7 +58,7 @@ export function RecipeImageField({
             />
           )}
           <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/70 to-transparent">
-            <p className="text-xs font-extrabold text-white truncate">{title || 'Nom de la recette'}</p>
+            <p className="text-xs font-extrabold text-white truncate">{title || b.edRecipeName}</p>
           </div>
           {url && state === 'loading' && (
             <span className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white">
@@ -70,12 +72,12 @@ export function RecipeImageField({
             className={`text-[11px] ${url && state === 'error' ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-ink-muted'}`}
           >
             {!url
-              ? 'Sans photo : le logo sur fond coloré est affiché, comme ci-contre.'
+              ? b.edNoPhoto
               : state === 'error'
-                ? "Image introuvable à ce lien : le logo sera affiché à la place. Vérifiez l'adresse."
+                ? b.edPhotoError
                 : state === 'loading'
-                  ? 'Chargement de la photo...'
-                  : 'Aperçu tel que sur la carte de la recette.'}
+                  ? b.edPhotoLoading
+                  : b.edPhotoOk}
           </p>
           {url && state === 'error' && <ImageOff className="w-4 h-4 text-rose-500" aria-hidden="true" />}
           {url && (
@@ -84,7 +86,7 @@ export function RecipeImageField({
               onClick={() => onChange('')}
               className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text hover:underline"
             >
-              <Trash2 className="w-3 h-3" /> Retirer la photo
+              <Trash2 className="w-3 h-3" /> {b.edRemovePhoto}
             </button>
           )}
         </div>
@@ -103,39 +105,36 @@ export function RecipeVideoField({
   title: string;
   onChange: (value: string) => void;
 }) {
+  const b = useBackofficeText();
   const videoId = parseYouTubeId(value);
   const invalid = value.trim() !== '' && !videoId;
   return (
     <div className="space-y-2">
       <label className={`block ${LABEL}`}>
-        Vidéo de préparation (lien YouTube, optionnel)
+        {b.edVideoLabel}
         <input
           type="url"
           inputMode="url"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="https://www.youtube.com/watch?v=… ou https://youtu.be/…"
+          placeholder={b.edVideoPlaceholder}
           aria-invalid={invalid}
           className={`${INPUT_BASE} ${invalid ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'}`}
         />
       </label>
       <p className={`text-[10px] ${invalid ? 'text-rose-600 font-semibold' : 'text-ink-muted'}`}>
-        {invalid
-          ? 'Lien non reconnu : utilisez un lien youtube.com, youtu.be ou shorts.'
-          : videoId
-            ? 'Vidéo reconnue : aperçu ci-dessous, tel que dans la fiche de la recette (lecture possible).'
-            : "Laissez vide si la recette n'a pas de vidéo : rien ne sera affiché."}
+        {invalid ? b.edVideoInvalid : videoId ? b.edVideoOk : b.edVideoEmpty}
       </p>
       {videoId && (
         <div className="space-y-1.5">
           {/* key: a new video starts on its thumbnail again */}
-          <RecipeVideo key={videoId} url={value} title={title || 'Aperçu'} className="max-w-md" />
+          <RecipeVideo key={videoId} url={value} title={title || b.edPreview} className="max-w-md" />
           <button
             type="button"
             onClick={() => onChange('')}
             className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-text hover:underline"
           >
-            <Trash2 className="w-3 h-3" /> Retirer la vidéo
+            <Trash2 className="w-3 h-3" /> {b.edRemoveVideo}
           </button>
         </div>
       )}

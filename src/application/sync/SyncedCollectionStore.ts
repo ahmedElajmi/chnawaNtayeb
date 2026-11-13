@@ -113,8 +113,9 @@ export class SyncedCollectionStore<T extends Versioned> extends Store<SyncedColl
     const meta = { revision: this.revision, savedAt: this.deps.now() };
 
     if (raw.complete) {
-      // An empty database is not a catalog: keep what is shown (built-in content)
-      if (items.length === 0) {
+      // An empty database is not a catalog: keep what is shown (built-in content). A collection
+      // holding only deletion markers was emptied on purpose (e.g. everything sent back to review).
+      if (items.length === 0 && markers.length === 0) {
         this.setState({ synced: true });
         return;
       }

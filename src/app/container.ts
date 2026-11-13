@@ -2,6 +2,7 @@ import {
   CatalogAdmin,
   CatalogSearch,
   CatalogStore,
+  CategoryStore,
   KitchenStore,
   MatchingScenariosStore,
   MatchingSettingsStore,
@@ -15,20 +16,26 @@ import {
 import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type RoleDefinition, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
-  initialRecipes,
   parseStoredIngredients,
   parseStoredRecipes,
   type Ingredient,
   type Recipe,
 } from '@/core/catalog';
 import { createId } from '@/core/shared';
+import { BUILT_IN_CATEGORIES, parseStoredCategories, type CategoryKind, type ContentCategory } from '@/core/categories';
 import { localKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
 import { localRecipeDrafts } from '@/infrastructure/local/localRecipeDrafts';
 import { storage } from '@/infrastructure/local/storage';
 import { createIndexedDbCollectionCache } from '@/infrastructure/indexeddb/indexedDbCollectionCache';
-import { firestoreCloudName, firestoreIngredients, firestoreRecipes } from '@/infrastructure/firebase/firestoreCatalog';
+import {
+  firestoreCloudName,
+  firestoreIngredientCategories,
+  firestoreIngredients,
+  firestoreRecipeCategories,
+  firestoreRecipes,
+} from '@/infrastructure/firebase/firestoreCatalog';
 import { firestoreMatchingScenarios } from '@/infrastructure/firebase/firestoreMatchingScenarios';
 import { firestoreMatchingSettings } from '@/infrastructure/firebase/firestoreMatchingSettings';
 import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
@@ -61,7 +68,8 @@ export function createContainer() {
     source: firestoreRecipes.source,
     cache: createIndexedDbCollectionCache<Recipe>('recipes', { legacy: legacyCatalog('recipes') }),
     read: parseStoredRecipes,
-    builtIn: () => initialRecipes,
+    // Only validated recipes are public: nothing is shown before the database answers
+    builtIn: () => [],
     now,
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
@@ -116,6 +124,30 @@ export function createContainer() {
     },
     now,
   });
+  // Categories: public, followed like the catalog; edited by an account allowed to publish
+  const canPublish = () => review.actor().role.permissions.includes('publish');
+  const categoryStore = (
+    kind: CategoryKind,
+    adapter: typeof firestoreRecipeCategories,
+    name: 'recipe_categories' | 'ingredient_categories'
+  ) =>
+    new CategoryStore(
+      new SyncedCollectionStore<ContentCategory>({
+        source: adapter.source,
+        cache: createIndexedDbCollectionCache<ContentCategory>(name),
+        read: parseStoredCategories,
+        builtIn: () => [],
+        now,
+        fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
+      }),
+      adapter.writer,
+      canPublish,
+      BUILT_IN_CATEGORIES[kind]
+    );
+  const categories = {
+    recipe: categoryStore('recipe', firestoreRecipeCategories, 'recipe_categories'),
+    ingredient: categoryStore('ingredient', firestoreIngredientCategories, 'ingredient_categories'),
+  };
   const kitchen = new KitchenStore(localKitchenRepository);
   const catalogAdmin = new CatalogAdmin(catalog, firestoreRecipes.writer, firestoreIngredients.writer, kitchen, {
     cloudName: firestoreCloudName,
@@ -126,6 +158,7 @@ export function createContainer() {
   return {
     // Stores (state shared by the screens)
     catalog,
+    categories,
     // Text search on the device copy of the catalog (swap the engines here, e.g. for a server one)
     search: new CatalogSearch(catalog, { recipes: createMiniSearchEngine(), ingredients: createMiniSearchEngine() }),
     kitchen,

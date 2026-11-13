@@ -3,6 +3,8 @@ import { Search, Sparkles, Trash2, Check, ArrowRight, Package, X, ChevronDown } 
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { Ingredient, STAPLE_INGREDIENT_IDS, ingredientPriceRange } from '@/core/catalog';
 import { sortBySearchScore } from '@/core/search';
+import { categoryUsage, categoryWithDescendants } from '@/core/categories';
+import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
 import { useSearchMatches } from '@/app/ContainerContext';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
@@ -52,17 +54,32 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
     [allIngredients, pantrySet]
   );
 
+  // Managed categories (tree): the families first, then the sub-categories of the open one; only
+  // the categories holding ingredients are offered
+  const categoryNames = useCategoryNames('ingredient');
+  const { tree } = categoryNames;
+  const usage = useMemo(
+    () =>
+      categoryUsage(
+        tree,
+        allIngredients.map((i) => [i.category])
+      ),
+    [tree, allIngredients]
+  );
+  const offered = (ids: string[]) => ids.filter((id) => (usage.get(id)?.total ?? 0) > 0);
+  const activePath = tree.byId.get(activeCategory)?.path ?? [];
   const categories = [
     { id: 'all', label: t.filterAll },
-    { id: 'vegetables', label: t.catVegetables },
-    { id: 'dairy_eggs', label: t.catDairyEggs },
-    { id: 'grains_pasta', label: t.catGrainsPasta },
-    { id: 'spices_condiments', label: t.catSpicesCondiments },
-    { id: 'meats', label: t.catMeats },
-    { id: 'fish', label: t.catFish },
-    { id: 'canned_pantry', label: t.catCannedPantry },
-    { id: 'fruits', label: t.catFruits },
+    ...offered(tree.roots.map((n) => n.category.id)).map((id) => ({ id, label: categoryNames.name(id) })),
   ];
+  // Sub-categories under the open family (and under an open sub-category, its own)
+  const subLevels = activePath
+    .map((id) => offered(tree.byId.get(id)!.children.map((n) => n.category.id)))
+    .filter((ids) => ids.length > 0);
+  const inActive = useMemo(
+    () => (activeCategory === 'all' ? null : categoryWithDescendants(tree, activeCategory)),
+    [tree, activeCategory]
+  );
 
   // Search engine answer (typos, derja spellings, Arabic); until it answers, the simple filter below applies
   const searchMatches = useSearchMatches('ingredients', searchQuery);
@@ -70,7 +87,7 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
   const filteredIngredients = useMemo(() => {
     const kept = allIngredients.filter((ing) => {
       // Category filter
-      if (activeCategory !== 'all' && ing.category !== activeCategory) {
+      if (inActive && !inActive.has(ing.category)) {
         return false;
       }
       if (searchMatches) return searchMatches.has(ing.id);
@@ -86,7 +103,7 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
       return true;
     });
     return searchMatches ? sortBySearchScore(kept, (ing) => ing.id, searchMatches) : kept;
-  }, [allIngredients, activeCategory, searchQuery, searchMatches]);
+  }, [allIngredients, inActive, searchQuery, searchMatches]);
 
   const handleTriggerSearch = () => {
     try {
@@ -226,7 +243,7 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
       {/* Category Pills (Functional Filter Buttons) */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         {categories.map((cat) => {
-          const isSelected = activeCategory === cat.id;
+          const isSelected = activeCategory === cat.id || activePath[0] === cat.id;
           return (
             <button
               key={cat.id}
@@ -242,6 +259,30 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
           );
         })}
       </div>
+      {subLevels.map((ids, level) => (
+        <div
+          key={activePath[level]}
+          className="flex gap-1.5 overflow-x-auto no-scrollbar -mt-3 ps-2 border-s-2 border-brand/30"
+        >
+          {ids.map((id) => {
+            const isSelected = activePath[level + 1] === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveCategory(isSelected ? activePath[level] : id)}
+                aria-pressed={isSelected}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap shrink-0 transition ${
+                  isSelected
+                    ? 'bg-brand/15 text-brand-text border border-brand-text/40'
+                    : 'bg-card text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
+                }`}
+              >
+                {categoryNames.name(id)}
+              </button>
+            );
+          })}
+        </div>
+      ))}
 
       {/* Ingredients Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">

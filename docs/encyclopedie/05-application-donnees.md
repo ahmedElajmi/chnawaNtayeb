@@ -6,22 +6,23 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 `subscribe(listener)`, et des méthodes métier qui enregistrent puis notifient. Côté React,
 `useStore` (dans `src/app/ContainerContext.tsx`) s'abonne via `useSyncExternalStore`.
 
-| Store                   | État                                                      | Rôle                                                                                 |
-| ----------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas) |
-| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                        |
-| `KitchenStore`          | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement     |
-| `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud     | Session patron, toujours confirmée par le serveur                                    |
-| `MatchingSettingsStore` | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                |
-| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                |
-| `CatalogAdmin`          | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration    |
-| `CatalogSearch`         | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))    |
-| `ReviewSettingsStore`   | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée         |
-| `ReviewStore<K>`        | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer      |
-| `TeamStore`             | membres de l'équipe, fiche du compte connecté             | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles     |
-| `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                    |
+| Store                   | État                                                      | Rôle                                                                                    |
+| ----------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)    |
+| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                           |
+| `KitchenStore`          | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement        |
+| `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud     | Session patron, toujours confirmée par le serveur                                       |
+| `MatchingSettingsStore` | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                   |
+| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                   |
+| `CatalogAdmin`          | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration       |
+| `CatalogSearch`         | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))       |
+| `ReviewSettingsStore`   | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée            |
+| `ReviewStore<K>`        | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer         |
+| `TeamStore`             | membres de l'équipe, fiche du compte connecté             | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles        |
+| `CategoryStore`         | catégories d'un type (liste + arbre)                      | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées |
+| `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                       |
 
-Hooks d'accès : `useReview(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
@@ -163,3 +164,15 @@ Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
 2. En parallèle : suivi en direct du catalogue (`catalog.start()`) et des réglages du moteur
    (`matchingSettings.start()`), vérification d'une session patron, thèmes publiés.
 3. Chaque store notifie l'interface à chaque changement reçu, pendant toute la visite.
+
+## Catégories et catalogue public
+
+- `recipe_categories` et `ingredient_categories` : collections partagées (`SyncedCollectionStore`,
+  copie IndexedDB, `DB_VERSION` 3), lues par tous, écrites par un compte qui peut publier
+  (`CategoryStore`, branché dans `container.ts`, suivi dès l'ouverture de l'application). Les catégories
+  d'origine sont ajoutées par le store, pas par la lecture (une modification reçue en direct ne les
+  écrase pas).
+- **Catalogue public = recettes validées seulement** : la collection publique des recettes n'a plus de
+  contenu intégré de secours (`builtIn` vide) et une collection qui ne contient que des marques de
+  suppression est vide (et non « base vide » : `SyncedCollectionStore.receive`). Le serveur (SEO) ne
+  montre lui aussi que les recettes de la base.

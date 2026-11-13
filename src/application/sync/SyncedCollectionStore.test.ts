@@ -50,6 +50,15 @@ describe('SyncedCollectionStore', () => {
     expect(store.getState().synced).toBe(true);
   });
 
+  it('shows nothing when everything was deleted on purpose (no fallback to the built-in content)', async () => {
+    const { store, writer } = setup();
+    await writer.putAll([{ id: 'a', name: 'A' }]);
+    await writer.remove('a');
+    store.start();
+    await settle();
+    expect(names(store)).toEqual([]);
+  });
+
   it('receives a change made on another device live, deletions included', async () => {
     const { store, writer } = setup();
     await writer.putAll([

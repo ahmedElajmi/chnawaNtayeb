@@ -13,9 +13,14 @@ export interface QueueEntry {
   author?: string;
   /** Last change (ms since epoch): the oldest waits first */
   updatedAt: number;
+  /** Categories the item is grouped under (e.g. its families); none = "no category" */
+  categories?: readonly string[];
 }
 
-export type QueueGrouping = 'item' | 'step' | 'part' | 'language' | 'kind' | 'author';
+export type QueueGrouping = 'item' | 'step' | 'part' | 'language' | 'kind' | 'author' | 'category';
+
+/** Key of the group of items in no category. */
+export const NO_CATEGORY_KEY = '-';
 
 export interface QueueCell {
   entry: string;
@@ -47,30 +52,45 @@ export function groupQueue(
     for (const cell of pendingCells(entry.snapshot)) {
       const parsed = parseCellId(entry.kind, cell);
       if (!parsed) continue;
-      const key =
-        grouping === 'item'
-          ? `${entry.kind}:${entry.id}`
-          : grouping === 'step'
-            ? `${entry.kind}:${(workflow && stepOfCell(workflow, cell)?.id) ?? '?'}`
-            : grouping === 'part'
-              ? `${entry.kind}:${cell}`
-              : grouping === 'language'
-                ? (parsed.language ?? 'common')
-                : grouping === 'kind'
-                  ? entry.kind
-                  : (entry.author ?? '?');
-      const group = groups.get(key) ?? {
-        key,
-        ...(grouping === 'item' || grouping === 'step' || grouping === 'part' || grouping === 'kind'
-          ? { kind: entry.kind }
-          : {}),
-        cells: [],
-      };
-      group.cells.push({ entry: entry.id, kind: entry.kind, cell });
-      groups.set(key, group);
+      // An item in several categories counts in each of them
+      const keys =
+        grouping === 'category'
+          ? (entry.categories?.length ? [...new Set(entry.categories)] : [NO_CATEGORY_KEY]).map(
+              (c) => `${entry.kind}:${c}`
+            )
+          : [groupKey(entry, cell, parsed.language, grouping, workflow)];
+      for (const key of keys) {
+        const group = groups.get(key) ?? {
+          key,
+          ...(grouping === 'author' || grouping === 'language' ? {} : { kind: entry.kind }),
+          cells: [],
+        };
+        group.cells.push({ entry: entry.id, kind: entry.kind, cell });
+        groups.set(key, group);
+      }
     }
   }
   return [...groups.values()].sort((a, b) => b.cells.length - a.cells.length || a.key.localeCompare(b.key));
+}
+
+function groupKey(
+  entry: QueueEntry,
+  cell: string,
+  language: string | undefined,
+  grouping: Exclude<QueueGrouping, 'category'>,
+  workflow: WorkflowDefinition | undefined
+): string {
+  return grouping === 'item'
+    ? `${entry.kind}:${entry.id}`
+    : grouping === 'step'
+      ? `${entry.kind}:${(workflow && stepOfCell(workflow, cell)?.id) ?? '?'}`
+      : grouping === 'part'
+        ? `${entry.kind}:${cell}`
+        : grouping === 'language'
+          ? (language ?? 'common')
+          : grouping === 'kind'
+            ? entry.kind
+            : (entry.author ?? '?');
 }
 
 /** Counts shown on the menu and the home page. */

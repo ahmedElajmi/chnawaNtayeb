@@ -78,7 +78,7 @@ export function AppLayout() {
               <img src="/mark.png" alt="" width={75} height={32} className="h-8 w-auto" />
               <div className="leading-tight">
                 <p className="font-display font-extrabold text-sm text-ink">Chnowa Ntayeb?</p>
-                <p>Elli 3andek fel frigo, na3mlou bih makla !</p>
+                <p>{t.slogan}</p>
               </div>
             </div>
             <p>

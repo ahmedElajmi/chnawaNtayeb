@@ -13,10 +13,14 @@ export default function App() {
     // Shared data follows the database live: a change made on another device shows at once
     const stopCatalog = container.catalog.start();
     const stopSettings = container.matchingSettings.start();
+    const stopRecipeCategories = container.categories.recipe.start();
+    const stopIngredientCategories = container.categories.ingredient.start();
     container.patron.restoreSession();
     return () => {
       stopCatalog();
       stopSettings();
+      stopRecipeCategories();
+      stopIngredientCategories();
     };
   }, [container]);
 

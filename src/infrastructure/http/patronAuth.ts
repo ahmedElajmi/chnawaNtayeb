@@ -12,7 +12,7 @@ import { auth } from '@/infrastructure/firebase/client';
 const TOKEN_KEY = 'patron_session_token';
 const PATRON_FIREBASE_UID = 'patron-admin';
 
-import type { CloudStatus, PatronLoginResult } from '@/application';
+import type { CloudStatus, PatronLoginError, PatronLoginResult } from '@/application';
 
 export function getPatronToken(): string | null {
   try {
@@ -46,6 +46,13 @@ async function connectFirebase(firebaseToken: string | null | undefined): Promis
   }
 }
 
+/** Server answer → domain code (the server's own message is never shown: the interface translates). */
+function loginErrorOf(status: number): PatronLoginError {
+  if (status === 429) return 'too-many-attempts';
+  if (status === 400 || status === 401 || status === 403) return 'invalid';
+  return 'unavailable';
+}
+
 export async function loginPatron(username: string, password: string): Promise<PatronLoginResult> {
   let res: Response;
   try {
@@ -56,12 +63,12 @@ export async function loginPatron(username: string, password: string): Promise<P
     });
   } catch {
     // No offline fallback on purpose: only the server can grant admin access
-    return { ok: false, error: 'Serveur injoignable. Vérifiez votre connexion.' };
+    return { ok: false, error: 'unreachable' };
   }
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success || typeof data.token !== 'string') {
-    return { ok: false, error: data.error || 'Identifiant ou mot de passe incorrect.' };
+    return { ok: false, error: loginErrorOf(res.status) };
   }
 
   setPatronToken(data.token);

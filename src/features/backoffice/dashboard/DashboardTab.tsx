@@ -1,7 +1,8 @@
 import { Coins, Download, Plus } from 'lucide-react';
 import { getUsedIngredientIds, middleOfRange, type Ingredient, type Recipe } from '@/core/catalog';
 import { getRecipeCost } from '@/app/ContainerContext';
-import { useLanguage } from '@/app/providers/LanguageContext';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 interface DashboardTabProps {
   recipes: Recipe[];
@@ -43,7 +44,7 @@ export function DashboardTab({
   onOpenIngredients,
   onDownloadBackup,
 }: DashboardTabProps) {
-  const { t } = useLanguage();
+  const b = useBackofficeText();
   const usedIds = getUsedIngredientIds(recipes);
   const unused = ingredients.filter((i) => !usedIds.has(i.id)).length;
   const total = recipes.length;
@@ -60,45 +61,50 @@ export function DashboardTab({
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Kpi
-          label={t.boTotalRecipes}
+          label={b.panTotalRecipes}
           value={total}
           valueClass="text-ink"
-          note={`${published} publiées · ${total - published} brouillons`}
+          note={format(b.panPublishedDrafts, { published, drafts: total - published })}
           noteClass="text-emerald-600 font-medium"
         />
         <Kpi
-          label="Ingrédients répertoriés"
+          label={b.panIngredientsListed}
           value={ingredients.length}
           valueClass="text-brand-text"
-          note={unused > 0 ? `${unused} sans aucune recette` : 'Tous utilisés par une recette'}
+          note={unused > 0 ? format(b.panUnusedIngredients, { count: unused }) : b.panAllIngredientsUsed}
           noteClass={unused > 0 ? 'text-amber-600 font-semibold' : 'text-slate-500'}
         />
         <Kpi
-          label={t.boAvgCost}
-          value={`${avgCost} DT`}
+          label={b.panAvgCost}
+          value={format(b.panCostValue, { value: avgCost })}
           valueClass="text-accent-text"
-          note="Par repas pour 4 personnes"
+          note={b.panAvgCostNote}
         />
-        <Kpi label="Temps moyen" value={`${avgTime} min`} valueClass="text-highlight" note="Préparation & cuisson" />
+        <Kpi
+          label={b.panAvgTime}
+          value={format(b.panMinutes, { value: avgTime })}
+          valueClass="text-highlight"
+          note={b.panAvgTimeNote}
+        />
       </div>
 
       <div className="p-5 rounded-2xl bg-card border border-line space-y-3">
-        <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Actions rapides</h3>
+        <h3 className="text-sm font-bold text-ink uppercase tracking-wider">{b.panQuickActions}</h3>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={onAddRecipe}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-on-brand text-xs sm:text-sm font-bold hover:bg-brand-strong transition shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            <span>{t.boAddRecipe}</span>
+            <span>{b.panAddRecipe}</span>
           </button>
           <button onClick={onOpenIngredients} className={SECONDARY_BUTTON}>
             <Coins className="w-4 h-4 text-accent-text" />
-            <span>Mettre à jour les prix du marché (DT)</span>
+            <span>{b.panUpdatePrices}</span>
           </button>
           <button onClick={onDownloadBackup} className={SECONDARY_BUTTON}>
             <Download className="w-4 h-4 text-blue-500" />
-            <span>Télécharger une sauvegarde</span>
+            <span>{b.panDownloadBackup}</span>
           </button>
         </div>
       </div>

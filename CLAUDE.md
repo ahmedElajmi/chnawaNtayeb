@@ -99,14 +99,18 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe
   littéraire, derja en lettres latines (3, 7, 9), derja en lettres arabes (`derja_ar`) ; la derja est une
   variante de la famille arabe. Chaque entrée donne sens d'écriture, `lang`, tri et **ordre de repli**.
-  Ajouter une langue ou une variante = une entrée dans `LANGUAGES` + ses textes d'interface (une variante
-  ne liste que ce qui diffère de sa famille, ex. `src/shared/i18n/derjaArabic.ts`) : affichage, éditeurs,
-  sauvegarde et recherche la prennent en compte sans autre changement.
+  Ajouter une langue ou une variante = une entrée dans `LANGUAGES` + **tous** ses textes d'interface :
+  affichage, éditeurs, sauvegarde et recherche la prennent en compte sans autre changement. Une variante
+  est écrite en entier, jamais empruntée à sa famille : la derja en lettres arabes
+  (`src/shared/i18n/derjaArabic.ts`) n'est pas de l'arabe littéraire, et l'arabe littéraire ne contient
+  aucun mot de derja (vérifié par les tests des dictionnaires).
 - Textes affichés dans toutes les langues (`src/shared/i18n/translations.ts`). **Le backoffice suit la langue
   courante** comme le reste du site : contenu, onglet de saisie et libellés, lus dans
-  `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` (tout nouveau libellé du
-  backoffice va dans ce dictionnaire, dans toutes les langues ; les panneaux pas encore passés restent en
-  français).
+  `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` : libellés partagés dans ce
+  fichier, libellés d'une zone dans `i18n/texts/<zone>.ts` (`defineTexts` : les quatre langues écrites en
+  entier, clés préfixées par la zone). **Aucun texte affiché en dur** (JSX, `title`, `aria-label`,
+  `confirm`, messages), backoffice et accès patron compris ; une erreur venue de l'infrastructure est un
+  code que l'interface traduit.
 - **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
   `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
   (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
@@ -114,7 +118,7 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
   `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext` : `getRecipeName`,
   `getIngredientName`, `getSecondaryName`, `compareNames`), jamais `name_fr` affiché directement (backoffice
-  compris) ni un ordre de langues codé en dur. Catégories : `useIngredientCategories` (`src/shared/i18n`).
+  compris) ni un ordre de langues codé en dur. Catégories : `useCategoryNames(kind)` (`src/shared/i18n`).
   L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
   (une langue vide → sa liste de repli, le français en dernier).
 - **Workflow de validation** (`@/core/review`, plan : `docs/encyclopedie/14-refonte-backoffice.md`) :
@@ -129,10 +133,21 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   la publication passe par la page de validation (`/patron/recettes/<id>`). **De même pour les
   ingrédients** (`useIngredientEditor`, `/patron/ingredients/<id>`). Rôles : une page du backoffice
   réservée à un droit le déclare (`requires` dans `BACKOFFICE_SECTIONS`) ; toute écriture publique
-  passe par `canPublish()` dans `firestore.rules`, la gestion (workflows, rôles, équipe) par
+  passe par `canPublish()` dans `firestore.rules` (catégories comprises), la gestion (workflows, rôles, équipe) par
   `canManage()` ; les droits d'un membre sont recopiés sur sa fiche `admins/{uid}`
   (`TeamStore.refreshRights` après chaque changement de rôle). Libellés de la validation :
   `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
+- **Catégories gérées** (`@/core/categories`, /patron › Catégories) : deux arbres en base
+  (`recipe_categories`, `ingredient_categories`), jamais une liste codée en dur hors des catégories
+  d'origine des ingrédients (`BUILT_IN_INGREDIENT_CATEGORIES`, mêmes ids qu'avant, jamais supprimées).
+  Une recette a plusieurs catégories (`category_ids`, ancêtres implicites), un ingrédient une seule
+  (`category`). Le **type de plat** (`MealCategory`) reste un champ fixe à part. Affectation d'une
+  recette = enregistrement dans l'atelier (case « Infos et ingrédients »). Lecture : `useCategories(kind)`
+  (arbre) et `useCategoryNames(kind)` ; regroupement des listes : `groupByCategory` /
+  `ui/CategoryGroups.tsx`.
+- **Public = validé seulement** : aucune recette intégrée au code n'est montrée au public (collection
+  publique sans contenu de secours, serveur SEO compris) ; « Tout remettre à valider » (Données) retire
+  tout du site jusqu'à la publication.
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
 - **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`

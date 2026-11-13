@@ -14,6 +14,8 @@ export interface RecipeFilters {
   healthyOnly: boolean;
   tier: 'all' | MatchTier;
   favoritesOnly: boolean;
+  /** Managed category (its sub-categories included); absent = every category */
+  category?: string;
 }
 
 export const DEFAULT_RECIPE_FILTERS: RecipeFilters = {
@@ -45,6 +47,7 @@ export function parseRecipeFilters(search: string | URLSearchParams): RecipeFilt
     healthyOnly: p.get('healthy') === '1',
     tier: TIERS.includes(tier as MatchTier) ? (tier as MatchTier) : 'all',
     favoritesOnly: p.get('favoris') === '1',
+    ...(/^[a-z0-9_-]{1,64}$/.test(p.get('categorie') ?? '') ? { category: p.get('categorie')! } : {}),
   };
 }
 
@@ -60,6 +63,7 @@ export function serializeRecipeFilters(filters: Partial<RecipeFilters>): string 
   if (f.healthyOnly) p.set('healthy', '1');
   if (f.tier !== 'all') p.set('niveau', f.tier);
   if (f.favoritesOnly) p.set('favoris', '1');
+  if (f.category) p.set('categorie', f.category);
   const query = p.toString();
   return query ? `?${query}` : '';
 }

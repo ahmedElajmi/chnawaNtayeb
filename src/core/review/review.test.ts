@@ -11,6 +11,7 @@ import {
   cellHashes,
   cellState,
   composePublication,
+  contentCompleteness,
   contentHash,
   decideCell,
   defaultWorkflow,
@@ -26,6 +27,8 @@ import {
   reviewSnapshot,
   validateRoles,
   validateWorkflow,
+  workCopyFromPublished,
+  workCopyForReview,
   workflowImpact,
   type CellDecisions,
   type ReviewContext,
@@ -342,6 +345,15 @@ describe('review queue', () => {
     expect(groupQueue(entries, 'part', workflows).find((g) => g.key === 'recipe:media')!.cells).toHaveLength(1);
   });
 
+  it('groups by category, an item counting in each of its categories', () => {
+    const withCategories = [{ ...entries[0], categories: ['ramadan', 'rapide'] }, { ...entries[1] }];
+    const groups = groupQueue(withCategories, 'category', workflows);
+    expect(groups.map((g) => g.key).sort()).toEqual(['ingredient:-', 'recipe:ramadan', 'recipe:rapide']);
+    const recipeCells = groupQueue(entries.slice(0, 1), 'kind', workflows)[0].cells.length;
+    expect(groups.find((g) => g.key === 'recipe:ramadan')!.cells).toHaveLength(recipeCells);
+    expect(groups.find((g) => g.key === 'recipe:rapide')!.cells).toHaveLength(recipeCells);
+  });
+
   it('counts what waits for the reviewer', () => {
     const counts = queueCounts(entries);
     expect(counts.items).toBe(2);
@@ -372,5 +384,54 @@ describe('item status', () => {
       note: 'x',
     });
     expect(itemStatus(reviewSnapshot('recipe', recipe, rejected, workflow, ctx), true, true)).toBe('to_fix');
+  });
+});
+
+describe('data completeness', () => {
+  const full: Recipe = {
+    ...recipe,
+    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    name_derja_ar: recipe.name_ar,
+    description_derja_ar: recipe.description_ar,
+    chef_tip: { fr: 'Astuce', derja: 'Astuce', ar: 'نصيحة', derja_ar: 'نصيحة' },
+    steps: recipe.steps.map((s) => ({
+      ...s,
+      instruction_derja_ar: s.instruction_ar || 'x',
+      instruction_derja: s.instruction_derja || 'x',
+      instruction_ar: s.instruction_ar || 'x',
+    })),
+  };
+
+  it('counts optional languages and advice, whatever the validation', () => {
+    const missingVariant = { ...full, name_derja_ar: '' };
+    const result = contentCompleteness('recipe', missingVariant, ctx);
+    expect(result.percent).toBeLessThan(100);
+    expect(result.missing).toContainEqual({ cell: 'identity:derja_ar', rule: 'recipe.name' });
+    // Validated at 100 % yet not complete
+    const validated = reviewSnapshot('recipe', missingVariant, approveAll(missingVariant), workflow, ctx);
+    expect(validated.percent).toBe(100);
+  });
+
+  it('reports a missing video (advice) and leaves out whether ingredients are online', () => {
+    const noVideo = { ...full, video_url: undefined };
+    const result = contentCompleteness('recipe', noVideo, { ...ctx, publishedIngredientIds: new Set() });
+    expect(result.missing).toEqual([{ cell: 'media', rule: 'recipe.video' }]);
+  });
+
+  it('skips switched-off checks', () => {
+    const noVideo = { ...full, video_url: undefined };
+    expect(contentCompleteness('recipe', noVideo, ctx, { 'recipe.video': 'off' }).percent).toBe(100);
+  });
+});
+
+describe('back to review', () => {
+  it('drops every decision and the version online, and keeps the history', () => {
+    const online = workCopyFromPublished('recipe', recipe, 'admin', 1);
+    const reset = workCopyForReview('recipe', recipe, 'admin', 2, online);
+    expect(reset.decisions).toEqual({});
+    expect(reset.published_hashes).toBeUndefined();
+    expect(reset.history.map((e) => e.action)).toEqual(['reset', 'import']);
+    expect(reset.written_at).toBe(online.written_at);
+    expect(itemStatus(reviewSnapshot('recipe', recipe, reset.decisions, workflow, ctx), false, true)).toBe('ready');
   });
 });

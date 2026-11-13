@@ -3,6 +3,7 @@ import {
   Carrot,
   ClipboardCheck,
   Database,
+  FolderTree,
   GitBranch,
   LayoutDashboard,
   Palette,
@@ -10,7 +11,15 @@ import {
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
-import { ENGINE_PAGES, PATRON_PAGES, patronPath, WORKFLOW_PAGES, type PatronPage } from '@/shared/paths';
+import {
+  CATEGORY_PAGES,
+  ENGINE_PAGES,
+  PATRON_PAGES,
+  patronPath,
+  WORKFLOW_PAGES,
+  type PatronPage,
+} from '@/shared/paths';
+import { IngredientCategoriesPage, RecipeCategoriesPage } from '../categories/CategoriesPage';
 import { QueuePage } from '../review/QueuePage';
 import {
   ReviewSettingsDraftProvider,
@@ -126,6 +135,17 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     count: (c) => c.ingredients,
     element: <IngredientsPage />,
     routes: [{ path: ':id', element: <IngredientReviewRoute /> }],
+  },
+  {
+    page: PATRON_PAGES.categories,
+    icon: FolderTree,
+    label: (b) => b.categories,
+    hint: (b) => b.categoriesHint,
+    requires: 'publish',
+    subPages: [
+      { page: CATEGORY_PAGES.recipes, label: (b) => b.catRecipesTab, element: <RecipeCategoriesPage /> },
+      { page: CATEGORY_PAGES.ingredients, label: (b) => b.catIngredientsTab, element: <IngredientCategoriesPage /> },
+    ],
   },
   {
     page: PATRON_PAGES.engine,

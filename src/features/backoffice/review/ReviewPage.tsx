@@ -7,6 +7,7 @@ import {
   composePublication,
   itemStatus,
   workflowCells,
+  type ContentCompleteness,
   type PublishedVersion,
   type ReviewKind,
 } from '@/core/review';
@@ -19,7 +20,15 @@ import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useNotify } from '../shell/NotifyContext';
 import { CellReviewPanel, PRIMARY, SECONDARY } from './CellReviewPanel';
 import { useIngredientView, useRecipeView, type KindView } from './kindViews';
-import { SegmentedProgress, StatusBadge, StepTrail, ValidationGrid, cellLabel } from './reviewUi';
+import {
+  CompletenessMeter,
+  SegmentedProgress,
+  StatusBadge,
+  StepTrail,
+  ValidationGrid,
+  cellLabel,
+  ruleLabel,
+} from './reviewUi';
 
 /** /patron/recettes/:id */
 export function RecipeReviewRoute() {
@@ -75,14 +84,14 @@ function ReviewPage<K extends ReviewKind>({ view }: { view: KindView<K> }) {
         {back}
         {online ? (
           <div className="p-4 rounded-2xl bg-card border border-line space-y-3">
-            <p className="text-sm font-bold">{view.name(online)}</p>
-            <button
-              type="button"
-              className={PRIMARY}
-              disabled={busy}
-              onClick={() => run(() => store.save(online), b.reviewSaved)}
-            >
-              <Play className="w-3.5 h-3.5" /> {b.reviewTitle}
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold">{view.name(online)}</p>
+              <StatusBadge status="online" />
+            </div>
+            <p className="text-xs text-ink-muted">{b.reviewOnlineNoCopy}</p>
+            <CompletenessMeter kind={view.kind} result={store.completeness(online)} />
+            <button type="button" className={SECONDARY} onClick={() => view.edit(online)}>
+              <Pencil className="w-3.5 h-3.5" /> {b.reviewEdit}
             </button>
           </div>
         ) : (
@@ -97,6 +106,7 @@ function ReviewPage<K extends ReviewKind>({ view }: { view: KindView<K> }) {
   const cells = workflowCells(workflow).filter((c) => snapshot.cells[c]);
   const selected = picked && snapshot.cells[picked] ? picked : (snapshot.nextCell ?? cells[0] ?? null);
   const status = itemStatus(snapshot, entry.online, entry.pending);
+  const completeness = store.completeness(item);
   const ready = workflow.batchApproval ? batchApprovableCells(snapshot) : [];
   const nextAfter = (cell: string) => {
     const from = cells.indexOf(cell);
@@ -159,6 +169,7 @@ function ReviewPage<K extends ReviewKind>({ view }: { view: KindView<K> }) {
           </div>
         </div>
         <SegmentedProgress kind={view.kind} snapshot={snapshot} workflow={workflow} />
+        <CompletenessDetails kind={view.kind} result={completeness} onSelect={setPicked} cells={snapshot.cells} />
         <StepTrail
           workflow={workflow}
           snapshot={snapshot}
@@ -278,5 +289,46 @@ function ReviewPage<K extends ReviewKind>({ view }: { view: KindView<K> }) {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Completeness of the data, apart from the validation: what can still be filled in (optional
+ * languages, video, tip…). Each missing piece opens its cell when the workflow has it.
+ */
+function CompletenessDetails({
+  kind,
+  result,
+  cells,
+  onSelect,
+}: {
+  kind: ReviewKind;
+  result: ContentCompleteness;
+  cells: Record<string, unknown>;
+  onSelect: (cell: string) => void;
+}) {
+  const b = useBackofficeText();
+  if (result.missing.length === 0) return <CompletenessMeter kind={kind} result={result} />;
+  return (
+    <details className="text-xs">
+      <summary className="cursor-pointer inline-flex items-center gap-2" title={b.completenessHint}>
+        <CompletenessMeter kind={kind} result={result} />
+      </summary>
+      <p className="mt-2 text-[11px] text-ink-muted">{b.completenessHint}</p>
+      <ul className="mt-1.5 flex flex-wrap gap-1.5">
+        {result.missing.map((m) => (
+          <li key={`${m.cell}|${m.rule}`}>
+            <button
+              type="button"
+              disabled={!cells[m.cell]}
+              onClick={() => onSelect(m.cell)}
+              className="px-2 py-1 rounded-lg border border-dashed border-line text-[11px] hover:border-brand disabled:cursor-default"
+            >
+              {cellLabel(b, kind, m.cell)} · {ruleLabel(b, m.rule)}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

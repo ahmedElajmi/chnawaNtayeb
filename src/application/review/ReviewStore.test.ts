@@ -184,21 +184,42 @@ describe('ReviewStore', () => {
     expect(published.getState().items.find((r) => r.id === 'r1')).toBeUndefined();
   });
 
-  it('imports what is online as validated, and moves drafts to the workspace', async () => {
+  it('sends every recipe back to review and takes the online ones off the site', async () => {
     const { store, memory, published } = await setup();
     const online = { ...recipe, id: 'online', is_published: true };
-    const draft = { ...recipe, id: 'draft', is_published: false };
-    await memory.published.writer.putAll([online, draft]);
+    const edited = { ...recipe, id: 'edited', is_published: true };
+    await memory.published.writer.putAll([online, edited]);
     await Promise.resolve();
-    expect(published.getState().items).toHaveLength(2);
+    // "edited" has a work copy, validated and changed since
+    await store.save({ ...edited, name_fr: 'Nouveau nom' });
+    await store.decide('edited', ['identity:fr'], 'approved');
+    await store.save({ ...recipe, id: 'draft' });
 
-    expect(await store.importPublished()).toEqual({ ok: true, imported: 2 });
-    expect(store.entry('online')!.snapshot.publishable).toBe(true);
-    expect(store.entry('online')!.pending).toBe(false);
-    expect(store.entry('draft')!.snapshot.approvedRequired).toBe(0);
-    expect(published.getState().items.map((r) => r.id)).toEqual(['online']);
-    // A second import changes nothing
-    expect(await store.importPublished()).toEqual({ ok: true, imported: 0 });
+    const result = await store.resetAllForReview();
+    expect(result).toMatchObject({ ok: true, reset: 2, unpublished: 2, failed: 0 });
+    expect(published.getState().items).toEqual([]);
+    for (const id of ['online', 'edited']) {
+      const entry = store.entry(id)!;
+      expect(entry.online).toBe(false);
+      expect(entry.copy.decisions).toEqual({});
+      expect(entry.copy.history[0].action).toBe('reset');
+    }
+    // The edited content is kept, the untouched draft is left as it was
+    expect(store.entry('edited')!.copy.content.name_fr).toBe('Nouveau nom');
+    expect(store.entry('draft')!.copy.history[0].action).toBe('save');
+  });
+
+  it('only lets a workflow manager send everything back to review', async () => {
+    const { store } = await setup(role('editor'));
+    expect((await store.resetAllForReview()).ok).toBe(false);
+  });
+
+  it('tells how complete the data is, even once validated', async () => {
+    const { store } = await setup();
+    await store.save(recipe);
+    const result = store.completeness(store.entry('r1')!.copy.content);
+    expect(result.percent).toBeLessThan(100);
+    expect(store.completeness(store.entry('r1')!.copy.content)).toBe(result);
   });
 
   it('follows the workflow saved by the admin', async () => {
