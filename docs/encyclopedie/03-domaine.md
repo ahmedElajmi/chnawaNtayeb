@@ -149,6 +149,32 @@ l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans vi
   administrateur ne se donne jamais à un membre), `parseTeamMember`.
 - `progress.ts` donne aussi `itemStatus` (statut affiché dans les listes) et `incompleteRequired`.
 
+- `progress.ts` : `contentCompleteness` = complétude des **données**, distincte de la validation : toutes
+  les cases (langues facultatives comprises) et tous les contrôles non désactivés (conseils compris) ;
+  renvoie le pourcentage et la liste de ce qui manque. « Ingrédients en ligne » n'en fait pas partie.
+- `workCopy.ts` : `workCopyForReview` (aucune décision, plus rien en ligne, événement `reset`).
+- La case « Infos et ingrédients » d'une recette contient aussi ses catégories gérées (`category_ids`) :
+  un workflow déjà enregistré en base n'a donc pas à connaître une nouvelle case.
+
+## `categories` : catégories gérées
+
+- `ContentCategory` : `parent_id` (null = famille), nom localisé (`name_<langue>`), `order` parmi ses
+  sœurs, `icon`, `built_in`. Ids `^[a-z0-9_-]{1,64}$`.
+- `buildCategoryTree` : arbre construit une fois (racines, `byId`, ordre, profondeur, chemin) ; un
+  parent inconnu ou une boucle → la catégorie devient une racine (rien n'est perdu).
+- `categoryWithAncestors`, `categoryWithDescendants`, `expandCategories`, `categoryPath`.
+- `validateCategory` (nom français, unique parmi les sœurs, parent existant, pas de boucle, profondeur
+  de toute la branche ≤ `MAX_CATEGORY_DEPTH`), `deletionBlocker`, `possibleParents`.
+- `categoryUsage` (propres / avec les sous-catégories, chaque élément compté une fois),
+  `groupByCategory` (à un niveau donné ; un élément dans chacun de ses groupes ; « sans catégorie » en
+  dernier).
+- `parseStoredCategories`, `withBuiltInCategories` (catégories d'origine complétées par la base),
+  `BUILT_IN_INGREDIENT_CATEGORIES`.
+- Côté catalogue : `Recipe.category_ids` (normalisé par `normalizeCategoryIds`), `Ingredient.category`
+  = id d'une catégorie (une valeur illisible devient `other`). `MealCategory` reste le type de plat.
+- Moteur : `FilterOptions.categoryIds` (une catégorie et ses sous-catégories) ; `fridgeSuggestions`
+  (aucune suggestion quand le frigo est vide : toutes les listes comptent de la même façon).
+
 ## `search` : recherche texte
 
 `normalizeSearchText` / `searchTerms` (s'appuie sur `normalizeText` sans le modifier : harakat, tatweel,
