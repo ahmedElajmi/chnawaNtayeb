@@ -16,6 +16,7 @@ import {
   defaultWorkflow,
   groupQueue,
   isStepOpen,
+  itemStatus,
   parseCellDecisions,
   parseCellId,
   queueCounts,
@@ -347,5 +348,29 @@ describe('review queue', () => {
     expect(counts.publishable).toBe(0);
     expect(counts.pending).toBe(groupQueue(entries, 'kind', workflows).reduce((n, g) => n + g.cells.length, 0));
     expect(counts.pending).toBeGreaterThan(0);
+  });
+});
+
+describe('item status', () => {
+  it('tells online, waiting, incomplete and sent back items apart', () => {
+    const fresh = reviewSnapshot('recipe', recipe, {}, workflow, ctx);
+    expect(itemStatus(fresh, false, true)).toBe('ready');
+    expect(itemStatus(reviewSnapshot('recipe', { ...recipe, image_url: '' }, {}, workflow, ctx), false, true)).toBe(
+      'incomplete'
+    );
+    const all = reviewSnapshot('recipe', recipe, approveAll(recipe), workflow, ctx);
+    expect(itemStatus(all, false, true)).toBe('publishable');
+    expect(itemStatus(all, true, false)).toBe('online');
+    expect(itemStatus(all, true, true)).toBe('online_pending');
+    const some = Object.fromEntries(Object.entries(approveAll(recipe)).slice(0, 1));
+    expect(itemStatus(reviewSnapshot('recipe', recipe, some, workflow, ctx), false, true)).toBe('in_review');
+    const rejected = decideCell({}, 'media', {
+      verdict: 'rejected',
+      hash: fresh.cells.media.hash,
+      by: 'a',
+      at: 1,
+      note: 'x',
+    });
+    expect(itemStatus(reviewSnapshot('recipe', recipe, rejected, workflow, ctx), true, true)).toBe('to_fix');
   });
 });

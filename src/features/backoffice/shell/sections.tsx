@@ -21,6 +21,7 @@ import {
 } from '../matching/EnginePages';
 import { MatchingDraftProvider } from '../matching/MatchingDraftContext';
 import { AppearancePage, DataPage, HomePage, IngredientsPage, RecipesPage } from './pages';
+import { RecipeReviewPage } from '../review/RecipeReviewPage';
 
 /** What the navigation knows to show a number next to an entry (counted on the whole lists). */
 export interface SectionCounts {
@@ -43,6 +44,8 @@ export interface BackofficeSection {
   count?: (counts: SectionCounts) => number | null;
   /** Page content (a section without sub-pages) */
   element?: ReactNode;
+  /** More addresses under this page (e.g. ':id' for one item), each with its own content */
+  routes?: { path: string; element: ReactNode }[];
   /** Sub-pages, each with its own address; the first one opens by default */
   subPages?: BackofficeSubPage[];
   /** Shared state and header of the sub-pages (e.g. the engine draft and its publication bar) */
@@ -79,6 +82,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     hint: (b) => b.recipesHint,
     count: (c) => c.recipes,
     element: <RecipesPage />,
+    routes: [{ path: ':id', element: <RecipeReviewPage /> }],
   },
   {
     page: PATRON_PAGES.ingredients,

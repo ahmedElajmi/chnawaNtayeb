@@ -82,9 +82,11 @@ une version dans l'historique (`<collection>_versions`). Chaque écriture de l'a
 copie elle part (`written_at`) : si quelqu'un a enregistré entre-temps, rien n'est écrit et le message
 demande de recharger. `importPublished` fait le premier passage au workflow : ce qui est en ligne
 devient une copie validée, une recette en brouillon passe dans l'atelier et quitte la collection
-publique. Pour l'instant, l'atelier n'est pas encore utilisé par les écrans (l'éditeur de recette écrit
-toujours directement dans la collection publique, via `CatalogAdmin`) ; le seul compte est le patron,
-avec le rôle administrateur.
+publique. Les recettes passent par l'atelier (éditeur, page de validation : voir [07](07-backoffice.md)) ;
+les ingrédients s'écrivent encore directement via `CatalogAdmin`. Le seul compte est le patron, avec le
+rôle administrateur. Une écriture refusée ou impossible (base injoignable, mode local) garde la
+modification sur l'appareil (`local: true`, message d'erreur), comme le catalogue ; un conflit
+(`written_at`) n'écrit rien.
 
 **Écriture d'une recette ou d'un ingrédient** : le document est **remplacé en entier** (pas de
 fusion), sans aucune valeur `undefined` (`withoutUndefined`, `@/core/shared` ; Firestore refuse

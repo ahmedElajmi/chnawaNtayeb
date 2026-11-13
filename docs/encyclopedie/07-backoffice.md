@@ -24,7 +24,7 @@ routes à partir du **registre des sections** (`shell/sections.tsx`).
 | Page        | Adresse               | Fichier                                           | Fonctions                                                       |
 | ----------- | --------------------- | ------------------------------------------------- | --------------------------------------------------------------- |
 | Accueil     | `/patron`             | `dashboard/DashboardTab.tsx`                      | Chiffres clés, actions rapides                                  |
-| Recettes    | `/patron/recettes`    | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste, recherche, publier/dépublier, créer, modifier, supprimer |
+| Recettes    | `/patron/recettes`    | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx` | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer |
 | Ingrédients | `/patron/ingredients` | `ingredients/IngredientsTab.tsx`                  | Ajouter, modifier (noms, unité, catégorie, photo), prix min–max |
 | Moteur      | `/patron/moteur/…`    | `matching/`                                       | Six sous-pages (voir ci-dessous)                                |
 | Apparence   | `/patron/apparence`   | `themes/ThemeEditor.tsx`                          | Créer, prévisualiser, publier des thèmes (contraste vérifié)    |
@@ -144,6 +144,45 @@ d'ingrédients affichés est indiqué.
 **Restauration d'une sauvegarde** (onglet Données) : relue par `parseBackup` ; le message indique le
 nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
 d'« Envoyer vers le cloud » pour publier.
+
+## Validation des recettes (`/patron/recettes/<id>`)
+
+Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), données :
+[05](05-application-donnees.md), plan : [14](14-refonte-backoffice.md)).
+
+- **Enregistrer** dans l'éditeur écrit dans l'**atelier**, jamais dans la collection publique, puis ouvre
+  la page de validation de la recette. Une nouvelle recette naît hors ligne. Une recette déjà en ligne
+  qui est modifiée pour la première fois part de sa version en ligne, validée : seules les cases
+  touchées repassent à valider, et le public garde l'ancienne version jusqu'à la publication.
+- **Liste** (`RecipesTab`) : copies de l'atelier puis recettes en ligne jamais passées par l'atelier ;
+  chaque ligne a son statut (`StatusBadge` : En ligne, En ligne · modifs en attente, À corriger, Prête à
+  publier, En relecture, À compléter, À valider), une mini-barre segmentée et le pourcentage validé ;
+  filtres Toutes, À valider, À corriger, À compléter, Modifs en attente, En ligne, avec leur nombre sur
+  toute la liste. Le bouton « Validation » ouvre la page de la recette ; l'ancien œil En ligne /
+  Brouillon a disparu (publier passe par la validation).
+- **Page de validation** (`review/RecipeReviewPage.tsx`, une adresse par recette : on y revient, on
+  recharge, on reprend) :
+  - en-tête : nom, statut, Modifier, Aperçu public (la vraie fiche recette, avec ce qui serait publié),
+    Retirer du site, **Publier** quand toutes les cases obligatoires sont validées ;
+  - barre segmentée (une case = un segment, sa couleur = son état) avec le pourcentage validé et la
+    complétude, puis le **fil d'étapes** du workflow (une étape fermée est grisée si le workflow est
+    ordonné) ;
+  - **Reprendre** ouvre la première case non validée ; « Valider les N parties prêtes » valide d'un coup
+    les cases prêtes sans point bloquant (avec la liste en confirmation) ;
+  - **grille partie × langue** (`review/reviewUi.tsx`) : chaque case montre son état (icône + couleur,
+    `*` = obligatoire) ; une partie commune occupe toute la ligne ;
+  - **case choisie** : son contenu dans l'atelier et, s'il diffère, sa version en ligne à côté ; la note
+    de correction ; ses contrôles (bloquants, conseillés) ; **Valider** (impossible pour une case à
+    compléter), **À corriger** avec une note obligatoire, **Suivant** ; après une validation, la case
+    suivante non validée s'ouvre.
+- **Notes de correction dans l'éditeur** : les cases renvoyées s'affichent en haut du formulaire, avec
+  leur note.
+- **Hors connexion à la base** (mode local) : l'atelier garde la modification sur l'appareil, avec un
+  message d'erreur, comme le catalogue.
+- **Premier passage au workflow** : Données › « Importer les recettes dans l'atelier » (une fois, sans
+  danger) : les recettes en ligne deviennent des copies validées, les brouillons quittent le site.
+- Les ingrédients, thèmes et réglages du moteur se publient encore directement (passage au workflow
+  prévu, voir [14](14-refonte-backoffice.md)).
 
 ## Moteur (`/patron/moteur`)
 

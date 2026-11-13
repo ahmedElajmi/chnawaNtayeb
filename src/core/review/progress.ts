@@ -18,6 +18,8 @@ export interface ReviewSnapshot {
   /** Required cells validated / required cells */
   approvedRequired: number;
   required: number;
+  /** Required cells failing a blocking check */
+  incompleteRequired: number;
   /** Validation progress, 0–100 (required cells) */
   percent: number;
   /** Checks passed among all the checks of the workflow's cells, 0–100 */
@@ -58,6 +60,7 @@ export function reviewSnapshot<K extends ReviewKind>(
     cells,
     approvedRequired,
     required: required.length,
+    incompleteRequired: required.filter((id) => cells[id].state === 'incomplete').length,
     percent: required.length ? Math.round((approvedRequired / required.length) * 100) : 100,
     completeness: totalChecks ? Math.round((passedChecks / totalChecks) * 100) : 100,
     publishable: approvedRequired === required.length,
@@ -118,4 +121,36 @@ export function composePublication<K extends ReviewKind>(
     result = copyCell(kind, result, online, cell);
   }
   return result;
+}
+
+/**
+ * Status of an item, shown in the lists and used by their filters:
+ * - online: online, nothing pending
+ * - online_pending: online, with changes not published yet
+ * - to_fix: a cell was sent back
+ * - publishable: every required cell validated, never published
+ * - incomplete: a required cell fails a blocking check
+ * - in_review: some cells validated, others still waiting
+ * - ready: complete, nothing validated yet
+ */
+export type ItemStatus = 'online' | 'online_pending' | 'to_fix' | 'publishable' | 'in_review' | 'incomplete' | 'ready';
+export const ITEM_STATUSES: readonly ItemStatus[] = [
+  'online',
+  'online_pending',
+  'to_fix',
+  'publishable',
+  'in_review',
+  'incomplete',
+  'ready',
+];
+
+export function itemStatus(snapshot: ReviewSnapshot, online: boolean, pending: boolean): ItemStatus {
+  if (online && !pending) return 'online';
+  const states = Object.values(snapshot.cells).map((c) => c.state);
+  if (states.includes('to_fix')) return 'to_fix';
+  if (online) return 'online_pending';
+  if (snapshot.publishable) return 'publishable';
+  if (snapshot.incompleteRequired > 0) return 'incomplete';
+  if (states.includes('approved')) return 'in_review';
+  return 'ready';
 }

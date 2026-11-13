@@ -258,6 +258,8 @@ export interface RecipeDraftRepository {
 export type WorkspaceWriteResult = WriteResult & {
   /** Someone else saved this item meanwhile: nothing was written */
   conflict?: boolean;
+  /** The database could not be reached: the change is kept on this device only */
+  local?: boolean;
 };
 
 /** Writes to the workspace of one kind of content. Every write is complete and versioned by the database. */
