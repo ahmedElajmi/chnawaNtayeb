@@ -2,6 +2,8 @@ import { localizedField, withLocalizedField } from '@/core/shared';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import type { RecipeStep } from '@/core/catalog';
 import { LocalizedField } from '@/features/backoffice/ui/LocalizedField';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
 interface RecipeStepsEditorProps {
   steps: RecipeStep[];
@@ -19,6 +21,7 @@ const emptyStep = (n: number): RecipeStep => ({
 
 /** Preparation steps of a recipe, in the three languages (numbering is redone on save). */
 export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeStepsEditorProps) {
+  const b = useBackofficeText();
   const renumber = (list: RecipeStep[]) => list.map((s, i) => ({ ...s, step_number: i + 1 }));
   const move = (index: number, delta: number) => {
     const target = index + delta;
@@ -30,9 +33,7 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
 
   return (
     <div className="space-y-2">
-      {steps.length === 0 && (
-        <p className="text-[11px] text-amber-700 dark:text-amber-300">Ajoutez au moins une étape en français.</p>
-      )}
+      {steps.length === 0 && <p className="text-[11px] text-amber-700 dark:text-amber-300">{b.edAddOneStep}</p>}
       <ol className="space-y-2">
         {steps.map((step, index) => (
           <li key={index} className="p-3 rounded-xl bg-card border border-line space-y-2">
@@ -41,14 +42,14 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
                 <span className="w-5 h-5 rounded-full bg-brand text-on-brand flex items-center justify-center text-[10px]">
                   {index + 1}
                 </span>
-                Étape {index + 1}
+                {format(b.edStepN, { n: index + 1 })}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => move(index, -1)}
                   disabled={index === 0}
-                  aria-label={`Monter l'étape ${index + 1}`}
+                  aria-label={format(b.edMoveStepUp, { n: index + 1 })}
                   className="p-1.5 rounded-lg text-ink-muted hover:bg-brand/10 disabled:opacity-30"
                 >
                   <ArrowUp className="w-3.5 h-3.5" />
@@ -57,7 +58,7 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
                   type="button"
                   onClick={() => move(index, 1)}
                   disabled={index === steps.length - 1}
-                  aria-label={`Descendre l'étape ${index + 1}`}
+                  aria-label={format(b.edMoveStepDown, { n: index + 1 })}
                   className="p-1.5 rounded-lg text-ink-muted hover:bg-brand/10 disabled:opacity-30"
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
@@ -65,7 +66,7 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
                 <button
                   type="button"
                   onClick={() => onChange(renumber(steps.filter((_, i) => i !== index)))}
-                  aria-label={`Supprimer l'étape ${index + 1}`}
+                  aria-label={format(b.edDeleteStep, { n: index + 1 })}
                   className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -73,7 +74,7 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
               </div>
             </div>
             <LocalizedField
-              label="Texte de l'étape"
+              label={b.edStepText}
               multiline
               rows={3}
               invalid={invalid && !step.instruction_fr.trim()}
@@ -91,7 +92,7 @@ export function RecipeStepsEditor({ steps, onChange, invalid = false }: RecipeSt
         className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-dashed border-line text-xs font-bold text-brand-text hover:bg-brand/5"
       >
         <Plus className="w-4 h-4" />
-        Ajouter une étape
+        {b.edAddStep}
       </button>
     </div>
   );

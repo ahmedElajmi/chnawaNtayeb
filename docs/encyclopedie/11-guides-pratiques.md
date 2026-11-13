@@ -29,8 +29,9 @@ Un seul mécanisme pour toutes les données partagées (voir [05](05-application
 2. Créer `src/features/<écran>/<Écran>Page.tsx` (et `components/` si besoin) ; lire les données
    avec `useCatalog()`, `useKitchen()`…, sans logique métier dans le composant.
 3. Déclarer la route dans `src/app/AppRoutes.tsx` ; ajouter le lien dans `Header` et `BottomNav` si besoin.
-4. Textes : ajouter les clés dans chaque langue de `src/shared/i18n/translations.ts` (et dans
-   `derjaArabic.ts` pour la derja en lettres arabes ; sinon le texte arabe est affiché).
+4. Textes : ajouter les clés dans chaque langue de `src/shared/i18n/translations.ts` **et** dans
+   `derjaArabic.ts` (derja en lettres arabes, obligatoire : le dictionnaire est complet, vérifié par
+   `translations.test.ts`) ; l'arabe littéraire ne contient aucun mot de derja.
 5. Vérifier l'affichage à 375 px et 320 px de large.
 6. Une liste qui peut devenir longue : `usePagedList` + `ShowMore`, compteurs sur `total`.
 

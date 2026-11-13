@@ -1,6 +1,8 @@
 import { useId } from 'react';
 import { languageInfo, pickLocalized, REFERENCE_LANGUAGE, type Language, type LocalizedText } from '@/core/shared';
-import { EDITOR_LANGUAGES, useEditorLanguage } from './editorLanguage';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
+import { EDITOR_LANGUAGES, useEditorLanguage, useLanguageDescriptions } from './editorLanguage';
 
 const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-200 dark:border-slate-700 mt-1';
 
@@ -43,13 +45,15 @@ export function LocalizedField({
 }: LocalizedFieldProps) {
   const id = useId();
   const only = useEditorLanguage();
+  const b = useBackofficeText();
+  const descriptions = useLanguageDescriptions();
   const languages = only ? EDITOR_LANGUAGES.filter((l) => l.code === only) : EDITOR_LANGUAGES;
 
   return (
     <fieldset className="min-w-0">
       <legend className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{label}</legend>
       <div className={`grid grid-cols-1 gap-2 ${only ? '' : multiline ? 'lg:grid-cols-2' : 'sm:grid-cols-2'}`}>
-        {languages.map(({ code, description, dir, htmlLang }) => {
+        {languages.map(({ code, dir, htmlLang }) => {
           const isReference = code === REFERENCE_LANGUAGE;
           const required = frenchRequired && isReference;
           const own = value[code] ?? '';
@@ -65,7 +69,11 @@ export function LocalizedField({
             lang: htmlLang,
             required,
             'aria-invalid': invalid && isReference ? true : undefined,
-            placeholder: isReference ? placeholder : shown ? `Vide : « ${shown.slice(0, 50)} » est affiché` : undefined,
+            placeholder: isReference
+              ? placeholder
+              : shown
+                ? format(b.edEmptyShows, { text: shown.slice(0, 50) })
+                : undefined,
             className: `${INPUT} ${invalid && isReference ? '!border-rose-500 ring-2 ring-rose-500/20' : ''}`,
           };
           const update = (text: string) => onChange({ ...value, [code]: text });
@@ -73,7 +81,7 @@ export function LocalizedField({
             <div key={code} className="min-w-0">
               {!only && (
                 <label htmlFor={common.id} className="text-[10px] font-semibold text-ink-muted">
-                  {description}
+                  {descriptions[code]}
                   {required && ' *'}
                 </label>
               )}
@@ -97,11 +105,7 @@ export function LocalizedField({
           );
         })}
       </div>
-      {!only && (
-        <p className="text-[10px] text-ink-muted mt-1">
-          Langue laissée vide : le texte de la langue la plus proche est affiché (le français en dernier).
-        </p>
-      )}
+      {!only && <p className="text-[10px] text-ink-muted mt-1">{b.edFallbackNote}</p>}
     </fieldset>
   );
 }

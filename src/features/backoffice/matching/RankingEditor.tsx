@@ -6,19 +6,25 @@ import {
   type MatchTier,
   type RankingCriterion,
 } from '@/core/matching';
+import type { BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 import { cls, Section } from './ui';
 
-const CRITERION_LABEL: Record<RankingCriterion, string> = {
-  boost: 'Mise en avant',
-  fridgeUsed: 'Utilise le plus le frigo',
-  score: 'Meilleur score',
-  toBuy: 'Le moins de courses',
-  missingKey: 'Le moins de clés manquantes',
-  time: 'Le plus rapide',
-  cost: 'Le moins cher',
-};
+const criterionLabels = (b: BackofficeTexts): Record<RankingCriterion, string> => ({
+  boost: b.engCritBoost,
+  fridgeUsed: b.engCritFridgeUsed,
+  score: b.engCritScore,
+  toBuy: b.engCritToBuy,
+  missingKey: b.engCritMissingKey,
+  time: b.engCritTime,
+  cost: b.engCritCost,
+});
 
-const TIER_LABEL: Record<MatchTier, string> = { ready: 'Prêtes', almost: 'Presque prêtes', ideas: 'Idées' };
+const tierLabels = (b: BackofficeTexts): Record<MatchTier, string> => ({
+  ready: b.engTiersReady,
+  almost: b.engTiersAlmost,
+  ideas: b.engTiersIdeas,
+});
 
 function TierRanking({
   criteria,
@@ -27,6 +33,8 @@ function TierRanking({
   criteria: RankingCriterion[];
   onChange: (c: RankingCriterion[]) => void;
 }) {
+  const b = useBackofficeText();
+  const criterionLabel = criterionLabels(b);
   const unused = RANKING_CRITERIA.filter((c) => !criteria.includes(c));
   const move = (i: number, delta: number) => {
     const next = [...criteria];
@@ -39,12 +47,12 @@ function TierRanking({
         {criteria.map((c, i) => (
           <li key={c} className="flex items-center gap-1.5 text-xs">
             <span className="w-4 text-ink-muted">{i + 1}.</span>
-            <span className="flex-1 font-semibold text-ink">{CRITERION_LABEL[c]}</span>
+            <span className="flex-1 font-semibold text-ink">{criterionLabel[c]}</span>
             <button
               className="p-1 disabled:opacity-30"
               disabled={i === 0}
               onClick={() => move(i, -1)}
-              aria-label="Monter"
+              aria-label={b.engMoveUp}
             >
               <ArrowUp className="w-3.5 h-3.5" />
             </button>
@@ -52,7 +60,7 @@ function TierRanking({
               className="p-1 disabled:opacity-30"
               disabled={i === criteria.length - 1}
               onClick={() => move(i, 1)}
-              aria-label="Descendre"
+              aria-label={b.engMoveDown}
             >
               <ArrowDown className="w-3.5 h-3.5" />
             </button>
@@ -61,7 +69,7 @@ function TierRanking({
               disabled={criteria.length === 1}
               onClick={() => onChange(criteria.filter((x) => x !== c))}
             >
-              Retirer
+              {b.engRemove}
             </button>
           </li>
         ))}
@@ -71,12 +79,12 @@ function TierRanking({
           className={cls.input}
           value=""
           onChange={(e) => e.target.value && onChange([...criteria, e.target.value as RankingCriterion])}
-          aria-label="Ajouter un critère"
+          aria-label={b.engAddCriterion}
         >
-          <option value="">+ Ajouter un critère</option>
+          <option value="">+ {b.engAddCriterion}</option>
           {unused.map((c) => (
             <option key={c} value={c}>
-              {CRITERION_LABEL[c]}
+              {criterionLabel[c]}
             </option>
           ))}
         </select>
@@ -86,23 +94,25 @@ function TierRanking({
 }
 
 export function RankingEditor({ config, onChange }: { config: MatchingConfig; onChange: (c: MatchingConfig) => void }) {
+  const b = useBackofficeText();
+  const tierLabel = tierLabels(b);
   return (
     <Section
-      title="Ordre d’affichage"
-      hint="Dans chaque niveau, les recettes sont triées par le premier critère, puis le suivant en cas d’égalité."
+      title={b.engRankingTitle}
+      hint={b.engRankingHint}
       actions={
         <button
           className={cls.secondary}
           onClick={() => onChange({ ...config, ranking: DEFAULT_MATCHING_CONFIG.ranking })}
         >
-          Valeurs par défaut
+          {b.engDefaults}
         </button>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(Object.keys(TIER_LABEL) as MatchTier[]).map((tier) => (
+        {(Object.keys(tierLabel) as MatchTier[]).map((tier) => (
           <div key={tier} className="space-y-2">
-            <h4 className="text-xs font-bold text-ink">{TIER_LABEL[tier]}</h4>
+            <h4 className="text-xs font-bold text-ink">{tierLabel[tier]}</h4>
             <TierRanking
               criteria={config.ranking[tier]}
               onChange={(c) => onChange({ ...config, ranking: { ...config.ranking, [tier]: c } })}

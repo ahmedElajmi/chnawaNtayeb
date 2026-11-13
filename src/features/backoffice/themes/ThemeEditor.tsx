@@ -33,34 +33,41 @@ import { useTheme } from '@/app/providers/ThemeContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useContainer } from '@/app/ContainerContext';
 import { ThemePreviewCard } from '@/features/settings/ThemePreviewCard';
+import { languageInfo } from '@/core/shared';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-const COLOR_LABELS: Record<keyof ThemeColors, string> = {
-  brand: 'Couleur principale',
-  brandStrong: 'Principale (survol)',
-  brandText: 'Principale en texte',
-  onBrand: 'Texte sur principale',
-  accent: "Couleur d'action",
-  accentStrong: 'Action (survol)',
-  accentText: 'Action en texte',
-  onAccent: 'Texte sur action',
-  highlight: 'Touche décorative',
-  surface: 'Fond de page',
-  card: 'Fond des cartes',
-  line: 'Bordures',
-  ink: 'Texte principal',
-  inkMuted: 'Texte secondaire',
-  heroFrom: 'Bandeau (début)',
-  heroTo: 'Bandeau (fin)',
-};
+const colorLabels = (b: BackofficeTexts): Record<keyof ThemeColors, string> => ({
+  brand: b.panColorBrand,
+  brandStrong: b.panColorBrandStrong,
+  brandText: b.panColorBrandText,
+  onBrand: b.panColorOnBrand,
+  accent: b.panColorAccent,
+  accentStrong: b.panColorAccentStrong,
+  accentText: b.panColorAccentText,
+  onAccent: b.panColorOnAccent,
+  highlight: b.panColorHighlight,
+  surface: b.panColorSurface,
+  card: b.panColorCard,
+  line: b.panColorLine,
+  ink: b.panColorInk,
+  inkMuted: b.panColorInkMuted,
+  heroFrom: b.panColorHeroFrom,
+  heroTo: b.panColorHeroTo,
+});
 
-const SHAPE_LABELS: Record<CardShape, string> = { rounded: 'Arrondie', arch: 'Arche (médina)', square: 'Carrée' };
-const PATTERN_LABELS: Record<ThemePattern, string> = {
-  none: 'Aucun',
-  zellige: 'Frise zellige',
-  dots: 'Points',
-  waves: 'Vagues',
-};
+const shapeLabels = (b: BackofficeTexts): Record<CardShape, string> => ({
+  rounded: b.panShapeRounded,
+  arch: b.panShapeArch,
+  square: b.panShapeSquare,
+});
+const patternLabels = (b: BackofficeTexts): Record<ThemePattern, string> => ({
+  none: b.panPatternNone,
+  zellige: b.panPatternZellige,
+  dots: b.panPatternDots,
+  waves: b.panPatternWaves,
+});
 
 interface ThemeEditorProps {
   onNotify: (message: string, isError?: boolean) => void;
@@ -72,6 +79,10 @@ function newThemeId() {
 
 export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
   const { getThemeName } = useLanguage();
+  const b = useBackofficeText();
+  const COLOR_LABELS = colorLabels(b);
+  const SHAPE_LABELS = shapeLabels(b);
+  const PATTERN_LABELS = patternLabels(b);
   const { setPreviewTheme, isPreviewing, refreshThemes } = useTheme();
   const { themes: themeRepository } = useContainer();
   const [remoteThemes, setRemoteThemes] = useState<AppTheme[]>(() => themeRepository.cached());
@@ -140,10 +151,10 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
     const result = await themeRepository.save(draft);
     setIsSaving(false);
     if (!result.ok) {
-      onNotify(`Thème non enregistré : ${result.error}`, true);
+      onNotify(format(b.panThemeNotSaved, { error: result.error }), true);
       return;
     }
-    onNotify(draft.is_published ? 'Thème enregistré et publié pour tous' : 'Thème enregistré en brouillon');
+    onNotify(draft.is_published ? b.panThemeSavedPublished : b.panThemeSavedDraft);
     closeEditor();
     await loadThemes();
     await refreshThemes();
@@ -152,16 +163,16 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
   const togglePublish = async (theme: AppTheme) => {
     const result = await themeRepository.save({ ...theme, is_published: !theme.is_published });
     if (!result.ok) return onNotify(result.error, true);
-    onNotify(theme.is_published ? 'Thème retiré (les utilisateurs repassent sur Classique)' : 'Thème publié pour tous');
+    onNotify(theme.is_published ? b.panThemeUnpublished : b.panThemePublished);
     await loadThemes();
     await refreshThemes();
   };
 
   const handleDelete = async (theme: AppTheme) => {
-    if (!window.confirm(`Supprimer définitivement le thème "${getThemeName(theme)}" ?`)) return;
+    if (!window.confirm(format(b.panThemeDeleteConfirm, { name: getThemeName(theme) }))) return;
     const result = await themeRepository.remove(theme.id);
     if (!result.ok) return onNotify(result.error, true);
-    onNotify('Thème supprimé');
+    onNotify(b.panThemeDeleted);
     await loadThemes();
     await refreshThemes();
   };
@@ -175,7 +186,9 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
       <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-lg font-extrabold text-ink">
-            {remoteThemes.some((t) => t.id === draft.id) ? `Modifier : ${getThemeName(draft)}` : 'Nouveau thème'}
+            {remoteThemes.some((t) => t.id === draft.id)
+              ? format(b.panThemeEditTitle, { name: getThemeName(draft) })
+              : b.panThemeNew}
           </h3>
           <div className="flex flex-wrap gap-2">
             <button
@@ -184,7 +197,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-line bg-card text-xs font-semibold text-ink hover:border-brand"
             >
               <FlaskConical className="w-4 h-4 text-accent-text" />
-              {isPreviewing ? "Arrêter l'aperçu" : 'Tester sur moi'}
+              {isPreviewing ? b.panStopPreview : b.panTryOnMe}
             </button>
             <button
               type="button"
@@ -192,7 +205,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink"
             >
               <X className="w-4 h-4" />
-              Annuler
+              {b.cancel}
             </button>
             <button
               type="button"
@@ -201,17 +214,12 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong disabled:opacity-50"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Enregistrer
+              {b.save}
             </button>
           </div>
         </div>
 
-        {isPreviewing && (
-          <p className="text-xs text-accent-text font-semibold">
-            Aperçu actif : toute l'application utilise ce thème sur ton appareil uniquement. Les autres ne voient rien
-            tant que le thème n'est pas publié.
-          </p>
-        )}
+        {isPreviewing && <p className="text-xs text-accent-text font-semibold">{b.panPreviewActive}</p>}
 
         {errors.length > 0 && (
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:border-rose-900 dark:text-rose-200 text-xs space-y-0.5">
@@ -225,13 +233,13 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
           <div className="space-y-5">
             {/* Names */}
             <section className="p-4 rounded-2xl bg-card border border-line space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Nom du thème</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">{b.panThemeName}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {(
                   [
-                    ['name_fr', 'Français'],
-                    ['name_derja', 'Derja'],
-                    ['name_ar', 'Arabe'],
+                    ['name_fr', languageInfo('fr').label],
+                    ['name_derja', languageInfo('derja').label],
+                    ['name_ar', languageInfo('ar').label],
                   ] as const
                 ).map(([field, label]) => (
                   <label key={field} className="text-[11px] font-bold text-ink-muted">
@@ -251,10 +259,10 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
 
             {/* Style */}
             <section className="p-4 rounded-2xl bg-card border border-line space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Style</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">{b.panStyle}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <label className="text-[11px] font-bold text-ink-muted">
-                  Police des titres
+                  {b.panTitleFont}
                   <select
                     value={draft.displayFont}
                     onChange={(e) => setDraft({ ...draft, displayFont: e.target.value as DisplayFont })}
@@ -268,7 +276,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                   </select>
                 </label>
                 <label className="text-[11px] font-bold text-ink-muted">
-                  Forme des cartes
+                  {b.panCardShape}
                   <select
                     value={draft.cardShape}
                     onChange={(e) => setDraft({ ...draft, cardShape: e.target.value as CardShape })}
@@ -282,7 +290,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                   </select>
                 </label>
                 <label className="text-[11px] font-bold text-ink-muted">
-                  Motif décoratif
+                  {b.panPattern}
                   <select
                     value={draft.pattern}
                     onChange={(e) => setDraft({ ...draft, pattern: e.target.value as ThemePattern })}
@@ -303,14 +311,14 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                   onChange={(e) => setDraft({ ...draft, is_published: e.target.checked })}
                   className="accent-brand w-4 h-4"
                 />
-                Publier pour tous les utilisateurs
+                {b.panPublishForAll}
               </label>
             </section>
 
             {/* Colors */}
             <section className="p-4 rounded-2xl bg-card border border-line space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Couleurs</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">{b.panColors}</h4>
                 <div role="radiogroup" className="inline-flex p-1 rounded-lg bg-surface border border-line">
                   {(['light', 'dark'] as const).map((m) => (
                     <button
@@ -323,7 +331,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                         colorMode === m ? 'bg-brand text-on-brand' : 'text-ink-muted'
                       }`}
                     >
-                      {m === 'light' ? 'Mode clair' : 'Mode sombre'}
+                      {m === 'light' ? b.panLightMode : b.panDarkMode}
                     </button>
                   ))}
                 </div>
@@ -361,19 +369,19 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
           {/* Live preview + contrast */}
           <aside className="space-y-4">
             <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Aperçu</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">{b.panPreview}</h4>
               {errors.length === 0 ? (
                 <>
                   <ThemePreviewCard theme={draft} name={getThemeName(draft)} dark={false} />
                   <ThemePreviewCard theme={draft} name={getThemeName(draft)} dark />
                 </>
               ) : (
-                <p className="text-xs text-ink-muted">Corrige les erreurs pour voir l'aperçu.</p>
+                <p className="text-xs text-ink-muted">{b.panFixErrorsForPreview}</p>
               )}
             </div>
             <div className="p-3 rounded-2xl bg-card border border-line space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">
-                Lisibilité ({colorMode === 'light' ? 'clair' : 'sombre'})
+                {colorMode === 'light' ? b.panReadabilityLight : b.panReadabilityDark}
               </h4>
               {CONTRAST_PAIRS.map(({ fg, bg, label }) => {
                 const ratio = contrastRatio(colors[fg], colors[bg]);
@@ -392,7 +400,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                   </div>
                 );
               })}
-              <p className="text-[10px] text-ink-muted">Recommandé : au moins 4,5:1 pour du texte.</p>
+              <p className="text-[10px] text-ink-muted">{b.panContrastHint}</p>
             </div>
           </aside>
         </div>
@@ -407,11 +415,8 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-display text-lg font-extrabold text-ink">Thèmes de l'application</h3>
-          <p className="text-xs text-ink-muted">
-            Duplique un thème pour en créer un nouveau. Un thème publié apparaît dans les Réglages de tous les
-            utilisateurs.
-          </p>
+          <h3 className="font-display text-lg font-extrabold text-ink">{b.panThemesTitle}</h3>
+          <p className="text-xs text-ink-muted">{b.panThemesIntro}</p>
         </div>
         {isLoading && <Loader2 className="w-5 h-5 animate-spin text-ink-muted" />}
       </div>
@@ -432,13 +437,13 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                         : 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200'
                   }`}
                 >
-                  {builtin ? 'Intégré' : theme.is_published ? 'Publié' : 'Brouillon'}
+                  {builtin ? b.panBuiltin : theme.is_published ? b.panPublished : b.panDraft}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => startDuplicate(theme)}
-                    title="Dupliquer"
-                    aria-label={`Dupliquer ${getThemeName(theme)}`}
+                    title={b.panDuplicate}
+                    aria-label={`${b.panDuplicate} ${getThemeName(theme)}`}
                     className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                   >
                     <Copy className="w-4 h-4" />
@@ -447,26 +452,24 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                     <>
                       <button
                         onClick={() => startEdit(theme)}
-                        title="Modifier"
-                        aria-label={`Modifier ${getThemeName(theme)}`}
+                        title={b.panEdit}
+                        aria-label={`${b.panEdit} ${getThemeName(theme)}`}
                         className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => togglePublish(theme)}
-                        title={theme.is_published ? 'Dépublier' : 'Publier'}
-                        aria-label={
-                          theme.is_published ? `Dépublier ${getThemeName(theme)}` : `Publier ${getThemeName(theme)}`
-                        }
+                        title={theme.is_published ? b.panUnpublish : b.panPublish}
+                        aria-label={`${theme.is_published ? b.panUnpublish : b.panPublish} ${getThemeName(theme)}`}
                         className="p-2 rounded-lg text-ink-muted hover:bg-brand/10 hover:text-brand-text"
                       >
                         {theme.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleDelete(theme)}
-                        title="Supprimer"
-                        aria-label={`Supprimer ${getThemeName(theme)}`}
+                        title={b.panDelete}
+                        aria-label={`${b.panDelete} ${getThemeName(theme)}`}
                         className="p-2 rounded-lg text-ink-muted hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
                       >
                         <Trash2 className="w-4 h-4" />

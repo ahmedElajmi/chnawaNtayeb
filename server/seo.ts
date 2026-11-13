@@ -1,8 +1,6 @@
 import type { Recipe, Ingredient } from '../src/core/catalog';
 import {
-  INGREDIENT_CATEGORIES,
   ingredientPriceRange,
-  initialRecipes,
   initialIngredients,
   normalizeCategory,
   parseStoredIngredients,
@@ -13,7 +11,13 @@ import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { slugify } from '../src/core/shared';
 import { PATHS, recipePath as recipeAddress } from '../src/shared/paths';
 import { translations } from '../src/shared/i18n/translations';
-import { CATEGORY_LABEL_KEYS } from '../src/shared/i18n/categoryLabels';
+import {
+  BUILT_IN_INGREDIENT_CATEGORIES,
+  buildCategoryTree,
+  parseStoredCategories,
+  withBuiltInCategories,
+  type ContentCategory,
+} from '../src/core/categories';
 import { formatPriceRange } from '../src/shared/i18n/formatPrice';
 import { getAdminFirestore } from './firebaseAdmin';
 
@@ -37,6 +41,8 @@ export const LIST_PAGE_SIZE = 100;
 export interface Catalog {
   recipes: Recipe[];
   ingredients: Ingredient[];
+  /** Ingredient categories (built-in ones when absent) */
+  ingredientCategories?: ContentCategory[];
 }
 
 /** One collection kept in memory, updated incrementally like the devices (see src/core/sync). */
@@ -47,6 +53,7 @@ interface SyncedCollection<T> {
 
 let recipesCopy: SyncedCollection<Recipe> = { items: new Map(), revision: null };
 let ingredientsCopy: SyncedCollection<Ingredient> = { items: new Map(), revision: null };
+let ingredientCategoriesCopy: SyncedCollection<ContentCategory> = { items: new Map(), revision: null };
 let cache: (Catalog & { at: number }) | null = null;
 
 async function refresh<T extends { id: string; revision?: number }>(
@@ -72,26 +79,36 @@ async function refresh<T extends { id: string; revision?: number }>(
   return { items, revision: latestRevision([...parsed, ...markers], copy.revision ?? 0) };
 }
 
-/** Published catalog: Firestore when the server has admin access (admin edits included), built-in catalog otherwise. */
+/**
+ * Published catalog, read from Firestore when the server has admin access. Recipes are only the
+ * validated ones of the database (none without it: a recipe is never public before validation);
+ * ingredients fall back to the built-in list.
+ */
 export async function getCatalog(): Promise<Catalog> {
   if (cache && Date.now() - cache.at < REFRESH_MS) return cache;
-  let recipes: Recipe[] = initialRecipes;
+  let recipes: Recipe[] = [];
   let ingredients: Ingredient[] = initialIngredients;
+  let ingredientCategories: ContentCategory[] = [...BUILT_IN_INGREDIENT_CATEGORIES];
   const db = getAdminFirestore();
   if (db) {
     try {
-      [recipesCopy, ingredientsCopy] = await Promise.all([
+      [recipesCopy, ingredientsCopy, ingredientCategoriesCopy] = await Promise.all([
         refresh(db, 'recipes', recipesCopy, parseStoredRecipes),
         refresh(db, 'ingredients', ingredientsCopy, parseStoredIngredients),
+        refresh(db, 'ingredient_categories', ingredientCategoriesCopy, parseStoredCategories),
       ]);
-      if (recipesCopy.items.size) recipes = [...recipesCopy.items.values()];
+      recipes = [...recipesCopy.items.values()];
       if (ingredientsCopy.items.size) ingredients = [...ingredientsCopy.items.values()];
+      ingredientCategories = withBuiltInCategories(
+        [...ingredientCategoriesCopy.items.values()],
+        BUILT_IN_INGREDIENT_CATEGORIES
+      );
     } catch (e) {
-      console.warn('[seo] Firestore indisponible, catalogue intégré utilisé :', (e as Error).message);
+      console.warn('[seo] Firestore indisponible :', (e as Error).message);
       if (cache) return cache;
     }
   }
-  cache = { at: Date.now(), recipes: publishedRecipes(recipes), ingredients };
+  cache = { at: Date.now(), recipes: publishedRecipes(recipes), ingredients, ingredientCategories };
   return cache;
 }
 
@@ -359,16 +376,20 @@ function ingredientLine(i: Ingredient): string {
 }
 
 function fridgePage({ base, catalog, page }: PageContext): SeoPage | null {
-  const sorted = grouped(catalog.ingredients, INGREDIENT_CATEGORIES, (i) => i.category).flatMap(([, xs]) =>
+  // Ingredients by family of the managed categories (tree order), alphabetical inside
+  const tree = buildCategoryTree(catalog.ingredientCategories ?? BUILT_IN_INGREDIENT_CATEGORIES);
+  const families = tree.roots.map((n) => n.category.id);
+  const familyOf = (i: Ingredient) => tree.byId.get(i.category)?.path[0] ?? 'other';
+  const familyName = (id: string) => tree.byId.get(id)?.category.name_fr ?? id;
+  const sorted = grouped(catalog.ingredients, families, familyOf).flatMap(([, xs]) =>
     [...xs].sort((a, b) => a.name_fr.localeCompare(b.name_fr, 'fr'))
   );
   const list = pageOf(sorted, page);
   if (!list) return null;
   const description = `Choisissez parmi ${list.total} ingrédients ce que vous avez dans votre frigo : Chnowa Ntayeb vous propose les recettes tunisiennes possibles, avec le prix indicatif de chaque ingrédient.`;
-  const sections = grouped(list.items, INGREDIENT_CATEGORIES, (i) => i.category)
+  const sections = grouped(list.items, families, familyOf)
     .map(
-      ([c, items]) =>
-        `<section><h2>${esc(String(FR[CATEGORY_LABEL_KEYS[c]]))}</h2><ul>${items.map(ingredientLine).join('')}</ul></section>`
+      ([c, items]) => `<section><h2>${esc(familyName(c))}</h2><ul>${items.map(ingredientLine).join('')}</ul></section>`
     )
     .join('');
   const itemList = {

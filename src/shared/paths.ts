@@ -26,6 +26,13 @@ export const PATRON_PAGES = {
   appearance: 'apparence',
   data: 'donnees',
   workflows: 'workflows',
+  categories: 'categories',
+} as const;
+
+/** Sub-pages of /patron/categories (one tree per kind of content). */
+export const CATEGORY_PAGES = {
+  recipes: 'recettes',
+  ingredients: 'ingredients',
 } as const;
 
 /** Sub-pages of /patron/workflows. */

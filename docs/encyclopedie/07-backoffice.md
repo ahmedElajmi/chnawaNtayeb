@@ -26,16 +26,17 @@
 retour et le rechargement gardent la page. `AppRoutes` envoie `/patron/*` au backoffice, qui déclare ses
 routes à partir du **registre des sections** (`shell/sections.tsx`).
 
-| Page        | Adresse               | Fichier                                             | Fonctions                                                        |
-| ----------- | --------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| Accueil     | `/patron`             | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
-| À valider   | `/patron/a-valider`   | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
-| Recettes    | `/patron/recettes`    | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
-| Ingrédients | `/patron/ingredients` | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
-| Moteur      | `/patron/moteur/…`    | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
-| Apparence   | `/patron/apparence`   | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
-| Workflows   | `/patron/workflows/…` | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
-| Données     | `/patron/donnees`     | `data/DataTab.tsx`                                  | Import dans l'atelier, sauvegarde JSON, synchronisation          |
+| Page        | Adresse                | Fichier                                             | Fonctions                                                        |
+| ----------- | ---------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| Accueil     | `/patron`              | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
+| À valider   | `/patron/a-valider`    | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
+| Recettes    | `/patron/recettes`     | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
+| Ingrédients | `/patron/ingredients`  | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
+| Catégories  | `/patron/categories/…` | `categories/CategoriesPage.tsx`                     | Arbres des catégories (recettes, ingrédients), affectation       |
+| Moteur      | `/patron/moteur/…`     | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
+| Apparence   | `/patron/apparence`    | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
+| Workflows   | `/patron/workflows/…`  | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
+| Données     | `/patron/donnees`      | `data/DataTab.tsx`                                  | Tout remettre à valider, sauvegarde JSON, synchronisation        |
 
 **Cadre** (`shell/BackofficeLayout.tsx`) :
 
@@ -165,8 +166,13 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
   chaque ligne a son statut (`StatusBadge` : En ligne, En ligne · modifs en attente, À corriger, Prête à
   publier, En relecture, À compléter, À valider), une mini-barre segmentée et le pourcentage validé ;
   filtres Toutes, À valider, À corriger, À compléter, Modifs en attente, En ligne, avec leur nombre sur
-  toute la liste. Le bouton « Validation » ouvre la page de la recette ; l'ancien œil En ligne /
-  Brouillon a disparu (publier passe par la validation).
+  toute la liste, plus **À enrichir** (données incomplètes) ; tri par statut, nom ou complétude.
+  Chaque ligne a un **bouton qui dit l'action à faire** (`NextActionLink`, `review/reviewUi.tsx`) :
+  « Valider (40 %) », « Valider les changements », « Publier », « Corriger », « Compléter » ; une recette en
+  ligne entièrement validée n'en a pas (rien à faire). Le nom ouvre toujours la fiche (historique,
+  versions, retirer du site). Sous chaque ligne, la **complétude des données** (`CompletenessMeter`) :
+  un anneau, le pourcentage et ce qui manque en quelques mots (« Photo · دارجة · Astuce »), validée ou
+  non. Mêmes boutons et complétude dans la liste des ingrédients.
 - **Page de validation** (`review/RecipeReviewPage.tsx`, une adresse par recette : on y revient, on
   recharge, on reprend) :
   - en-tête : nom, statut, Modifier, Aperçu public (la vraie fiche recette, avec ce qui serait publié),
@@ -186,8 +192,13 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
   leur note.
 - **Hors connexion à la base** (mode local) : l'atelier garde la modification sur l'appareil, avec un
   message d'erreur, comme le catalogue.
-- **Premier passage au workflow** : Données › « Importer les recettes dans l'atelier » (une fois, sans
-  danger) : les recettes en ligne deviennent des copies validées, les brouillons quittent le site.
+- **Tout remettre à valider** (Données, droit « gérer les workflows » + « publier ») : chaque recette
+  repart de zéro (aucune case validée), garde son contenu et son historique, et quitte le site jusqu'à
+  sa publication (`ReviewStore.resetAllForReview`, par lots de 10 avec progression). Le site public
+  affiche alors « Les recettes arrivent » : plus aucune recette intégrée au code n'est montrée au public
+  (le catalogue public ne contient que des recettes validées, côté appareil comme côté serveur).
+- **Complétude** : dans la fiche, la complétude se déplie et liste chaque donnée manquante ; un clic
+  ouvre sa case.
 - **Ingrédients** : même chemin que les recettes. L'éditeur d'ingrédient et « Enregistrer les prix »
   écrivent dans l'atelier (`IngredientEditorProvider`, `shell/`) ; chaque ingrédient a sa page de
   validation (`/patron/ingredients/<id>` : nom par langue, catégorie et unité, prix, photo). Une recette
@@ -200,11 +211,40 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
 - Les thèmes et les réglages du moteur gardent leur propre publication (brouillon, scénarios du chef,
   historique des versions) : ils n'ont pas de textes par langue à valider case par case.
 
+## Catégories (`/patron/categories/{recettes,ingredients}`)
+
+Deux arbres gérés à part (`@/core/categories`, collections `recipe_categories` et
+`ingredient_categories`, synchronisées comme le catalogue) :
+
+- **Arbre** à plusieurs niveaux (4 au plus, `MAX_CATEGORY_DEPTH`) : déplier / replier, monter /
+  descendre parmi ses sœurs, ajouter une sous-catégorie, modifier (nom dans chaque langue, icône,
+  « placée sous » : les choix qui créeraient une boucle ou dépasseraient la profondeur sont exclus),
+  supprimer. Chaque nœud montre son nombre d'éléments (sous-catégories comprises ; le détail au
+  survol) et le nombre de langues où son nom manque.
+- **Suppression** refusée pour une catégorie d'origine, une catégorie qui a des sous-catégories ou qui
+  contient encore des éléments (`deletionBlocker`).
+- **Affectation** : choisir une catégorie montre ses éléments (paginés) ; une recherche permet d'en
+  ajouter plusieurs d'un coup (recettes) ou de déplacer des ingrédients ici. Tout passe par l'atelier :
+  pour une recette, seule la case « Infos et ingrédients » revient à valider ; pour un ingrédient, la
+  case « Catégorie et unité ».
+- **Recettes** : plusieurs catégories par recette, à n'importe quel niveau ; être dans « Chorba » met
+  aussi dans « Ramadan » (ancêtres implicites). Le **type de plat** (entrée, plat, dessert) reste un
+  champ fixe à part : le moteur, le planning et les substitutions s'en servent. L'éditeur de recette a
+  un sélecteur de catégories (`RecipeCategoryPicker`).
+- **Ingrédients** : une catégorie par ingrédient. Les 9 catégories historiques sont des catégories
+  **d'origine** (mêmes ids, `BUILT_IN_INGREDIENT_CATEGORIES`) : renommables et déplaçables, jamais
+  supprimées. Une catégorie créée prend les couleurs de sa plus proche ancêtre d'origine (vignette sans
+  photo, `ingredientVisualOf`) et son icône.
+- **Regroupement** : les listes de recettes et d'ingrédients ont « Regrouper par catégorie » et un
+  niveau (`?groupe=categorie&niveau=2`, `ui/CategoryGroups.tsx`) : une section repliable par catégorie,
+  avec son nombre, paginée ; « Sans catégorie » en dernier.
+
 ## Page « À valider » (`/patron/a-valider`)
 
 - Comptes sur toute la file : parties à valider, éléments concernés, à corriger, prêts à publier ;
   le nombre de parties en attente s'affiche aussi dans le menu.
-- **Regrouper par** élément, étape, partie, langue (« Étapes × دارجة »), type ou auteur
+- **Regrouper par** élément, étape, partie, langue (« Étapes × دارجة »), type, **catégorie** (famille
+  de la recette ou de l'ingrédient ; une recette dans deux familles compte dans les deux) ou auteur
   (`groupQueue`, `?groupe=` dans l'adresse) ; chaque groupe a son nombre et une barre colorée.
 - **Relire** : les cases du groupe défilent d'un élément à l'autre (« 3 / 12 ») avec le même panneau
   que la fiche ; raccourcis clavier `V` valider, `C` à corriger, `→` suivant ; grands boutons sur
@@ -215,8 +255,9 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
 ## Accueil « À faire »
 
 `review/TodoList.tsx`, au-dessus des chiffres clés : parties à valider, éléments renvoyés, prêts à
-publier, puis ce qui manque au catalogue (`catalogHealth`, `@/core/catalog` : recettes à traduire, sans
-photo ; ingrédients à l'unité ou au prix douteux, sans photo, dans aucune recette). Chaque ligne ouvre la
+publier, puis ce qui manque au catalogue (`catalogHealth`, `@/core/catalog` : recettes aux données
+incomplètes, à traduire, sans photo ; ingrédients à l'unité ou au prix douteux, sans photo, dans aucune
+recette), compté sur les recettes de l'équipe (copies de l'atelier comprises). Chaque ligne ouvre la
 liste filtrée (`?filtre=` : les listes de recettes et d'ingrédients lisent leur filtre dans l'adresse).
 
 ## Workflows (`/patron/workflows/…`)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { matchRecipes, analyzeRecipe, browseRecipes } from './engine';
+import { matchRecipes, analyzeRecipe, browseRecipes, fridgeSuggestions } from './engine';
 import { findByName, normalizeText } from '../shared/text';
 import { inferRole } from '../catalog/roles';
 import { initialRecipes } from '../catalog/seed/initialRecipes';
@@ -228,5 +228,32 @@ describe('text search in the recipe lists', () => {
     const plain = matchRecipes(initialRecipes, ['ing_oeuf'], { searchQuery: 'x', searchMatches: matches }, ctx);
     const all = matchRecipes(initialRecipes, ['ing_oeuf'], undefined, ctx);
     expect(ids(plain.ready)).toEqual(ids(all.ready));
+  });
+});
+
+describe('fridgeSuggestions', () => {
+  it('has no suggestion with an empty fridge, though every recipe is an idea for matchRecipes', () => {
+    expect(matchRecipes(initialRecipes, [], {}, ctx).ideas.length).toBeGreaterThan(0);
+    const res = fridgeSuggestions(initialRecipes, [], {}, ctx);
+    expect(res.ready.length + res.almost.length + res.ideas.length).toBe(0);
+    expect(res.totalMatches).toBe(0);
+  });
+
+  it('is the fridge matching once the fridge has something', () => {
+    const fridge = ['ing_oeuf', 'ing_tomate'];
+    expect(fridgeSuggestions(initialRecipes, fridge, {}, ctx)).toEqual(matchRecipes(initialRecipes, fridge, {}, ctx));
+  });
+});
+
+describe('category filter', () => {
+  it('keeps the recipes in one of the accepted categories', () => {
+    const [a, b, c] = initialRecipes.slice(0, 3);
+    const recipes = [
+      { ...a, category_ids: ['ramadan'] },
+      { ...b, category_ids: ['chorba'] },
+      { ...c, category_ids: [] },
+    ];
+    const kept = browseRecipes(recipes, [], { categoryIds: new Set(['ramadan', 'chorba']) }, ctx);
+    expect(kept.map((r) => r.recipe.id).sort()).toEqual([a.id, b.id].sort());
   });
 });

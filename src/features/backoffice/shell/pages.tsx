@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ClipboardCheck } from 'lucide-react';
-import type { Recipe } from '@/core/catalog';
+import { RotateCcw } from 'lucide-react';
+import type { Ingredient, Recipe } from '@/core/catalog';
 import { itemStatus } from '@/core/review';
 import { useCatalog, usePatron, useReview } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { patronPath, PATRON_PAGES } from '@/shared/paths';
 import { DashboardTab } from '../dashboard/DashboardTab';
 import { DataTab } from '../data/DataTab';
-import { IngredientsTab } from '../ingredients/IngredientsTab';
+import { IngredientsTab, type IngredientInfo } from '../ingredients/IngredientsTab';
 import { RecipesTab, type RecipeRow } from '../recipes/RecipesTab';
 import { format } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -47,6 +47,7 @@ export function RecipesPage() {
   const { recipes } = useCatalog();
   const { entries, workflow, store } = useReview('recipe');
   const { getRecipeName } = useLanguage();
+  const b = useBackofficeText();
   const notify = useNotify();
   const admin = useAdmin();
   const { addRecipe, editRecipe, duplicateRecipe } = useRecipeEditor();
@@ -59,21 +60,25 @@ export function RecipesPage() {
         recipe: e.copy.content,
         snapshot: e.snapshot,
         status: itemStatus(e.snapshot, e.online, e.pending),
+        completeness: store.completeness(e.copy.content),
       })),
       ...recipes
         .filter((r) => !inWorkspace.has(r.id))
         .map((recipe) => ({
           recipe,
           status: recipe.is_published === false ? ('ready' as const) : ('online' as const),
+          completeness: store.completeness(recipe),
         })),
     ];
-  }, [entries, recipes]);
+    // The workflow changes the completeness checks
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, recipes, store, workflow]);
 
   const remove = async (recipe: Recipe) => {
     if (!entries.some((e) => e.copy.id === recipe.id)) return admin.deleteRecipe(recipe);
-    if (!window.confirm(`Confirmer la suppression de "${getRecipeName(recipe)}" ?`)) return;
+    if (!window.confirm(format(b.confirmDeleteRecipe, { name: getRecipeName(recipe) }))) return;
     const result = await store.discard(recipe.id);
-    notify(result.ok ? 'Recette supprimée' : result.error, !result.ok);
+    notify(result.ok ? b.recipeDeleted : result.error, !result.ok);
   };
 
   return (
@@ -90,44 +95,64 @@ export function RecipesPage() {
 
 export function IngredientsPage() {
   const { recipes } = useCatalog();
-  const { entries } = useReview('ingredient');
+  const { entries, store, workflow } = useReview('ingredient');
   const { ingredients } = useIngredientEditor();
-  const statusOf = useMemo(() => {
-    const byId = new Map(entries.map((e) => [e.copy.id, itemStatus(e.snapshot, e.online, e.pending)]));
-    return (id: string) => byId.get(id) ?? 'online';
-  }, [entries]);
-  return <IngredientsTab ingredients={ingredients} recipes={recipes} statusOf={statusOf} />;
+  const infoOf = useMemo(() => {
+    const byId = new Map(entries.map((e) => [e.copy.id, e]));
+    return (ingredient: Ingredient): IngredientInfo => {
+      const entry = byId.get(ingredient.id);
+      return {
+        status: entry ? itemStatus(entry.snapshot, entry.online, entry.pending) : 'online',
+        snapshot: entry?.snapshot,
+        completeness: store.completeness(ingredient),
+      };
+    };
+    // The workflow changes the completeness checks
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, store, workflow]);
+  return <IngredientsTab ingredients={ingredients} recipes={recipes} infoOf={infoOf} />;
 }
 
 export function AppearancePage() {
   return <ThemeEditor onNotify={useNotify()} />;
 }
 
-/** First switch to the validation workflow: the recipes online get their work copy (see ReviewStore.importPublished). */
-function ReviewImportCard() {
+/** Sends every recipe back to review and takes them off the site (see ReviewStore.resetAllForReview). */
+function ReviewResetCard() {
   const b = useBackofficeText();
   const notify = useNotify();
-  const { store } = useReview('recipe');
-  const [busy, setBusy] = useState(false);
+  const { store, entries } = useReview('recipe');
+  const { recipes } = useCatalog();
+  const [progress, setProgress] = useState<string | null>(null);
+  const busy = progress !== null;
+  const count = new Set([...entries.map((e) => e.copy.id), ...recipes.map((r) => r.id)]).size;
   return (
     <div className="p-5 rounded-2xl bg-card border border-line space-y-3">
       <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-        <ClipboardCheck className="w-4 h-4 text-brand-text" />
-        {b.reviewImportTitle}
+        <RotateCcw className="w-4 h-4 text-brand-text" />
+        {b.resetTitle}
       </h3>
-      <p className="text-xs text-ink-muted leading-relaxed">{b.reviewImportHint}</p>
+      <p className="text-xs text-ink-muted leading-relaxed">{b.resetHint}</p>
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || count === 0}
         onClick={async () => {
-          setBusy(true);
-          const result = await store.importPublished();
-          setBusy(false);
-          notify(result.ok ? format(b.reviewImported, { count: result.imported ?? 0 }) : result.error, !result.ok);
+          if (!window.confirm(format(b.resetConfirm, { count }))) return;
+          setProgress('…');
+          const result = await store.resetAllForReview((done, total) => setProgress(`${done} / ${total}`));
+          setProgress(null);
+          if (!('reset' in result)) return notify(result.ok ? '' : result.error, true);
+          notify(
+            result.failed
+              ? format(b.resetFailed, { failed: result.failed })
+              : format(b.resetDone, { count: result.reset, offline: result.unpublished ?? 0 }),
+            !!result.failed
+          );
         }}
         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold disabled:opacity-50"
       >
-        {b.reviewImport}
+        {b.resetButton}
+        {progress && <span className="tabular-nums opacity-90">({progress})</span>}
       </button>
     </div>
   );
@@ -138,7 +163,7 @@ export function DataPage() {
   const { cloudStatus } = usePatron();
   return (
     <div className="space-y-4">
-      <ReviewImportCard />
+      <ReviewResetCard />
       <DataTab admin={admin} cloudStatus={cloudStatus} />
     </div>
   );

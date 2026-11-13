@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, type Location } from 'react-router';
-import { browseRecipes, matchRecipes, type FilterOptions, type MatchingResult } from '@/core/matching';
-import { useCatalog, useKitchen, useMatchingSettings, useSearchMatches } from '@/app/ContainerContext';
+import { browseRecipes, fridgeSuggestions, type FilterOptions, type MatchingResult } from '@/core/matching';
+import { useCatalog, useCategories, useKitchen, useMatchingSettings, useSearchMatches } from '@/app/ContainerContext';
+import { categoryWithDescendants } from '@/core/categories';
 import { recipePath, type RecipeListPath } from '@/shared/paths';
 import { parseRecipeFilters, serializeRecipeFilters, type RecipeFilters } from './recipeFilters';
 import { rememberRecipeFilters } from './filterMemory';
@@ -12,7 +13,11 @@ export interface RecipeMatches {
   ideas: MatchingResult[];
 }
 
-const toFilterOptions = (filters: RecipeFilters, searchMatches?: ReadonlyMap<string, number>): FilterOptions => ({
+const toFilterOptions = (
+  filters: RecipeFilters,
+  searchMatches?: ReadonlyMap<string, number>,
+  categoryIds?: ReadonlySet<string>
+): FilterOptions => ({
   maxBudget: filters.maxBudget,
   maxTotalTime: filters.maxTime,
   cuisineType: filters.cuisine,
@@ -20,6 +25,7 @@ const toFilterOptions = (filters: RecipeFilters, searchMatches?: ReadonlyMap<str
   healthyOnly: filters.healthyOnly,
   searchQuery: filters.query,
   searchMatches,
+  categoryIds,
 });
 
 /** Shared inputs of the two recipe lists. */
@@ -28,19 +34,26 @@ function useMatchingInputs(filters: RecipeFilters) {
   const { fridge, pantry, favorites } = useKitchen();
   const { config } = useMatchingSettings();
   const searchMatches = useSearchMatches('recipes', filters.query ?? '');
+  const { tree } = useCategories('recipe');
+  // A category also holds the recipes of its sub-categories; an unknown one filters nothing
+  const categoryIds = useMemo(
+    () =>
+      filters.category && tree.byId.has(filters.category) ? categoryWithDescendants(tree, filters.category) : undefined,
+    [filters.category, tree]
+  );
   return useMemo(() => {
     const keep = (list: MatchingResult[]) =>
       filters.favoritesOnly ? list.filter((r) => favorites.includes(r.recipe.id)) : list;
     const ctx = { pantryIds: pantry, catalog: ingredients, config };
-    return { recipes, fridge, options: toFilterOptions(filters, searchMatches), ctx, keep };
-  }, [recipes, ingredients, fridge, pantry, favorites, filters, config, searchMatches]);
+    return { recipes, fridge, options: toFilterOptions(filters, searchMatches, categoryIds), ctx, keep };
+  }, [recipes, ingredients, fridge, pantry, favorites, filters, config, searchMatches, categoryIds]);
 }
 
-/** Recipes the user can cook with their fridge, grouped by tier, with the given filters applied. */
+/** Recipes the user can cook with their fridge, grouped by tier, with the given filters applied (none when the fridge is empty). */
 export function useRecipeMatches(filters: RecipeFilters): RecipeMatches {
   const { recipes, fridge, options, ctx, keep } = useMatchingInputs(filters);
   return useMemo(() => {
-    const result = matchRecipes(recipes, fridge, options, ctx);
+    const result = fridgeSuggestions(recipes, fridge, options, ctx);
     return { ready: keep(result.ready), almost: keep(result.almost), ideas: keep(result.ideas) };
   }, [recipes, fridge, options, ctx, keep]);
 }

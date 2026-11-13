@@ -31,29 +31,29 @@ export function HomePage() {
       to: recipesWith({ maxTime: 15 }),
       icon: Flame,
       iconClass: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600',
-      title: 'Plats Express',
-      desc: '< 15 min de cuisson',
+      title: t.shortcutExpressTitle,
+      desc: t.shortcutExpressDesc,
     },
     {
       to: recipesWith({ maxBudget: 5 }),
       icon: Coins,
       iconClass: 'bg-rose-50 dark:bg-rose-950/40 text-accent-text',
-      title: 'Moins de 5 DT',
-      desc: 'Économique & étudiant',
+      title: t.under5DT,
+      desc: t.shortcutBudgetDesc,
     },
     {
       to: recipesWith({ cuisine: 'traditionnelle' }),
       icon: Utensils,
       iconClass: 'bg-brand/10 text-brand-text',
-      title: 'Tradition Tounsi',
-      desc: 'Couscous, Rouz, Tajine...',
+      title: t.shortcutTraditionTitle,
+      desc: t.shortcutTraditionDesc,
     },
     {
       to: PATHS.planner,
       icon: Sparkles,
       iconClass: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600',
-      title: 'Menu Semaine',
-      desc: 'Planning anti-gaspillage',
+      title: t.navWeekly,
+      desc: t.shortcutWeekDesc,
     },
     {
       to: recipesWith({ healthyOnly: true }),
@@ -71,9 +71,9 @@ export function HomePage() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-hero-from to-hero-to text-white p-6 sm:p-10 shadow-xl">
         <div className="relative z-10 max-w-2xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 text-xs font-bold tracking-wide">
-            <span>🇹🇳 Cuisine Tunisienne 100% Gratuite</span>
+            <span>🇹🇳 {t.homeBadge}</span>
             <span>·</span>
-            <span>{recipes.length} Recettes</span>
+            <span>{t.homeRecipeCount.replace('{n}', String(recipes.length))}</span>
             <span>·</span>
             <span className="text-white">by Chef Souhed</span>
           </div>
@@ -98,7 +98,7 @@ export function HomePage() {
               className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur-xs border border-white/20 transition active:scale-95"
             >
               <Utensils className="w-4 h-4 text-amber-300" />
-              <span>Découvrir les recettes</span>
+              <span>{t.homeDiscoverRecipes}</span>
             </Link>
 
             <PWAInstallButton variant="secondary" />
@@ -139,24 +139,21 @@ export function HomePage() {
               <CheckCircle2 className="w-5 h-5 text-brand-text" />
               <span>{t.tierReadyTitle}</span>
             </h2>
-            <p className="text-xs text-slate-500">{ready.length} recettes réalisables immédiatement avec votre frigo</p>
+            <p className="text-xs text-slate-500">{t.homeReadyCount.replace('{n}', String(ready.length))}</p>
           </div>
           <Link to={suggestionsWith({ tier: 'ready' })} className="text-xs font-bold text-brand-text hover:underline">
-            Voir tout ({ready.length})
+            {t.homeSeeAll.replace('{n}', String(ready.length))}
           </Link>
         </div>
 
         {ready.length === 0 ? (
           <div className="p-6 rounded-2xl bg-card border border-line text-center space-y-3">
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-              Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à
-              cuisiner !
-            </p>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">{t.homeReadyEmpty}</p>
             <Link
               to={PATHS.fridge}
               className="inline-block px-4 py-2 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong transition shadow-xs"
             >
-              Remplir mon frigo
+              {t.homeFillFridge}
             </Link>
           </div>
         ) : (

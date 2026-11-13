@@ -1,17 +1,21 @@
+import { Link } from 'react-router';
 import { AlertTriangle, Check, CircleDashed, Lock, PencilLine, RotateCcw } from 'lucide-react';
 import {
   isStepOpen,
   parseCellId,
   reviewParts,
   type CellState,
+  type ContentCompleteness,
   type ItemStatus,
+  type MissingData,
   type ReviewKind,
   type ReviewSnapshot,
   type WorkflowDefinition,
 } from '@/core/review';
 import { EDITING_ORDER, languageInfo, pickLocalized } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import type { BackofficeTexts } from '../i18n/backofficeTexts';
+import { patronPath, PATRON_PAGES } from '@/shared/paths';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 
 /** Look of each cell state (same colours everywhere: grid, bar, step trail). */
@@ -284,5 +288,115 @@ export function ValidationGrid({
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * What there is to do on an item, said with a verb ("Validate (40 %)", "Publish", "Fix"…); null when
+ * there is nothing to do (online and validated).
+ */
+export function nextActionLabel(b: BackofficeTexts, status: ItemStatus, snapshot?: ReviewSnapshot): string | null {
+  switch (status) {
+    case 'online':
+      return null;
+    case 'online_pending':
+      return snapshot?.publishable && !Object.values(snapshot.cells).some((c) => c.state !== 'approved')
+        ? b.actionPublish
+        : b.actionValidateChanges;
+    case 'publishable':
+      return b.actionPublish;
+    case 'to_fix':
+      return b.actionFix;
+    case 'incomplete':
+      return b.actionComplete;
+    default:
+      return format(b.actionValidate, { percent: snapshot?.percent ?? 0 });
+  }
+}
+
+const ACTION_STYLE: Partial<Record<ItemStatus, string>> = {
+  to_fix: 'bg-rose-600 text-white hover:bg-rose-700',
+  incomplete: 'bg-slate-600 text-white hover:bg-slate-700 dark:bg-slate-500',
+};
+
+/** The button of a list row that opens the item's validation page, saying what to do there. */
+export function NextActionLink({
+  kind,
+  id,
+  status,
+  snapshot,
+}: {
+  kind: ReviewKind;
+  id: string;
+  status: ItemStatus;
+  snapshot?: ReviewSnapshot;
+}) {
+  const b = useBackofficeText();
+  const label = nextActionLabel(b, status, snapshot);
+  if (!label) return null;
+  return (
+    <Link
+      to={patronPath(kind === 'recipe' ? PATRON_PAGES.recipes : PATRON_PAGES.ingredients, id)}
+      title={b.actionHint}
+      className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
+        ACTION_STYLE[status] ?? 'bg-brand text-on-brand hover:bg-brand-strong'
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+/**
+ * What is missing, in a few words: per-language cells grouped by language ("دارجة"), the others by
+ * check ("Vidéo", "Photo"); at most `max` words, then "+n".
+ */
+export function missingSummary(b: BackofficeTexts, kind: ReviewKind, missing: readonly MissingData[], max = 3): string {
+  const words: string[] = [];
+  for (const m of missing) {
+    const language = parseCellId(kind, m.cell)?.language;
+    const word = language ? languageInfo(language).short : ruleLabel(b, m.rule);
+    if (!words.includes(word)) words.push(word);
+  }
+  const shown = words.slice(0, max).join(' · ');
+  return words.length > max ? `${shown} +${words.length - max}` : shown;
+}
+
+/** Small ring with the completeness of the data, and what is missing (shown even once validated). */
+export function CompletenessMeter({ kind, result }: { kind: ReviewKind; result: ContentCompleteness }) {
+  const b = useBackofficeText();
+  const full = result.percent >= 100;
+  const missing = missingSummary(b, kind, result.missing);
+  const r = 7;
+  const length = 2 * Math.PI * r;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 min-w-0 text-[11px]"
+      title={
+        full
+          ? b.completenessFull
+          : `${format(b.completenessPercent, { percent: result.percent })} · ${format(b.completenessMissing, { list: missingSummary(b, kind, result.missing, 99) })}`
+      }
+    >
+      <svg viewBox="0 0 18 18" className="w-4 h-4 shrink-0 -rotate-90" aria-hidden>
+        <circle cx="9" cy="9" r={r} className="fill-none stroke-slate-200 dark:stroke-slate-700" strokeWidth="3" />
+        <circle
+          cx="9"
+          cy="9"
+          r={r}
+          className={`fill-none ${full ? 'stroke-emerald-500' : result.percent >= 70 ? 'stroke-amber-500' : 'stroke-rose-500'}`}
+          strokeWidth="3"
+          strokeDasharray={`${(length * result.percent) / 100} ${length}`}
+        />
+      </svg>
+      {full ? (
+        <span className="font-semibold text-emerald-700 dark:text-emerald-300">{b.completenessFull}</span>
+      ) : (
+        <>
+          <span className="font-bold tabular-nums text-ink">{result.percent} %</span>
+          <span className="truncate text-ink-muted">{format(b.completenessMissing, { list: missing })}</span>
+        </>
+      )}
+    </span>
   );
 }

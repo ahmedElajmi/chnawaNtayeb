@@ -5,7 +5,7 @@ import { cellHashes, type ReviewItems, type ReviewKind } from './parts';
 
 /** What happened to a work copy (kept in its history, newest first). */
 export interface ReviewEvent {
-  action: 'save' | 'approve' | 'reject' | 'publish' | 'unpublish' | 'restore' | 'import';
+  action: 'save' | 'approve' | 'reject' | 'publish' | 'unpublish' | 'restore' | 'import' | 'reset';
   by: string;
   at: number;
   cells?: string[];
@@ -46,6 +46,7 @@ const ACTIONS: readonly ReviewEvent['action'][] = [
   'unpublish',
   'restore',
   'import',
+  'reset',
 ];
 
 const readContent: { [K in ReviewKind]: (raw: unknown) => ReviewItems[K] | null } = {
@@ -164,6 +165,29 @@ export function newWorkCopy<K extends ReviewKind>(kind: K, item: ReviewItems[K],
     updated_by: by,
     updated_at: at,
     written_at: at,
+  };
+}
+
+/**
+ * Work copy sent back to review from the start: same content, no decision, nothing online (the item is
+ * taken offline with it). Its history goes on, with a "reset" event.
+ */
+export function workCopyForReview<K extends ReviewKind>(
+  kind: K,
+  item: ReviewItems[K],
+  by: string,
+  at: number,
+  previous?: WorkCopy<K>
+): WorkCopy<K> {
+  return {
+    id: item.id,
+    kind,
+    content: item,
+    decisions: {},
+    history: withEvent(previous?.history ?? [], { action: 'reset', by, at }),
+    updated_by: by,
+    updated_at: at,
+    written_at: previous?.written_at ?? at,
   };
 }
 

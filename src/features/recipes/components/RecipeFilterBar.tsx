@@ -29,8 +29,8 @@ export function RecipeFilterBar({ filters, setFilters, children }: RecipeFilterB
             type="search"
             value={filters.query}
             onChange={(e) => setFilters({ query: e.target.value })}
-            placeholder="Rechercher par nom de plat (ojja, couscous, kafteji...)"
-            aria-label="Rechercher une recette"
+            placeholder={t.searchRecipePlaceholder}
+            aria-label={t.searchRecipeLabel}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-slate-200 dark:border-slate-700 text-xs sm:text-sm"
           />
         </div>
@@ -46,19 +46,19 @@ export function RecipeFilterBar({ filters, setFilters, children }: RecipeFilterB
             }`}
           >
             <Heart className={`w-3.5 h-3.5 ${filters.favoritesOnly ? 'fill-rose-500' : ''}`} />
-            <span>Favoris ({favorites.length})</span>
+            <span>{t.favoritesCount.replace('{n}', String(favorites.length))}</span>
           </button>
 
           <select
             value={filters.maxBudget ?? ''}
             onChange={(e) => setFilters({ maxBudget: e.target.value ? Number(e.target.value) : undefined })}
-            aria-label="Budget maximum"
+            aria-label={t.maxBudgetLabel}
             className="px-2.5 py-2 text-xs font-semibold rounded-xl bg-card border border-slate-200 dark:border-slate-700"
           >
-            <option value="">Budget : Tous</option>
+            <option value="">{t.budgetAny}</option>
             {[5, 10, 15, 25].map((v) => (
               <option key={v} value={v}>
-                &lt; {v} DT
+                &lt; {v} {t.currency}
               </option>
             ))}
           </select>
@@ -66,13 +66,13 @@ export function RecipeFilterBar({ filters, setFilters, children }: RecipeFilterB
           <select
             value={filters.maxTime ?? ''}
             onChange={(e) => setFilters({ maxTime: e.target.value ? Number(e.target.value) : undefined })}
-            aria-label="Temps maximum"
+            aria-label={t.maxTimeLabel}
             className="px-2.5 py-2 text-xs font-semibold rounded-xl bg-card border border-slate-200 dark:border-slate-700"
           >
-            <option value="">Temps : Tous</option>
+            <option value="">{t.timeAny}</option>
             {[15, 30, 45].map((v) => (
               <option key={v} value={v}>
-                &lt; {v} min
+                &lt; {t.minutesValue.replace('{n}', String(v))}
               </option>
             ))}
           </select>

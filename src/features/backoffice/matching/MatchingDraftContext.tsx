@@ -3,6 +3,8 @@ import { evaluateScenarios, type MatchingConfig, type ScenarioResult } from '@/c
 import { DEFAULT_PANTRY_STAPLES } from '@/core/preferences';
 import type { StoredMatchingSettings } from '@/application';
 import { useCatalog, useMatchingScenarios, useMatchingSettings } from '@/app/ContainerContext';
+import { format } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useNotify } from '../shell/NotifyContext';
 
 interface MatchingDraft {
@@ -31,6 +33,7 @@ const MatchingDraftContext = createContext<MatchingDraft | null>(null);
  */
 export function MatchingDraftProvider({ children }: { children: ReactNode }) {
   const notify = useNotify();
+  const b = useBackofficeText();
   const { recipes, ingredients } = useCatalog();
   const { config: published, version, matchingSettings } = useMatchingSettings();
   const { scenarios, matchingScenarios } = useMatchingScenarios();
@@ -75,13 +78,13 @@ export function MatchingDraftProvider({ children }: { children: ReactNode }) {
       setPublishing(true);
       const result = await matchingSettings.publish(draft, message);
       setPublishing(false);
-      if (result.ok) notify('Réglages publiés : ils s’appliquent à tous les utilisateurs.');
+      if (result.ok) notify(b.engPublished);
       else notify(result.error, true);
       return result.ok;
     },
     async restore(v) {
       const result = await matchingSettings.restore(v);
-      notify(result.ok ? `Version ${v.version} republiée.` : result.error, !result.ok);
+      notify(result.ok ? format(b.engVersionRepublished, { version: v.version }) : result.error, !result.ok);
     },
     listVersions,
   };

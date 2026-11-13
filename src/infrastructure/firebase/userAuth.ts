@@ -7,7 +7,7 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import type { AppUser, UserAuthGateway } from '@/application';
+import type { AppUser, UserAuthError, UserAuthGateway } from '@/application';
 import { auth, db, handleFirestoreError, OperationType } from '@/infrastructure/firebase/client';
 
 /**
@@ -46,28 +46,28 @@ export async function syncUserProfile(profile: UserProfile): Promise<void> {
   }
 }
 
-/** Turns Firebase error codes into messages a user understands. */
-export function authErrorMessage(err: unknown): string {
+/** Turns Firebase error codes into the domain codes the interface translates. */
+export function authErrorCode(err: unknown): UserAuthError {
   const code = (err as { code?: string })?.code ?? '';
   switch (code) {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return 'Email ou mot de passe incorrect.';
+      return 'invalid-credentials';
     case 'auth/email-already-in-use':
-      return 'Un compte existe déjà avec cet email. Connecte-toi plutôt.';
+      return 'email-in-use';
     case 'auth/weak-password':
-      return `Mot de passe trop faible (${MIN_PASSWORD_LENGTH} caractères minimum).`;
+      return 'weak-password';
     case 'auth/invalid-email':
-      return 'Adresse email invalide.';
+      return 'invalid-email';
     case 'auth/too-many-requests':
-      return 'Trop de tentatives. Réessaie dans quelques minutes.';
+      return 'too-many-attempts';
     case 'auth/network-request-failed':
-      return 'Connexion internet indisponible.';
+      return 'network';
     case 'auth/operation-not-allowed':
-      return 'Ce mode de connexion est désactivé pour le moment.';
+      return 'disabled';
     default:
-      return 'Une erreur est survenue. Réessaie.';
+      return 'unknown';
   }
 }
 
@@ -127,7 +127,7 @@ export const firebaseUserAuth: UserAuthGateway = {
   loginWithEmail: async (email, password) => void (await loginWithEmail(email, password)),
   register: async (email, password) => void (await registerWithEmail(email, password)),
   logout: logoutUser,
-  errorMessage: authErrorMessage,
+  errorCode: authErrorCode,
   isOwner: (user) => user.email === ADMIN_EMAIL && user.emailVerified,
   isPatronAccount: (user) => user.uid === 'patron-admin',
 };

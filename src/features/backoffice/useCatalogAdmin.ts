@@ -4,6 +4,8 @@ import type { WriteResult } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { downloadTextFile } from '@/shared/ui/download';
+import { format } from './i18n/backofficeTexts';
+import { useBackofficeText } from './i18n/useBackofficeText';
 
 export type Notify = (message: string, isError?: boolean) => void;
 
@@ -14,6 +16,7 @@ export type Notify = (message: string, isError?: boolean) => void;
 export function useCatalogAdmin(notify: Notify) {
   const { catalogAdmin } = useContainer();
   const { getRecipeName, getIngredientName } = useLanguage();
+  const b = useBackofficeText();
   const [isSyncing, setIsSyncing] = useState(false);
 
   const report = (result: WriteResult, success: string) => (result.ok ? notify(success) : notify(result.error, true));
@@ -30,15 +33,15 @@ export function useCatalogAdmin(notify: Notify) {
     isSyncing,
     cloudName: catalogAdmin.cloudName,
 
-    async saveRecipe(recipe: Recipe, success = 'Recette enregistrée et synchronisée') {
+    async saveRecipe(recipe: Recipe, success?: string) {
       const result = await catalogAdmin.saveRecipe(recipe);
-      report(result, success);
+      report(result, success ?? b.panRecipeSaved);
     },
 
     async deleteRecipe(recipe: Recipe) {
-      if (!window.confirm(`Confirmer la suppression de "${getRecipeName(recipe)}" ?`)) return;
+      if (!window.confirm(format(b.confirmDeleteRecipe, { name: getRecipeName(recipe) }))) return;
       const result = await catalogAdmin.deleteRecipe(recipe.id);
-      report(result, 'Recette supprimée');
+      report(result, b.recipeDeleted);
     },
 
     /** Saves the edited price ranges; returns false (nothing saved) when one of them is not valid. */
@@ -59,49 +62,41 @@ export function useCatalogAdmin(notify: Notify) {
         const result = await catalogAdmin.saveIngredient(ingredient);
         if (!result.ok) failure = result;
       }
-      report(failure ?? { ok: true }, 'Prix du marché mis à jour');
+      report(failure ?? { ok: true }, b.panPricesUpdated);
       return true;
     },
 
     async saveIngredient(ingredient: Ingredient) {
       const result = await catalogAdmin.saveIngredient(ingredient);
-      report(result, 'Ingrédient enregistré et synchronisé');
+      report(result, b.panIngredientSaved);
     },
 
     async addIngredient(data: Omit<Ingredient, 'id'>) {
       const created = catalogAdmin.createIngredient(data);
       const result = await catalogAdmin.saveIngredient(created);
-      report(result, 'Nouvel ingrédient ajouté au catalogue');
+      report(result, b.panIngredientAdded);
     },
 
-    pushAll: () =>
-      whileSyncing(async () => report(await catalogAdmin.pushAll(), 'Recettes et ingrédients envoyés vers le cloud')),
+    pushAll: () => whileSyncing(async () => report(await catalogAdmin.pushAll(), b.panPushed)),
 
     pullFromCloud: () =>
       whileSyncing(async () => {
         try {
           catalogAdmin.pullFromCloud();
-          notify('Recettes et ingrédients rechargés depuis le cloud');
+          notify(b.panPulled);
         } catch {
-          notify('Erreur lors de la récupération depuis le cloud.', true);
+          notify(b.panPullError, true);
         }
       }),
 
     resetCloudCatalog: (builtInCount: number) =>
       whileSyncing(async () => {
-        const ok = window.confirm(
-          `Initialiser la base avec le catalogue intégré (${builtInCount} recettes) ?\n\n` +
-            '- Les recettes et ingrédients du catalogue remplacent ceux du cloud.\n' +
-            '- Les recettes et ingrédients du cloud absents du catalogue sont supprimés.\n\n' +
-            'Pensez à télécharger une sauvegarde JSON avant.'
-        );
+        const ok = window.confirm(format(b.panResetCloudConfirm, { count: builtInCount }));
         if (!ok) return;
         const result = await catalogAdmin.resetCloudCatalog();
         if (result.ok && result.stats) {
           const { recipes, ingredients, deleted } = result.stats;
-          notify(
-            `Base initialisée : ${recipes} recettes, ${ingredients} ingrédients, ${deleted} anciens éléments supprimés`
-          );
+          notify(format(b.panResetCloudDone, { recipes, ingredients, deleted }));
         } else report(result, '');
       }),
 
@@ -110,27 +105,26 @@ export function useCatalogAdmin(notify: Notify) {
         `chnowa-ntayeb-backup-${new Date().toISOString().slice(0, 10)}.json`,
         catalogAdmin.exportBackup()
       );
-      notify('Sauvegarde JSON téléchargée !');
+      notify(b.panBackupDownloaded);
     },
 
     async importBackup(file: File) {
       const result = catalogAdmin.importBackup(await file.text());
       if (!result.ok) {
-        notify("Ce fichier n'est pas une sauvegarde Chnowa Ntayeb lisible.", true);
+        notify(b.panBackupUnreadable, true);
         return;
       }
-      const skipped = result.skipped ? ` ${result.skipped} élément(s) illisible(s) ignoré(s).` : '';
+      const skipped = result.skipped ? format(b.panBackupSkipped, { count: result.skipped }) : '';
       notify(
-        `Sauvegarde restaurée sur cet appareil : ${result.recipes} recettes, ${result.ingredients} ingrédients.${skipped} ` +
-          'Utilisez « Envoyer vers le cloud » pour la publier.',
+        format(b.panBackupRestored, { recipes: result.recipes, ingredients: result.ingredients, skipped }),
         result.skipped > 0
       );
     },
 
     resetLocalToDefaults() {
-      if (!window.confirm('Voulez-vous vraiment restaurer le catalogue de recettes tunisiennes par défaut ?')) return;
+      if (!window.confirm(b.panResetLocalConfirm)) return;
       catalogAdmin.resetLocalToDefaults();
-      notify('Catalogue réinitialisé avec succès !');
+      notify(b.panResetLocalDone);
     },
   };
 }

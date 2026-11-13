@@ -4,7 +4,9 @@
 > « À valider » regroupée avec relecture en série, accueil « À faire », éditeur de workflows et de
 > rôles, équipe avec droits vérifiés par la base. Restent en dehors du workflow case par case : les
 > thèmes et les réglages du moteur (publication propre avec brouillon et historique), et les
-> catégories et textes du CMS, qui n'existent pas encore (à créer directement sur ce mécanisme). Le
+> textes du CMS. Les **catégories** existent (arbres de recettes et d'ingrédients, `/patron/categories`) :
+> elles se publient directement par un compte qui peut publier, l'affectation d'une recette passe par
+> l'atelier. Le
 > fonctionnement est décrit dans [07-backoffice.md](07-backoffice.md).
 
 ## Partie A — Refonte de `/patron`

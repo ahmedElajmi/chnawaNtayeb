@@ -182,6 +182,17 @@ export interface AppUser {
   isAnonymous: boolean;
 }
 
+/** Why a visitor sign-in or sign-up failed (translated by the interface). */
+export type UserAuthError =
+  | 'invalid-credentials'
+  | 'email-in-use'
+  | 'weak-password'
+  | 'invalid-email'
+  | 'too-many-attempts'
+  | 'network'
+  | 'disabled'
+  | 'unknown';
+
 export interface UserAuthGateway {
   /** Minimum password length accepted when creating an account */
   readonly minPasswordLength: number;
@@ -191,8 +202,8 @@ export interface UserAuthGateway {
   loginWithEmail(email: string, password: string): Promise<void>;
   register(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
-  /** Readable message for a failed sign-in */
-  errorMessage(error: unknown): string;
+  /** Why a sign-in failed, as a code the interface translates */
+  errorCode(error: unknown): UserAuthError;
   /** Owner account that also has admin rights */
   isOwner(user: AppUser): boolean;
   /** Technical account of a patron session (signed in through the server) */
@@ -225,7 +236,13 @@ export type BackupImportResult = { ok: true; recipes: number; ingredients: numbe
 /** Whether admin edits reach the shared cloud catalog or stay on this device. */
 export type CloudStatus = 'connected' | 'local-only';
 
-export type PatronLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: string };
+/**
+ * Why a patron sign-in failed (the interface turns it into a text in the current language):
+ * server out of reach, wrong credentials, too many attempts, or access not available on the server.
+ */
+export type PatronLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
+
+export type PatronLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: PatronLoginError };
 
 /** Admin (patron) session. Only the server decides who is admin. */
 export interface PatronGateway {

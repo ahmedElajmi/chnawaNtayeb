@@ -150,7 +150,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <section className="space-y-2">
                   <h3 className={HEADING}>{t.settingsTheme}</h3>
-                  {isPreviewing && <p className="text-xs text-accent-text">Aperçu d'un thème en cours (backoffice).</p>}
+                  {isPreviewing && <p className="text-xs text-accent-text">{t.themePreviewNote}</p>}
                   <div className="grid grid-cols-2 gap-3">
                     {themes.map((theme) => (
                       <ThemePreviewCard
@@ -207,10 +207,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </section>
                 )}
 
-                {/* Patron session (backoffice: French only). On phones the header has no room for these buttons. */}
+                {/* Patron session. On phones the header has no room for these buttons. */}
                 {isPatronAuthenticated && (
                   <section className="space-y-2">
-                    <h3 className={HEADING}>Patron</h3>
+                    <h3 className={HEADING}>{t.patronBadge}</h3>
                     <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2">
                       <Link
                         to={PATHS.patron}
@@ -218,7 +218,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-bold bg-accent text-on-accent hover:bg-accent-strong transition"
                       >
                         <ShieldCheck className="w-4 h-4" />
-                        Backoffice
+                        {t.navBackoffice}
                       </Link>
                       <button
                         onClick={() => {
@@ -228,7 +228,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold border border-line text-ink-muted hover:text-rose-600 hover:border-rose-300 transition"
                       >
                         <LogOut className="w-4 h-4" />
-                        Quitter le mode patron
+                        {t.patronExitMode}
                       </button>
                     </div>
                   </section>

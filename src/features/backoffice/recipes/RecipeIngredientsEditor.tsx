@@ -6,24 +6,26 @@ import { useLanguage } from '@/app/providers/LanguageContext';
 import { IngredientSearch } from '@/features/backoffice/ui/IngredientSearch';
 import { NumberField } from '@/features/backoffice/ui/NumberField';
 import { UnitInput } from '@/features/backoffice/ui/UnitInput';
+import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
+import { useBackofficeText } from '../i18n/useBackofficeText';
 
-const ROLES: { role: IngredientRole; label: string; hint: string; on: string }[] = [
+const roles = (b: BackofficeTexts): { role: IngredientRole; label: string; hint: string; on: string }[] => [
   {
     role: 'key',
-    label: 'Clé',
-    hint: 'Le plat n’existe pas sans lui',
+    label: b.edRoleKey,
+    hint: b.edRoleKeyHint,
     on: 'bg-accent text-on-accent border-accent',
   },
   {
     role: 'secondary',
-    label: 'Secondaire',
-    hint: 'Nécessaire, mais on peut l’acheter',
+    label: b.edRoleSecondary,
+    hint: b.edRoleSecondaryHint,
     on: 'bg-brand text-on-brand border-brand',
   },
   {
     role: 'staple',
-    label: 'Placard',
-    hint: 'Sel, huile, épices : ne bloque jamais',
+    label: b.edRoleStaple,
+    hint: b.edRoleStapleHint,
     on: 'bg-slate-600 text-white border-slate-600',
   },
 ];
@@ -41,6 +43,8 @@ interface RecipeIngredientsEditorProps {
 /** Ingredient list of a recipe, with the role and substitutes used by the matching engine. */
 export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = false }: RecipeIngredientsEditorProps) {
   const { getIngredientName } = useLanguage();
+  const b = useBackofficeText();
+  const roleOptions = roles(b);
   const byId = useMemo(() => new Map(catalog.map((i) => [i.id, i])), [catalog]);
   const [replacing, setReplacing] = useState<number | null>(null);
   const [addingSubstituteTo, setAddingSubstituteTo] = useState<number | null>(null);
@@ -84,13 +88,12 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
           className={`text-[11px] ${invalid ? 'text-rose-600 font-semibold' : 'text-ink-muted'}`}
           role={invalid ? 'alert' : undefined}
         >
-          Aucun ingrédient : cherchez-en un ci-dessous pour l'ajouter.
+          {b.edNoIngredient}
         </p>
       )}
       {items.length > 0 && keyCount === 0 && (
         <p className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[11px] text-amber-800 dark:text-amber-200">
-          Aucun ingrédient « Clé » : la recette sera proposée dès qu'un seul ingrédient correspond. Marquez au moins
-          l'ingrédient principal comme Clé.
+          {b.edNoKeyIngredient}
         </p>
       )}
 
@@ -118,7 +121,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                     ingredients={catalog}
                     exclude={used}
                     autoFocus
-                    placeholder="Remplacer par…"
+                    placeholder={b.edReplaceWith}
                     onSelect={(i) => replace(index, i)}
                     onCancel={() => setReplacing(null)}
                     className="flex-1"
@@ -127,19 +130,23 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                   <button
                     type="button"
                     onClick={() => setReplacing(index)}
-                    title="Changer d'ingrédient"
+                    title={b.edChangeIngredient}
                     className="flex-1 min-w-0 text-left"
                   >
                     <span className="block text-sm font-bold text-ink truncate">
-                      {ingredient ? getIngredientName(ingredient) : `Ingrédient inconnu (${item.ingredient_id})`}
+                      {ingredient
+                        ? getIngredientName(ingredient)
+                        : format(b.edUnknownIngredient, { id: item.ingredient_id })}
                     </span>
-                    <span className="block text-[10px] text-ink-muted">Toucher pour changer</span>
+                    <span className="block text-[10px] text-ink-muted">{b.edTapToChange}</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
-                  aria-label={`Retirer ${ingredient ? getIngredientName(ingredient) : 'l’ingrédient'}`}
+                  aria-label={
+                    ingredient ? format(b.edRemoveNamed, { name: getIngredientName(ingredient) }) : b.edRemoveIngredient
+                  }
                   className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -151,14 +158,14 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                 <NumberField
                   value={item.quantity_base}
                   onChange={(quantity_base) => update(index, { quantity_base })}
-                  aria-label="Quantité"
+                  aria-label={b.edQuantity}
                   className={`${FIELD} !w-20`}
                 />
                 <UnitInput
                   value={item.unit}
                   onChange={(unit) => update(index, { unit })}
                   maxLength={20}
-                  aria-label="Unité"
+                  aria-label={b.edUnit}
                   className={`${FIELD} !w-28`}
                 />
                 <label className="inline-flex items-center gap-1.5 text-[11px] text-ink-muted cursor-pointer">
@@ -168,13 +175,13 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                     onChange={(e) => update(index, { is_optional: e.target.checked || undefined })}
                     className="accent-brand w-4 h-4"
                   />
-                  Facultatif
+                  {b.edOptional}
                 </label>
               </div>
 
               {/* Role */}
-              <div role="radiogroup" aria-label="Rôle dans la recette" className="grid grid-cols-3 gap-1">
-                {ROLES.map((r) => (
+              <div role="radiogroup" aria-label={b.edRoleInRecipe} className="grid grid-cols-3 gap-1">
+                {roleOptions.map((r) => (
                   <button
                     key={r.role}
                     type="button"
@@ -190,13 +197,13 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-ink-muted -mt-1">{ROLES.find((r) => r.role === role)?.hint}</p>
+              <p className="text-[10px] text-ink-muted -mt-1">{roleOptions.find((r) => r.role === role)?.hint}</p>
 
               {/* Recipe-specific substitutes */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {substitutes.length > 0 && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-muted">
-                    <Repeat className="w-3 h-3" /> Remplaçable par :
+                    <Repeat className="w-3 h-3" /> {b.edReplaceableBy}
                   </span>
                 )}
                 {substitutes.map((id) => {
@@ -217,7 +224,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                               : undefined,
                           })
                         }
-                        aria-label={`Retirer le remplaçant ${sub ? getIngredientName(sub) : id}`}
+                        aria-label={format(b.edRemoveSubstitute, { name: sub ? getIngredientName(sub) : id })}
                         className="p-0.5 hover:text-rose-600"
                       >
                         <X className="w-3 h-3" />
@@ -230,7 +237,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                     ingredients={catalog}
                     exclude={[item.ingredient_id, ...substitutes]}
                     autoFocus
-                    placeholder="Remplaçant…"
+                    placeholder={b.edSubstitutePlaceholder}
                     onSelect={(i) => {
                       update(index, { substitutes: [...substitutes, i.id] });
                       setAddingSubstituteTo(null);
@@ -245,7 +252,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-text hover:underline"
                   >
                     <Plus className="w-3 h-3" />
-                    {substitutes.length ? 'Autre remplaçant' : 'Remplaçant pour cette recette'}
+                    {substitutes.length ? b.edOtherSubstitute : b.edAddSubstitute}
                   </button>
                 )}
               </div>
@@ -258,7 +265,7 @@ export function RecipeIngredientsEditor({ items, catalog, onChange, invalid = fa
         ingredients={catalog}
         exclude={used}
         onSelect={add}
-        placeholder="Ajouter un ingrédient : tapez son nom (tom, bsal…)"
+        placeholder={b.edAddIngredientPlaceholder}
       />
     </div>
   );

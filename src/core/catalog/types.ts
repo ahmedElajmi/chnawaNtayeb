@@ -1,4 +1,5 @@
-export type IngredientCategory =
+/** Categories every ingredient was sorted in before they were managed (see @/core/categories). */
+export type BuiltInIngredientCategory =
   | 'vegetables'
   | 'fruits'
   | 'meats'
@@ -9,7 +10,10 @@ export type IngredientCategory =
   | 'canned_pantry'
   | 'other';
 
-export const INGREDIENT_CATEGORIES: IngredientCategory[] = [
+/** Id of an ingredient category: a built-in one or one created in the backoffice. */
+export type IngredientCategory = string;
+
+export const INGREDIENT_CATEGORIES: BuiltInIngredientCategory[] = [
   'vegetables',
   'fruits',
   'meats',
@@ -28,6 +32,7 @@ export interface Ingredient {
   name_ar: string;
   /** Derja in Arabic letters (optional variant; empty → Arabic, see LANGUAGES) */
   name_derja_ar?: string;
+  /** Id of its category (managed in the backoffice, see @/core/categories) */
   category: IngredientCategory;
   icon?: string;
   unit_default: string;
@@ -102,7 +107,10 @@ export interface Recipe {
   cook_time_minutes: number;
   base_servings: number;
   estimated_cost_tnd: number;
+  /** Course ("type of dish"): fixed, the engine and the planner rely on it */
   category: MealCategory;
+  /** Categories managed in the backoffice (any level of their tree, several per recipe) */
+  category_ids?: string[];
   cuisine_type: CuisineType;
   difficulty: Difficulty;
   ingredients: RecipeIngredient[];
