@@ -1,5 +1,6 @@
 import { createBackup, parseBackup } from '@/core/backup';
 import { initialIngredients, initialRecipes, type Ingredient, type Recipe } from '@/core/catalog';
+import { unitIdFromLabel, type UnitInfo } from '@/core/units';
 import { DEFAULT_WEEKLY_PLAN, migrateDayPlan, type DayPlan } from '@/core/planning';
 import type { IdFactory } from '@/core/shared';
 import type { BackupImportResult, CatalogInitStats, SharedCollectionWriter, WriteResult } from '../ports';
@@ -25,6 +26,7 @@ export class CatalogAdmin {
     private readonly catalog: CatalogStore,
     private readonly recipesCloud: SharedCollectionWriter<Recipe>,
     private readonly ingredientsCloud: SharedCollectionWriter<Ingredient>,
+    private readonly unitsCloud: SharedCollectionWriter<UnitInfo>,
     private readonly kitchen: KitchenStore,
     private readonly deps: CatalogAdminDeps
   ) {
@@ -44,6 +46,21 @@ export class CatalogAdmin {
   saveIngredient(ingredient: Ingredient): Promise<WriteResult> {
     this.catalog.ingredients.putLocal(ingredient);
     return this.ingredientsCloud.put(ingredient);
+  }
+
+  saveUnit(unit: UnitInfo): Promise<WriteResult> {
+    this.catalog.units.putLocal(unit);
+    return this.unitsCloud.put(unit);
+  }
+
+  deleteUnit(unitId: string): Promise<WriteResult> {
+    this.catalog.units.removeLocal(unitId);
+    return this.unitsCloud.remove(unitId);
+  }
+
+  /** Gives a new unit description its id (then `saveUnit` publishes it). */
+  createUnit(data: Omit<UnitInfo, 'id'>): UnitInfo {
+    return { ...data, id: unitIdFromLabel(data.label) || this.deps.newId('unit') };
   }
 
   /** Gives a new ingredient its id (then `saveIngredient` publishes it). */

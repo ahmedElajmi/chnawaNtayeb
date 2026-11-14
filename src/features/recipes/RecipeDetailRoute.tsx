@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { RecipeDetailModal } from '@/features/recipes/components/RecipeDetailModal';
+import type { NewGroceryItem } from '@/core/grocery';
 import { useCatalog, useKitchen, useMatchingSettings } from '@/app/ContainerContext';
 import { PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
@@ -45,7 +46,9 @@ export function RecipeDetailRoute({ slug }: { slug: string }) {
       allIngredients={ingredients}
       selectedFridgeIds={fridge}
       pantryIds={pantry}
-      onAddMissingToGrocery={(items) => kitchen.addGroceryItems(items)}
+      // Items carry ingredient_id and category so the grocery list merges them by ingredient
+      // and shows them in their aisle; `category` rides along for the aisle grouping.
+      onAddMissingToGrocery={(items) => kitchen.addGroceryItems(items as NewGroceryItem[])}
       matchingConfig={config}
     />
   );

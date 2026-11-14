@@ -89,6 +89,29 @@ backoffice (`/admin/recettes`, `/admin/moteur/scenarios`…) sont déclarées pa
 - **Prix en fourchette** : `formatPriceRange(range, t.currency)` (`shared/i18n/formatPrice.ts`) affiche
   « 2.5 DT » ou « 2.5 – 4 DT » (« د.ت » en arabe). Sous chaque ingrédient de la grille du frigo
   (« 2 – 3 DT / kg ») et dans le coût des courses manquantes (`groceryCost`, cartes et fiche recette).
+- **Unité affichée** (`shared/ui/UnitInfo.tsx`) : le libellé de l'unité, et quand le backoffice
+  décrit cette unité (collection partagée `units`, recherche insensible à la casse et aux espaces via
+  `useUnitDescription`), une icône d'info avec l'infobulle traduite dans la langue courante
+  (survol, focus, ou appui qui bascule). Sans description configurée, l'unité reste nue : **aucune
+  description par défaut dans le code**. Utilisée sur les lignes de /courses, les suggestions du
+  formulaire d'ajout et les manquants de la fiche recette.
+- **Liste de courses : trois points d'entrée**, tous passés par `addGroceryItems` (fusion des lignes
+  en unités compatibles, voir [03](03-domaine.md#grocery--liste-de-courses)) :
+  - `/courses` : le formulaire d'ajout est un **choix d'ingrédient du catalogue**
+    (`GroceryIngredientPicker`) — recherche via le moteur (`useSearchMatches`, repli filtre par nom),
+    20 suggestions au plus, vignette, fourchette de prix et unité (`UnitInfo`) ; un panneau replié
+    « article libre » garde la saisie hors catalogue (marqué `is_custom`, rayon « autre »). Chaque
+    ligne montre son unité et, pour une masse ou un volume avec plusieurs alias (g, kg, gr / ml, cl,
+    dl, l), un sélecteur qui la convertit (`KitchenStore.setGroceryItemUnit`) ; les choses comptées
+    et les unités brutes restent un simple libellé.
+  - **Frigo** : chaque carte d'ingrédient a un **bouton panier distinct** (`AddToCartButton`) qui
+    ajoute l'ingrédient à la liste (avec son `ingredient_id`, son unité par défaut et sa catégorie)
+    sans jamais cocher le frigo ; l'en-tête de /frigo porte une **pastille du nombre d'articles** de
+    la liste (`GroceryListChip`), lien vers /courses.
+  - **Fiche recette** : les ingrédients manquants sont **sélectionnables** (`MissingIngredientsPicker`,
+    tout coché par défaut, « Tout sélectionner / Tout désélectionner »), le bouton dit combien sont
+    choisis (« Ajouter la sélection (n) ») ; chaque article envoyé porte `ingredient_id` et
+    `category`, pour fusionner avec la même ligne et tomber dans le bon rayon.
 - **Animation `fade-in`** (`src/index.css`) : elle ne laisse aucune transformation une fois finie
   (`backwards`, état final `transform: none`). Toute nouvelle animation doit faire de même.
 

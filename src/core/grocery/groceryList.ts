@@ -3,12 +3,18 @@ import type { DayPlan } from '../planning/types';
 import type { GroceryItem } from './types';
 import { collectRecipeIds } from '../planning/planner';
 import { createId, type IdFactory } from '../shared/id';
-import { parseMeasure } from '../catalog/costEstimate';
+import { areUnitsCompatible, convertQuantity, parseMeasure } from '../units';
 
 export interface NewGroceryItem {
   name: string;
+  /** Catalog ingredient the item comes from, when known (merges with rows of the same ingredient) */
+  ingredient_id?: string;
   quantity?: number;
   unit?: string;
+  /** Aisle (ingredient category). Callers that know the catalog ingredient pass its category. */
+  category?: string;
+  /** Force the custom flag; defaults to false when the item carries an ingredient_id, true otherwise. */
+  is_custom?: boolean;
 }
 
 export interface BuildGroceryListOptions {
@@ -138,23 +144,66 @@ export function buildGroceryListFromPlan(
   return items;
 }
 
+/** Lower-cased, trimmed name used to spot the same free-text item twice. */
+const normalizeName = (name: string): string => name.trim().toLowerCase();
+
+/**
+ * Adds items to the list. A new item matching an existing row — same ingredient, or the same
+ * name for free-text entries — in a compatible unit (g with kg, ml with l...) is merged into
+ * it: the incoming quantity is converted to the row's unit, summed, and the row is unchecked
+ * again (something to buy was just added). The existing row keeps its id, name, unit,
+ * category and custom flag. Incompatible units (500 g and 2 pièces) stay as two rows.
+ */
 export function addGroceryItems(
   list: GroceryItem[],
   items: NewGroceryItem[],
   newId: IdFactory = createId
 ): GroceryItem[] {
-  return [
-    ...list,
-    ...items.map((item): GroceryItem => ({
-      id: newId('grocery'),
-      name: item.name,
-      quantity: item.quantity ?? 1,
-      unit: item.unit ?? 'pièce',
-      category: 'other',
-      is_checked: false,
-      is_custom: true,
-    })),
-  ];
+  let next = [...list];
+  for (const item of items) {
+    const quantity = item.quantity ?? 1;
+    const unit = item.unit ?? 'pièce';
+    const name = normalizeName(item.name);
+    const index = next.findIndex((existing) => {
+      const sameIngredient =
+        item.ingredient_id !== undefined && item.ingredient_id !== '' && existing.ingredient_id === item.ingredient_id;
+      const sameName = name !== '' && normalizeName(existing.name) === name;
+      return (sameIngredient || sameName) && areUnitsCompatible(existing.unit, unit);
+    });
+    const merged = index >= 0 ? convertQuantity(quantity, unit, next[index].unit) : null;
+    if (index >= 0 && merged !== null) {
+      next[index] = { ...next[index], quantity: next[index].quantity + merged, is_checked: false };
+      continue;
+    }
+    next = [
+      ...next,
+      {
+        id: newId('grocery'),
+        ...(item.ingredient_id ? { ingredient_id: item.ingredient_id } : {}),
+        name: item.name,
+        quantity,
+        unit,
+        category: item.category ?? 'other',
+        is_checked: false,
+        is_custom: item.is_custom ?? !item.ingredient_id,
+      },
+    ];
+  }
+  return next;
+}
+
+/**
+ * Switches one item to another unit of the same family (g -> kg, ml -> l, pièces -> pièce...):
+ * the quantity is converted. Returns null — and leaves the list untouched — when the item does
+ * not exist or the units are not compatible.
+ */
+export function changeGroceryItemUnit(list: GroceryItem[], itemId: string, newUnit: string): GroceryItem[] | null {
+  const item = list.find((entry) => entry.id === itemId);
+  if (!item) return null;
+  const converted = convertQuantity(item.quantity, item.unit, newUnit);
+  if (converted === null) return null;
+  const unit = newUnit.trim();
+  return list.map((entry) => (entry.id === itemId ? { ...entry, quantity: converted, unit } : entry));
 }
 
 export function toggleGroceryItem(list: GroceryItem[], id: string): GroceryItem[] {

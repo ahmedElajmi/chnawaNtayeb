@@ -18,8 +18,11 @@ import {
   groupByAisle,
   groceryCost,
 } from '@/core/grocery';
+import { getCompatibleUnits, getUnitFamily } from '@/core/units';
 import type { Ingredient } from '@/core/catalog';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
+import { UnitInfo } from '@/shared/ui/UnitInfo';
+import { GroceryIngredientPicker } from '@/features/grocery/components/GroceryIngredientPicker';
 import { PrintSheet, printNow } from '@/shared/ui/print';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useAccountProfile, useContainer } from '@/app/ContainerContext';
@@ -32,10 +35,17 @@ interface GroceryListViewProps {
   spent: number | null;
   /** Catalog ingredients, to show the picture of the items that come from a recipe */
   ingredientsById: ReadonlyMap<string, Ingredient>;
+  /** Whole catalog, for the ingredient picker of the add form */
+  ingredients: Ingredient[];
   onToggleItem: (id: string) => void;
   onRemoveItem: (id: string) => void;
   onSetQuantity: (id: string, quantity: number) => void;
-  onAddItem: (name: string, quantity?: number, unit?: string) => void;
+  /** Switches one item to another unit of the same family (g -> kg...) */
+  onSetUnit: (id: string, unit: string) => void;
+  /** Adds one catalog ingredient with its default unit */
+  onAddIngredient: (ingredient: Ingredient) => void;
+  /** Adds one free-text article (custom item, "pièce") */
+  onAddCustom: (name: string) => void;
   onSetNote: (note: string) => void;
   onSetSpent: (spent: number | null) => void;
   onClearList: () => void;
@@ -48,13 +58,25 @@ interface GroceryRowProps {
   thumb: React.ReactNode;
   quantityLabel: string;
   deleteLabel: string;
+  unitSelectLabel: string;
   onToggle: () => void;
   onRemove: () => void;
   onSetQuantity: (quantity: number) => void;
+  onSetUnit: (unit: string) => void;
 }
 
-/** One list row: checkbox, picture, name, light quantity stepper and a per-item delete. */
-function GroceryRow({ item, thumb, quantityLabel, deleteLabel, onToggle, onRemove, onSetQuantity }: GroceryRowProps) {
+/** One list row: checkbox, picture, name, light quantity stepper, unit and a per-item delete. */
+function GroceryRow({
+  item,
+  thumb,
+  quantityLabel,
+  deleteLabel,
+  unitSelectLabel,
+  onToggle,
+  onRemove,
+  onSetQuantity,
+  onSetUnit,
+}: GroceryRowProps) {
   const [draft, setDraft] = useState({ value: String(item.quantity), source: item.quantity });
   // Follows external changes (list regeneration, sync) without clobbering an ongoing edit —
   // the documented render-time adjustment: state resets only when the stored quantity moved
@@ -77,6 +99,14 @@ function GroceryRow({ item, thumb, quantityLabel, deleteLabel, onToggle, onRemov
     setQuantity(String(next));
     onSetQuantity(next);
   };
+
+  // Unit switcher: only for mass and volume units with several aliases (g, kg, gr / ml, cl, dl, l).
+  // Counted things and raw units (pièce, botte, c.à.s...) never offer a switch.
+  const unitOptions = useMemo(() => {
+    const compatible = getCompatibleUnits(item.unit);
+    return compatible.includes(item.unit) ? compatible : [item.unit, ...compatible];
+  }, [item.unit]);
+  const canSwitchUnit = unitOptions.length > 1 && getUnitFamily(item.unit) !== 'count';
 
   return (
     <div
@@ -125,6 +155,24 @@ function GroceryRow({ item, thumb, quantityLabel, deleteLabel, onToggle, onRemov
         >
           <Plus className="w-3 h-3" />
         </button>
+        {/* Unit label, switchable within the same family (g -> kg, ml -> l...); counted
+            things (pièce, botte...) and raw units stay a plain label */}
+        {canSwitchUnit ? (
+          <select
+            value={item.unit}
+            onChange={(e) => onSetUnit(e.target.value)}
+            aria-label={unitSelectLabel}
+            className="h-7 ps-1.5 pe-0.5 text-xs font-semibold rounded-lg bg-card border border-slate-200 dark:border-slate-700 text-ink focus:outline-none focus:ring-1 focus:ring-brand"
+          >
+            {unitOptions.map((unit) => (
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <UnitInfo unit={item.unit} className="text-xs font-semibold text-slate-500 min-w-7 text-center" />
+        )}
       </div>
       {/* Per-item delete: distinct from "bought" */}
       <button
@@ -147,10 +195,13 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
   note,
   spent,
   ingredientsById,
+  ingredients,
   onToggleItem,
   onRemoveItem,
   onSetQuantity,
-  onAddItem,
+  onSetUnit,
+  onAddIngredient,
+  onAddCustom,
   onSetNote,
   onSetSpent,
   onClearList,
@@ -160,7 +211,6 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
   const { profile } = useAccountProfile();
   const categoryNames = useCategoryNames('ingredient');
 
-  const [newItemName, setNewItemName] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
   const [spentDraft, setSpentDraft] = useState(spent === null ? '' : String(spent));
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -200,13 +250,6 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
   const showFeedback = (next: Feedback, autoHide = false) => {
     setFeedback(next);
     if (autoHide) window.setTimeout(() => setFeedback((f) => (f === next ? null : f)), 4000);
-  };
-
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemName.trim()) return;
-    onAddItem(newItemName.trim(), 1, 'pièce');
-    setNewItemName('');
   };
 
   const commitNote = () => {
@@ -330,23 +373,8 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
         )}
       </div>
 
-      {/* Manual Input Form */}
-      <form onSubmit={handleAdd} className="flex gap-2">
-        <input
-          type="text"
-          value={newItemName}
-          onChange={(e) => setNewItemName(e.target.value)}
-          placeholder={t.addManualItem}
-          className="flex-1 px-4 py-2.5 rounded-xl bg-card border border-slate-200 dark:border-slate-700 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand shadow-xs"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2.5 rounded-xl bg-brand text-on-brand text-xs sm:text-sm font-bold hover:bg-brand-strong transition flex items-center gap-1 shadow-sm shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{t.addBtn}</span>
-        </button>
-      </form>
+      {/* Add form: catalog search with suggestions, plus a collapsed free-text fallback */}
+      <GroceryIngredientPicker ingredients={ingredients} onAddIngredient={onAddIngredient} onAddCustom={onAddCustom} />
 
       {/* List note (feeds the sync push): committed on blur, not per keystroke */}
       {items.length > 0 && (
@@ -432,9 +460,11 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
                     thumb={thumb(item)}
                     quantityLabel={t.groceryQuantity}
                     deleteLabel={t.groceryDeleteItem}
+                    unitSelectLabel={t.groceryUnitSelectLabel.replace('{name}', item.name)}
                     onToggle={() => onToggleItem(item.id)}
                     onRemove={() => onRemoveItem(item.id)}
                     onSetQuantity={(quantity) => onSetQuantity(item.id, quantity)}
+                    onSetUnit={(unit) => onSetUnit(item.id, unit)}
                   />
                 ))}
               </div>

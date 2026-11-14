@@ -163,6 +163,18 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   coût des courses manquantes = `PriceRange`) ; affichage toujours via `formatPriceRange`
   (`src/shared/i18n/formatPrice.ts`). Un ancien `default_price_tnd` est converti à la lecture par
   `migrateIngredients` : ne plus l'utiliser.
+- **Unités** (`@/core/units`) : masses et volumes se convertissent entre alias de la même famille
+  (g ↔ kg, ml ↔ l) ; deux choses comptées différentes (pièce, botte, c.à.s) ne se mélangent jamais
+  (`areUnitsCompatible` / `convertQuantity`). `addGroceryItems` **fusionne** dans une ligne existante
+  (même `ingredient_id` ou même nom) un ajout en unité compatible : quantité convertie et additionnée,
+  ligne décochée ; unités incompatibles = deux lignes. Ajouter un article du catalogue = passer son
+  `ingredient_id` et sa `category` (bon rayon, pas `is_custom`).
+- **Descriptions d'unités** (`UnitInfo`, /admin › Ingrédients › Unités) : collection partagée `units`
+  (mécanisme commun `SyncedCollectionStore` + IndexedDB, DB version 5 ; lecture publique, écriture
+  publication), id = libellé slugifié (`unitIdFromLabel`), libellé unique et description française
+  obligatoires (`validateUnitInfo`). **Aucune description par défaut dans le code** : une unité non
+  configurée reste nue ; affichage toujours via `UnitInfo` (`src/shared/ui/UnitInfo.tsx`, infobulle
+  lue par `useUnitDescription`).
 - **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /admin, vérifié par
   `validateIngredient`) : toujours afficher un ingrédient avec `IngredientThumb` (`src/shared/ui/`), qui gère
   le cas sans photo (pastille de catégorie) et le lien cassé.

@@ -2,6 +2,7 @@ import { parseStoredCategory } from '../../src/core/categories';
 import { parseStoredCountry, resolveUserProfile } from '../../src/core/accounts';
 import { parseScenario } from '../../src/core/matching';
 import { parseStoredIngredient, parseStoredRecipe } from '../../src/core/catalog';
+import { parseStoredUnitInfo } from '../../src/core/units';
 import { parseTeamMember, parseWorkCopy, type ReviewKind } from '../../src/core/review';
 import type { ParseDoc } from './types';
 
@@ -99,6 +100,15 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
     write: 'publisher',
     pageLimit: 300,
     parse: (r) => parseStoredCountry(r) as Record<string, unknown> | null,
+  },
+  // Unit descriptions ("c.à.s" → "Cuillère à soupe…"): public read, publisher write; the id is
+  // the slugified unit label (unitIdFromLabel, checked by UNIT_ID_PATTERN)
+  units: {
+    name: 'units',
+    read: 'public',
+    write: 'publisher',
+    pageLimit: 300,
+    parse: (r) => parseStoredUnitInfo(r) as Record<string, unknown> | null,
   },
   recipes_workspace: {
     name: 'recipes_workspace',
