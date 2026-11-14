@@ -18,14 +18,16 @@ const ADMIN_CONFIG = {
 let server: ReturnType<express.Express['listen']>;
 let base = '';
 let adminToken = '';
+/** Shared with the routes: the limiter reads it on every request (backoffice-updatable). */
+const runtime = { pollRequestsPerMinute: 300 };
 
 beforeAll(async () => {
   resetWatermarks();
   const store = createMemoryDataStore();
   const app = express();
   app.use(express.json());
-  app.use(dataRoutes(ADMIN_CONFIG, store));
-  app.use(adminDataRoutes(ADMIN_CONFIG, store));
+  app.use(dataRoutes(ADMIN_CONFIG, store, runtime));
+  app.use(adminDataRoutes(ADMIN_CONFIG, store, runtime));
   app.use(authRoutes(ADMIN_CONFIG, store, async () => []));
   await new Promise<void>((resolve) => {
     server = app.listen(0, () => {
@@ -189,17 +191,27 @@ describe('data endpoints over HTTP', () => {
     expect(((await adminRead.json()) as { items: { id: string }[] }).items).toHaveLength(2);
   });
 
-  it('serves the polling interval publicly and lets only the super admin change it', async () => {
-    const def = await get('/api/settings/polling');
-    expect(((await def.json()) as { interval_seconds: number }).interval_seconds).toBe(60);
+  it('the sync settings are manager-read, super-admin-written, and applied at once', async () => {
+    expect((await get('/admin/api/settings/polling')).status).toBe(403); // anonymous
     const refused = await put('/admin/api/settings/polling', { interval_seconds: 30 });
     expect(refused.status).toBe(403);
     const bad = await put('/admin/api/settings/polling', { interval_seconds: 3 }, admin());
     expect(bad.status).toBe(400);
-    const ok = await put('/admin/api/settings/polling', { interval_seconds: 30 }, admin());
-    expect(((await ok.json()) as { interval_seconds: number }).interval_seconds).toBe(30);
-    const updated = await get('/api/settings/polling');
-    expect(((await updated.json()) as { interval_seconds: number }).interval_seconds).toBe(30);
+    const limitBad = await put('/admin/api/settings/polling', { poll_limit_per_minute: 5 }, admin());
+    expect(limitBad.status).toBe(400);
+    const saved = await put(
+      '/admin/api/settings/polling',
+      { interval_seconds: 30, poll_limit_per_minute: 120 },
+      admin()
+    );
+    const savedData = (await saved.json()) as { interval_seconds: number; poll_requests_per_minute: number };
+    expect(savedData.interval_seconds).toBe(30);
+    expect(savedData.poll_requests_per_minute).toBe(120);
+    const read = await get('/admin/api/settings/polling', admin());
+    const data = (await read.json()) as { interval_seconds: number; poll_requests_per_minute: number };
+    expect(data.interval_seconds).toBe(30);
+    expect(data.poll_requests_per_minute).toBe(120);
+    expect(runtime.pollRequestsPerMinute).toBe(120); // the limiter enforces it immediately
   });
 
   it('pages the accounts directory for managers only', async () => {

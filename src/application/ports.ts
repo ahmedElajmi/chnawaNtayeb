@@ -269,14 +269,17 @@ export interface PasswordPolicyGateway {
   save(policy: PasswordPolicy): Promise<void>;
 }
 
-/** How often the devices poll the change feed (seconds), configured in the backoffice. */
+/** The "Synchronisation des appareils" settings, configured in the backoffice: how often
+ *  the devices poll (seconds, injected into every page) and the abuse ceiling the server
+ *  enforces per IP per minute (server-side only — never a client-settable value). */
 export interface PollingSettings {
   intervalSeconds: number;
+  pollRequestsPerMinute?: number;
 }
 
 export interface PollingSettingsGateway {
   read(): Promise<PollingSettings>;
-  save(intervalSeconds: number): Promise<void>;
+  save(settings: PollingSettings): Promise<void>;
 }
 
 /** Creates staff accounts on the server (super-admin session required): the client never mints a right. */

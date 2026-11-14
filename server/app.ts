@@ -15,6 +15,14 @@ import { dataRoutes } from './routes/dataRoutes';
 import { backofficeAuthRoutes } from './routes/backofficeAuthRoutes';
 import { seoRoutes } from './routes/seoRoutes';
 import { VISION_PATH, visionRoutes } from './routes/visionRoutes';
+import {
+  clampPollLimit,
+  clampPollingSeconds,
+  DEFAULT_POLL_LIMIT_PER_MINUTE,
+  DEFAULT_POLLING_SECONDS,
+  type AppServerConfig,
+  type RuntimeLimits,
+} from './appConfig';
 
 export interface AppDependencies {
   backofficeAuthConfig: BackofficeAuthConfig;
@@ -23,10 +31,31 @@ export interface AppDependencies {
 }
 
 /** API of the app (the web pages are added by server.ts: Vite in dev, dist/ in production). */
-export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies): express.Express {
+export interface ApiApp {
+  app: express.Express;
+  /** THE server configuration injected into every served page (cached 60 s — one database
+   *  read per minute at most, whatever the traffic). New settings are added here. */
+  config: () => Promise<AppServerConfig>;
+  /** The abuse ceilings the limiter middlewares enforce right now (updated on each save). */
+  runtime: RuntimeLimits;
+}
+
+/**
+ * TRUST_PROXY: how many proxies stand between the visitor and us (needed to read the real
+ * client IP for the rate limits). 1 covers most hosts (Render, Railway, Fly single proxy);
+ * 0 = direct exposure. Host-independent: set TRUST_PROXY in the environment to match any
+ * hosting topology, never hard-coded.
+ */
+function trustProxyHops(): number {
+  const raw = process.env.TRUST_PROXY?.trim();
+  if (!raw) return 1;
+  const hops = Number(raw);
+  return Number.isFinite(hops) && hops >= 0 ? hops : 1;
+}
+
+export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies): ApiApp {
   const app = express();
-  // Render (and most hosts) put the app behind one proxy: needed for correct client IPs in rate limiting
-  app.set('trust proxy', 1);
+  app.set('trust proxy', trustProxyHops());
   app.disable('x-powered-by');
 
   // Defense in depth: descriptive headers and a CSP over mechanisms the app never uses
@@ -67,6 +96,9 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
       : adminDb
         ? createFirestoreStore(adminDb)
         : null;
+  // The abuse ceilings the limiter middlewares enforce: updated on each backoffice save and
+  // each config read, shared by reference with the routes (no per-request database read).
+  const runtime: RuntimeLimits = { pollRequestsPerMinute: DEFAULT_POLL_LIMIT_PER_MINUTE };
   // Enabled countries for the server-side registration validation, read through the store
   let countriesCache: { at: number; list: CountryRecord[] } = { at: 0, list: [] };
   const countriesProvider = async (): Promise<readonly CountryRecord[]> => {
@@ -78,9 +110,29 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.use(backofficeAuthRoutes(backofficeAuthConfig));
   app.use(accountRoutes(backofficeAuthConfig, dataStore));
   app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider));
-  app.use(adminDataRoutes(backofficeAuthConfig, dataStore));
-  app.use(dataRoutes(backofficeAuthConfig, dataStore));
+  app.use(adminDataRoutes(backofficeAuthConfig, dataStore, runtime));
+  app.use(dataRoutes(backofficeAuthConfig, dataStore, runtime));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
-  return app;
+
+  // THE server configuration injected into every served page (server/appConfig.ts): cached,
+  // because a page request reads it — at most one settings read per minute. A save applies
+  // instantly through the shared runtime object (the limiter reads it on every request).
+  let configCache: { at: number; value: AppServerConfig } = {
+    at: 0,
+    value: { pollingSeconds: DEFAULT_POLLING_SECONDS },
+  };
+  const config = async (): Promise<AppServerConfig> => {
+    if (!dataStore || Date.now() - configCache.at < 60_000) return configCache.value;
+    const stored = await dataStore.get('settings', 'polling');
+    const value: AppServerConfig = {
+      pollingSeconds:
+        stored && stored.deleted !== true ? clampPollingSeconds(stored.interval_seconds) : DEFAULT_POLLING_SECONDS,
+    };
+    if (stored && stored.deleted !== true) runtime.pollRequestsPerMinute = clampPollLimit(stored.poll_limit_per_minute);
+    configCache = { at: Date.now(), value };
+    return value;
+  };
+
+  return { app, config, runtime };
 }

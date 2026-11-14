@@ -1,17 +1,17 @@
-import type { PollingSettingsGateway } from '@/application';
+import type { PollingSettings, PollingSettingsGateway } from '@/application';
 
 /** In-memory polling settings: read/save roundtrip for tests. */
-export function createMemoryPollingSettings(): PollingSettingsGateway & { stored: number } {
-  let stored = 60;
+export function createMemoryPollingSettings(): PollingSettingsGateway & { stored: PollingSettings } {
+  let stored: PollingSettings = { intervalSeconds: 60, pollRequestsPerMinute: 300 };
   return {
     get stored() {
       return stored;
     },
     async read() {
-      return { intervalSeconds: stored };
+      return { ...stored };
     },
-    async save(intervalSeconds) {
-      stored = intervalSeconds;
+    async save(settings) {
+      stored = { ...settings };
     },
   };
 }

@@ -49,6 +49,8 @@ Le détail complet des comptes est dans [13 Comptes](13-comptes.md), celui des d
   comparés (pas d'indice sur celui qui est faux) ; 5 échecs par quart d'heure et par IP.
 - **Jetons de session** : signés, avec expiration ; le navigateur ne fait que les présenter. Un seul
   mécanisme pour tous (super admin, employés, clients, invités) — aucune identité cloud côté client.
+- **Injection de configuration** (`server/appConfig.ts`) : chaque page servie embarque `window.__APP_CONFIG__` (le script est sérialisé par le serveur seul, borné, sans entrée utilisateur — pas de surface XSS ; les pages étant servies network-first par le service worker, la valeur est toujours fraîche en ligne). La lecture est en cache 60 s : une flood de pages coûte au plus une lecture base par minute.
+- **Limites par IP** : chaque endpoint sensible a son plafond par IP/minute (polling 300/min par défaut, **configurable dans le backoffice**, appliqué à chaud) ; `TRUST_PROXY` (variable d'environnement, défaut 1) configure le nombre de proxys devant l'app pour lire la vraie IP client — aucune dépendance à un hébergeur.
 - **Droits** : chaque requête de données repasse par `resolveIdentity` (session super admin → tout ;
   employé → droits de `admins/{uid}` ; visiteur → lecture des collections publiques seulement).
 - **Scan photo** : JPEG, PNG ou WebP, 4 Mo maximum, 10 scans par heure et par IP ; le catalogue

@@ -6,6 +6,7 @@ import { computeChanges } from '../storage/gateway';
 import { resolveIdentity } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
+import type { RuntimeLimits } from '../appConfig';
 
 /** Body of the batched change feed: the client's newest revision per collection. */
 interface ChangesBody {
@@ -17,13 +18,18 @@ interface ChangesBody {
  * the batched change feed, single-document reads, batch writes and a field query.
  * Server-only collections (users, auth, settings, version histories) never pass here.
  */
-export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: DataStore | null): express.Router {
+export function dataRoutes(
+  backofficeAuthConfig: BackofficeAuthConfig,
+  store: DataStore | null,
+  runtime: RuntimeLimits
+): express.Router {
   const router = express.Router();
 
-  // Idle polls cost nothing server-side (the watermark shortcut): a generous read limit
+  // Idle polls cost nothing server-side (the watermark shortcut): the ceiling per IP per
+  // minute is configured in the backoffice and applied on every request through `runtime`.
   const pollLimiter = rateLimit({
     windowMs: 60 * 1000,
-    limit: 300,
+    limit: () => runtime.pollRequestsPerMinute,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
   });

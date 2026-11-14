@@ -16,13 +16,20 @@ export function DataTab({ admin, cloudStatus }: { admin: CatalogAdminActions; cl
   const b = useBackofficeText();
   const { pollingSettings } = useContainer();
   const [interval, setInterval] = useState<number | null>(null);
+  const [pollLimit, setPollLimit] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     pollingSettings
       .read()
-      .then((s) => setInterval(s.intervalSeconds))
-      .catch(() => setInterval(null));
+      .then((s) => {
+        setInterval(s.intervalSeconds);
+        setPollLimit(s.pollRequestsPerMinute ?? null);
+      })
+      .catch(() => {
+        setInterval(null);
+        setPollLimit(null);
+      });
   }, [pollingSettings]);
 
   // Tiny inline feedback: the note under the field says what happened, then fades away
@@ -32,11 +39,11 @@ export function DataTab({ admin, cloudStatus }: { admin: CatalogAdminActions; cl
     window.setTimeout(() => setSavedNote(null), 2500);
   };
 
-  const saveInterval = async () => {
+  const saveSettings = async () => {
     if (!interval) return;
     setBusy(true);
     try {
-      await pollingSettings.save(interval);
+      await pollingSettings.save({ intervalSeconds: interval, pollRequestsPerMinute: pollLimit ?? undefined });
       showNote(b.panSyncSaved);
     } catch {
       showNote(b.panSyncError);
@@ -155,9 +162,21 @@ export function DataTab({ admin, cloudStatus }: { admin: CatalogAdminActions; cl
               className="mt-1 w-32 px-3 py-2 text-xs rounded-xl bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </label>
+          <label className="block text-[11px] font-semibold text-slate-500">
+            {b.panSyncLimitLabel}
+            <input
+              type="number"
+              min={30}
+              max={6000}
+              dir="ltr"
+              value={pollLimit ?? 300}
+              onChange={(e) => setPollLimit(parseInt(e.target.value, 10) || null)}
+              className="mt-1 w-32 px-3 py-2 text-xs rounded-xl bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+          </label>
           <button
             type="button"
-            onClick={saveInterval}
+            onClick={saveSettings}
             disabled={busy || !interval}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong transition shadow-xs disabled:opacity-50"
           >
