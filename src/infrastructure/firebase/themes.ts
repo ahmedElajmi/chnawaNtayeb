@@ -41,7 +41,7 @@ type CloudWriteResult = WriteResult;
 
 function friendlyError(raw: string): string {
   return /permission|insufficient/i.test(raw)
-    ? 'le cloud a refusé l écriture (session patron non reliée à Firebase : vérifie FIREBASE_SERVICE_ACCOUNT et les règles Firestore).'
+    ? 'le cloud a refusé l écriture (session superAdmin non reliée à Firebase : vérifie FIREBASE_SERVICE_ACCOUNT et les règles Firestore).'
     : 'le cloud est injoignable, réessaie plus tard.';
 }
 

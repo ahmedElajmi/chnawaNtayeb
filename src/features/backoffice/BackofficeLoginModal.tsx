@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, User, X, Loader2, AlertCircle } from 'lucide-react';
-import type { PatronLoginError } from '@/application';
+import type { BackofficeLoginError } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import type { TranslationDictionary } from '@/shared/i18n/translations';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
-/** Text of a failed patron sign-in, in the current language (the gateway only gives a code). */
-const PATRON_LOGIN_ERRORS: Record<PatronLoginError, keyof TranslationDictionary> = {
-  unreachable: 'patronErrorUnreachable',
-  invalid: 'patronErrorInvalid',
+/** Text of a failed super-admin sign-in, in the current language (the gateway only gives a code). */
+const BACKOFFICE_LOGIN_ERRORS: Record<BackofficeLoginError, keyof TranslationDictionary> = {
+  unreachable: 'backofficeErrorUnreachable',
+  invalid: 'backofficeErrorInvalid',
   'too-many-attempts': 'errorTooManyAttempts',
-  unavailable: 'patronErrorUnavailable',
+  unavailable: 'backofficeErrorUnavailable',
 };
 
-interface PatronLoginModalProps {
+interface BackofficeLoginModalProps {
   isOpen: boolean;
-  /** Cancel (a successful login signs the patron in: the backoffice replaces this form) */
+  /** Cancel (a successful login signs the super-admin in: the backoffice replaces this form) */
   onClose: () => void;
 }
 
-export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onClose }) => {
-  const { patron } = useContainer();
+export const BackofficeLoginModal: React.FC<BackofficeLoginModalProps> = ({ isOpen, onClose }) => {
+  const { backofficeSession } = useContainer();
   const { t } = useLanguage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<PatronLoginError | null>(null);
+  const [error, setError] = useState<BackofficeLoginError | null>(null);
 
   if (!isOpen) return null;
 
@@ -36,7 +36,7 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
     setError(null);
 
     // The server is the only judge: there is no client-side fallback
-    const result = await patron.login(username, password);
+    const result = await backofficeSession.login(username, password);
     setIsLoading(false);
 
     if (result.ok) {
@@ -55,8 +55,8 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
               <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-ink">{t.patronLoginTitle}</h3>
-              <p className="text-[11px] text-slate-400">{t.patronLoginSubtitle}</p>
+              <h3 className="font-extrabold text-base text-ink">{t.backofficeLoginTitle}</h3>
+              <p className="text-[11px] text-slate-400">{t.backofficeLoginSubtitle}</p>
             </div>
           </div>
           <button
@@ -71,13 +71,13 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
         {error && (
           <div className="mt-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-            <span>{t[PATRON_LOGIN_ERRORS[error]]}</span>
+            <span>{t[BACKOFFICE_LOGIN_ERRORS[error]]}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
           <div>
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.patronLoginUsername}</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.backofficeLoginUsername}</label>
             <div className="relative mt-1">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -114,7 +114,7 @@ export const PatronLoginModal: React.FC<PatronLoginModalProps> = ({ isOpen, onCl
             className="mt-2 w-full py-2.5 rounded-xl bg-accent text-on-accent font-bold text-sm hover:bg-accent-strong transition flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{t.patronLoginSubmit}</span>
+            <span>{t.backofficeLoginSubmit}</span>
           </button>
         </form>
       </div>

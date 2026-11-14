@@ -97,10 +97,3 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
 export function collectionSpec(name: string): CollectionSpec | null {
   return Object.prototype.hasOwnProperty.call(COLLECTIONS, name) ? (COLLECTIONS[name] ?? null) : null;
 }
-
-/** Collections a given access level may read from the change feed. */
-export function readableCollections(read: CollectionAccess['read']): string[] {
-  return Object.values(COLLECTIONS)
-    .filter((c) => (read === 'admin' ? true : c.read === 'public'))
-    .map((c) => c.name);
-}

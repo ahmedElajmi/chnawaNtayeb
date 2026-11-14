@@ -66,14 +66,14 @@ interface UserAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: AppUser | null;
-  onOpenPatronLogin?: () => void;
+  onOpenBackofficeLogin?: () => void;
 }
 
 export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   isOpen,
   onClose,
   currentUser,
-  onOpenPatronLogin,
+  onOpenBackofficeLogin,
 }) => {
   const { userAuth } = useContainer();
   const { profile: accountProfile, accountProfileStore } = useAccountProfile();
@@ -221,11 +221,11 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
     }
   };
 
-  const isPatronSession = !!currentUser && userAuth.isPatronAccount(currentUser);
-  // Admin gate: the patron session, or an account that is a member of the team
-  const isAdmin = isPatronSession || (!!currentUser && accountProfile?.type === 'employee');
+  const isSuperAdminSession = !!currentUser && userAuth.isSuperAdminAccount(currentUser);
+  // Admin gate: the super-admin session, or an account that is a member of the team
+  const isAdmin = isSuperAdminSession || (!!currentUser && accountProfile?.type === 'employee');
   const profile = accountProfile ?? null;
-  const realAccount = !!currentUser && !currentUser.isAnonymous && !isPatronSession;
+  const realAccount = !!currentUser && !currentUser.isAnonymous && !isSuperAdminSession;
 
   return (
     <ModalShell onDismiss={onClose}>
@@ -273,8 +273,8 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">{t.accountIdentifier}</span>
                 <span className="text-xs font-bold text-ink truncate max-w-[180px]">
-                  {isPatronSession
-                    ? t.accountPatronSession
+                  {isSuperAdminSession
+                    ? t.accountBackofficeSession
                     : currentUser.isAnonymous
                       ? t.accountGuestName
                       : currentUser.email}
@@ -288,7 +288,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               </div>
             </div>
 
-            {/* Profile of a real account: view, then edit (guests and patron sessions have no profile) */}
+            {/* Profile of a real account: view, then edit (guests and superAdmin sessions have no profile) */}
             {realAccount && !editing && (
               <div className="p-4 rounded-2xl bg-card border border-slate-200 dark:border-slate-700/80 space-y-2">
                 <div className="flex items-center justify-between">
@@ -638,12 +638,12 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             type="button"
             onClick={() => {
               onClose();
-              if (onOpenPatronLogin) onOpenPatronLogin();
+              if (onOpenBackofficeLogin) onOpenBackofficeLogin();
             }}
             className="text-[11px] text-slate-400 hover:text-accent-text transition inline-flex items-center gap-1"
           >
             <Shield className="w-3 h-3" />
-            <span>{t.accountPatronAccess}</span>
+            <span>{t.accountBackofficeAccess}</span>
           </button>
         </div>
       </div>

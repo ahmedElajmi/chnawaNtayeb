@@ -77,7 +77,7 @@ src/
   features/                  Un dossier par écran (voir 06 et 07)
   shared/                    paths, i18n/, hooks/, ui/
 server.ts                    Point d'entrée serveur (voir 08)
-server/                      app.ts, routes/, vision/, seo.ts, patronAuth.ts, firebaseAdmin.ts
+server/                      app.ts, routes/, vision/, seo.ts, superAdminAuth.ts, firebaseAdmin.ts
 scripts/                     diagnostics/ (rapport du moteur), build_brand.py (images)
 docs/encyclopedie/           Cette documentation
 ```

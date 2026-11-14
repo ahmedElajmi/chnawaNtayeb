@@ -11,7 +11,7 @@ import {
 import { normalizeText } from '@/core/shared';
 import type { ContentCompleteness, ItemStatus, ReviewSnapshot } from '@/core/review';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
-import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
+import { LIST_FILTER_PARAM, backofficePath, BACKOFFICE_PAGES } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { usePagedList } from '@/shared/hooks/usePagedList';
 import { ShowMore } from '@/shared/ui/ShowMore';
@@ -111,7 +111,10 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
           <IngredientThumb ingredient={ing} size="md" />
           <div className="min-w-0">
             <p className="text-xs sm:text-sm font-bold text-ink truncate">
-              <Link to={patronPath(PATRON_PAGES.ingredients, ing.id)} className="hover:text-brand-text hover:underline">
+              <Link
+                to={backofficePath(BACKOFFICE_PAGES.ingredients, ing.id)}
+                className="hover:text-brand-text hover:underline"
+              >
                 {name}
               </Link>
               {getSecondaryName(ing) && (

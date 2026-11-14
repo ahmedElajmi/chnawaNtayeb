@@ -4,9 +4,9 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 /**
- * Bridges the /patron login with Firebase:
- * after a successful patron login, the server mints a Firebase custom token
- * carrying the `patron: true` claim. The browser signs in with it, and the
+ * Bridges the /super-admin login with Firebase:
+ * after a successful super-admin login, the server mints a Firebase custom token
+ * carrying the `superAdmin: true` claim. The browser signs in with it, and the
  * Firestore rules (isAdmin) accept writes from that identity.
  *
  * Needs FIREBASE_SERVICE_ACCOUNT: the service-account JSON downloaded from
@@ -14,7 +14,7 @@ import firebaseConfig from '../firebase-applet-config.json';
  * raw JSON or base64-encoded JSON. Never commit this value.
  */
 
-export const PATRON_FIREBASE_UID = 'patron-admin';
+export const SUPER_ADMIN_FIREBASE_UID = 'super-admin';
 
 let app: App | null | undefined;
 
@@ -53,11 +53,11 @@ export function isFirebaseAdminConfigured(): boolean {
   return getAdminApp() !== null;
 }
 
-/** Returns a Firebase custom token for the patron, or null when the service account is not configured. */
-export async function createPatronFirebaseToken(): Promise<string | null> {
+/** Returns a Firebase custom token for the super-admin, or null when the service account is not configured. */
+export async function createSuperAdminFirebaseToken(): Promise<string | null> {
   const adminApp = getAdminApp();
   if (!adminApp) return null;
-  return getAuth(adminApp).createCustomToken(PATRON_FIREBASE_UID, { patron: true });
+  return getAuth(adminApp).createCustomToken(SUPER_ADMIN_FIREBASE_UID, { superAdmin: true });
 }
 
 export interface EmployeeRights {
@@ -76,7 +76,7 @@ export async function verifyEmployeeToken(idToken: string): Promise<EmployeeRigh
   if (!adminApp) return null;
   try {
     const decoded = await getAuth(adminApp).verifyIdToken(idToken);
-    if (decoded.patron == true) return null; // the patron session is not an employee token
+    if (decoded.superAdmin == true) return null; // the superAdmin session is not an employee token
     const uid = decoded.uid;
     const member = await getFirestore(adminApp).collection('admins').doc(uid).get();
     const rights = member.data();

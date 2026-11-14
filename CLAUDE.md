@@ -26,7 +26,7 @@ courses, textes, comptes), pas seulement les recettes. Chaque plan dit en une li
 3. **Factorisé, sans duplication** : un mécanisme générique réutilisé par toutes les collections plutôt qu'une
    copie par type de données.
 4. **Sûr** : règles de la base au plus strict, toute donnée externe relue par le core, aucun secret côté client,
-   pas d'injection (HTML, liens), droits patron vérifiés côté serveur et base.
+   pas d'injection (HTML, liens), droits super admin vérifiés côté serveur et base.
 5. **Agréable** : retour immédiat, états de chargement et d'erreur clairs, mobile 320 px, fenêtres qui se ferment
    comme attendu, aucune perte de saisie.
 
@@ -49,7 +49,7 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
 1. **Règle métier / validation** → `src/core/<module>`, TypeScript pur, exportée par `index.ts`, avec son
    `*.test.ts` à côté. Horloge, aléatoire et ids injectés. Toute donnée externe (base, fichier importé)
    est relue par une fonction de validation du core (`resolveMatchingConfig`, `parseScenario`…) ; ce que le
-   patron saisit est vérifié avant l'enregistrement (`validateRecipe`, `validateIngredient`).
+   super admin saisit est vérifié avant l'enregistrement (`validateRecipe`, `validateIngredient`).
 2. **Besoin du monde extérieur** → un **port** dans `src/application/ports.ts`, écrit avec les mots du
    domaine (aucun type, terme ou nom de base / SDK), + un **store** (ou service) dans `src/application`
    qui n'importe que `src/core`, testé avec de faux adapters.
@@ -89,13 +89,13 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - **Base de données d'abord** : données partagées et réglages en Firestore ; localStorage seulement
   comme copie hors ligne ; fichiers JSON seulement pour exporter / restaurer.
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
-  suggestion jugée fausse devient d'abord un scénario du chef, créé dans /patron › Moteur (stocké
+  suggestion jugée fausse devient d'abord un scénario du chef, créé dans /admin › Moteur (stocké
   en base, collection `matching_scenarios` ; aucune liste de scénarios dans le code).
 - Nouvelle adresse : `src/shared/paths.ts` + `src/app/AppRoutes.tsx` + si elle est publique, sa page serveur dans
   `SCREENS` (`server/seo.ts`) : les robots qui ne lancent pas le JavaScript doivent voir son contenu (copie lisible
   dans `fallback`, masquée aux visiteurs, listes par pages de 100).
-- Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au patron**
-  dans `/patron` : aucun formulaire de création dans l'interface publique.
+- Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au super admin**
+  dans `/admin` : aucun formulaire de création dans l'interface publique.
 - **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe
   littéraire, derja en lettres latines (3, 7, 9), derja en lettres arabes (`derja_ar`) ; la derja est une
   variante de la famille arabe. Chaque entrée donne sens d'écriture, `lang`, tri et **ordre de repli**.
@@ -109,12 +109,12 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` : libellés partagés dans ce
   fichier, libellés d'une zone dans `i18n/texts/<zone>.ts` (`defineTexts` : les quatre langues écrites en
   entier, clés préfixées par la zone). **Aucun texte affiché en dur** (JSX, `title`, `aria-label`,
-  `confirm`, messages), backoffice et accès patron compris ; une erreur venue de l'infrastructure est un
+  `confirm`, messages), backoffice et accès super admin compris ; une erreur venue de l'infrastructure est un
   code que l'interface traduit.
 - **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
   `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
   (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
-  facultatives (vides = absentes). Modifiable dans /patron dans toutes les langues et variantes avec
+  facultatives (vides = absentes). Modifiable dans /admin dans toutes les langues et variantes avec
   `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
   `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext` : `getRecipeName`,
   `getIngredientName`, `getSecondaryName`, `compareNames`), jamais `name_fr` affiché directement (backoffice
@@ -130,14 +130,14 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
   la copie dont elle part (jamais d'écrasement silencieux). **Une recette n'est jamais écrite directement
   dans la collection publique** : l'éditeur enregistre dans l'atelier (`useReview('recipe').store.save`),
-  la publication passe par la page de validation (`/patron/recettes/<id>`). **De même pour les
-  ingrédients** (`useIngredientEditor`, `/patron/ingredients/<id>`). Rôles : une page du backoffice
+  la publication passe par la page de validation (`/admin/recettes/<id>`). **De même pour les
+  ingrédients** (`useIngredientEditor`, `/admin/ingredients/<id>`). Rôles : une page du backoffice
   réservée à un droit le déclare (`requires` dans `BACKOFFICE_SECTIONS`) ; toute écriture publique
   passe par `canPublish()` dans `firestore.rules` (catégories comprises), la gestion (workflows, rôles, équipe) par
   `canManage()` ; les droits d'un membre sont recopiés sur sa fiche `admins/{uid}`
   (`TeamStore.refreshRights` après chaque changement de rôle). Libellés de la validation :
   `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
-- **Catégories gérées** (`@/core/categories`, /patron › Catégories) : deux arbres en base
+- **Catégories gérées** (`@/core/categories`, /admin › Catégories) : deux arbres en base
   (`recipe_categories`, `ingredient_categories`), jamais une liste codée en dur hors des catégories
   d'origine des ingrédients (`BUILT_IN_INGREDIENT_CATEGORIES`, mêmes ids qu'avant, jamais supprimées).
   Une recette a plusieurs catégories (`category_ids`, ancêtres implicites), un ingrédient une seule
@@ -163,10 +163,10 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   coût des courses manquantes = `PriceRange`) ; affichage toujours via `formatPriceRange`
   (`src/shared/i18n/formatPrice.ts`). Un ancien `default_price_tnd` est converti à la lecture par
   `migrateIngredients` : ne plus l'utiliser.
-- **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /patron, vérifié par
+- **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /admin, vérifié par
   `validateIngredient`) : toujours afficher un ingrédient avec `IngredientThumb` (`src/shared/ui/`), qui gère
   le cas sans photo (pastille de catégorie) et le lien cassé.
-- Liens d'images et de vidéos saisis dans /patron : toujours avec un **aperçu en direct** de ce que verra
+- Liens d'images et de vidéos saisis dans /admin : toujours avec un **aperçu en direct** de ce que verra
   le public (`RecipeMediaFields`, aperçu de l'éditeur d'ingrédient).
 - **Formulaires du backoffice** (modèle : éditeur de recette) : choisir un ingrédient avec
   `IngredientSearch` (jamais une liste déroulante de tout le catalogue) ; nombres avec `NumberField`,
@@ -175,7 +175,7 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
   `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
   `parseStoredRecipes` / `parseStoredIngredients`. Libellés : `useBackofficeText()`.
-- **Pages du backoffice** : une adresse par page (`PATRON_PAGES` / `ENGINE_PAGES` + `patronPath()` dans
+- **Pages du backoffice** : une adresse par page (`BACKOFFICE_PAGES` / `ENGINE_PAGES` + `backofficePath()` dans
   `src/shared/paths.ts`) ; une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`
   (`src/features/backoffice/shell/sections.tsx`), jamais un onglet ajouté à la main. Messages avec
   `useNotify()`, éditeur de recette avec `useRecipeEditor()`, actions du catalogue avec `useAdmin()`.
@@ -189,11 +189,11 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   installée : aucune mention « installée », tout disparaît.
 - Réglages en onglets courts (Affichage, Langue, Application) : un nouveau réglage va dans l'onglet qui lui
   correspond plutôt que d'allonger la fenêtre ; icône d'en-tête = roue dentée.
-- En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode patron, le badge
+- En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode super admin, le badge
   et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
-- **Comptes** : trois niveaux — client (formulaire), employé (créé par le patron via le serveur, mot de passe
-  temporaire), patron (session serveur uniquement). Détails : `docs/encyclopedie/13-comptes.md`.
+- **Comptes** : trois niveaux — client (formulaire), employé (créé par le super admin via le serveur, mot de passe
+  temporaire), super admin (session serveur uniquement). Détails : `docs/encyclopedie/13-comptes.md`.
   - Le champ `type` d'un profil vaut `client` ou `employee` ; les variantes de clients sont des données
     (segment, tags…), jamais des valeurs de `type` ; les fonctions client sont universelles (un employé use le
     site comme un client).
@@ -202,11 +202,11 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   - Profil lu via `resolveUserProfile` (tolérant : `type` absent = client), écrit **en entier** par
     `AccountProfileRepository` (port + contrat).
   - Pays : collection partagée `countries` (mécanisme commun `SyncedCollectionStore` + IndexedDB, graine
-    régénérée par `npm run build:countries`) ; `enabled` par pays contrôlé dans /patron ; les sélecteurs
+    régénérée par `npm run build:countries`) ; `enabled` par pays contrôlé dans /admin ; les sélecteurs
     (adresse) ne proposent que les pays activés, les indicatifs du téléphone tous.
   - UI : `PhoneInput` et `AddressFields` (`src/shared/ui`) sans logique métier ; drapeaux calculés depuis le
     code ISO, noms de pays via `Intl.DisplayNames`.
-  - Aucun droit ne vient d'un e-mail écrit dans le code ou les règles : `isOwner` = jeton patron du serveur.
+  - Aucun droit ne vient d'un e-mail écrit dans le code ou les règles : `isOwner` = jeton super admin du serveur.
   - Backoffice : sections dédiées **Équipe** (créer un employé, rôles) et **Clients** (annuaire paginé des
     comptes + pays) ; le filtre de type de l'annuaire lit le champ stocké (`type` absent = visible sous
     « tous », retypé `client` à la prochaine connexion).
@@ -221,7 +221,8 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   l'accueil ; retour ferme les fenêtres ouvertes (`useCloseOnBack`) ; bouton « haut de page »
   (`ScrollToTopButton`, dans `AppLayout`, au-dessus de la barre collante du frigo).
 - **URLs et endpoints tous en anglais** : les pages publiques sont `/`, `/fridge`, `/recipes`, `/recipe/:slug`,
-  `/suggestions`, `/planner`, `/grocery`, `/admin` ; les endpoints du backoffice vivent sous **`/admin/api/*`**,
+  `/suggestions`, `/planner`, `/grocery`, `/admin` (l'ancienne adresse `/patron` redirige encore le temps d'une
+  version) ; les endpoints du backoffice vivent sous **`/admin/api/*`**,
   les endpoints publics sous **`/api/*`** (`/api/vision/scan-fridge`, `/api/health`). **Aucune URL complète n'est
   écrite ailleurs que dans `src/shared/paths.ts`** (constantes `PATHS`, carte `LEGACY_PATHS` des adresses de
   l'époque française, qui répondent en **301** — pages et `/recette/:slug` — pour transférer le référencement) ;

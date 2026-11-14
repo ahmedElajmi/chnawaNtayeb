@@ -5,39 +5,39 @@ l'application (Vite en développement, `dist/` en production).
 
 ## Organisation
 
-| Fichier                                 | Rôle                                                                          |
-| --------------------------------------- | ----------------------------------------------------------------------------- |
-| `server.ts`                             | Point d'entrée : lit la configuration, crée l'API, ajoute Vite ou `dist/`     |
-| `server/app.ts`                         | `createApiApp({ adminConfig, vision })` : API avec dépendances injectées      |
-| `server/routes/patronRoutes.ts`         | Connexion et session patron                                                   |
-| `server/routes/visionRoutes.ts`         | Scan photo du frigo                                                           |
-| `server/routes/seoRoutes.ts`            | `sitemap.xml`, `robots.txt`, pages rendues pour le SEO                        |
-| `server/vision/visionProvider.ts`       | Interface `VisionProvider` (indépendante du fournisseur d'IA)                 |
-| `server/vision/geminiVisionProvider.ts` | Implémentation Google Gemini                                                  |
-| `server/vision/scanValidation.ts`       | Vérification de l'image, du catalogue envoyé et de la réponse de l'IA (testé) |
-| `server/seo.ts`                         | HTML des pages publiques (titre, description, schema.org, contenu lisible)    |
-| `server/patronAuth.ts`                  | Configuration admin, jetons de session signés (HMAC-SHA256), comparaison sûre |
-| `server/firebaseAdmin.ts`               | Firebase Admin : jeton Firebase du patron, lecture du catalogue pour le SEO   |
+| Fichier                                 | Rôle                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------- |
+| `server.ts`                             | Point d'entrée : lit la configuration, crée l'API, ajoute Vite ou `dist/`        |
+| `server/app.ts`                         | `createApiApp({ adminConfig, vision })` : API avec dépendances injectées         |
+| `server/routes/adminRoutes.ts`          | Connexion et session super admin                                                 |
+| `server/routes/visionRoutes.ts`         | Scan photo du frigo                                                              |
+| `server/routes/seoRoutes.ts`            | `sitemap.xml`, `robots.txt`, pages rendues pour le SEO                           |
+| `server/vision/visionProvider.ts`       | Interface `VisionProvider` (indépendante du fournisseur d'IA)                    |
+| `server/vision/geminiVisionProvider.ts` | Implémentation Google Gemini                                                     |
+| `server/vision/scanValidation.ts`       | Vérification de l'image, du catalogue envoyé et de la réponse de l'IA (testé)    |
+| `server/seo.ts`                         | HTML des pages publiques (titre, description, schema.org, contenu lisible)       |
+| `server/adminAuth.ts`                   | Configuration admin, jetons de session signés (HMAC-SHA256), comparaison sûre    |
+| `server/firebaseAdmin.ts`               | Firebase Admin : jeton Firebase du super admin, lecture du catalogue pour le SEO |
 
 ## Points d'accès
 
-| Méthode | Adresse                           | Rôle                                                                   |
-| ------- | --------------------------------- | ---------------------------------------------------------------------- |
-| GET     | `/api/health`                     | État du serveur                                                        |
-| POST    | `/api/auth/patron-login`          | Identifiants → jeton de session (8 h) + jeton Firebase si configuré    |
-| GET     | `/api/auth/patron-verify`         | Vérifie le jeton (`Authorization: Bearer …`)                           |
-| POST    | `/api/auth/patron-firebase-token` | Nouveau jeton Firebase pour une session existante (après rechargement) |
-| POST    | `/api/vision/scan-fridge`         | Photo + catalogue → ingrédients reconnus + idées de plats              |
-| GET     | `/sitemap.xml`, `/robots.txt`     | Référencement                                                          |
-| POST    | `/api/accounts/employees`         | Création d'un compte employé (session patron, mot de passe temporaire) |
+| Méthode | Adresse                          | Rôle                                                                        |
+| ------- | -------------------------------- | --------------------------------------------------------------------------- |
+| GET     | `/api/health`                    | État du serveur                                                             |
+| POST    | `/api/auth/admin-login`          | Identifiants → jeton de session (8 h) + jeton Firebase si configuré         |
+| GET     | `/api/auth/admin-verify`         | Vérifie le jeton (`Authorization: Bearer …`)                                |
+| POST    | `/api/auth/admin-firebase-token` | Nouveau jeton Firebase pour une session existante (après rechargement)      |
+| POST    | `/api/vision/scan-fridge`        | Photo + catalogue → ingrédients reconnus + idées de plats                   |
+| GET     | `/sitemap.xml`, `/robots.txt`    | Référencement                                                               |
+| POST    | `/api/accounts/employees`        | Création d'un compte employé (session super admin, mot de passe temporaire) |
 
 ## Sécurité
 
-- **Patron** : le mot de passe ne vit que sur le serveur ; mot de passe d'au moins 12 caractères et
+- **Super admin** : le mot de passe ne vit que sur le serveur ; mot de passe d'au moins 12 caractères et
   secret de session d'au moins 32, sinon la connexion est désactivée ; les deux champs sont toujours
   comparés (pas d'indice sur celui qui est faux) ; 5 échecs par quart d'heure et par IP.
 - **Jetons de session** : signés, avec expiration ; le navigateur ne fait que les présenter.
-- **Firestore** : le jeton Firebase du patron porte le droit `patron: true`, exigé par les règles.
+- **Firestore** : le jeton Firebase du super admin porte le droit `super admin: true`, exigé par les règles.
 - **Scan photo** : JPEG, PNG ou WebP, 4 Mo maximum, 10 scans par heure et par IP ; le catalogue
   envoyé est nettoyé (ids valides, noms sans retour à la ligne) ; la réponse de l'IA n'est jamais
   crue sur parole (ids inconnus → `null`, tailles limitées).
@@ -78,7 +78,7 @@ l'adresse canonique, les cartes de partage, les données schema.org et une **cop
   « Page suivante / précédente » (`?page=2`, `rel="next"`) que les robots suivent ; une page au-delà de
   la fin renvoie 404. L'accueil montre la 1re page et renvoie vers `/recettes`.
 - **Peu importe l'en-tête `Accept`** : toute requête GET ou HEAD sur une adresse publique reçoit la page
-  (certains robots n'envoient pas `text/html`). Les autres adresses (`/patron`, fichiers, `/api`) ne
+  (certains robots n'envoient pas `text/html`). Les autres adresses (`/admin`, fichiers, `/api`) ne
   passent pas par le catalogue (`isSeoPath`).
 - Une recette ou une adresse de liste inconnue renvoie une page 404 (`noindex`).
 - **Adresse de base** : toutes ces URLs (canonical, sitemap, robots) viennent de la variable

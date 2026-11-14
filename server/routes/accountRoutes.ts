@@ -1,12 +1,12 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { createEmployeeAccount } from '../firebaseAdmin';
-import { readBearerToken, verifySessionToken, type AdminConfig } from '../patronAuth';
+import { readBearerToken, verifySessionToken, type BackofficeAuthConfig } from '../backofficeAuth';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Employee accounts are created by the server only (patron session required). */
-export function accountRoutes(adminConfig: AdminConfig): express.Router {
+/** Employee accounts are created by the server only (super-admin session required). */
+export function accountRoutes(backofficeAuthConfig: BackofficeAuthConfig): express.Router {
   const router = express.Router();
 
   // Account creation costs an Admin SDK write: 20 per hour and per IP, whatever the outcome
@@ -19,8 +19,8 @@ export function accountRoutes(adminConfig: AdminConfig): express.Router {
   });
 
   const requireSession = (req: express.Request): boolean => {
-    if (!adminConfig.ok) return false;
-    return verifySessionToken(readBearerToken(req.headers.authorization), adminConfig.secret) !== null;
+    if (!backofficeAuthConfig.ok) return false;
+    return verifySessionToken(readBearerToken(req.headers.authorization), backofficeAuthConfig.secret) !== null;
   };
 
   router.post(['/admin/api/employees', '/api/accounts/employees'], employeeLimiter, async (req, res) => {

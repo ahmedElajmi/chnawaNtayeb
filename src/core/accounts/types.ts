@@ -12,7 +12,7 @@ export interface Region {
 
 /**
  * A country the app may serve, stored as countries/{isoCode} (shared collection, synced
- * offline like recipes and ingredients). The patron adds, edits and enables countries
+ * offline like recipes and ingredients). The super-admin adds, edits and enables countries
  * without a deploy; the built-in seed covers the first launch.
  */
 export interface CountryRecord extends Versioned {
