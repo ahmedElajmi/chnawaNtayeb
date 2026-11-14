@@ -292,7 +292,9 @@ service cloud.firestore {
         && optionalString(d, 'email', 254)
         && optionalString(d, 'displayName', 60)
         // E.164: plus and 6 to 15 digits (libphonenumber-js does the real validation client-side)
-        && (!('phone' in d) || (d.phone is string && d.phone.matches('^\+[1-9][0-9]{5,14}$')))
+        // No {n,m} quantifiers: the rules parser does not support brace ranges
+        && (!('phone' in d) || (d.phone is string && d.phone.size() >= 7 && d.phone.size() <= 16
+          && d.phone.matches('^\\+[1-9][0-9][0-9][0-9][0-9][0-9][0-9]*$')))
         && (!('address' in d) || (d.address is map && isValidAddress(d.address)))
         && (!('preferredLanguage' in d) || (d.preferredLanguage is string && d.preferredLanguage in ['fr', 'ar', 'derja', 'derja_ar']))
         && (!('isAnonymous' in d) || d.isAnonymous is bool)
