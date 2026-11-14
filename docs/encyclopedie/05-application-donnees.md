@@ -101,28 +101,34 @@ super admin (vidéo, « healthy », substitut…) disparaît donc aussi de la ba
 
 Prévue pour des milliers d'éléments, sans relire toute la base à chaque ouverture :
 
-- Chaque écriture porte `revision` = **heure du serveur** (`serverTimestamp`), identique pour tous les
-  appareils (aucun décalage d'horloge). `firestore.rules` l'exige (`revision == request.time`).
+- Chaque écriture porte `revision` = **heure du serveur** (tampon posé par le serveur au moment du
+  `put`), identique pour tous les appareils (aucun décalage d'horloge).
 - Une suppression est une **marque** `{ deleted: true, revision }` : les autres appareils retirent l'élément.
-- Au démarrage, l'appareil affiche sa copie (IndexedDB), puis ne demande que `revision >= la plus récente
-qu'il connaît` : sans changement, **aucun document lu**. Il reste ensuite abonné (`onSnapshot`) : une
-  modification faite sur un appareil arrive sur les autres en quelques secondes, sans recharger, et ne
-  coûte qu'une lecture par appareil connecté.
-- Première visite, copie de plus de 30 jours ou « Récupérer depuis le cloud » : lecture complète.
+- Au démarrage, l'appareil affiche sa copie (IndexedDB), puis envoie ses révisions au serveur
+  (`POST /api/data/changes`, **une seule requête pour toutes les collections suivies**) : côté serveur,
+  le **watermark** rend un client à jour gratuit (**0 lecture base**). Dans le cas contraire, une seule
+  requête indexée par collection en retard renvoie le delta. Le navigateur **interroge toutes les
+  60 s** (onglet visible), au retour sur l'onglet (`visibilitychange`/`focus`) et **immédiatement après
+  chaque écriture** — une modification faite ailleurs arrive donc sans recharger la page.
+- Le SDK Firebase n'existe plus dans le navigateur : le transport passe par `createHttpSharedCollection`
+  (`src/infrastructure/http/sharedCollectionHttp.ts`) + un **poller partagé** (`dataPoller.ts`) ; le
+  stockage reste derrière le contrat `DataStore` (Firestore côté serveur, SQL plus tard).
+- Première visite, copie de plus de 30 jours ou « Récupérer depuis le serveur » : lecture complète
+  (rattrapage page par page si le catalogue dépasse la limite par page).
 - Toute donnée reçue est relue par le domaine (`parseStoredRecipes`, `parseStoredIngredients`) ; les
   éléments invalides sont ignorés. Une base vide ne remplace pas le catalogue intégré.
 - Fonctions pures : `@/core/sync` (`applyChanges`, `latestRevision`, `isDeletionMarker`).
 - Le même mécanisme sert à toute nouvelle collection partagée (thèmes, scénarios, textes du CMS) :
-  un `SyncedCollectionStore` + `createFirestoreSharedCollection('<collection>')` + une copie IndexedDB.
-  Les thèmes et les scénarios utilisent encore leur ancien chargement (petits volumes) : à migrer.
-- Réglages du moteur : un seul document suivi en direct (`followActive`), une nouvelle version publiée
-  s'applique tout de suite sur tous les appareils.
+  un `SyncedCollectionStore` + `createHttpSharedCollection('<collection>')` + une copie IndexedDB.
+- Réglages du moteur : un seul document suivi (`GET /api/settings/matching`, polling 60 s), une
+  nouvelle version publiée s'applique tout de suite sur tous les appareils.
 - Les pages SEO du serveur (`server/seo.ts`) se mettent à jour de la même façon (changements seulement,
   au plus toutes les 60 s).
 
-Les règles sont dans `firestore.rules` (tout est refusé par défaut). « Super admin » = session ouverte
-par le serveur (jeton Firebase avec le droit `super admin`), compte propriétaire vérifié, ou uid listé
-dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).
+Les règles Firestore (`firestore.rules`, tout refusé par défaut) restent déployées comme **second
+filet** : la porte principale est désormais le serveur, qui décide des droits à chaque requête
+(session super admin, ou session employé dont les droits viennent de `admins/{uid}` ; un visiteur
+non prouvé ne lit que les collections publiques). Déploiement : voir [10 Exploitation](10-exploitation.md).
 
 ### Navigateur (copie hors ligne et données personnelles)
 

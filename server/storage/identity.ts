@@ -1,12 +1,12 @@
 import type express from 'express';
 import { readBearerToken, verifySessionToken, type BackofficeAuthConfig } from '../backofficeAuth';
-import { verifyEmployeeRights, verifyEmployeeToken } from '../firebaseAdmin';
+import { verifyEmployeeRights } from '../firebaseAdmin';
 import { verifyUserSessionToken } from '../auth/sessions';
 
 /**
  * What a caller of the data endpoints may do. The super-admin session grants everything; an
- * employee proves themselves with their Firebase identity token, and their rights come
- * from the team record. A visitor without proof is read-only on the public collections.
+ * employee proves themselves with their server session, and their rights come from the team
+ * record. A visitor without proof is read-only on the public collections.
  */
 export interface Identity {
   /** The super-admin session itself */
@@ -34,10 +34,7 @@ export async function resolveIdentity(
       if (!rights) return VISITOR;
       return { owner: false, canPublish: rights.can_publish === true, canManage: rights.can_manage === true };
     }
-    if (userSession) return VISITOR; // clients and guests write nothing through /api/data
-    const firebaseEmployee = await verifyEmployeeToken(token);
-    if (firebaseEmployee)
-      return { owner: false, canPublish: firebaseEmployee.canPublish, canManage: firebaseEmployee.canManage };
+    // Clients and guests write nothing through /api/data
   }
   return VISITOR;
 }

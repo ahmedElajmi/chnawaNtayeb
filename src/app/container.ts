@@ -31,21 +31,13 @@ import { localPreferences } from '@/infrastructure/local/localPreferences';
 import { localRecipeDrafts } from '@/infrastructure/local/localRecipeDrafts';
 import { storage } from '@/infrastructure/local/storage';
 import { createIndexedDbCollectionCache } from '@/infrastructure/indexeddb/indexedDbCollectionCache';
-import {
-  firestoreCloudName,
-  firestoreCountries,
-  firestoreIngredientCategories,
-  firestoreIngredients,
-  firestoreRecipeCategories,
-  firestoreRecipes,
-} from '@/infrastructure/firebase/firestoreCatalog';
-import { firestoreMatchingScenarios } from '@/infrastructure/firebase/firestoreMatchingScenarios';
-import { firestoreMatchingSettings } from '@/infrastructure/firebase/firestoreMatchingSettings';
-import { firestoreThemeRepository } from '@/infrastructure/firebase/themes';
-import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firestoreReviewWorkspace';
-import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
-import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
-import { firestoreAccountDirectory } from '@/infrastructure/firebase/firestoreAccountDirectory';
+import { createHttpSharedCollection } from '@/infrastructure/http/sharedCollectionHttp';
+import { matchingScenariosHttp, teamHttp } from '@/infrastructure/http/scenariosAndTeamHttp';
+import { matchingSettingsHttp, reviewSettingsHttp } from '@/infrastructure/http/settingsRepositories';
+import { themesHttp } from '@/infrastructure/http/themesHttp';
+import { createHttpReviewWorkspace } from '@/infrastructure/http/reviewWorkspaceHttp';
+import { accountDirectoryHttp } from '@/infrastructure/http/accountDirectoryHttp';
+import { DataPoller, dataPoller } from '@/infrastructure/http/dataPoller';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
 import { accountProfileHttpGateway } from '@/infrastructure/http/accountProfileHttpGateway';
 import { backofficeSessionHttpGateway } from '@/infrastructure/http/backofficeSessionHttpGateway';
@@ -71,8 +63,14 @@ const legacyCatalog = (kind: 'recipes' | 'ingredients') => ({
  */
 export function createContainer() {
   const now = () => Date.now();
+  // Every collection through our server: the poller batches all the follow-ups into one
+  // request per minute (watermark fast-path) and refreshes right after a write or a focus.
+  DataPoller.installLifecycle(dataPoller);
+  const recipesCloud = createHttpSharedCollection<Recipe>('recipes');
+  const ingredientsCloud = createHttpSharedCollection<Ingredient>('ingredients');
+  const countriesCloud = createHttpSharedCollection<CountryRecord>('countries');
   const recipes = new SyncedCollectionStore<Recipe>({
-    source: firestoreRecipes.source,
+    source: recipesCloud.source,
     cache: createIndexedDbCollectionCache<Recipe>('recipes', { legacy: legacyCatalog('recipes') }),
     read: parseStoredRecipes,
     // Only validated recipes are public: nothing is shown before the database answers
@@ -81,7 +79,7 @@ export function createContainer() {
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
   const ingredients = new SyncedCollectionStore<Ingredient>({
-    source: firestoreIngredients.source,
+    source: ingredientsCloud.source,
     cache: createIndexedDbCollectionCache<Ingredient>('ingredients', { legacy: legacyCatalog('ingredients') }),
     read: parseStoredIngredients,
     builtIn: () => initialIngredients,
@@ -91,11 +89,11 @@ export function createContainer() {
   const catalog = new CatalogStore(recipes, ingredients);
 
   // Validation workflow: private workspaces (admin only, started from the backoffice)
-  const recipesWorkspace = createFirestoreReviewWorkspace<'recipe'>('recipes');
-  const ingredientsWorkspace = createFirestoreReviewWorkspace<'ingredient'>('ingredients');
+  const recipesWorkspace = createHttpReviewWorkspace<'recipe'>('recipes');
+  const ingredientsWorkspace = createHttpReviewWorkspace<'ingredient'>('ingredients');
   const backofficeSession = new BackofficeSessionStore(backofficeSessionHttpGateway, () => catalogAdmin.seedIfEmpty());
-  const reviewSettings = new ReviewSettingsStore(firestoreReviewSettings);
-  const team = new TeamStore(firestoreTeam, { now, roles: () => reviewSettings.getState().settings.roles });
+  const reviewSettings = new ReviewSettingsStore(reviewSettingsHttp);
+  const team = new TeamStore(teamHttp, { now, roles: () => reviewSettings.getState().settings.roles });
   const adminRole = DEFAULT_ROLES.find((r) => r.id === ADMIN_ROLE_ID)!;
   const review = new ReviewBoard({
     settings: reviewSettings,
@@ -135,7 +133,7 @@ export function createContainer() {
   const canPublish = () => review.actor().role.permissions.includes('publish');
   const categoryStore = (
     kind: CategoryKind,
-    adapter: typeof firestoreRecipeCategories,
+    adapter: { source: typeof recipeCategoriesCloud.source; writer: typeof recipeCategoriesCloud.writer },
     name: 'recipe_categories' | 'ingredient_categories'
   ) =>
     new CategoryStore(
@@ -153,24 +151,26 @@ export function createContainer() {
     );
   // Countries: public, followed like the catalog; enabled/edited by an account allowed to publish
   const countriesCollection = new SyncedCollectionStore<CountryRecord>({
-    source: firestoreCountries.source,
+    source: countriesCloud.source,
     cache: createIndexedDbCollectionCache<CountryRecord>('countries'),
     read: parseStoredCountries,
     builtIn: () => initialCountries,
     now,
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
-  const countries = new CountriesStore(countriesCollection, firestoreCountries.writer, canPublish);
+  const countries = new CountriesStore(countriesCollection, countriesCloud.writer, canPublish);
   const accountProfile = new AccountProfileStore(accountProfileHttpGateway, () => countries.getState().countries);
-  const accountDirectory = new AccountDirectoryStore(firestoreAccountDirectory);
+  const accountDirectory = new AccountDirectoryStore(accountDirectoryHttp);
 
+  const recipeCategoriesCloud = createHttpSharedCollection<ContentCategory>('recipe_categories');
+  const ingredientCategoriesCloud = createHttpSharedCollection<ContentCategory>('ingredient_categories');
   const categories = {
-    recipe: categoryStore('recipe', firestoreRecipeCategories, 'recipe_categories'),
-    ingredient: categoryStore('ingredient', firestoreIngredientCategories, 'ingredient_categories'),
+    recipe: categoryStore('recipe', recipeCategoriesCloud, 'recipe_categories'),
+    ingredient: categoryStore('ingredient', ingredientCategoriesCloud, 'ingredient_categories'),
   };
   const kitchen = new KitchenStore(localKitchenRepository);
-  const catalogAdmin = new CatalogAdmin(catalog, firestoreRecipes.writer, firestoreIngredients.writer, kitchen, {
-    cloudName: firestoreCloudName,
+  const catalogAdmin = new CatalogAdmin(catalog, recipesCloud.writer, ingredientsCloud.writer, kitchen, {
+    cloudName: 'Serveur',
     newId: createId,
     nowIso: () => new Date().toISOString(),
   });
@@ -187,14 +187,14 @@ export function createContainer() {
     countries,
     accountProfile,
     accountDirectory,
-    matchingSettings: new MatchingSettingsStore(firestoreMatchingSettings, localMatchingSettingsCache),
-    matchingScenarios: new MatchingScenariosStore(firestoreMatchingScenarios, {
+    matchingSettings: new MatchingSettingsStore(matchingSettingsHttp, localMatchingSettingsCache),
+    matchingScenarios: new MatchingScenariosStore(matchingScenariosHttp, {
       randomSuffix: () => crypto.randomUUID().slice(0, 6),
       now: () => new Date().toISOString(),
     }),
     // Services (ports used directly by a screen)
     preferences: localPreferences,
-    themes: firestoreThemeRepository,
+    themes: themesHttp,
     userAuth: userAuthHttpGateway,
     accountCreation: accountHttpGateway,
     backofficePolicy: passwordPolicyGateway,

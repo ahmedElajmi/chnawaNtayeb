@@ -43,6 +43,9 @@ const authParser: ParseDoc = (raw) => {
 /** Team members keep their raw shape (uid, e-mail, role, rights the rules read). */
 const adminsParser: ParseDoc = (raw) => (parseTeamMember(raw) ? (raw as Record<string, unknown>) : null);
 
+/** Historical snapshots and themes keep their raw shape: the domain reads them back itself. */
+const rawDoc: ParseDoc = (raw) => (raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : null);
+
 export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   recipes: {
     name: 'recipes',
@@ -99,6 +102,33 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
     write: 'manager',
     pageLimit: 300,
     parse: (r) => parseScenario(r) as Record<string, unknown> | null,
+  },
+  // Themes: visitors read the published ones through /api/themes (published filter); the drafts
+  // and the writes stay manager-side, so the change feed never leaks a draft.
+  themes: { name: 'themes', read: 'admin', write: 'publisher', pageLimit: 300, parse: rawDoc },
+  // Version histories: written only by the atomic commit of the workflow (write 'server'),
+  // read by the backoffice.
+  recipes_versions: { name: 'recipes_versions', read: 'admin', write: 'server', pageLimit: 300, parse: rawDoc },
+  ingredients_versions: {
+    name: 'ingredients_versions',
+    read: 'admin',
+    write: 'server',
+    pageLimit: 300,
+    parse: rawDoc,
+  },
+  matching_settings_versions: {
+    name: 'matching_settings_versions',
+    read: 'admin',
+    write: 'server',
+    pageLimit: 300,
+    parse: rawDoc,
+  },
+  review_settings_versions: {
+    name: 'review_settings_versions',
+    read: 'admin',
+    write: 'server',
+    pageLimit: 300,
+    parse: rawDoc,
   },
   admins: { name: 'admins', read: 'admin', write: 'manager', pageLimit: 300, parse: adminsParser },
   // Server-only collections: never served by the data endpoints, still converted to SQL.
