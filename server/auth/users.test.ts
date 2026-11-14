@@ -128,6 +128,7 @@ describe('accounts through the storage contract', () => {
       s,
       uid,
       { displayName: 'Amine B.', phone: '+21620123456', preferredLanguage: 'ar' },
+      COUNTRIES,
       now
     );
     expect(profile?.displayName).toBe('Amine B.');

@@ -192,13 +192,24 @@ export type UserAuthError =
   | 'weak-password'
   | 'invalid-email'
   | 'too-many-attempts'
+  | 'locked'
   | 'network'
   | 'disabled'
   | 'unknown';
 
+/** Password rules of the site, shown live in the registration and change forms. */
+export interface PasswordCriteria {
+  minLength: number;
+  digit: boolean;
+  uppercase: boolean;
+  special: boolean;
+}
+
 export interface UserAuthGateway {
   /** Minimum password length accepted when creating an account */
   readonly minPasswordLength: number;
+  /** The live password rules of the site (the backoffice configures them); defaults when unreachable */
+  passwordCriteria(): Promise<PasswordCriteria>;
   /** Calls `listener` now and on every sign-in / sign-out; returns the unsubscribe function */
   subscribe(listener: (user: AppUser | null) => void): () => void;
   loginAsGuest(): Promise<void>;
