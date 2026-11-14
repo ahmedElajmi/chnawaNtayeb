@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Download, History, Trash2, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Download, History, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { GroceryHistoryEntry } from '@/core/grocery';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { exportHistoryXlsx, formatHistoryDate } from '@/shared/export/exportHistoryXlsx';
-import { useContainer, useAccountProfile } from '@/app/ContainerContext';
+import { useContainer, useAccountProfile, useKitchen } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 
 const FALLBACK_BRAND_COLOR = '#2d5a27';
@@ -19,6 +19,7 @@ const formatMoney = (value: number, currency: string): string => `${Math.round(v
 export function GroceryHistoryPanel() {
   const { t } = useLanguage();
   const { groceryHistory } = useContainer();
+  const { kitchen } = useKitchen();
   const { profile } = useAccountProfile();
 
   const [open, setOpen] = useState(false);
@@ -26,6 +27,7 @@ export function GroceryHistoryPanel() {
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [duplicated, setDuplicated] = useState(false);
 
   const isGuest = profile === null;
 
@@ -59,6 +61,13 @@ export function GroceryHistoryPanel() {
       setEntries(previous);
       setFailed(true);
     }
+  };
+
+  /** Rebuilds a fresh (unchecked) shopping list from an archived entry and shows it. */
+  const handleDuplicate = (entry: GroceryHistoryEntry) => {
+    kitchen.createGroceryListFromItems(t.listsFromHistoryName, entry.items);
+    setDuplicated(true);
+    window.setTimeout(() => setDuplicated(false), 4000);
   };
 
   const handleExport = async () => {
@@ -111,6 +120,16 @@ export function GroceryHistoryPanel() {
 
         {open && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3">
+            {/* Confirmation of a duplicate: the new list is now the active one on screen */}
+            {duplicated && (
+              <p
+                role="status"
+                className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                {t.listsFromHistoryToast}
+              </p>
+            )}
             {/* Guests: the history lives on the server, a session is required */}
             {isGuest ? (
               <p className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200">
@@ -179,6 +198,14 @@ export function GroceryHistoryPanel() {
                             )}
                           </p>
                         </div>
+                        <button
+                          onClick={() => handleDuplicate(entry)}
+                          aria-label={t.listsFromHistory}
+                          title={t.listsFromHistory}
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-brand-text hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleRemove(entry.id)}
                           aria-label={t.groceryHistoryDeleteConfirm}

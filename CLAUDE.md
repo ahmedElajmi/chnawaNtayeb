@@ -169,11 +169,23 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   (même `ingredient_id` ou même nom) un ajout en unité compatible : quantité convertie et additionnée,
   ligne décochée ; unités incompatibles = deux lignes. Ajouter un article du catalogue = passer son
   `ingredient_id` et sa `category` (bon rayon, pas `is_custom`).
+- **Courses** : plusieurs **listes nommées** (`GroceryList` : id, nom ≤ 80, items, note, `spent_tnd` ;
+  `@/core/grocery/lists.ts`), l'active affichée partout — le getter de compat `kitchen.groceryList`
+  rend ses articles. Une **section de sync unique `groceryLists`** (`{ lists, activeId }`, dernier
+  écrit gagnant) remplace les anciennes `groceryList` / `groceryMeta` : le serveur accepte encore ces
+  sections (une version de transition) mais **le client les ignore**. Toute mutation de liste passe
+  par `KitchenStore` (paramètre `listId` facultatif, liste active sinon). Les ajouts depuis le frigo,
+  la fiche recette ou le menu demandent la liste cible (`GroceryListChooserModal`, `src/shared/ui`)
+  **seulement quand l'utilisateur garde plusieurs listes** : ≤ 1 liste = ajout direct, inchangé.
 - **Descriptions d'unités** (`UnitInfo`, /admin › Ingrédients › Unités) : collection partagée `units`
   (mécanisme commun `SyncedCollectionStore` + IndexedDB, DB version 5 ; lecture publique, écriture
-  publication), id = libellé slugifié (`unitIdFromLabel`), libellé unique et description française
-  obligatoires (`validateUnitInfo`). **Aucune description par défaut dans le code** : une unité non
-  configurée reste nue ; affichage toujours via `UnitInfo` (`src/shared/ui/UnitInfo.tsx`, infobulle
+  publication), id = libellé slugifié (`unitIdFromLabel`), libellé unique, **kind obligatoire**
+  (`mass` / `volume` / `count` / `other` — déduit du libellé par `inferUnitKind` pour les documents
+  anciens, réparé à la lecture) et description française obligatoires (`validateUnitInfo`). Les
+  libellés d'unités proposés à la saisie viennent du registre (`CatalogStore.unitOptions()` /
+  `useUnitOptions()`), sinon des unités intégrées `BUILTIN_UNIT_OPTIONS` (17 unités courantes
+  classées par kind). **Aucune description par défaut dans le code** : une unité non configurée
+  reste nue ; affichage toujours via `UnitInfo` (`src/shared/ui/UnitInfo.tsx`, infobulle
   lue par `useUnitDescription`).
 - **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /admin, vérifié par
   `validateIngredient`) : toujours afficher un ingrédient avec `IngredientThumb` (`src/shared/ui/`), qui gère

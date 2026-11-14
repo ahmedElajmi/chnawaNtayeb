@@ -21,7 +21,16 @@ const KITCHEN = 'kitchen';
 const KITCHEN_HISTORY = 'kitchen_history';
 
 /** Sections are capped so no account can grow an unbounded document. */
-const MAX = { sets: 300, pantry: 100, grocery: 500, planDays: 14 } as const;
+const MAX = {
+  sets: 300,
+  pantry: 100,
+  grocery: 500,
+  planDays: 14,
+  lists: 20,
+  listName: 80,
+  listId: 100,
+  note: 300,
+} as const;
 
 /**
  * Archived grocery-run snapshots: capped per account so no one can grow an unbounded
@@ -49,13 +58,14 @@ const asGrocery = (raw: unknown): unknown[] | null =>
 const asPreferences = (raw: unknown): Record<string, unknown> | null =>
   raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
 
-/** Grocery metadata: a free note and an optional spent amount (null = nothing spent yet). */
+/** Grocery metadata (legacy section, kept for one transition release): a free note and an
+ *  optional spent amount (null = nothing spent yet). */
 const asGroceryMeta = (raw: unknown): Record<string, unknown> | null => {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const meta = raw as Record<string, unknown>;
   const out: Record<string, unknown> = {};
   if (meta.note !== undefined) {
-    if (typeof meta.note !== 'string' || meta.note.length > 300) return null;
+    if (typeof meta.note !== 'string' || meta.note.length > MAX.note) return null;
     out.note = meta.note;
   }
   if (meta.spent_tnd !== undefined) {
@@ -65,6 +75,43 @@ const asGroceryMeta = (raw: unknown): Record<string, unknown> | null => {
     out.spent_tnd = meta.spent_tnd;
   }
   return out;
+};
+
+/**
+ * The named shopping lists of the account, with the active one. Each list is capped like a
+ * whole legacy list (500 items), its name is a trimmed non-empty string of at most 80
+ * characters, its note is capped like the legacy groceryMeta note, and its spend is a finite
+ * number or null. `activeId` must reference one of the lists.
+ */
+const asGroceryLists = (raw: unknown): { lists: Record<string, unknown>[]; activeId: string } | null => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const payload = raw as Record<string, unknown>;
+  if (!Array.isArray(payload.lists) || payload.lists.length === 0 || payload.lists.length > MAX.lists) return null;
+  const lists: Record<string, unknown>[] = [];
+  for (const entry of payload.lists) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+    const list = entry as Record<string, unknown>;
+    if (typeof list.id !== 'string' || list.id.length === 0 || list.id.length > MAX.listId) return null;
+    if (typeof list.name !== 'string' || list.name.trim() === '' || list.name.trim().length > MAX.listName) {
+      return null;
+    }
+    const items = asGrocery(list.items);
+    if (items === null) return null;
+    const validated: Record<string, unknown> = { id: list.id, name: list.name.trim(), items };
+    if (list.note !== undefined) {
+      if (typeof list.note !== 'string' || list.note.length > MAX.note) return null;
+      validated.note = list.note;
+    }
+    if (list.spent_tnd !== undefined) {
+      if (list.spent_tnd !== null && (typeof list.spent_tnd !== 'number' || !Number.isFinite(list.spent_tnd))) {
+        return null;
+      }
+      validated.spent_tnd = list.spent_tnd;
+    }
+    lists.push(validated);
+  }
+  if (typeof payload.activeId !== 'string' || !lists.some((list) => list.id === payload.activeId)) return null;
+  return { lists, activeId: payload.activeId };
 };
 
 /** Validates one section the client sent; null when malformed (refused, never stored). */
@@ -89,12 +136,17 @@ function readSection(name: string, raw: unknown): KitchenSectionPayload | null {
       validated = asPlan(value);
       break;
     case 'groceryList':
+      // Legacy single list, accepted for one transition release (ignored by the current client)
       validated = asGrocery(value);
+      break;
+    case 'groceryLists':
+      validated = asGroceryLists(value);
       break;
     case 'preferences':
       validated = asPreferences(value);
       break;
     case 'groceryMeta':
+      // Legacy metadata of the single list, accepted for one transition release
       validated = asGroceryMeta(value);
       break;
     default:

@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BUILTIN_UNIT_OPTIONS,
   UNIT_ID_PATTERN,
+  UNIT_KINDS,
   parseStoredUnitInfo,
   parseStoredUnitInfos,
   unitDescriptionIndex,
   unitLookupKey,
   unitIdFromLabel,
+  unitOptionsFromInfos,
   validateUnitInfo,
   type UnitInfo,
 } from './info';
@@ -13,6 +16,7 @@ import {
 const makeUnit = (patch: Partial<UnitInfo> = {}): UnitInfo => ({
   id: 'c-a-s',
   label: 'c.à.s',
+  kind: 'count',
   description_fr: 'Cuillère à soupe (environ 15 ml)',
   description_derja: 'Ma3l9a kbira',
   description_ar: 'ملعقة كبيرة',
@@ -30,10 +34,25 @@ describe('parseStoredUnitInfo', () => {
     expect(unit).toEqual({
       id: 'kg',
       label: 'kg',
+      kind: 'mass',
       description_fr: 'Kilogramme',
       description_derja: '',
       description_ar: 'كغ',
     });
+  });
+
+  it('infers the kind of an old document from its label', () => {
+    const legacy = { id: 'kg', label: 'kg', description_fr: 'Kilogramme' };
+    expect(parseStoredUnitInfo(legacy)?.kind).toBe('mass');
+    expect(parseStoredUnitInfo({ id: 'l', label: 'L', description_fr: 'Litre' })?.kind).toBe('volume');
+    expect(parseStoredUnitInfo({ id: 'botte', label: 'botte', description_fr: 'Botte' })?.kind).toBe('count');
+    expect(parseStoredUnitInfo({ id: 'c-a-s', label: 'c.à.s', description_fr: 'Cuillère' })?.kind).toBe('count');
+    expect(parseStoredUnitInfo({ id: 'bol', label: 'c.à.s / bol', description_fr: 'Bol' })?.kind).toBe('other');
+  });
+
+  it('keeps a valid stored kind, repairs an unknown one from the label', () => {
+    expect(parseStoredUnitInfo({ ...makeUnit(), kind: 'volume' })?.kind).toBe('volume');
+    expect(parseStoredUnitInfo({ ...makeUnit(), kind: 'banana' })?.kind).toBe('count');
   });
 
   it('drops what is not usable', () => {
@@ -102,6 +121,15 @@ describe('validateUnitInfo', () => {
     ]);
   });
 
+  it('asks for a valid kind', () => {
+    expect(validateUnitInfo({ ...makeUnit(), kind: 'banana' as UnitInfo['kind'] }, stored)).toEqual([
+      { field: 'kind', problem: 'kind-invalid' },
+    ]);
+    for (const kind of UNIT_KINDS) {
+      expect(validateUnitInfo({ ...makeUnit(), kind }, stored)).toEqual([]);
+    }
+  });
+
   it('refuses a label already described, even written differently', () => {
     expect(validateUnitInfo(makeUnit({ label: ' KG ' }), stored)).toEqual([{ field: 'label', problem: 'label-taken' }]);
   });
@@ -116,5 +144,66 @@ describe('validateUnitInfo', () => {
     expect(validateUnitInfo(makeUnit({ label: 'kg', id: 'kilogramme' }), stored)).toEqual([
       { field: 'label', problem: 'label-taken' },
     ]);
+  });
+});
+
+describe('BUILTIN_UNIT_OPTIONS', () => {
+  it('classifies the common units like the matching engine does', () => {
+    expect(BUILTIN_UNIT_OPTIONS.filter((o) => o.kind === 'mass').map((o) => o.label)).toEqual(['g', 'kg']);
+    expect(BUILTIN_UNIT_OPTIONS.filter((o) => o.kind === 'volume').map((o) => o.label)).toEqual(['cl', 'L', 'ml']);
+    expect(BUILTIN_UNIT_OPTIONS.filter((o) => o.kind === 'count').map((o) => o.label)).toEqual([
+      'boîte',
+      'botte',
+      'c.à.c',
+      'c.à.s',
+      'feuilles',
+      'gousses',
+      'paquet',
+      'pièce',
+      'pincée',
+      'sachet',
+      'tranche',
+      'verre',
+    ]);
+    expect(BUILTIN_UNIT_OPTIONS.filter((o) => o.kind === 'other')).toEqual([]);
+  });
+
+  it('holds unique labels of a valid kind, already sorted by kind then label', () => {
+    const labels = BUILTIN_UNIT_OPTIONS.map((o) => o.label);
+    expect(new Set(labels).size).toBe(labels.length);
+    for (const option of BUILTIN_UNIT_OPTIONS) expect(UNIT_KINDS).toContain(option.kind);
+    const order = { mass: 0, volume: 1, count: 2, other: 3 } as const;
+    expect(BUILTIN_UNIT_OPTIONS).toEqual(
+      [...BUILTIN_UNIT_OPTIONS].sort(
+        (a, b) => order[a.kind] - order[b.kind] || unitLookupKey(a.label).localeCompare(unitLookupKey(b.label))
+      )
+    );
+  });
+});
+
+describe('unitOptionsFromInfos', () => {
+  it('sorts the registry by kind (mass and volume first) then label', () => {
+    const options = unitOptionsFromInfos([
+      makeUnit({ id: 'verre', label: 'verre', kind: 'count', description_fr: 'Verre' }),
+      makeUnit({ id: 'kg', label: 'kg', kind: 'mass', description_fr: 'Kilogramme' }),
+      makeUnit({ id: 'l', label: 'L', kind: 'volume', description_fr: 'Litre' }),
+      makeUnit({ id: 'g', label: 'g', kind: 'mass', description_fr: 'Gramme' }),
+      makeUnit({ id: 'ml', label: 'ml', kind: 'volume', description_fr: 'Millilitre' }),
+    ]);
+    expect(options).toEqual([
+      { label: 'g', kind: 'mass' },
+      { label: 'kg', kind: 'mass' },
+      { label: 'L', kind: 'volume' },
+      { label: 'ml', kind: 'volume' },
+      { label: 'verre', kind: 'count' },
+    ]);
+  });
+
+  it('keeps the kind of the document and skips deletion markers', () => {
+    const options = unitOptionsFromInfos([
+      makeUnit({ id: 'kg', label: 'kg', kind: 'mass', description_fr: 'Kilogramme' }),
+      { ...makeUnit({ id: 'old', label: 'old' }), deleted: true } as UnitInfo,
+    ]);
+    expect(options).toEqual([{ label: 'kg', kind: 'mass' }]);
   });
 });

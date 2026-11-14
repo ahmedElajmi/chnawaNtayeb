@@ -1,6 +1,6 @@
 import { initialRecipes } from '@/core/catalog';
 import { type DayPlan, DEFAULT_WEEKLY_PLAN, migrateDayPlan } from '@/core/planning';
-import type { GroceryItem } from '@/core/grocery';
+import type { GroceryItem, GroceryList } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
 import { type AppTheme, isValidTheme } from '@/core/theme';
 
@@ -19,17 +19,24 @@ const KEYS = {
   ACTIVE_THEME_VARS: 'chnowa_active_theme_vars_v1',
 };
 
+/** The named shopping lists of one scope, with the id of the active one. */
+export interface StoredGroceryLists {
+  lists: GroceryList[];
+  activeId: string;
+}
+
 /** Kitchen data of one scope (an account uid, or 'local' for a device used without one). */
 export interface StoredKitchenDoc {
   favorites: string[];
   fridge: string[];
   pantry: string[];
   weeklyPlan: DayPlan[];
-  groceryList: GroceryItem[];
-  /** Note attached to the current shopping list */
-  groceryNote: string;
-  /** Amount actually spent, entered when the list was completed (null = not entered) */
-  grocerySpent: number | null;
+  /** The named shopping lists; undefined while the doc still holds the legacy single list */
+  groceryLists?: StoredGroceryLists;
+  /** Legacy single-list fields, read once for the migration, never written again */
+  groceryList?: GroceryItem[];
+  groceryNote?: string;
+  grocerySpent?: number | null;
   /** Last local change per section, in ms since epoch (drives the newest-write-wins merge) */
   sections: Record<string, number>;
   /** Sections changed locally and not confirmed by the server yet */
@@ -37,6 +44,31 @@ export interface StoredKitchenDoc {
   /** When the preferences mirror was last confirmed by the server (null = never) */
   preferencesSyncedAt: number | null;
 }
+
+/**
+ * Reads the stored named lists back: every entry must carry an id, a name, its items, a
+ * note and a spend; anything else (older or malformed shape) is treated as absent, so the
+ * caller migrates the legacy single list instead.
+ */
+function parseStoredGroceryLists(raw: unknown): StoredGroceryLists | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const parsed = raw as { lists?: unknown; activeId?: unknown };
+  if (typeof parsed.activeId !== 'string' || parsed.activeId === '') return undefined;
+  if (!Array.isArray(parsed.lists) || parsed.lists.length === 0) return undefined;
+  const lists = parsed.lists.filter(isStoredGroceryList);
+  if (lists.length === 0) return undefined;
+  return { lists, activeId: parsed.activeId };
+}
+
+const isStoredGroceryList = (raw: unknown): raw is GroceryList =>
+  !!raw &&
+  typeof raw === 'object' &&
+  typeof (raw as GroceryList).id === 'string' &&
+  (raw as GroceryList).id !== '' &&
+  typeof (raw as GroceryList).name === 'string' &&
+  Array.isArray((raw as GroceryList).items) &&
+  typeof (raw as GroceryList).note === 'string' &&
+  ((raw as GroceryList).spent_tnd === null || typeof (raw as GroceryList).spent_tnd === 'number');
 
 class StorageService {
   // --- PREFERENCES ---
@@ -208,10 +240,11 @@ class StorageService {
         weeklyPlan: Array.isArray(doc.weeklyPlan)
           ? doc.weeklyPlan.map((day) => migrateDayPlan(day, initialRecipes))
           : DEFAULT_WEEKLY_PLAN,
-        groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : [],
-        groceryNote: typeof doc.groceryNote === 'string' ? doc.groceryNote : '',
+        groceryLists: parseStoredGroceryLists(doc.groceryLists),
+        groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : undefined,
+        groceryNote: typeof doc.groceryNote === 'string' ? doc.groceryNote : undefined,
         grocerySpent:
-          typeof doc.grocerySpent === 'number' && Number.isFinite(doc.grocerySpent) ? doc.grocerySpent : null,
+          typeof doc.grocerySpent === 'number' && Number.isFinite(doc.grocerySpent) ? doc.grocerySpent : undefined,
         sections: doc.sections && typeof doc.sections === 'object' ? { ...doc.sections } : {},
         pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,

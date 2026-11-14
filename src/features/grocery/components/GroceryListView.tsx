@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import {
   GroceryItem,
+  GroceryList,
   buildGroceryShareText,
   createGroceryHistoryEntry,
   groupByAisle,
@@ -23,6 +24,7 @@ import type { Ingredient } from '@/core/catalog';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { UnitInfo } from '@/shared/ui/UnitInfo';
 import { GroceryIngredientPicker } from '@/features/grocery/components/GroceryIngredientPicker';
+import { GroceryListSwitcher } from '@/features/grocery/components/GroceryListSwitcher';
 import { PrintSheet, printNow } from '@/shared/ui/print';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useAccountProfile, useContainer } from '@/app/ContainerContext';
@@ -30,13 +32,22 @@ import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
 
 interface GroceryListViewProps {
-  items: GroceryItem[];
-  note: string;
-  spent: number | null;
+  /** All the named shopping lists; the screen shows the active one */
+  lists: GroceryList[];
+  /** The list currently displayed (items, note, spend) */
+  activeList: GroceryList;
   /** Catalog ingredients, to show the picture of the items that come from a recipe */
   ingredientsById: ReadonlyMap<string, Ingredient>;
   /** Whole catalog, for the ingredient picker of the add form */
   ingredients: Ingredient[];
+  onSwitchList: (id: string) => void;
+  onCreateList: (name: string) => void;
+  /** Renames the active list */
+  onRenameList: (name: string) => void;
+  /** Duplicates the active list (auto name, unchecked copy) */
+  onDuplicateList: () => void;
+  /** Deletes the active list */
+  onDeleteList: () => void;
   onToggleItem: (id: string) => void;
   onRemoveItem: (id: string) => void;
   onSetQuantity: (id: string, quantity: number) => void;
@@ -44,8 +55,8 @@ interface GroceryListViewProps {
   onSetUnit: (id: string, unit: string) => void;
   /** Adds one catalog ingredient with its default unit */
   onAddIngredient: (ingredient: Ingredient) => void;
-  /** Adds one free-text article (custom item, "pièce") */
-  onAddCustom: (name: string) => void;
+  /** Adds one free-text article with the unit chosen in the picker */
+  onAddCustom: (name: string, unit: string) => void;
   onSetNote: (note: string) => void;
   onSetSpent: (spent: number | null) => void;
   onClearList: () => void;
@@ -191,11 +202,15 @@ function GroceryRow({
 }
 
 export const GroceryListView: React.FC<GroceryListViewProps> = ({
-  items,
-  note,
-  spent,
+  lists,
+  activeList,
   ingredientsById,
   ingredients,
+  onSwitchList,
+  onCreateList,
+  onRenameList,
+  onDuplicateList,
+  onDeleteList,
   onToggleItem,
   onRemoveItem,
   onSetQuantity,
@@ -206,6 +221,8 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
   onSetSpent,
   onClearList,
 }) => {
+  const { items, note } = activeList;
+  const spent = activeList.spent_tnd;
   const { t } = useLanguage();
   const { groceryHistory } = useContainer();
   const { profile } = useAccountProfile();
@@ -373,8 +390,24 @@ export const GroceryListView: React.FC<GroceryListViewProps> = ({
         )}
       </div>
 
-      {/* Add form: catalog search with suggestions, plus a collapsed free-text fallback */}
-      <GroceryIngredientPicker ingredients={ingredients} onAddIngredient={onAddIngredient} onAddCustom={onAddCustom} />
+      {/* Switcher of the named shopping lists (chips + actions on the active one) */}
+      <GroceryListSwitcher
+        lists={lists}
+        activeListId={activeList.id}
+        onSwitch={onSwitchList}
+        onCreate={onCreateList}
+        onRename={onRenameList}
+        onDuplicate={onDuplicateList}
+        onDelete={onDeleteList}
+      />
+
+      {/* Add form: catalog search grouped by aisle, custom articles with a chosen unit */}
+      <GroceryIngredientPicker
+        ingredients={ingredients}
+        listItems={items}
+        onAddIngredient={onAddIngredient}
+        onAddCustom={onAddCustom}
+      />
 
       {/* List note (feeds the sync push): committed on blur, not per keystroke */}
       {items.length > 0 && (

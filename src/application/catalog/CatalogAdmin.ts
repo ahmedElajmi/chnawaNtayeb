@@ -108,7 +108,8 @@ export class CatalogAdmin {
   /** Full backup as JSON text (dump). */
   exportBackup(): string {
     const { recipes, ingredients } = this.catalog.getState();
-    const { weeklyPlan, favorites, groceryList } = this.kitchen.getState();
+    const { weeklyPlan, favorites } = this.kitchen.getState();
+    const groceryList = this.kitchen.groceryList;
     return JSON.stringify(
       createBackup({ recipes, ingredients, weeklyPlan, favorites, groceryList }, this.deps.nowIso()),
       null,

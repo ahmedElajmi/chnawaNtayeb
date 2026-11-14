@@ -6,22 +6,22 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 `subscribe(listener)`, et des méthodes métier qui enregistrent puis notifient. Côté React,
 `useStore` (dans `src/app/ContainerContext.tsx`) s'abonne via `useSyncExternalStore`.
 
-| Store                    | État                                                                          | Rôle                                                                                                                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SyncedCollectionStore`  | éléments d'une collection partagée, copie lue, base lue                       | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)                                                                                              |
-| `CatalogStore`           | recettes, ingrédients, descriptions d'unités, catalogue distant chargé ou non | Assemble trois `SyncedCollectionStore` (recettes, ingrédients, unités) ; `unitDescriptionOf(label, langue)` rend la description configurée en backoffice, dans la langue demandée |
-| `KitchenStore`           | frigo, placard, favoris, menu, liste de courses                               | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement                                                                                                  |
-| `KitchenSync`            | synchro en cours, sections en attente, dernier pull                           | Pousse (anti-rebond 2 s) et tire (garde 60 s) la cuisine du compte vers `kitchen/{uid}`                                                                                           |
-| `BackofficeSessionStore` | `checking` / `signed-in` / `signed-out`, statut cloud                         | Session super admin, toujours confirmée par le serveur                                                                                                                            |
-| `MatchingSettingsStore`  | réglages du moteur, version, source                                           | Base = référence, copie locale hors ligne, valeurs du code par défaut                                                                                                             |
-| `RecipeDrafts`           | (service) brouillons de l'éditeur de recette                                  | Garde, propose à nouveau et efface les modifications non enregistrées                                                                                                             |
-| `CatalogAdmin`           | (service) actions du backoffice sur le catalogue                              | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration                                                                                                 |
-| `CatalogSearch`          | révision des index de recherche                                               | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))                                                                                                 |
-| `ReviewSettingsStore`    | workflows et rôles en vigueur, version, avertissements                        | Réglages du workflow de validation : suivis en direct, chaque version gardée                                                                                                      |
-| `ReviewStore<K>`         | copies de travail et où chacune en est (par type)                             | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer                                                                                                   |
-| `TeamStore`              | membres de l'équipe, fiche du compte connecté                                 | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles                                                                                                  |
-| `CategoryStore`          | catégories d'un type (liste + arbre)                                          | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées                                                                                           |
-| `ReviewBoard`            | (service) recettes + ingrédients + contexte des contrôles                     | Regroupe les deux ateliers ; démarré seulement dans le backoffice                                                                                                                 |
+| Store                    | État                                                                                   | Rôle                                                                                                                                                                                                                                                                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SyncedCollectionStore`  | éléments d'une collection partagée, copie lue, base lue                                | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)                                                                                                                                                                                                                                             |
+| `CatalogStore`           | recettes, ingrédients, descriptions d'unités, catalogue distant chargé ou non          | Assemble trois `SyncedCollectionStore` (recettes, ingrédients, unités) ; `unitDescriptionOf(label, langue)` rend la description configurée en backoffice, dans la langue demandée ; `unitOptions()` rend les libellés d'unités proposés à la saisie (registre géré en backoffice, ou `BUILTIN_UNIT_OPTIONS` tant qu'il est vide) |
+| `KitchenStore`           | frigo, placard, favoris, menu, **listes de courses nommées** (+ id de la liste active) | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement. Chaque mutation vise une liste (paramètre `listId` facultatif, la liste active sinon) ; le getter de compat `groceryList` rend les articles de la liste active                                                                                 |
+| `KitchenSync`            | synchro en cours, sections en attente, dernier pull                                    | Pousse (anti-rebond 2 s) et tire (garde 60 s) la cuisine du compte vers `kitchen/{uid}`                                                                                                                                                                                                                                          |
+| `BackofficeSessionStore` | `checking` / `signed-in` / `signed-out`, statut cloud                                  | Session super admin, toujours confirmée par le serveur                                                                                                                                                                                                                                                                           |
+| `MatchingSettingsStore`  | réglages du moteur, version, source                                                    | Base = référence, copie locale hors ligne, valeurs du code par défaut                                                                                                                                                                                                                                                            |
+| `RecipeDrafts`           | (service) brouillons de l'éditeur de recette                                           | Garde, propose à nouveau et efface les modifications non enregistrées                                                                                                                                                                                                                                                            |
+| `CatalogAdmin`           | (service) actions du backoffice sur le catalogue                                       | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration                                                                                                                                                                                                                                                |
+| `CatalogSearch`          | révision des index de recherche                                                        | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))                                                                                                                                                                                                                                                |
+| `ReviewSettingsStore`    | workflows et rôles en vigueur, version, avertissements                                 | Réglages du workflow de validation : suivis en direct, chaque version gardée                                                                                                                                                                                                                                                     |
+| `ReviewStore<K>`         | copies de travail et où chacune en est (par type)                                      | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer                                                                                                                                                                                                                                                  |
+| `TeamStore`              | membres de l'équipe, fiche du compte connecté                                          | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles                                                                                                                                                                                                                                                 |
+| `CategoryStore`          | catégories d'un type (liste + arbre)                                                   | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées                                                                                                                                                                                                                                          |
+| `ReviewBoard`            | (service) recettes + ingrédients + contexte des contrôles                              | Regroupe les deux ateliers ; démarré seulement dans le backoffice                                                                                                                                                                                                                                                                |
 
 Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `useBackofficeSession()`, `useMatchingSettings()`, `useContainer()`.
 
@@ -150,19 +150,20 @@ déplacée une fois dans IndexedDB puis effacée. Une table par collection parta
 catégories, `countries`, `units` — version 5 de la base) ; les magasins sont créés à la mise à jour,
 les existants sont gardés.
 
-| Clé `localStorage`                                                                                    | Contenu                                                                                                                                                                        |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `chnowa_kitchen_<scope>_v1`                                                                           | **Document de cuisine scopé** (frigo, placard, favoris, menu, liste + horodatages et sections en attente) — `<scope>` = uid du compte, ou `local` pour un appareil sans compte |
-| `chnowa_fridge_selected_v1`, `chnowa_favorites_v1`, `chnowa_weekly_plan_v1`, `chnowa_grocery_list_v1` | **Clés historiques** : lues une seule fois à la première ouverture d'un scope (migration en lecture, rien n'est supprimé), puis remplacées par le document scopé               |
+| Clé `localStorage`                                                                                    | Contenu                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chnowa_kitchen_<scope>_v1`                                                                           | **Document de cuisine scopé** (frigo, placard, favoris, menu, listes de courses nommées + horodatages et sections en attente) — `<scope>` = uid du compte, ou `local` pour un appareil sans compte |
+| `chnowa_fridge_selected_v1`, `chnowa_favorites_v1`, `chnowa_weekly_plan_v1`, `chnowa_grocery_list_v1` | **Clés historiques** : lues une seule fois à la première ouverture d'un scope (migration en lecture, rien n'est supprimé), puis remplacées par le document scopé                                   |
 
 ### Synchronisation personnelle de la cuisine (comptes clients)
 
-Le frigo, le placard, les favoris, le menu de la semaine, la liste de courses et les préférences
-alimentaires d'un **compte client ou employé** sont conservés sur le serveur : un document par uid
-dans la collection server-only `kitchen`, lu et écrit par `GET/PUT /api/kitchen` (session Bearer,
-jamais les invités). Côté client, le moteur `KitchenSync` (`src/application/kitchen/KitchenSync.ts`)
-travaille **local-first** : l'appareil écrit et affiche toujours depuis sa copie (le localStorage
-reste le cache hors ligne), la synchronisation est un fond de carte invisible.
+Le frigo, le placard, les favoris, le menu de la semaine, les **listes de courses nommées** et les
+préférences alimentaires d'un **compte client ou employé** sont conservés sur le serveur : un
+document par uid dans la collection server-only `kitchen`, lu et écrit par `GET/PUT /api/kitchen`
+(session Bearer, jamais les invités). Côté client, le moteur `KitchenSync`
+(`src/application/kitchen/KitchenSync.ts`) travaille **local-first** : l'appareil écrit et affiche
+toujours depuis sa copie (le localStorage reste le cache hors ligne), la synchronisation est un fond
+de carte invisible.
 
 **Budget d'appels verrouillé** (aucune requête périodique, aucune boucle de retry) :
 
@@ -175,9 +176,15 @@ reste le cache hors ligne), la synchronisation est un fond de carte invisible.
   sont envoyées **au démarrage suivant** — un crash, une coupure réseau ou un onglet tué ne
   perdent rien ; un push en échec reste en attente et repart au déclencheur suivant seulement.
 
-**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union** (le commentaire et le montant dépensé de la liste voyagent dans la section `groceryMeta`, dernier écrit gagnant)
-(les ensembles grossissent, jamais de perte) ; menu, liste et préférences prennent **le dernier
-écrit gagnant** (horodatage client porté par chaque section). Le serveur applique la même règle
+**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union**
+(les ensembles grossissent, jamais de perte) ; menu, **listes de courses** et préférences prennent
+**le dernier écrit gagnant** (horodatage client porté par chaque section). Les listes voyagent dans
+**une seule section `groceryLists`** (`{ lists, activeId }`, commentaire et montant dépensé portés
+par chaque liste) ; le serveur la plafonne (≤ 20 listes, ≤ 500 articles par liste, nom ≤ 80,
+commentaire ≤ 300). Les anciennes sections `groceryList` / `groceryMeta` restent **acceptées par le
+serveur** le temps d'une version de transition, mais **ignorées par le client actuel** : un document
+serveur qui n'a que les anciennes sections ne remplace pas les listes locales (elles repartiront au
+push de la migration). Le serveur applique la même règle de conflit
 (`server/routes/kitchenRoutes.ts`), donc deux appareils peuvent pousser dans n'importe quel ordre
 et convergent. La sync des préférences exclut le placard (qui a sa propre section) et inversement
 le push des préférences n'embarque pas `pantryStaples`.
@@ -185,7 +192,12 @@ le push des préférences n'embarque pas `pantryStaples`.
 **Scopage par uid** : la clé locale porte l'uid (`chnowa_kitchen_<uid>_v1`) ; à la connexion d'un
 compte différent, l'appareil recharge les données de ce compte. **Migration montante** : à la
 première ouverture d'un scope, les anciennes clés non scopées sont lues une fois et comptent
-comme des changements locaux (elles partent vers le cloud au premier push). Les **invités** restent
+comme des changements locaux (elles partent vers le cloud au premier push). **Migration vers les
+listes nommées** : un document scopé écrit avant elles (une seule `groceryList` + commentaire +
+dépense) est migré à sa première lecture — la liste unique devient une liste « Mes courses »
+(`DEFAULT_GROCERY_LIST_NAME`), la forme migrée est **réécrite immédiatement** (la migration ne tourne
+qu'une fois) et la section `groceryLists` est marquée « en attente » pour rejoindre les autres
+appareils au prochain push. Les **invités** restent
 100 % locaux (uid éphémère, rien à synchroniser) ; un bandeau discret (`SyncInviteBanner`)
 propose la création de compte quand l'appareil détient des données de cuisine sans compte.
 | `chnowa_preferences_v1` | Langue, mode, thème, placard |
@@ -226,7 +238,10 @@ Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
 - `units` : descriptions des unités (« c.à.s » → « Cuillère à soupe… ») montrées en infobulle par
   `UnitInfo` (`src/shared/ui/UnitInfo.tsx`), suivies comme le catalogue (`SyncedCollectionStore` +
   copie IndexedDB, `DB_VERSION` 5) et gérées dans /admin › Ingrédients › Unités ; lecture publique,
-  écriture d'un compte qui peut publier. **Aucune description par défaut dans le code** : sans
+  écriture d'un compte qui peut publier. Chaque document porte aussi son **kind** (masse, volume,
+  comptée, autre) ; les libellés proposés à la saisie des quantités viennent de
+  `CatalogStore.unitOptions()` (registre géré en backoffice, ou unités intégrées
+  `BUILTIN_UNIT_OPTIONS` tant qu'il est vide). **Aucune description par défaut dans le code** : sans
   document en base, l'unité reste affichée nue.
 - **Catalogue public = recettes validées seulement** : la collection publique des recettes n'a plus de
   contenu intégré de secours (`builtIn` vide) et une collection qui ne contient que des marques de

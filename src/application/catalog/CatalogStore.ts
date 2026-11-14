@@ -1,5 +1,12 @@
 import { localizedField, pickLocalized, type Language } from '@/core/shared';
-import { unitDescriptionIndex, unitLookupKey, type UnitInfo } from '@/core/units';
+import {
+  BUILTIN_UNIT_OPTIONS,
+  unitDescriptionIndex,
+  unitLookupKey,
+  unitOptionsFromInfos,
+  type UnitInfo,
+  type UnitKind,
+} from '@/core/units';
 import type { Ingredient, Recipe } from '@/core/catalog';
 import { Store } from '../store';
 import type { SyncedCollectionStore } from '../sync/SyncedCollectionStore';
@@ -79,5 +86,14 @@ export class CatalogStore extends Store<CatalogState> {
     if (!info) return undefined;
     const description = pickLocalized(language, localizedField(info, 'description'));
     return description || undefined;
+  }
+
+  /**
+   * The unit labels offered while a quantity is typed, with their kind: the registry managed
+   * in the backoffice, or the common built-in units while the registry is still empty.
+   */
+  unitOptions(): Array<{ label: string; kind: UnitKind }> {
+    const { units } = this.getState();
+    return units.length ? unitOptionsFromInfos(units) : BUILTIN_UNIT_OPTIONS;
   }
 }

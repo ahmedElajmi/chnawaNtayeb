@@ -206,18 +206,38 @@ Voir la page dédiée [04 Moteur de matching](04-moteur-matching.md).
   botte) ; `areUnitsCompatible` dit si deux quantités peuvent s'additionner (casse, espaces et
   pluriels français ignorés ; une unité incomparable ne vaut qu'elle-même, écrite pareil) ;
   `convertQuantity` convertit une quantité (1500 g → 1,5 kg, arrondi à 3 décimales) ou rend `null`.
-- **Descriptions** (`units/info.ts`, testé) : `UnitInfo` (`label`, `description_fr` obligatoire,
+- **Descriptions** (`units/info.ts`, testé) : `UnitInfo` (`label`, **`kind`** — ce que mesure
+  l'unité : `mass`, `volume`, `count` ou `other` (`UNIT_KINDS`) —, `description_fr` obligatoire,
   `description_derja` / `description_ar` toujours stockées, `description_derja_ar` facultative,
   `revision`). L'id est le **libellé slugifié** (`unitIdFromLabel` : « c.à.s » → `c-a-s`,
   `UNIT_ID_PATTERN`), la clé de recherche ignore casse et espaces (`unitLookupKey`).
   `parseStoredUnitInfo(s)` relit ce qui vient de l'extérieur (id, libellé et description française
-  obligatoires, marques de suppression écartées), `validateUnitInfo` vérifie une saisie du
-  backoffice (libellé unique, description française requise), `unitDescriptionIndex` indexe par
-  libellé et id. **Aucune description par défaut dans le code** : une unité absente de la base
-  reste affichée nue.
+  obligatoires, marques de suppression écartées) : un document ancien sans `kind` est **réparé à la
+  lecture** — `inferUnitKind` le déduit du libellé comme le moteur le lit (« kg » → masse, « ml » →
+  volume, « botte » → comptée, « c.à.s / bol » → `other`). `validateUnitInfo` vérifie une saisie du
+  backoffice (libellé unique, kind valide, description française requise), `unitDescriptionIndex`
+  indexe par libellé et id. **Aucune description par défaut dans le code** : une unité absente de la
+  base reste affichée nue.
+- **Unités proposées à la saisie** : `BUILTIN_UNIT_OPTIONS` — les 17 unités courantes (g, kg, ml, cl,
+  L, pièce, c.à.s, c.à.c, pincée, gousses, botte, boîte, sachet, paquet, tranche, feuilles, verre),
+  chacune avec son kind déduit — et `unitOptionsFromInfos`, qui classe un registre (masse et volume
+  d'abord : elles convertissent, puis libellé). Le registre du backoffice fait foi ; les unités
+  intégrées servent de repli quand il est encore vide (voir
+  [05 Application et données](05-application-donnees.md), `CatalogStore.unitOptions()`).
 
-## `grocery` : liste de courses
+## `grocery` : listes de courses
 
+- **Listes nommées** (`grocery/lists.ts`, testé) : `GroceryList` (`id`, `name`, `items`, `note`
+  libre, `spent_tnd` — montant réellement dépensé, null tant que non saisi). La cuisine peut garder
+  **plusieurs listes de courses**. `createGroceryList` (nom tronqué à 80 caractères ; un nom vide
+  tombe sur `DEFAULT_GROCERY_LIST_NAME` « Mes courses »), `renameGroceryList`, `deleteGroceryList`
+  (jamais la dernière : il reste toujours au moins une liste ; la liste active supprimée cède à la
+  première restante), `duplicateGroceryList` (copie profonde des articles, ids neufs, tout décoché,
+  note gardée, dépense remise à zéro : une liste pour refaire les courses) et `groceryListFromItems`
+  (recrée une liste depuis des articles bruts, sans toucher l'historique : dupliquer une course
+  archivée). L'ordre des listes n'est **jamais retrié** : la nouvelle va à la fin, chaque mutation ne
+  touche que sa liste ; `resolveActiveGroceryListId` ramène à la première liste quand l'id actif
+  n'existe plus (suppression, sync, migration).
 - `buildGroceryListFromPlan` : tous les ingrédients des plats du menu, quantités additionnées par ingrédient.
 - `addGroceryItems` : un article qui retrouve une ligne existante — **même ingrédient**
   (`ingredient_id`) ou même nom pour un article libre — dans une **unité compatible** (g avec kg,
