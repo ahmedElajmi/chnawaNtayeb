@@ -35,7 +35,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   app.use(authRoutes(ADMIN_CONFIG, store, async () => COUNTRIES));
-  app.use(kitchenRoutes(ADMIN_CONFIG, store));
+  app.use(kitchenRoutes(ADMIN_CONFIG, store, { syncLimit: 1000 }));
   app.use(dataRoutes(ADMIN_CONFIG, store));
   await new Promise<void>((resolve) => {
     server = app.listen(0, () => {
@@ -59,6 +59,8 @@ const put = async (path: string, body: unknown, headers: Record<string, string> 
   });
 
 const section = (value: unknown, updated_at: number | string = 1000) => ({ value, updated_at });
+
+const item = { id: 'g1', name: 'Œufs', quantity: 6, unit: 'pièce' };
 
 describe('kitchen routes over HTTP', () => {
   let token = '';
@@ -186,5 +188,90 @@ describe('kitchen routes over HTTP', () => {
     const res = await get('/api/data/kitchen/empty', { Authorization: `Bearer ${token}` });
     expect(res.status).toBe(404);
     expect(((await res.json()) as { error?: string }).error).toBe('unknown_collection');
+  });
+
+  it('stores the named grocery lists and reads them back', async () => {
+    const lists = [
+      { id: 'l1', name: 'Weekend', items: [{ id: 'g1', name: 'Œufs', quantity: 6, unit: 'pièce' }], note: '' },
+      { id: 'l2', name: 'Ramadan', items: [], note: 'chez Carrefour', spent_tnd: 25.5 },
+    ];
+    const res = await put(
+      '/api/kitchen',
+      { sections: { groceryLists: section({ lists, activeId: 'l2' }, 3000) } },
+      { Authorization: `Bearer ${token}` }
+    );
+    expect(res.status).toBe(200);
+    const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
+    const data = (await read.json()) as { doc: { sections: Record<string, { value: unknown; updated_at: number }> } };
+    expect(data.doc.sections.groceryLists).toEqual({ value: { lists, activeId: 'l2' }, updated_at: 3000 });
+  });
+
+  it('refuses a malformed groceryLists section without writing anything', async () => {
+    const cases: unknown[] = [
+      { lists: [], activeId: '' }, // no list at all
+      Array.from({ length: 21 }, (_, i) => ({ id: `l${i}`, name: `L${i}`, items: [] })), // too many lists
+      { lists: [{ id: 'l1', name: '', items: [] }], activeId: 'l1' }, // empty name
+      { lists: [{ id: 'l1', name: 'x'.repeat(81), items: [] }], activeId: 'l1' }, // name too long
+      { lists: [{ id: 'l1', name: 'L1', items: Array.from({ length: 501 }, () => item) }], activeId: 'l1' }, // too many items
+      { lists: [{ id: 'l1', name: 'L1', items: [], note: 'x'.repeat(301) }], activeId: 'l1' }, // note too long
+      { lists: [{ id: 'l1', name: 'L1', items: [], spent_tnd: '10' }], activeId: 'l1' }, // spend not a number
+      { lists: [{ id: 'l1', name: 'L1', items: [] }], activeId: 'nope' }, // active id unknown
+      { lists: [{ id: 'l1', name: 'L1', items: 'not-a-list' }], activeId: 'l1' }, // broken items
+      { lists: 'not-a-list', activeId: 'l1' }, // broken lists
+    ];
+    for (const value of cases) {
+      const res = await put(
+        '/api/kitchen',
+        { sections: { groceryLists: section(value, 4000) } },
+        { Authorization: `Bearer ${token}` }
+      );
+      expect(res.status).toBe(400);
+    }
+    const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
+    const data = (await read.json()) as { doc: { sections: Record<string, { value: unknown }> } };
+    // Nothing malformed was written; the valid section from the previous test is intact
+    expect(data.doc.sections.groceryLists?.value).toMatchObject({ activeId: 'l2' });
+  });
+
+  it('still accepts the legacy groceryList and groceryMeta sections on PUT', async () => {
+    const res = await put(
+      '/api/kitchen',
+      {
+        sections: {
+          groceryList: section([item], 5000),
+          groceryMeta: section({ note: 'old note', spent_tnd: 10 }, 5000),
+        },
+      },
+      { Authorization: `Bearer ${token}` }
+    );
+    expect(res.status).toBe(200);
+    const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
+    const data = (await read.json()) as { doc: { sections: Record<string, { value: unknown }> } };
+    expect(data.doc.sections.groceryList?.value).toEqual([item]);
+    expect(data.doc.sections.groceryMeta?.value).toEqual({ note: 'old note', spent_tnd: 10 });
+    // The named lists are unaffected: the legacy sections are stored as-is, never merged
+    expect(data.doc.sections.groceryLists?.value).toMatchObject({ activeId: 'l2' });
+  });
+
+  it('refuses a legacy groceryList over the item cap and a groceryMeta with a bad spend', async () => {
+    const tooMany = await put(
+      '/api/kitchen',
+      {
+        sections: {
+          groceryList: section(
+            Array.from({ length: 501 }, () => item),
+            6000
+          ),
+        },
+      },
+      { Authorization: `Bearer ${token}` }
+    );
+    expect(tooMany.status).toBe(400);
+    const badSpend = await put(
+      '/api/kitchen',
+      { sections: { groceryMeta: section({ spent_tnd: 'x' }, 6000) } },
+      { Authorization: `Bearer ${token}` }
+    );
+    expect(badSpend.status).toBe(400);
   });
 });

@@ -22,8 +22,11 @@ interface FridgeSelectorProps {
   onToggleIngredient: (id: string) => void;
   onClearAll: () => void;
   onSearchRecipes: () => void;
-  /** Adds one ingredient to the shopping list (never touches the fridge) */
-  onAddToGrocery: (item: NewGroceryItem) => void;
+  /**
+   * Adds one ingredient to the shopping list (never touches the fridge). The target list may
+   * be asked through a chooser first: `onDone` fires once the ingredient has been added.
+   */
+  onAddToGrocery: (item: NewGroceryItem, onDone: () => void) => void;
 }
 
 /** Selected ingredients shown before "show all" in the summary. */
@@ -346,14 +349,17 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
               <AddToCartButton
                 label={t.cartAddLabel.replace('{name}', name)}
                 addedLabel={t.cartAddedLabel}
-                onAdd={() =>
-                  onAddToGrocery({
-                    ingredient_id: ing.id,
-                    name,
-                    quantity: 1,
-                    unit: ing.unit_default,
-                    category: ing.category,
-                  })
+                onAdd={(onDone) =>
+                  onAddToGrocery(
+                    {
+                      ingredient_id: ing.id,
+                      name,
+                      quantity: 1,
+                      unit: ing.unit_default,
+                      category: ing.category,
+                    },
+                    onDone
+                  )
                 }
               />
             </div>

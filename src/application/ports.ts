@@ -2,7 +2,7 @@ import type { DayPlan } from '@/core/planning';
 import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
 
 export type { PasswordPolicy };
-import type { GroceryItem, GroceryHistoryEntry } from '@/core/grocery';
+import type { GroceryHistoryEntry, GroceryList } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
@@ -103,11 +103,10 @@ export interface KitchenRepository {
   saveFavorites(ids: string[]): void;
   loadWeeklyPlan(): DayPlan[];
   saveWeeklyPlan(plan: DayPlan[]): void;
-  loadGroceryList(): GroceryItem[];
-  saveGroceryList(items: GroceryItem[]): void;
-  /** Note and actual spend attached to the current shopping list. */
-  loadGroceryMeta(): { note: string; spent: number | null };
-  saveGroceryMeta(note: string, spent: number | null): void;
+  /** The named shopping lists of this scope, with the id of the active one. */
+  loadGroceryLists(): { lists: GroceryList[]; activeId: string };
+  /** Replaces the named shopping lists and the active one (complete write, no merge). */
+  saveGroceryLists(state: { lists: GroceryList[]; activeId: string }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,8 +127,8 @@ export interface RemoteKitchenDocument {
   fridge?: RemoteKitchenSection<string[]>;
   pantry?: RemoteKitchenSection<string[]>;
   weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
-  groceryList?: RemoteKitchenSection<GroceryItem[]>;
-  groceryMeta?: RemoteKitchenSection<{ note?: string; spent_tnd?: number | null }>;
+  /** The named shopping lists and the active one, one newest-write-wins section */
+  groceryLists?: RemoteKitchenSection<{ lists: GroceryList[]; activeId: string }>;
   preferences?: RemoteKitchenSection<UserPreferences>;
 }
 

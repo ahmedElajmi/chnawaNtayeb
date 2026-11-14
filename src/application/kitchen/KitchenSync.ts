@@ -181,8 +181,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
     take('fridge', state.fridge);
     take('pantry', state.pantry);
     take('weeklyPlan', state.weeklyPlan);
-    take('groceryList', state.groceryList);
-    take('groceryMeta', { note: state.groceryNote, spent_tnd: state.grocerySpent });
+    take('groceryLists', { lists: state.groceryLists, activeId: state.activeGroceryListId });
     if (preferencesPending) {
       // The pantry has its own section: it never travels inside the preferences
       const { pantryStaples: _pantry, ...preferences } = this.deps.preferences.load();
@@ -224,15 +223,17 @@ export class KitchenSync extends Store<KitchenSyncState> {
       if (doc.fridge && newer('fridge')) this.deps.kitchen.mergeFridge(doc.fridge.value);
       if (doc.pantry && newer('pantry')) this.deps.kitchen.mergePantry(doc.pantry.value);
       if (doc.weeklyPlan && newer('weeklyPlan')) this.deps.kitchen.setWeeklyPlan(doc.weeklyPlan.value);
-      if (doc.groceryList && newer('groceryList')) this.deps.kitchen.setGroceryList(doc.groceryList.value);
-      if (doc.groceryMeta && newer('groceryMeta')) {
-        this.deps.kitchen.setGroceryMeta(doc.groceryMeta.value.note ?? '', doc.groceryMeta.value.spent_tnd ?? null);
+      if (doc.groceryLists && newer('groceryLists')) {
+        // The named lists travel as one section (newest write wins); a server document that
+        // still holds only the legacy groceryList/groceryMeta sections has none here: the
+        // local lists stay (they will be pushed up by the migration).
+        this.deps.kitchen.setGroceryLists(doc.groceryLists.value.lists, doc.groceryLists.value.activeId);
       }
       if (doc.preferences && newer('preferences')) {
         const { pantryStaples: _pantry, ...preferences } = doc.preferences.value;
         this.deps.preferences.save(preferences as Partial<UserPreferences>, doc.preferences.updatedAt);
       }
-      for (const name of [...SET_SECTIONS, 'weeklyPlan', 'groceryList', 'groceryMeta', 'preferences'] as const) {
+      for (const name of [...SET_SECTIONS, 'weeklyPlan', 'groceryLists', 'preferences'] as const) {
         if (doc[name]) this.deps.ledger.setSectionTime(name, doc[name]!.updatedAt);
       }
     } finally {

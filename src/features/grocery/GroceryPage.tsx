@@ -5,19 +5,24 @@ import { useCatalog, useKitchen } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 
 export function GroceryPage() {
-  const { groceryList, groceryNote, grocerySpent, kitchen } = useKitchen();
+  const { groceryLists, kitchen } = useKitchen();
   const { ingredients } = useCatalog();
   const { getIngredientName } = useLanguage();
   const ingredientsById = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients]);
+  const activeList = kitchen.activeGroceryList();
 
   return (
     <div className="space-y-6">
       <GroceryListView
-        items={groceryList}
-        note={groceryNote}
-        spent={grocerySpent}
+        lists={groceryLists}
+        activeList={activeList}
         ingredientsById={ingredientsById}
         ingredients={ingredients}
+        onSwitchList={(id) => kitchen.setActiveGroceryList(id)}
+        onCreateList={(name) => kitchen.createGroceryList(name)}
+        onRenameList={(name) => kitchen.renameGroceryList(activeList.id, name)}
+        onDuplicateList={() => kitchen.duplicateGroceryList(activeList.id)}
+        onDeleteList={() => kitchen.deleteGroceryList(activeList.id)}
         onToggleItem={(id) => kitchen.toggleGroceryItem(id)}
         onRemoveItem={(id) => kitchen.removeGroceryItem(id)}
         onSetQuantity={(id, quantity) => kitchen.setGroceryItemQuantity(id, quantity)}
@@ -33,7 +38,7 @@ export function GroceryPage() {
             },
           ])
         }
-        onAddCustom={(name) => kitchen.addGroceryItems([{ name, quantity: 1, unit: 'pièce' }])}
+        onAddCustom={(name, unit) => kitchen.addGroceryItems([{ name, quantity: 1, unit, is_custom: true }])}
         onSetNote={(note) => kitchen.setGroceryNote(note)}
         onSetSpent={(spent) => kitchen.setGrocerySpent(spent)}
         onClearList={() => kitchen.clearGroceryList()}

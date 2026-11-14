@@ -112,7 +112,8 @@ remplaçants propres à la recette.
   n'importe quelle langue (`ui/IngredientSearch.tsx` : vignette, catégorie, flèches + Entrée) ;
   toucher le nom permet de le remplacer, l'unité suit alors l'ingrédient (sauf unité saisie à la main).
   Quantité et unité (`ui/NumberField.tsx` : champ vidable, virgule acceptée ; `ui/UnitInput.tsx` :
-  unités proposées), « Facultatif », rôle en trois boutons de couleur (Clé / Secondaire / Placard,
+  unités proposées — le registre géré dans la section Unités complété des unités courantes, chaque
+  libellé une fois — `useUnitOptions` suit la collection en direct), « Facultatif », rôle en trois boutons de couleur (Clé / Secondaire / Placard,
   avec leur explication) et **remplaçants pour cette recette**.
 - **Coût suggéré** d'après les fourchettes de prix des ingrédients (`suggestRecipeCost`), avec le nombre
   d'ingrédients chiffrés ; « Utiliser » (milieu de la fourchette, au demi-dinar) n'est proposé que si
@@ -154,9 +155,13 @@ d'ingrédients affichés est indiqué.
 collection partagée `units` (suivie comme le catalogue, voir [05](05-application-donnees.md)) :
 
 - ajouter ou modifier une unité : **libellé exact** tel qu'écrit sur les ingrédients et les articles
-  (l'id est créé en le slugifiant : « c.à.s » → `c-a-s`) et **description dans chaque langue et
-  variante** (`LocalizedField`, le français est obligatoire) ; validé par `validateUnitInfo`
-  (libellé unique — « KG » et « kg » sont le même —, description française requise) ;
+  (l'id est créé en le slugifiant : « c.à.s » → `c-a-s` ; suggestions des unités courantes pas encore
+  décrites, `BUILTIN_UNIT_OPTIONS`), le **kind** — ce que mesure l'unité : masse, volume, comptée,
+  autre — en quatre boutons radio, **prérempli d'après le libellé** (`inferUnitKind`, recalculé tant
+  que le super admin n'a pas choisi lui-même) et modifiable, avec son explication sous les boutons ;
+  et **description dans chaque langue et variante** (`LocalizedField`, le français est obligatoire) ;
+  validé par `validateUnitInfo` (libellé unique — « KG » et « kg » sont le même —, kind requis,
+  description française requise) ;
 - suppression avec confirmation (marque de suppression) ; chaque écriture passe par
   `CatalogAdmin.saveUnit` / `deleteUnit` : affichée tout de suite sur l'appareil, écrite en base,
   arrivée en direct ailleurs ;

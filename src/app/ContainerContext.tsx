@@ -4,6 +4,7 @@ import type { ReviewKind } from '@/core/review';
 import { enabledCountries } from '@/core/accounts';
 import type { CategoryKind } from '@/core/categories';
 import { recipeCostRange, type Ingredient, type PriceRange, type Recipe } from '@/core/catalog';
+import type { UnitKind } from '@/core/units';
 import { useLanguage } from './providers/LanguageContext';
 import type { Container } from './container';
 
@@ -62,7 +63,15 @@ export function useSearchMatches(kind: SearchKind, query: string): ReadonlyMap<s
 
 export const useKitchen = () => {
   const { kitchen } = useContainer();
-  return { ...useStore(kitchen), kitchen };
+  // Compat with the single-list days: the screens keep reading the active list's items,
+  // note and spend while it is really one named list among others (transitional).
+  return {
+    ...useStore(kitchen),
+    groceryList: kitchen.groceryList,
+    groceryNote: kitchen.activeGroceryList().note,
+    grocerySpent: kitchen.activeGroceryList().spent_tnd,
+    kitchen,
+  };
 };
 
 /** Description configured in the backoffice for a unit label ('' when none), in the current language. */
@@ -71,6 +80,14 @@ export const useUnitDescription = (unit: string): string => {
   useStore(catalog); // follows the shared `units` collection live
   const { language } = useLanguage();
   return catalog.unitDescriptionOf(unit, language) ?? '';
+};
+
+/** Unit labels offered while a quantity is typed, with their kind (registry, or common units
+ *  while the registry is empty), following the shared `units` collection live. */
+export const useUnitOptions = (): Array<{ label: string; kind: UnitKind }> => {
+  const { catalog } = useContainer();
+  useStore(catalog); // follows the shared `units` collection live
+  return catalog.unitOptions();
 };
 
 export const useMatchingSettings = () => {

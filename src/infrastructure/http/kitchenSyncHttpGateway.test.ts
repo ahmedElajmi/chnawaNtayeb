@@ -22,7 +22,10 @@ describe('the kitchen sync HTTP gateway', () => {
           uid: 'u1',
           sections: {
             favorites: { value: ['r1'], updated_at: 100 },
-            groceryList: { value: [{ id: 'g1' }], updated_at: 200 },
+            groceryLists: { value: { lists: [{ id: 'l1' }], activeId: 'l1' }, updated_at: 200 },
+            // Legacy sections of the previous app version: never adopted by the current client
+            groceryList: { value: [{ id: 'g1' }], updated_at: 250 },
+            groceryMeta: { value: { note: 'old' }, updated_at: 260 },
             unknown_section: { value: 'x', updated_at: 300 },
           },
         },
@@ -32,7 +35,7 @@ describe('the kitchen sync HTTP gateway', () => {
     const doc = await kitchenSyncHttpGateway.pull();
     expect(doc).toEqual({
       favorites: { value: ['r1'], updatedAt: 100 },
-      groceryList: { value: [{ id: 'g1' }], updatedAt: 200 },
+      groceryLists: { value: { lists: [{ id: 'l1' }], activeId: 'l1' }, updatedAt: 200 },
     });
   });
 
