@@ -34,7 +34,7 @@ adapter implémente quel port.
 | `src/core`                   | `src/core` uniquement                               | React, Firebase, `window`, `localStorage`, `fetch` |
 | `src/application`            | `src/core`                                          | React, Firebase, composants                        |
 | `src/infrastructure`         | `src/core`, `src/application` (ports)               | React, composants                                  |
-| `src/features`, `src/shared` | `src/core`, `src/application`, `src/app` (contexte) | `src/infrastructure`, Firebase, SDK d'IA           |
+| `src/features`, `src/shared`, `src/app` (hors `container.ts`) | `src/core`, `src/application`, `src/app` (contexte) | `src/infrastructure`, Firebase, SDK d'IA           |
 | `src/app/container.ts`       | tout                                                | —                                                  |
 
 Elles sont **vérifiées automatiquement** par `src/core/architecture.test.ts` : un import

@@ -43,6 +43,9 @@ Un seul mécanisme pour toutes les données partagées (voir [05](05-application
 
 ## Changer de base de données (ex. quitter Firestore)
 
+Aucun nom de base n'apparaît hors de `src/infrastructure` et `src/app/container.ts` (vérifié par
+`src/core/architecture.test.ts`).
+
 1. Choisir le ou les ports concernés dans `src/application/ports.ts`.
 2. Écrire un adapter par port dans `src/infrastructure/<technologie>/`.
 3. Les brancher dans `src/app/container.ts`. Rien d'autre ne change.
@@ -80,6 +83,10 @@ défaut, tests) et `ScenarioEditorModal.tsx` (champs).
 1. Ajouter la valeur à `Language` (`core/shared/language.ts`).
 2. Ajouter le dictionnaire complet dans `translations.ts` (le typage signale les clés manquantes).
 3. Ajouter les noms dans cette langue aux recettes, ingrédients et thèmes (modèle de données à étendre).
+
+L'interface la prend ensuite en compte sans autre changement : affichage (`translations.ts`), éditeurs
+(`LANGUAGES` donne les onglets et les colonnes), sauvegarde (objets complets) et recherche (champs
+`<champ>_<langue>` lus par préfixe). Une variante est écrite en entier, jamais empruntée à sa famille.
 
 ## Changer de fournisseur d'IA pour le scan photo
 

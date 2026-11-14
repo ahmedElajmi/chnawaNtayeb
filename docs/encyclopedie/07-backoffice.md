@@ -18,7 +18,9 @@
   ouvre `/admin` sans le mot de passe super admin, avec les droits de son rôle. Le menu et les adresses ne
   montrent que les pages permises (`requires` dans le registre : Moteur, Apparence et Données
   demandent « publier », Workflows « gérer les workflows ») ; les règles de la base vérifient de
-  nouveau chaque écriture. « Se déconnecter » ferme alors la session du compte.
+  nouveau chaque écriture : toute écriture publique passe par `canPublish()` dans `firestore.rules`
+  (catégories comprises), la gestion (workflows, rôles, équipe) par `canManage()`. « Se déconnecter »
+  ferme alors la session du compte.
 
 ## Navigation et pages (`src/features/backoffice/`)
 
@@ -64,10 +66,15 @@ mobile, adresse et titre suivent.
   réécrits.
 
 **Libellés traduits** : `i18n/backofficeTexts.ts` (toutes les langues et variantes, la دارجة ne liste que
-ce qui diffère de l'arabe ; chargé seulement avec `/admin`), lus par `useBackofficeText()`. Le cadre, le
-menu, les titres des pages et la barre de publication du moteur sont traduits ; le contenu des autres
-panneaux reste en français jusqu'à leur passage dans ce dictionnaire. Un test vérifie que chaque libellé
-existe dans chaque langue, avec les mêmes `{repères}`.
+ce qui diffère de l'arabe ; chargé seulement avec `/admin`), lus par `useBackofficeText()` — le
+backoffice suit la langue courante, comme le reste du site (contenu, onglet de saisie et libellés).
+Les libellés partagés vivent dans ce fichier ; ceux d'une zone dans `i18n/texts/<zone>.ts`
+(`defineTexts` : les quatre langues écrites en entier, clés préfixées par la zone). Le cadre, le
+menu, les titres des pages et la barre de publication du moteur sont traduits ; les libellés de la
+validation sont préfixés (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
+**Aucun texte affiché en dur** (JSX, `title`, `aria-label`, `confirm`, messages), backoffice et
+accès super admin compris : une erreur venue de l'infrastructure est un code que l'interface
+traduit. Un test vérifie que chaque libellé existe dans chaque langue, avec les mêmes `{repères}`.
 
 Les actions sur le catalogue passent par `useCatalogAdmin` (service `CatalogAdmin`, `src/application`) :
 chaque action s'affiche tout de suite sur cet appareil, est écrite dans la base (document complet,
@@ -95,7 +102,8 @@ remplaçants propres à la recette.
 - **Sections** (Infos · Photo & vidéo · Ingrédients · Étapes · Astuce) avec des raccourcis en haut et
   leur état : complet, à compléter, à vérifier (aucun ingrédient clé, étape sans français), facultatif
   (`recipeSectionStatus`, `RecipeEditorChrome.tsx`).
-- **Une langue à la fois** : onglets FR | Derja · دارجة · عربي (`ui/editorLanguage.tsx`, la famille arabe
+- **Une langue à la fois** : onglets FR | Derja · دارجة · عربي (`EditorLanguageProvider`,
+  `ui/editorLanguage.tsx`, la famille arabe
   séparée du français ; flèches du clavier pour changer d'onglet, dans le sens de lecture) ; chaque
   champ `LocalizedField` n'affiche que la langue choisie, avec en rappel les textes d'où l'on traduit
   (français ; plus la derja latine pour la دارجة, la دارجة pour l'arabe). Un compteur sur chaque onglet
@@ -173,7 +181,8 @@ d'« Envoyer vers le cloud » pour publier.
 Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), données :
 [05](05-application-donnees.md), plan : [14](14-refonte-backoffice.md)).
 
-- **Enregistrer** dans l'éditeur écrit dans l'**atelier**, jamais dans la collection publique, puis ouvre
+- **Enregistrer** dans l'éditeur écrit dans l'**atelier** (`useReview('recipe').store.save`), jamais
+  dans la collection publique, puis ouvre
   la page de validation de la recette. Une nouvelle recette naît hors ligne. Une recette déjà en ligne
   qui est modifiée pour la première fois part de sa version en ligne, validée : seules les cases
   touchées repassent à valider, et le public garde l'ancienne version jusqu'à la publication.
@@ -214,8 +223,9 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
   (le catalogue public ne contient que des recettes validées, côté appareil comme côté serveur).
 - **Complétude** : dans la fiche, la complétude se déplie et liste chaque donnée manquante ; un clic
   ouvre sa case.
-- **Ingrédients** : même chemin que les recettes. L'éditeur d'ingrédient et « Enregistrer les prix »
-  écrivent dans l'atelier (`IngredientEditorProvider`, `shell/`) ; chaque ingrédient a sa page de
+- **Ingrédients** : même chemin que les recettes. L'éditeur d'ingrédient (`useIngredientEditor`,
+  `IngredientEditorProvider`, `shell/`) et « Enregistrer les prix »
+  écrivent dans l'atelier ; chaque ingrédient a sa page de
   validation (`/admin/ingredients/<id>` : nom par langue, catégorie et unité, prix, photo). Une recette
   ne peut être publiée qu'avec des ingrédients en ligne (contrôle « Ingrédients en ligne »).
 - La page de validation (`review/ReviewPage.tsx`) est la même pour tous les types de contenu : ce qui

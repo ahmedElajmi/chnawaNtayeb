@@ -90,7 +90,8 @@ mais vide dans une autre langue ou variante).
   des ingrédients (quantité convertie dans l'unité d'achat, ingrédients facultatifs exclus) ;
   l'estimation saisie par le super admin (`estimated_cost_tnd`) ne sert que si aucun ingrédient n'est chiffrable.
   Affiché partout avec `formatPriceRange` (carte, fiche, partage, menu, backoffice) ; calculé une fois par
-  version de recette et de liste d'ingrédients (`getRecipeCost`, `src/app/ContainerContext.tsx`).
+  version de recette et de liste d'ingrédients (`getRecipeCost` / `useRecipeCost`,
+  `src/app/ContainerContext.tsx`, gardé en cache).
 
 ## `sync` : synchronisation des collections partagées
 
@@ -174,6 +175,8 @@ l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans vi
   = id d'une catégorie (une valeur illisible devient `other`). `MealCategory` reste le type de plat.
 - Moteur : `FilterOptions.categoryIds` (une catégorie et ses sous-catégories) ; `fridgeSuggestions`
   (aucune suggestion quand le frigo est vide : toutes les listes comptent de la même façon).
+- Côté interface : `useCategories(kind)` (l'arbre) et `useCategoryNames(kind)` (`src/shared/i18n`)
+  pour les noms ; regroupement des listes par `groupByCategory` / `ui/CategoryGroups.tsx`.
 
 ## `search` : recherche texte
 
@@ -252,6 +255,9 @@ du domaine : recettes (`parseStoredRecipe` puis `migrateRecipes` : rôles, caté
 langues des noms, descriptions, étapes et astuces conservées**), ingrédients (forme vérifiée puis
 `migrateIngredients` : ancien prix unique → fourchette, photo), menu, favoris, liste de courses. Les
 éléments invalides sont ignorés et comptés (`skipped`) ; `null` si le fichier n'est pas une sauvegarde.
+À l'export, les objets sont complets (toutes les langues et tous les champs). Tout nouveau champ d'une
+recette ou d'un ingrédient doit être conservé par `parseStoredRecipe` / `migrateIngredients` : un test
+d'aller-retour dans `backup.test.ts` le vérifie.
 
 ## `shared`
 
@@ -261,10 +267,12 @@ langues des noms, descriptions, étapes et astuces conservées**), ingrédients 
 - `collections.ts` : `toggleInList`, `upsertById`.
 - `id.ts` : `createId(prefix)`.
 - `language.ts` : `Language` (`fr`, `ar`, `derja`, `derja_ar`) et `LANGUAGES`, la seule liste des
-  langues et variantes (famille, sens d'écriture, `lang`, tri, ordre de repli, langue obligatoire),
+  langues et variantes (famille, sens d'écriture, `lang`, tri, ordre de repli, langue obligatoire ;
+  le français est la langue de référence, dernier dans l'ordre de repli),
   `SELECTOR_ORDER`, `EDITING_ORDER`, `isLanguage`.
 - `localized.ts` : `LocalizedText` (`fr`, `derja`, `ar` + variantes facultatives), `pickLocalized(language,
-text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
-  `<champ>_<langue>` d'un objet), `trimLocalized`, `hasAnyText`. C'est la seule
+  text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
+  `<champ>_<langue>` d'un objet, ex. `name_derja_ar`), `trimLocalized`, `hasAnyText`. C'est la seule
   règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
-  descriptions, étapes, astuce du chef).
+  descriptions, étapes, astuce du chef). Jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ;
+  les variantes récentes sont facultatives (vides = absentes).

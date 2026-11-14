@@ -18,7 +18,8 @@ aucune lecture de la base, sur ordinateur comme sur téléphone.
 Comportement :
 
 - **Champs et poids** : noms (×3), ingrédients de la recette (×1,5), descriptions (×1), dans **toutes**
-  les langues et variantes (lues par préfixe : `name_*`, `description_*`).
+  les langues et variantes (lues par préfixe : `name_*`, `description_*`) — un nouveau champ texte
+  localisé (`<champ>_<langue>`) est donc indexé automatiquement.
 - **Tous les mots** de la requête doivent être trouvés, chacun comme **début de mot** (« merg » →
   « merguez », jamais « sel » → « persil »), avec des **fautes** : aucune sous 5 lettres, 1 jusqu'à 8,
   2 au-delà (« kamounya » → « Kamounia »).
