@@ -39,6 +39,10 @@ interface Harness {
     pushes: RemoteKitchenSections[];
     remote: RemoteKitchenDocument | null;
     fail: 'pull' | 'push' | null;
+    /** Responses held in flight until the test releases them (oldest first) */
+    holdPulls: number;
+    holdPushes: number;
+    release: () => void;
   };
   time: { value: number };
   documentListeners: Map<string, () => void>;
@@ -150,25 +154,43 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     pushes: [] as RemoteKitchenSections[],
     remote: null as RemoteKitchenDocument | null,
     fail: null as 'pull' | 'push' | null,
+    holdPulls: 0,
+    holdPushes: 0,
+    release: () => undefined,
+  };
+  const held: (() => void)[] = [];
+  gateway.release = () => {
+    held.shift()?.();
   };
   const gatewayPort = {
     async pull(): Promise<RemoteKitchenDocument | null> {
       gateway.pulls += 1;
+      // The document is snapshotted before waiting: the release must answer with the
+      // version this request would have received, not the one the server holds later
+      const snapshot = gateway.remote;
+      if (gateway.holdPulls > 0) {
+        gateway.holdPulls -= 1;
+        await new Promise<void>((resolve) => held.push(resolve));
+      }
       if (gateway.fail === 'pull') throw new Error('unreachable');
-      return gateway.remote;
+      return snapshot;
     },
     async push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument> {
       gateway.pushes.push(sections);
-      if (gateway.fail === 'push') throw new Error('refused');
-      const remote: RemoteKitchenDocument = { ...gateway.remote };
+      const merged: RemoteKitchenDocument = { ...gateway.remote };
       for (const [name, section] of Object.entries(sections)) {
-        const current = remote[name as keyof RemoteKitchenDocument];
+        const current = merged[name as keyof RemoteKitchenDocument];
         if (!current || section.updatedAt > current.updatedAt) {
-          remote[name as keyof RemoteKitchenDocument] = section as never;
+          merged[name as keyof RemoteKitchenDocument] = section as never;
         }
       }
-      gateway.remote = remote;
-      return remote;
+      if (gateway.holdPushes > 0) {
+        gateway.holdPushes -= 1;
+        await new Promise<void>((resolve) => held.push(resolve));
+      }
+      if (gateway.fail === 'push') throw new Error('refused');
+      gateway.remote = merged;
+      return merged;
     },
   };
 
@@ -382,5 +404,72 @@ describe('the kitchen sync engine', () => {
     await vi.runAllTimersAsync();
     expect(h.gateway.pulls).toBe(pullsAfterStart + 1);
     expect(h.kitchen.getState().favorites).toEqual(['from-u2']);
+  });
+
+  it('drops a pull that resolves after the account changed', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    // u1's pull is in flight when u2 signs in, whose own pull is held too: the two
+    // responses arrive in the order they were sent (u1's stale one first)
+    h.gateway.remote = { favorites: { value: ['stale-u1'], updatedAt: 9000 } };
+    h.gateway.holdPulls = 2;
+    h.time.value += 61_000;
+    h.documentListeners.get('visibilitychange')!(); // u1's pull, held
+    h.owner.uid = 'u2';
+    h.gateway.remote = { favorites: { value: ['from-u2'], updatedAt: 9000 } };
+    h.sync.onAccountChanged(); // u2's pull, held
+
+    h.gateway.release(); // u1's stale response arrives after the switch
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().favorites).toEqual([]); // nothing from u1 touched u2's document
+    expect(h.ledger.times.favorites).toBeUndefined(); // not even the section timestamps
+    expect(h.sync.getState().syncing).toBe(true); // u2's pull is still the one in flight
+
+    h.gateway.release(); // u2's own response arrives
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().favorites).toEqual(['from-u2']);
+    expect(h.sync.getState().syncing).toBe(false);
+  });
+
+  it('keeps the sections pending when a push resolves after the account changed', async () => {
+    const h = makeHarness({ favorites: ['r1'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    // The server holds a grocery note: if the stale response were applied, it would land on u2
+    h.gateway.remote = { groceryMeta: { value: { note: 'note-from-u1', spent_tnd: null }, updatedAt: 9000 } };
+    h.kitchen.toggleFavorite('r2'); // favorites pending, debounced push armed
+    h.gateway.holdPushes = 1;
+    await vi.advanceTimersByTimeAsync(2000); // u1's push, held in flight
+
+    h.owner.uid = 'u2';
+    h.gateway.holdPulls = 1; // hold u2's own pull: only the stale response must arrive now
+    h.sync.onAccountChanged();
+    h.gateway.release(); // the push response arrives for u2's session
+    await vi.runAllTimersAsync();
+
+    // The stale response confirmed nothing and applied nothing on u2's document
+    expect(h.ledger.pendingSet.has('favorites')).toBe(true);
+    expect(h.kitchen.getState().groceryNote).toBe('');
+    expect(h.sync.getState().syncing).toBe(true); // the flags still belong to u2's pull in flight
+
+    h.gateway.release(); // u2's own pull arrives
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().groceryNote).toBe('note-from-u1');
+    expect(h.sync.getState().syncing).toBe(false);
+    expect(h.gateway.pushes).toHaveLength(1);
+
+    // Signing back in with u1: the sections that stayed pending replay on the next
+    // trigger (here a restart, like the start-up catch-up) — nothing was lost
+    h.owner.uid = 'u1';
+    h.sync.onAccountChanged();
+    h.sync.stop();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(2);
+    expect(h.gateway.pushes[1].favorites?.value).toEqual(['r1', 'r2']);
+    expect(h.ledger.pendingSet.has('favorites')).toBe(false);
   });
 });

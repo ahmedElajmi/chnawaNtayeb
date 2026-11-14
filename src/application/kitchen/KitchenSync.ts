@@ -104,6 +104,9 @@ export class KitchenSync extends Store<KitchenSyncState> {
     this.applying = false;
     this.lastPull = 0;
     this.updatePending();
+    // An operation still in flight belonged to the previous account: it must no longer
+    // touch the state (its stale response is dropped by the scope guard after its await)
+    this.setState({ syncing: false });
     if (scope) void this.pullNow();
   }
 
@@ -147,7 +150,8 @@ export class KitchenSync extends Store<KitchenSyncState> {
 
   /** Pushes what is pending, then adopts what the server kept (a newer section wins over ours). */
   private async pushNow(): Promise<void> {
-    if (!this.deps.owner()) return;
+    const uid = this.deps.owner();
+    if (!uid) return;
     const pending = this.deps.ledger.pending();
     const preferencesPending = this.preferencesPending();
     const sections = this.pendingSections(pending, preferencesPending);
@@ -158,11 +162,15 @@ export class KitchenSync extends Store<KitchenSyncState> {
     this.setState({ syncing: true });
     try {
       const doc = await this.deps.gateway.push(sections);
+      // The account may have changed while the request was in flight: the ledger now reads
+      // the new account's document, so confirming or applying here would mix two accounts
+      if (this.deps.owner() !== uid) return;
       this.deps.ledger.confirm(pending);
       if (preferencesPending) this.deps.ledger.confirmPreferences(this.deps.now());
-      this.applyRemote(doc);
+      this.applyRemote(doc, uid);
       this.setState({ syncing: false, failed: false });
     } catch {
+      if (this.deps.owner() !== uid) return;
       // Kept pending: retried on the next trigger (visibility, next change, next start)
       this.setState({ syncing: false, failed: true });
     }
@@ -192,15 +200,20 @@ export class KitchenSync extends Store<KitchenSyncState> {
   }
 
   private async pullNow(): Promise<void> {
-    if (!this.deps.owner()) return;
+    const uid = this.deps.owner();
+    if (!uid) return;
     if (this.lastPull !== 0 && this.deps.now() - this.lastPull < PULL_MIN_INTERVAL_MS) return;
     this.lastPull = this.deps.now();
     this.setState({ syncing: true });
     try {
       const doc = await this.deps.gateway.pull();
-      if (doc) this.applyRemote(doc);
+      // The account may have changed while the request was in flight: this response belongs
+      // to the old account and must not be written into the new account's local document
+      if (this.deps.owner() !== uid) return;
+      if (doc) this.applyRemote(doc, uid);
       this.setState({ syncing: false, failed: false, lastPullAt: this.lastPull });
     } catch {
+      if (this.deps.owner() !== uid) return;
       this.setState({ syncing: false, failed: true });
     }
   }
@@ -212,7 +225,10 @@ export class KitchenSync extends Store<KitchenSyncState> {
   }
 
   /** Applies a document coming from the server: unions for sets, newest write for the rest. */
-  private applyRemote(doc: RemoteKitchenDocument): void {
+  private applyRemote(doc: RemoteKitchenDocument, uid: string): void {
+    // Defense in depth: a caller that kept a stale response must not write into the
+    // local document of whatever account is signed in now
+    if (this.deps.owner() !== uid) return;
     this.applying = true;
     // Saves applied from the server are not changes made here: the ledger must not
     // mark them pending, or every device would echo its pull back to the server.
