@@ -12,11 +12,27 @@ const KEYS = {
   WEEKLY_PLAN: 'chnowa_weekly_plan_v1',
   GROCERY_LIST: 'chnowa_grocery_list_v1',
   PREFERENCES: 'chnowa_preferences_v1',
+  PREFERENCES_UPDATED_AT: 'chnowa_preferences_updated_at',
   SEARCH_HISTORY: 'chnowa_search_history_v1',
   THEMES: 'chnowa_themes_v1',
   SEED_VERSION: 'chnowa_seed_version',
   ACTIVE_THEME_VARS: 'chnowa_active_theme_vars_v1',
 };
+
+/** Kitchen data of one scope (an account uid, or 'local' for a device used without one). */
+export interface StoredKitchenDoc {
+  favorites: string[];
+  fridge: string[];
+  pantry: string[];
+  weeklyPlan: DayPlan[];
+  groceryList: GroceryItem[];
+  /** Last local change per section, in ms since epoch (drives the newest-write-wins merge) */
+  sections: Record<string, number>;
+  /** Sections changed locally and not confirmed by the server yet */
+  pending: string[];
+  /** When the preferences mirror was last confirmed by the server (null = never) */
+  preferencesSyncedAt: number | null;
+}
 
 class StorageService {
   // --- PREFERENCES ---
@@ -29,13 +45,25 @@ class StorageService {
     }
   }
 
-  savePreferences(prefs: Partial<UserPreferences>): UserPreferences {
+  savePreferences(prefs: Partial<UserPreferences>, at?: number): UserPreferences {
     const current = this.getPreferences();
     const updated = { ...current, ...prefs };
     try {
       localStorage.setItem(KEYS.PREFERENCES, JSON.stringify(updated));
+      localStorage.setItem(KEYS.PREFERENCES_UPDATED_AT, String(at ?? Date.now()));
     } catch {}
     return updated;
+  }
+
+  /** When the preferences were last changed on this device (null = never changed). */
+  preferencesUpdatedAt(): number | null {
+    try {
+      const raw = localStorage.getItem(KEYS.PREFERENCES_UPDATED_AT);
+      const value = raw === null ? null : Number(raw);
+      return value !== null && Number.isFinite(value) ? value : null;
+    } catch {
+      return null;
+    }
   }
 
   // --- THEMES (remote themes cache, for offline use) ---
@@ -156,6 +184,51 @@ class StorageService {
     try {
       localStorage.setItem(KEYS.GROCERY_LIST, JSON.stringify(items));
     } catch {}
+  }
+
+  // --- SCOPED KITCHEN DOC (one per account uid, or 'local' for a device without an account) ---
+  private kitchenKey(scope: string): string {
+    return `chnowa_kitchen_${scope}_v1`;
+  }
+
+  getKitchenDoc(scope: string): StoredKitchenDoc | null {
+    try {
+      const data = localStorage.getItem(this.kitchenKey(scope));
+      if (!data) return null;
+      const doc = JSON.parse(data) as Partial<StoredKitchenDoc>;
+      if (!doc || typeof doc !== 'object') return null;
+      return {
+        favorites: Array.isArray(doc.favorites) ? doc.favorites.map(String) : [],
+        fridge: Array.isArray(doc.fridge) ? doc.fridge.map(String) : [],
+        pantry: Array.isArray(doc.pantry) ? doc.pantry.map(String) : [],
+        weeklyPlan: Array.isArray(doc.weeklyPlan)
+          ? doc.weeklyPlan.map((day) => migrateDayPlan(day, initialRecipes))
+          : DEFAULT_WEEKLY_PLAN,
+        groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : [],
+        sections: doc.sections && typeof doc.sections === 'object' ? { ...doc.sections } : {},
+        pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
+        preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  saveKitchenDoc(scope: string, doc: StoredKitchenDoc): void {
+    try {
+      localStorage.setItem(this.kitchenKey(scope), JSON.stringify(doc));
+    } catch {}
+  }
+
+  /** Kitchen data written by earlier versions (unscoped keys): read once, then only the scoped doc is used. */
+  readLegacyKitchen(): Omit<StoredKitchenDoc, 'sections' | 'pending' | 'preferencesSyncedAt'> | null {
+    const favorites = this.getFavorites();
+    const fridge = this.getFridgeSelected();
+    const weeklyPlan = this.getWeeklyPlan();
+    const groceryList = this.getGroceryList();
+    const pantry = this.getPreferences().pantryStaples ?? [];
+    if (!favorites.length && !fridge.length && !groceryList.length && !pantry.length) return null;
+    return { favorites, fridge, pantry, weeklyPlan, groceryList };
   }
 }
 

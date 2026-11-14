@@ -13,7 +13,7 @@ import {
   TeamStore,
   SyncedCollectionStore,
 } from '@/application';
-import { AccountDirectoryStore, AccountProfileStore, CountriesStore } from '@/application';
+import { AccountDirectoryStore, AccountProfileStore, CountriesStore, KitchenSync } from '@/application';
 import { ADMIN_ROLE_ID, DEFAULT_ROLES, parseWorkCopies, type RoleDefinition, type WorkCopy } from '@/core/review';
 import {
   initialIngredients,
@@ -25,9 +25,11 @@ import {
 import { createId } from '@/core/shared';
 import { BUILT_IN_CATEGORIES, parseStoredCategories, type CategoryKind, type ContentCategory } from '@/core/categories';
 import { initialCountries, parseStoredCountries, type CountryRecord } from '@/core/accounts';
-import { localKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
+import { createLocalKitchenRepository } from '@/infrastructure/local/localRepositories';
+import { kitchenSyncHttpGateway } from '@/infrastructure/http/kitchenSyncHttpGateway';
+import { readUserSession } from '@/infrastructure/http/userSession';
 import { localRecipeDrafts } from '@/infrastructure/local/localRecipeDrafts';
 import { storage } from '@/infrastructure/local/storage';
 import { createIndexedDbCollectionCache } from '@/infrastructure/indexeddb/indexedDbCollectionCache';
@@ -174,7 +176,38 @@ export function createContainer() {
     recipe: categoryStore('recipe', recipeCategoriesCloud, 'recipe_categories'),
     ingredient: categoryStore('ingredient', ingredientCategoriesCloud, 'ingredient_categories'),
   };
-  const kitchen = new KitchenStore(localKitchenRepository);
+  // The kitchen of the signed-in account: one local document per uid ('local' for a device
+  // used without an account), synced with the server by KitchenSync — a debounced push
+  // after every change, a pull at sign-in, at start-up and when the page becomes visible
+  // (at most once a minute). Guests keep their data on this device alone.
+  const syncScope = (): string => {
+    const session = readUserSession();
+    return session && (session.kind === 'client' || session.kind === 'employee') ? session.uid : 'local';
+  };
+  const localKitchen = createLocalKitchenRepository(syncScope);
+  const kitchen = new KitchenStore(localKitchen);
+  const kitchenSync = new KitchenSync({
+    gateway: kitchenSyncHttpGateway,
+    kitchen,
+    preferences: localPreferences,
+    ledger: localKitchen.ledger,
+    owner: () => {
+      const scope = syncScope();
+      return scope === 'local' ? null : scope;
+    },
+    now,
+  });
+  kitchenSync.start();
+  // Every sign-in / sign-out (including the restored session at start-up) re-scopes the kitchen
+  void userAuthHttpGateway.subscribe(() => kitchenSync.onAccountChanged());
+  // The preferences are saved outside the kitchen store: forward their saves to the sync
+  const preferences = {
+    load: localPreferences.load,
+    save: (patch: Parameters<typeof localPreferences.save>[0], at?: number) => {
+      localPreferences.save(patch, at);
+      kitchenSync.notifyPreferencesChanged();
+    },
+  };
   const catalogAdmin = new CatalogAdmin(catalog, recipesCloud.writer, ingredientsCloud.writer, kitchen, {
     cloudName: 'Serveur',
     newId: createId,
@@ -188,6 +221,7 @@ export function createContainer() {
     // Text search on the device copy of the catalog (swap the engines here, e.g. for a server one)
     search: new CatalogSearch(catalog, { recipes: createMiniSearchEngine(), ingredients: createMiniSearchEngine() }),
     kitchen,
+    kitchenSync,
     backofficeSession,
     team,
     countries,
@@ -199,7 +233,7 @@ export function createContainer() {
       now: () => new Date().toISOString(),
     }),
     // Services (ports used directly by a screen)
-    preferences: localPreferences,
+    preferences,
     themes: themesHttp,
     userAuth: userAuthHttpGateway,
     accountCreation: accountHttpGateway,

@@ -11,6 +11,7 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `SyncedCollectionStore`  | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)    |
 | `CatalogStore`           | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                           |
 | `KitchenStore`           | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement        |
+| `KitchenSync`            | synchro en cours, sections en attente, dernier pull       | Pousse (anti-rebond 2 s) et tire (garde 60 s) la cuisine du compte vers `kitchen/{uid}` |
 | `BackofficeSessionStore` | `checking` / `signed-in` / `signed-out`, statut cloud     | Session super admin, toujours confirmée par le serveur                                  |
 | `MatchingSettingsStore`  | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                   |
 | `RecipeDrafts`           | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                   |
@@ -26,29 +27,31 @@ Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useRevi
 
 ## Ports (`src/application/ports.ts`)
 
-| Port                         | Rôle                                                | Adapter actuel                                      |
-| ---------------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| `SharedCollectionSource`     | Collection partagée suivie (delta incrémental)      | `infrastructure/http/sharedCollectionHttp`          |
-| `SharedCollectionWriter<T>`  | Écritures (versionnées par le serveur, sans fusion) | `infrastructure/http/sharedCollectionHttp`          |
-| `LocalCollectionCache<T>`    | Copie hors ligne d'une collection partagée          | `infrastructure/indexeddb/indexedDbCollectionCache` |
-| `KitchenRepository`          | Frigo, placard, favoris, menu, courses              | `infrastructure/local/localRepositories`            |
-| `PreferencesRepository`      | Langue, thème, mode, placard                        | `infrastructure/local/localPreferences`             |
-| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition        | `infrastructure/http/themesHttp`                    |
-| `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/http/settingsRepositories`          |
-| `MatchingSettingsCache`      | Copie hors ligne des réglages                       | `infrastructure/local/localMatchingSettingsCache`   |
-| `UserAuthGateway`            | Sessions du site (invité, client, employé)          | `infrastructure/http/userAuthHttpGateway`           |
-| `BackofficeSessionGateway`   | Connexion et session super admin                    | `infrastructure/http/backofficeSessionHttpGateway`  |
-| `PollingSettingsGateway`     | Intervalle de polling configuré dans le backoffice  | `infrastructure/http/pollingSettingsGateway`        |
-| `VisionGateway`              | Scan photo du frigo                                 | `infrastructure/http/visionHttpGateway`             |
-| `RecipeDraftRepository`      | Brouillons de recettes non enregistrés              | `infrastructure/local/localRecipeDrafts`            |
-| `SearchEngine`               | Recherche texte (recettes, ingrédients)             | `infrastructure/minisearch/miniSearchEngine`        |
-| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication atomique   | `infrastructure/http/reviewWorkspaceHttp`           |
-| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions               | `infrastructure/http/settingsRepositories`          |
-| `TeamRepository`             | Membres de l'équipe (`admins`)                      | `infrastructure/http/scenariosAndTeamHttp`          |
-| `AccountDirectoryRepository` | Annuaire des comptes (paginé) + déverrouillage      | `infrastructure/http/accountDirectoryHttp`          |
-| `AccountProfileRepository`   | Profil du compte connecté                           | `infrastructure/http/accountProfileHttpGateway`     |
-| `PasswordPolicyGateway`      | Politique des mots de passe (page Sécurité)         | `infrastructure/http/passwordPolicyGateway`         |
-| `AccountCreationGateway`     | Création d'un compte employé                        | `infrastructure/http/accountHttpGateway`            |
+| Port                         | Rôle                                                | Adapter actuel                                           |
+| ---------------------------- | --------------------------------------------------- | -------------------------------------------------------- |
+| `SharedCollectionSource`     | Collection partagée suivie (delta incrémental)      | `infrastructure/http/sharedCollectionHttp`               |
+| `SharedCollectionWriter<T>`  | Écritures (versionnées par le serveur, sans fusion) | `infrastructure/http/sharedCollectionHttp`               |
+| `LocalCollectionCache<T>`    | Copie hors ligne d'une collection partagée          | `infrastructure/indexeddb/indexedDbCollectionCache`      |
+| `KitchenRepository`          | Frigo, placard, favoris, menu, courses              | `infrastructure/local/localRepositories` (scopé par uid) |
+| `KitchenSyncGateway`         | La cuisine du compte sur le serveur (pull/push)     | `infrastructure/http/kitchenSyncHttpGateway`             |
+| `KitchenSyncLedger`          | Sections changées ici, horodatages, attentes        | `infrastructure/local/localRepositories`                 |
+| `PreferencesRepository`      | Langue, thème, mode, placard                        | `infrastructure/local/localPreferences`                  |
+| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition        | `infrastructure/http/themesHttp`                         |
+| `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/http/settingsRepositories`               |
+| `MatchingSettingsCache`      | Copie hors ligne des réglages                       | `infrastructure/local/localMatchingSettingsCache`        |
+| `UserAuthGateway`            | Sessions du site (invité, client, employé)          | `infrastructure/http/userAuthHttpGateway`                |
+| `BackofficeSessionGateway`   | Connexion et session super admin                    | `infrastructure/http/backofficeSessionHttpGateway`       |
+| `PollingSettingsGateway`     | Intervalle de polling configuré dans le backoffice  | `infrastructure/http/pollingSettingsGateway`             |
+| `VisionGateway`              | Scan photo du frigo                                 | `infrastructure/http/visionHttpGateway`                  |
+| `RecipeDraftRepository`      | Brouillons de recettes non enregistrés              | `infrastructure/local/localRecipeDrafts`                 |
+| `SearchEngine`               | Recherche texte (recettes, ingrédients)             | `infrastructure/minisearch/miniSearchEngine`             |
+| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication atomique   | `infrastructure/http/reviewWorkspaceHttp`                |
+| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions               | `infrastructure/http/settingsRepositories`               |
+| `TeamRepository`             | Membres de l'équipe (`admins`)                      | `infrastructure/http/scenariosAndTeamHttp`               |
+| `AccountDirectoryRepository` | Annuaire des comptes (paginé) + déverrouillage      | `infrastructure/http/accountDirectoryHttp`               |
+| `AccountProfileRepository`   | Profil du compte connecté                           | `infrastructure/http/accountProfileHttpGateway`          |
+| `PasswordPolicyGateway`      | Politique des mots de passe (page Sécurité)         | `infrastructure/http/passwordPolicyGateway`              |
+| `AccountCreationGateway`     | Création d'un compte employé                        | `infrastructure/http/accountHttpGateway`                 |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par
@@ -142,17 +145,49 @@ les éléments changés sont réécrits) et `meta` (révision la plus récente e
 L'ancienne copie `localStorage` (`chnowa_recipes_v1`, `chnowa_ingredients_v1`, `chnowa_seed_version`) est
 déplacée une fois dans IndexedDB puis effacée.
 
-| Clé `localStorage`                     | Contenu                                                                          |
-| -------------------------------------- | -------------------------------------------------------------------------------- |
-| `chnowa_fridge_selected_v1`            | Frigo                                                                            |
-| `chnowa_favorites_v1`                  | Favoris                                                                          |
-| `chnowa_weekly_plan_v1`                | Menu de la semaine                                                               |
-| `chnowa_grocery_list_v1`               | Liste de courses                                                                 |
-| `chnowa_preferences_v1`                | Langue, mode, thème, placard                                                     |
-| `chnowa_themes_v1`                     | Copie des thèmes publiés                                                         |
-| `chnowa_active_theme_vars_v1`          | Couleurs du thème actif, lues par `index.html` avant le démarrage (pas de flash) |
-| `chnowa_matching_settings_cache_v1`    | Copie des réglages du moteur                                                     |
-| `chnowa_recipe_draft_v1:<id>` / `:new` | Brouillon de l'éditeur de recette (personnel à l'appareil, jamais partagé)       |
+| Clé `localStorage`                                                                                    | Contenu                                                                                                                                                                        |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `chnowa_kitchen_<scope>_v1`                                                                           | **Document de cuisine scopé** (frigo, placard, favoris, menu, liste + horodatages et sections en attente) — `<scope>` = uid du compte, ou `local` pour un appareil sans compte |
+| `chnowa_fridge_selected_v1`, `chnowa_favorites_v1`, `chnowa_weekly_plan_v1`, `chnowa_grocery_list_v1` | **Clés historiques** : lues une seule fois à la première ouverture d'un scope (migration en lecture, rien n'est supprimé), puis remplacées par le document scopé               |
+
+### Synchronisation personnelle de la cuisine (comptes clients)
+
+Le frigo, le placard, les favoris, le menu de la semaine, la liste de courses et les préférences
+alimentaires d'un **compte client ou employé** sont conservés sur le serveur : un document par uid
+dans la collection server-only `kitchen`, lu et écrit par `GET/PUT /api/kitchen` (session Bearer,
+jamais les invités). Côté client, le moteur `KitchenSync` (`src/application/kitchen/KitchenSync.ts`)
+travaille **local-first** : l'appareil écrit et affiche toujours depuis sa copie (le localStorage
+reste le cache hors ligne), la synchronisation est un fond de carte invisible.
+
+**Budget d'appels verrouillé** (aucune requête périodique, aucune boucle de retry) :
+
+- Push : **anti-rebond de 2 s** qui se réarme (une rafale de modifications = une requête), et
+  **envoi immédiat** du tampon quand la page passe en arrière-plan (`visibilitychange`/`pagehide`).
+  Une écriture = 1 lecture + 1 écriture du document serveur (fusion nouveau-gagne-par-section).
+- Pull : au démarrage, à la connexion et au retour sur l'onglet, avec une **garde de 60 s**
+  entre deux pulls automatiques (≤ 3 lectures/heure même pour un utilisateur très actif).
+- Rattrapage : les sections marquées « en attente » (flag persisté dans le document scopé)
+  sont envoyées **au démarrage suivant** — un crash, une coupure réseau ou un onglet tué ne
+  perdent rien ; un push en échec reste en attente et repart au déclencheur suivant seulement.
+
+**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union**
+(les ensembles grossissent, jamais de perte) ; menu, liste et préférences prennent **le dernier
+écrit gagnant** (horodatage client porté par chaque section). Le serveur applique la même règle
+(`server/routes/kitchenRoutes.ts`), donc deux appareils peuvent pousser dans n'importe quel ordre
+et convergent. La sync des préférences exclut le placard (qui a sa propre section) et inversement
+le push des préférences n'embarque pas `pantryStaples`.
+
+**Scopage par uid** : la clé locale porte l'uid (`chnowa_kitchen_<uid>_v1`) ; à la connexion d'un
+compte différent, l'appareil recharge les données de ce compte. **Migration montante** : à la
+première ouverture d'un scope, les anciennes clés non scopées sont lues une fois et comptent
+comme des changements locaux (elles partent vers le cloud au premier push). Les **invités** restent
+100 % locaux (uid éphémère, rien à synchroniser) ; un bandeau discret (`SyncInviteBanner`)
+propose la création de compte quand l'appareil détient des données de cuisine sans compte.
+| `chnowa_preferences_v1` | Langue, mode, thème, placard |
+| `chnowa_themes_v1` | Copie des thèmes publiés |
+| `chnowa_active_theme_vars_v1` | Couleurs du thème actif, lues par `index.html` avant le démarrage (pas de flash) |
+| `chnowa_matching_settings_cache_v1` | Copie des réglages du moteur |
+| `chnowa_recipe_draft_v1:<id>` / `:new` | Brouillon de l'éditeur de recette (personnel à l'appareil, jamais partagé) |
 
 `sessionStorage` : `super_admin_session_token` (jeton de session super admin, 8 heures).
 

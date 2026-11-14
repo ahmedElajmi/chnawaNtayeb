@@ -12,6 +12,7 @@ import { accountRoutes } from './routes/accountRoutes';
 import { authRoutes } from './auth/routes';
 import { adminDataRoutes } from './routes/adminDataRoutes';
 import { dataRoutes } from './routes/dataRoutes';
+import { kitchenRoutes } from './routes/kitchenRoutes';
 import { backofficeAuthRoutes } from './routes/backofficeAuthRoutes';
 import { seoRoutes } from './routes/seoRoutes';
 import { VISION_PATH, visionRoutes } from './routes/visionRoutes';
@@ -78,6 +79,9 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.use(backofficeAuthRoutes(backofficeAuthConfig));
   app.use(accountRoutes(backofficeAuthConfig, dataStore));
   app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider));
+  // The personal kitchen data of signed-in accounts (guests keep theirs on the device;
+  // the collection is server-only: never served by the data endpoints)
+  app.use(kitchenRoutes(backofficeAuthConfig, dataStore));
   app.use(adminDataRoutes(backofficeAuthConfig, dataStore));
   app.use(dataRoutes(backofficeAuthConfig, dataStore));
   app.use(visionRoutes(vision));

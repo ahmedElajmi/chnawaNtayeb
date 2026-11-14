@@ -100,6 +100,7 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 - **Politique de mot de passe** (`settings/password`, page **Sécurité** de /admin) : algorithme, paramètres argon2 (mémoire/itérations/parallélisme), longueur minimale, classes de caractères exigées, mode de migration (`auto` = re-hachage transparent / `force_change` = nouveau mot de passe demandé à la connexion), verrouillage (tentatives, minutes, déverrouillage automatique) + **déverrouillage manuel** sur la fiche du client dans l'annuaire.
 - **Création des employés** : `/admin/api/employees` écrit `users/{uid}` + `auth/{uid}` via le contrat de stockage (mot de passe temporaire argon2) — plus aucun compte Firebase Auth n'est créé.
 - Endpoints : `/api/auth/register|login|guest|me|change-password`, `PUT /api/auth/profile`, `PUT /api/auth/sync-lists` (favoris/frigo), `GET /api/auth/password-criteria` (sous-ensemble public : longueur minimale + classes exigées, jamais l'algorithme ni le verrouillage), `/admin/api/password-policy`, `/admin/api/accounts/:uid/unlock`.
+- **Synchronisation de la cuisine** : `GET/PUT /api/kitchen` — le frigo, le placard, les favoris, le menu, la liste et les préférences d'un compte client/employé (document server-only `kitchen/{uid}`) ; les invités sont refusés. Fusion « nouveau gagne par section » côté serveur (favoris/frigo/placard = union côté client). Détails du budget d'appels et de la migration : [05 Application & données](05-application-donnees.md).
 - Port client : `PasswordPolicyGateway` (contrat + jumeau mémoire + adaptateur HTTP).
 
 ### Côté navigateur (sessions du site)
@@ -109,6 +110,19 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 - Le formulaire d'inscription affiche les **critères en vigueur** (longueur minimale, classes exigées) via `GET /api/auth/password-criteria`, avec confirmation du mot de passe, indicateur de robustesse et œil afficher/masquer (`PasswordInput` partagé).
 - États honnêtes dans le modal compte : **Invité** (bandeau « tes données restent sur cet appareil » + bouton principal « Créer mon compte »), **Client** (fiche profil + changement de mot de passe), **Équipe** (badge dédié). Aucun lien vers le backoffice n'est exposé au public : l'accès passe par l'URL `/admin` (ou le raccourci « Espace admin » du manifeste PWA).
 - Développement local sans Firebase : `LOCAL_MEMORY_STORE=1 npm run dev` garde toutes les données en mémoire (refusé en production).
+
+### Runbook : données de cuisine non synchronisées
+
+1. Vérifier que le compte est **client ou employé** (les invités restent locaux par conception).
+2. Le badge de synchro est visible sur le document scopé : sections en attente dans
+   `chnowa_kitchen_<uid>_v1` (`pending`). Un push en échec (serveur injoignable) reste en attente
+   et repart au déclencheur suivant — aucun retry en boucle.
+3. Le serveur refuse (401) : session expirée → reconnexion (le pull reprend au login).
+4. Un favori supprimé sur un appareil réapparaît ailleurs : comportement attendu de l'**union**
+   (les ensembles ne perdent jamais d'élément). Modifier la sémantique = passer à des marqueurs
+   de suppression (tombstones) — voir [05](05-application-donnees.md) avant tout changement.
+5. Les anciennes clés (`chnowa_favorites_v1`…) ne sont plus écrites après la migration ; ne pas
+   les supprimer manuellement (elles servent de repli en lecture).
 
 ### Comment appliquer un changement touchant Firebase (runbook anti-blocage)
 

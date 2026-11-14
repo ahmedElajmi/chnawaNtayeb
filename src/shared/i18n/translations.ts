@@ -115,6 +115,11 @@ export interface TranslationDictionary {
   scannerErrorKey: string;
   pwaOfflineTitle: string;
   pwaOfflineText: string;
+  // Kitchen sync invitation
+  syncInviteTitle: string;
+  syncInviteText: string;
+  syncInviteAction: string;
+  syncInviteDismiss: string;
   pwaIosTitle: string;
   pwaIosStep1: string;
   pwaIosStep2: string;
@@ -444,6 +449,11 @@ export const translations = {
     scannerErrorKey: 'Lezem t7ott clé Gemini fel secrets bech tekhdem el caméra AI.',
     pwaOfflineTitle: 'Yekhdem bla internet w yet7al fisa3',
     pwaOfflineText: 'El application ta7fadh el recettes w lista mta3 el 9adhya bech tekhdem 7atta bla 4G walla Wi-Fi.',
+    syncInviteTitle: 'El makla mte3ek ma3ak fel 4all',
+    syncInviteText:
+      'A3mel compte bech tal9a el favoris, el frigo, el menu w el lista mta3 el qadhya 3ala kol appareil.',
+    syncInviteAction: 'A3mel compte',
+    syncInviteDismiss: 'Ba3d',
     pwaIosTitle: 'Installation 3al iPhone w iPad (Safari) :',
     pwaIosStep1: '1. Enzel 3la **Partager** louta fi Safari (el icône elli fiha flèche tetla3).',
     pwaIosStep2: '2. Habbet fel menu w ekhtar **Sur l’écran d’accueil**.',
@@ -768,6 +778,11 @@ export const translations = {
     scannerErrorKey: 'Clé API Gemini requise pour la reconnaissance visuelle.',
     pwaOfflineTitle: 'Mode hors ligne et accès instantané',
     pwaOfflineText: 'L’application garde vos recettes et listes de courses pour fonctionner même sans 4G ni Wi-Fi.',
+    syncInviteTitle: 'Vos données vous suivent partout',
+    syncInviteText:
+      'Créez un compte pour retrouver vos favoris, votre frigo, votre menu et votre liste de courses sur tous vos appareils.',
+    syncInviteAction: 'Créer un compte',
+    syncInviteDismiss: 'Plus tard',
     pwaIosTitle: 'Installation sur iPhone et iPad (Safari) :',
     pwaIosStep1: '1. Appuyez sur **Partager** en bas de Safari (l’icône avec la flèche vers le haut).',
     pwaIosStep2: '2. Faites défiler le menu et choisissez **Sur l’écran d’accueil**.',
@@ -1094,6 +1109,10 @@ export const translations = {
     scannerErrorKey: 'مفتاح Gemini API مطلوب لتشغيل ميزة الكاميرا.',
     pwaOfflineTitle: 'يعمل دون إنترنت ويفتح فوراً',
     pwaOfflineText: 'يحتفظ التطبيق بوصفاتك وقوائم مشترياتك ليعمل حتى دون 4G أو Wi-Fi.',
+    syncInviteTitle: 'بياناتك ترافقك في كل مكان',
+    syncInviteText: 'أنشئ حسابًا لتجد مفضّلاتك وثلاجتك وقائمتك الأسبوعية وقائمة مشترياتك على كل أجهزتك.',
+    syncInviteAction: 'أنشئ حسابًا',
+    syncInviteDismiss: 'لاحقًا',
     pwaIosTitle: 'التثبيت على iPhone وiPad (Safari):',
     pwaIosStep1: '1. اضغط على **مشاركة** أسفل Safari (الأيقونة ذات السهم المتجه للأعلى).',
     pwaIosStep2: '2. مرّر القائمة واختر **إضافة إلى الشاشة الرئيسية**.',
