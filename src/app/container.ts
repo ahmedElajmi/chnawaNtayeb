@@ -49,6 +49,7 @@ import { firestoreAccountDirectory } from '@/infrastructure/firebase/firestoreAc
 import { firebaseAccountProfile, firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
 import { backofficeSessionHttpGateway } from '@/infrastructure/http/backofficeSessionHttpGateway';
+import { passwordPolicyGateway } from '@/infrastructure/http/passwordPolicyGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
 import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
 
@@ -195,6 +196,7 @@ export function createContainer() {
     themes: firestoreThemeRepository,
     userAuth: firebaseUserAuth,
     accountCreation: accountHttpGateway,
+    backofficePolicy: passwordPolicyGateway,
     catalogAdmin,
     // Validation workflow (workspaces, workflows, roles): followed only in the backoffice
     review,

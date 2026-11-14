@@ -19,7 +19,7 @@ export async function computeChanges(
   for (const [name, sent] of Object.entries(clientRevisions)) {
     const spec = collectionSpec(name);
     if (!spec) continue;
-    if (identity.read !== 'admin' && spec.read !== 'public') continue;
+    if (spec.read !== 'public' && (spec.read !== 'admin' || identity.read !== 'admin')) continue;
     const clientRev = typeof sent === 'number' && sent >= 0 ? sent : 0;
     const watermark = watermarkOf(name);
     if (watermark !== null && clientRev >= watermark) {

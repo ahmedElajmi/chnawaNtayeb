@@ -3,6 +3,7 @@ import {
   Carrot,
   ClipboardCheck,
   Database,
+  ShieldCheck,
   FolderTree,
   GitBranch,
   LayoutDashboard,
@@ -25,6 +26,7 @@ import {
 import { IngredientCategoriesPage, RecipeCategoriesPage } from '../categories/CategoriesPage';
 import { ClientsPage } from '../users/ClientsPage';
 import { CountriesPage } from '../users/CountriesPage';
+import { SecurityPage } from '../security/SecurityPage';
 import { QueuePage } from '../review/QueuePage';
 import {
   ReviewSettingsDraftProvider,
@@ -183,6 +185,14 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     hint: (b) => b.teamHint,
     requires: 'manage_roles',
     element: <TeamPage />,
+  },
+  {
+    page: BACKOFFICE_PAGES.security,
+    icon: ShieldCheck,
+    label: (b) => b.securityTitle,
+    hint: (b) => b.securityHint,
+    requires: 'manage_roles',
+    element: <SecurityPage />,
   },
   {
     page: BACKOFFICE_PAGES.clients,

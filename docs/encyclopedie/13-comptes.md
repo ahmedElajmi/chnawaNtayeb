@@ -89,3 +89,27 @@ un ancien document sans `type` n'apparaît que sous « tous » (il est retypé `
   modèle que le moteur de matching ; les fourchettes de prix du domaine absorbent les remises.
 - **Journal d'activité et statistiques** (phase 3) : les lectures backoffice de données personnelles y seront
   journalées.
+
+## Authentification serveur (indépendante de Firebase Auth)
+
+Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth** :
+
+- **Sessions serveur** pour tous : invité (jeton anonyme), client, employé (8 h), super admin (8 h, identifiants d'environnement). Signées HMAC avec `ADMIN_SESSION_SECRET`.
+- **Mots de passe** : collection **`auth/{uid}`** (serveur seul, jamais servie aux clients) contenant la chaîne **PHC** — l'algorithme et ses paramètres sont dans la chaîne. Hachage **argon2id** (`@node-rs/argon2`) par défaut.
+- **Registre de hacheurs** (`server/auth/hashers.ts`) : `verify` lit l'algorithme depuis la chaîne PHC — un ancien haché reste vérifiable après un changement d'algorithme ; à chaque connexion réussie, re-hachage avec l'algorithme configuré.
+- **Politique de mot de passe** (`settings/password`, page **Sécurité** de /admin) : algorithme, paramètres argon2 (mémoire/itérations/parallélisme), longueur minimale, classes de caractères exigées, mode de migration (`auto` = re-hachage transparent / `force_change` = nouveau mot de passe demandé à la connexion), verrouillage (tentatives, minutes, déverrouillage automatique) + **déverrouillage manuel** sur la fiche du client dans l'annuaire.
+- **Création des employés** : `/admin/api/employees` écrit `users/{uid}` + `auth/{uid}` via le contrat de stockage (mot de passe temporaire argon2) — plus aucun compte Firebase Auth n'est créé.
+- Endpoints : `/api/auth/register|login|guest|me|change-password`, `PUT /api/auth/profile`, `PUT /api/auth/sync-lists` (favoris/frigo), `/admin/api/password-policy`, `/admin/api/accounts/:uid/unlock`.
+- Port client : `PasswordPolicyGateway` (contrat + jumeau mémoire + adaptateur HTTP).
+
+### Comment appliquer un changement touchant Firebase (runbook anti-blocage)
+
+| Changement                                          | Ordre d'application                                                                                                                  | Effet                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Renommage du claim (`superAdmin`)                   | Déployer **l'app et les règles ensemble** : `npm run build` + déploiement Render, puis `npm run deploy:rules`                        | Les sessions admin existantes re-login une fois (clé renommée)            |
+| Nouvelles collections (`auth`, `users`, `settings`) | Rien à faire côté Firebase : créées à l'usage ; `npm run deploy:rules` pour garder le deny-all cohérent                              | Aucune interruption                                                       |
+| Employés                                            | Les créer depuis `/admin` (Équipe) : le compte vit dans `users`+`auth`, plus dans Firebase Auth                                      | Le mot de passe temporaire s'affiche une fois                             |
+| Bascule des données vers `/api/data/*` (PR D)       | Déployer l'app (le chemin Firebase reste derrière un drapeau), vérifier, puis activer le drapeau                                     | Les règles Firestore deviennent un second filet, plus la porte principale |
+| Passage à SQL (plus tard)                           | `DATA_STORE=postgres` + importer le backup JSON dans les tables (id + JSONB + revision) ; les hachés argon2 suivent avec les comptes | Les clients gardent leur mot de passe (les hachés sont chez nous)         |
+
+**Firebase Auth devient inutile** : aucun compte n'y est créé ni vérifié ; la console Firebase ne sert plus qu'au projet Firestore. Rien à supprimer côté console — le vide ne gêne pas.

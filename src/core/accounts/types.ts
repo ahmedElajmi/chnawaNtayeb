@@ -88,3 +88,15 @@ export interface AccountSummary {
   isAnonymous: boolean;
   lastLogin?: string;
 }
+
+/** Password policy of the whole site, configured in the backoffice, applied by the server. */
+export interface PasswordPolicy {
+  algorithm: string;
+  params: Record<string, number>;
+  min_password_length: number;
+  require_digit: boolean;
+  require_uppercase: boolean;
+  require_special: boolean;
+  migration: 'auto' | 'force_change';
+  lockout: { max_attempts: number; lock_minutes: number; auto_unlock: boolean };
+}

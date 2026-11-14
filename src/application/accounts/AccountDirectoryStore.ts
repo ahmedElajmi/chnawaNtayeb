@@ -48,6 +48,11 @@ export class AccountDirectoryStore extends Store<AccountDirectoryState> {
     await this.load({ users: [], total: 0, search: this.getState().search, type, loading: true, hasMore: false }, null);
   }
 
+  /** Clears the lockout of an account (backoffice action). */
+  async unlock(uid: string): Promise<boolean> {
+    return this.repo.unlock(uid);
+  }
+
   async loadMore(): Promise<void> {
     const { users } = this.getState();
     const last = users[users.length - 1];

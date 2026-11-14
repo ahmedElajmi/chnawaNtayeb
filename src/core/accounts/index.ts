@@ -6,6 +6,7 @@ export type {
   FieldError,
   RegistrationInput,
   Region,
+  PasswordPolicy,
   UserProfile,
 } from './types';
 export {

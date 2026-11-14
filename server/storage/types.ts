@@ -25,6 +25,10 @@ export interface DataStore {
    * `limit`. Deletion markers come back through `removedIds` (their ids), not through `items`.
    */
   changes(name: CollectionName, since: number, limit: number): Promise<StorageChanges>;
+  /** The first document whose indexed field equals the value, null when none. */
+  findFirst(name: CollectionName, field: string, value: string): Promise<Record<string, unknown> | null>;
+  /** One document by id, null when absent. */
+  get(name: CollectionName, id: string): Promise<Record<string, unknown> | null>;
   /** The newest revision present in the collection (0 when it holds nothing). */
   maxRevision(name: CollectionName): Promise<number>;
   /** Writes a whole document (no merge); a removed field disappears. Returns the new revision. */

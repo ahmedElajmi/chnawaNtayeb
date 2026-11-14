@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@node-rs/argon2": "^2.2.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/canvas-confetti": "^1.9.0",
     "@vitejs/plugin-react": "^6.1.1",

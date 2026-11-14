@@ -1,5 +1,5 @@
 import { parseStoredCategory } from '../../src/core/categories';
-import { parseStoredCountry } from '../../src/core/accounts';
+import { parseStoredCountry, resolveUserProfile } from '../../src/core/accounts';
 import { parseScenario } from '../../src/core/matching';
 import { parseStoredIngredient, parseStoredRecipe } from '../../src/core/catalog';
 import { parseTeamMember, parseWorkCopy, type ReviewKind } from '../../src/core/review';
@@ -12,10 +12,13 @@ import type { ParseDoc } from './types';
  */
 
 export type CollectionAccess = {
-  /** Who may read the change feed */
-  read: 'public' | 'admin';
-  /** Who may write */
-  write: 'publisher' | 'manager';
+  /**
+   * Who may read the change feed: 'public' (every visitor), 'admin' (proved managers) or
+   * 'server' (never served by the data endpoints: used by the server itself, converted too).
+   */
+  read: 'public' | 'admin' | 'server';
+  /** Who may write: 'publisher', 'manager', or 'server' (never through the endpoints) */
+  write: 'publisher' | 'manager' | 'server';
   /** Maximum documents returned per change query (catch-up continues page by page) */
   pageLimit: number;
 };
@@ -30,6 +33,12 @@ const workCopies =
   (kind: ReviewKind): ParseDoc =>
   (raw) =>
     parseWorkCopy(kind, raw) as Record<string, unknown> | null;
+
+/** Password credentials: only the PHC string, its algorithm and the lockout counters. */
+const authParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return typeof d.password_phc === 'string' && d.password_phc.startsWith('$') ? { ...d } : null;
+};
 
 /** Team members keep their raw shape (uid, e-mail, role, rights the rules read). */
 const adminsParser: ParseDoc = (raw) => (parseTeamMember(raw) ? (raw as Record<string, unknown>) : null);
@@ -92,6 +101,19 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
     parse: (r) => parseScenario(r) as Record<string, unknown> | null,
   },
   admins: { name: 'admins', read: 'admin', write: 'manager', pageLimit: 300, parse: adminsParser },
+  // Server-only collections: never served by the data endpoints, still converted to SQL.
+  users: {
+    name: 'users',
+    read: 'server',
+    write: 'server',
+    pageLimit: 0,
+    parse: (r) =>
+      resolveUserProfile(r)
+        ? { ...(r as Record<string, unknown>), id: String((r as Record<string, unknown>).uid ?? '') }
+        : null,
+  },
+  auth: { name: 'auth', read: 'server', write: 'server', pageLimit: 0, parse: authParser },
+  settings: { name: 'settings', read: 'server', write: 'server', pageLimit: 0, parse: null as unknown as ParseDoc },
 } as const satisfies Record<string, CollectionSpec>;
 
 export function collectionSpec(name: string): CollectionSpec | null {

@@ -3,9 +3,11 @@ import { legacyRedirect } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import { createFirestoreStore } from './storage/firestoreStore';
 import { getAdminFirestore } from './firebaseAdmin';
+import { parseStoredCountries, type CountryRecord } from '../src/core/accounts';
 import type { BackofficeAuthConfig } from './backofficeAuth';
 import type { VisionProvider } from './vision/visionProvider';
 import { accountRoutes } from './routes/accountRoutes';
+import { authRoutes } from './auth/routes';
 import { dataRoutes } from './routes/dataRoutes';
 import { backofficeAuthRoutes } from './routes/backofficeAuthRoutes';
 import { seoRoutes } from './routes/seoRoutes';
@@ -43,11 +45,21 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
-  app.use(backofficeAuthRoutes(backofficeAuthConfig));
-  app.use(accountRoutes(backofficeAuthConfig));
   // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow
   const adminDb = getAdminFirestore();
-  app.use(dataRoutes(backofficeAuthConfig, adminDb ? createFirestoreStore(adminDb) : null));
+  const dataStore = adminDb ? createFirestoreStore(adminDb) : null;
+  // Enabled countries for the server-side registration validation, read through the store
+  let countriesCache: { at: number; list: CountryRecord[] } = { at: 0, list: [] };
+  const countriesProvider = async (): Promise<readonly CountryRecord[]> => {
+    if (!dataStore || Date.now() - countriesCache.at < 60_000) return countriesCache.list;
+    const changes = await dataStore.changes('countries', 0, 500);
+    countriesCache = { at: Date.now(), list: parseStoredCountries(changes.items) };
+    return countriesCache.list;
+  };
+  app.use(backofficeAuthRoutes(backofficeAuthConfig));
+  app.use(accountRoutes(backofficeAuthConfig, dataStore));
+  app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider));
+  app.use(dataRoutes(backofficeAuthConfig, dataStore));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
   return app;

@@ -44,6 +44,7 @@ export const BACKOFFICE_PAGES = {
   categories: 'categories',
   team: 'equipe',
   clients: 'clients',
+  security: 'securite',
 } as const;
 
 /** Sub-pages of /admin/categories (one tree per kind of content). */
