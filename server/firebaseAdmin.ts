@@ -60,6 +60,37 @@ export async function createPatronFirebaseToken(): Promise<string | null> {
   return getAuth(adminApp).createCustomToken(PATRON_FIREBASE_UID, { patron: true });
 }
 
+export interface EmployeeRights {
+  uid: string;
+  canPublish: boolean;
+  canManage: boolean;
+}
+
+/**
+ * Verifies an employee's Firebase identity token (the browser still signs in with Firebase
+ * Auth during the transition) and reads their rights from the team record.
+ * Null when the token is invalid, not an employee, or when Firebase is not configured.
+ */
+export async function verifyEmployeeToken(idToken: string): Promise<EmployeeRights | null> {
+  const adminApp = getAdminApp();
+  if (!adminApp) return null;
+  try {
+    const decoded = await getAuth(adminApp).verifyIdToken(idToken);
+    if (decoded.patron == true) return null; // the patron session is not an employee token
+    const uid = decoded.uid;
+    const member = await getFirestore(adminApp).collection('admins').doc(uid).get();
+    const rights = member.data();
+    if (!rights) return null;
+    return {
+      uid,
+      canPublish: rights.can_publish === true,
+      canManage: rights.can_manage === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export type CreateUserResult =
   | { ok: true; uid: string; temporaryPassword: string }
   | { ok: false; reason: 'not-configured' | 'email-in-use' | 'invalid-email' | 'unknown' };
