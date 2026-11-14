@@ -99,8 +99,16 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 - **Registre de hacheurs** (`server/auth/hashers.ts`) : `verify` lit l'algorithme depuis la chaîne PHC — un ancien haché reste vérifiable après un changement d'algorithme ; à chaque connexion réussie, re-hachage avec l'algorithme configuré.
 - **Politique de mot de passe** (`settings/password`, page **Sécurité** de /admin) : algorithme, paramètres argon2 (mémoire/itérations/parallélisme), longueur minimale, classes de caractères exigées, mode de migration (`auto` = re-hachage transparent / `force_change` = nouveau mot de passe demandé à la connexion), verrouillage (tentatives, minutes, déverrouillage automatique) + **déverrouillage manuel** sur la fiche du client dans l'annuaire.
 - **Création des employés** : `/admin/api/employees` écrit `users/{uid}` + `auth/{uid}` via le contrat de stockage (mot de passe temporaire argon2) — plus aucun compte Firebase Auth n'est créé.
-- Endpoints : `/api/auth/register|login|guest|me|change-password`, `PUT /api/auth/profile`, `PUT /api/auth/sync-lists` (favoris/frigo), `/admin/api/password-policy`, `/admin/api/accounts/:uid/unlock`.
+- Endpoints : `/api/auth/register|login|guest|me|change-password`, `PUT /api/auth/profile`, `PUT /api/auth/sync-lists` (favoris/frigo), `GET /api/auth/password-criteria` (sous-ensemble public : longueur minimale + classes exigées, jamais l'algorithme ni le verrouillage), `/admin/api/password-policy`, `/admin/api/accounts/:uid/unlock`.
 - Port client : `PasswordPolicyGateway` (contrat + jumeau mémoire + adaptateur HTTP).
+
+### Côté navigateur (sessions du site)
+
+- L'interface ne connaît **aucune logique de compte** : `userAuthHttpGateway` appelle `/api/auth/*`, le serveur décide qui est connecté et signe le jeton.
+- Le jeton de session vit dans **`localStorage`** (clé `user_session`, avec sa date d'expiration) : la session survit au redémarrage de la PWA ; un jeton expiré ou refusé par `/api/auth/me` est effacé silencieusement.
+- Le formulaire d'inscription affiche les **critères en vigueur** (longueur minimale, classes exigées) via `GET /api/auth/password-criteria`, avec confirmation du mot de passe, indicateur de robustesse et œil afficher/masquer (`PasswordInput` partagé).
+- États honnêtes dans le modal compte : **Invité** (bandeau « tes données restent sur cet appareil » + bouton principal « Créer mon compte »), **Client** (fiche profil + changement de mot de passe), **Équipe** (badge dédié). Aucun lien vers le backoffice n'est exposé au public : l'accès passe par l'URL `/admin` (ou le raccourci « Espace admin » du manifeste PWA).
+- Développement local sans Firebase : `LOCAL_MEMORY_STORE=1 npm run dev` garde toutes les données en mémoire (refusé en production).
 
 ### Comment appliquer un changement touchant Firebase (runbook anti-blocage)
 

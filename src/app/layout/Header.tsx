@@ -38,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
     const next = logoClicks + 1;
     setLogoClicks(next);
     if (next >= 3) {
+      // Discreet staff channel: three clicks on the brand open the backoffice (never advertised)
       setLogoClicks(0);
       navigate(PATHS.backoffice);
     } else {
@@ -49,12 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full bg-surface/90 backdrop-blur-md border-b border-line transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-8">
-        {/* Zone 1: Brand Wordmark (with discrete 3-clicks superAdmin trigger) */}
-        <button
-          onClick={handleLogoClick}
-          title={`Chnowa Ntayeb (${t.logoBackofficeHint})`}
-          className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0"
-        >
+        {/* Zone 1: Brand Wordmark (3-click staff trigger, never advertised to clients) */}
+        <button onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0">
           <img
             src="/mark.png"
             alt=""

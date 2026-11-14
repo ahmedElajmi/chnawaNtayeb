@@ -46,10 +46,11 @@ import { createFirestoreReviewWorkspace } from '@/infrastructure/firebase/firest
 import { firestoreReviewSettings } from '@/infrastructure/firebase/firestoreReviewSettings';
 import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
 import { firestoreAccountDirectory } from '@/infrastructure/firebase/firestoreAccountDirectory';
-import { firebaseAccountProfile, firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
+import { accountProfileHttpGateway } from '@/infrastructure/http/accountProfileHttpGateway';
 import { backofficeSessionHttpGateway } from '@/infrastructure/http/backofficeSessionHttpGateway';
 import { passwordPolicyGateway } from '@/infrastructure/http/passwordPolicyGateway';
+import { userAuthHttpGateway } from '@/infrastructure/http/userAuthHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
 import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
 
@@ -160,7 +161,7 @@ export function createContainer() {
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
   const countries = new CountriesStore(countriesCollection, firestoreCountries.writer, canPublish);
-  const accountProfile = new AccountProfileStore(firebaseAccountProfile, () => countries.getState().countries);
+  const accountProfile = new AccountProfileStore(accountProfileHttpGateway, () => countries.getState().countries);
   const accountDirectory = new AccountDirectoryStore(firestoreAccountDirectory);
 
   const categories = {
@@ -194,7 +195,7 @@ export function createContainer() {
     // Services (ports used directly by a screen)
     preferences: localPreferences,
     themes: firestoreThemeRepository,
-    userAuth: firebaseUserAuth,
+    userAuth: userAuthHttpGateway,
     accountCreation: accountHttpGateway,
     backofficePolicy: passwordPolicyGateway,
     catalogAdmin,

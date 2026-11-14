@@ -221,12 +221,18 @@ export async function isLocked(store: DataStore, uid: string, now: number): Prom
 export async function updateProfile(
   store: DataStore,
   uid: string,
-  patch: { displayName?: string; phone?: string; preferredLanguage?: string },
+  patch: { displayName?: string; phone?: string; preferredLanguage?: string; address?: UserProfile['address'] },
+  countries: readonly CountryRecord[],
   now: number
 ): Promise<UserProfile | null> {
   const current = await readProfile(store, uid);
   if (!current) return null;
+  // The address is revalidated against the enabled countries: the client is never trusted
+  if (patch.address !== undefined && validateAddress(patch.address, countries).length) {
+    throw new AuthError('invalid-input');
+  }
   const normalized: UserProfile = { ...current };
+  if (patch.address !== undefined) normalized.address = patch.address.line.trim() ? patch.address : undefined;
   if (patch.displayName !== undefined) normalized.displayName = patch.displayName.trim().slice(0, 60) || undefined;
   if (patch.phone !== undefined)
     normalized.phone = patch.phone.trim() ? (normalizePhone(patch.phone.trim()) ?? undefined) : undefined;

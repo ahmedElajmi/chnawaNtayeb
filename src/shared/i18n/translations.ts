@@ -228,7 +228,6 @@ export interface TranslationDictionary {
   homeSeeAll: string;
   homeReadyEmpty: string;
   homeFillFridge: string;
-  logoBackofficeHint: string;
   backofficeBadge: string;
   backofficeOpen: string;
   backofficeLogout: string;
@@ -262,7 +261,6 @@ export interface TranslationDictionary {
   accountPasswordMin: string;
   accountOr: string;
   accountGuestContinue: string;
-  accountBackofficeAccess: string;
   accountName: string;
   accountNamePlaceholder: string;
   accountPhone: string;
@@ -281,6 +279,19 @@ export interface TranslationDictionary {
   accountCurrentPassword: string;
   accountNewPassword: string;
   accountPasswordChanged: string;
+  accountPasswordConfirm: string;
+  accountPasswordMismatch: string;
+  accountPasswordShow: string;
+  accountPasswordHide: string;
+  accountPasswordRuleDigit: string;
+  accountPasswordRuleUpper: string;
+  accountPasswordRuleSpecial: string;
+  passwordStrengthWeak: string;
+  passwordStrengthFair: string;
+  passwordStrengthGood: string;
+  passwordStrengthStrong: string;
+  accountGuestBanner: string;
+  accountRoleEmployee: string;
   accountFieldRequired: string;
   accountFieldPhone: string;
   accountFieldAddress: string;
@@ -291,6 +302,7 @@ export interface TranslationDictionary {
   authErrorWeakPassword: string;
   authErrorInvalidEmail: string;
   authErrorDisabled: string;
+  authErrorLocked: string;
   authErrorUnknown: string;
   errorNetwork: string;
   errorTooManyAttempts: string;
@@ -546,7 +558,6 @@ export const translations = {
     homeReadyEmpty:
       'Ekhtar chwaya ingrédients (3dham, tmatem, hrissa...) bech tchouf el maklet elli tnejjem ttayebhom tawa !',
     homeFillFridge: '3abbi el frigo mte3i',
-    logoBackofficeHint: '3 clics : dokhoul el super admin',
     backofficeBadge: 'Super admin',
     backofficeOpen: 'Odkhel lel backoffice',
     backofficeLogout: 'Okhrej mel compte super admin',
@@ -581,7 +592,6 @@ export const translations = {
     accountPasswordMin: '{n} 7orouf 3al a9al.',
     accountOr: 'Walla',
     accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
-    accountBackofficeAccess: 'Edkhel ka super admin',
     accountName: 'Esmek',
     accountNamePlaceholder: 'Esmek el kamel',
     accountPhone: 'Telifoun',
@@ -600,6 +610,19 @@ export const translations = {
     accountCurrentPassword: 'Mot de passe el 9dim',
     accountNewPassword: 'Mot de passe el jdid',
     accountPasswordChanged: 'Mot de passe etbeddel !',
+    accountPasswordConfirm: '3awed el mot de passe',
+    accountPasswordMismatch: 'El mot de passe mouch kif kif.',
+    accountPasswordShow: 'Warri el mot de passe',
+    accountPasswordHide: '5ebbi el mot de passe',
+    accountPasswordRuleDigit: 'Ra9m wa7ed 3ala l9al',
+    accountPasswordRuleUpper: '7arf kabir wa7ed 3ala l9al',
+    accountPasswordRuleSpecial: 'Ramz speciale wa7ed 3ala l9al',
+    passwordStrengthWeak: 'Dh3if',
+    passwordStrengthFair: 'Wesit',
+    passwordStrengthGood: 'Behi',
+    passwordStrengthStrong: 'Barcha 9wi',
+    accountGuestBanner: 'Data mte3ek to93od 3al appareil hedha : a3mel compte bech tal9aha 3la kol écran.',
+    accountRoleEmployee: 'F l équipe',
     accountFieldRequired: 'Champ lazem',
     accountFieldPhone: 'Rakm ghalet',
     accountFieldAddress: '3ounwen ghalet',
@@ -610,6 +633,7 @@ export const translations = {
     authErrorWeakPassword: 'Mot de passe dh3if barcha ({n} 7orouf 3al a9al).',
     authErrorInvalidEmail: 'Email ghalet.',
     authErrorDisabled: 'El tari9a hedhi mta3 el dokhoul msakra tawa.',
+    authErrorLocked: 'El compte tesakkar ba3d barcha mo7awlet. 3awed ba3d chwaya wala ithilna.',
     authErrorUnknown: 'Famma ghalta. 3awed.',
     errorNetwork: 'Ma famech connexion internet.',
     errorTooManyAttempts: 'Barcha mo7awlet. 3awed ba3d chwaya d9aye9.',
@@ -860,7 +884,6 @@ export const translations = {
     homeReadyEmpty:
       'Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à cuisiner !',
     homeFillFridge: 'Remplir mon frigo',
-    logoBackofficeHint: '3 clics : accès super admin',
     backofficeBadge: 'Super admin',
     backofficeOpen: 'Accéder au backoffice super admin',
     backofficeLogout: 'Déconnexion super admin',
@@ -895,7 +918,6 @@ export const translations = {
     accountPasswordMin: '{n} caractères minimum.',
     accountOr: 'Ou',
     accountGuestContinue: 'Continuer en 1 clic (invité)',
-    accountBackofficeAccess: 'Accès super admin',
     accountName: 'Nom affiché',
     accountNamePlaceholder: 'Votre nom complet',
     accountPhone: 'Téléphone',
@@ -914,6 +936,20 @@ export const translations = {
     accountCurrentPassword: 'Mot de passe actuel',
     accountNewPassword: 'Nouveau mot de passe',
     accountPasswordChanged: 'Mot de passe modifié !',
+    accountPasswordConfirm: 'Confirmer le mot de passe',
+    accountPasswordMismatch: 'Les deux mots de passe ne correspondent pas.',
+    accountPasswordShow: 'Afficher le mot de passe',
+    accountPasswordHide: 'Masquer le mot de passe',
+    accountPasswordRuleDigit: 'Au moins un chiffre',
+    accountPasswordRuleUpper: 'Au moins une majuscule',
+    accountPasswordRuleSpecial: 'Au moins un caractère spécial',
+    passwordStrengthWeak: 'Faible',
+    passwordStrengthFair: 'Moyen',
+    passwordStrengthGood: 'Bon',
+    passwordStrengthStrong: 'Très fort',
+    accountGuestBanner:
+      'Tes données restent sur cet appareil : crée ton compte pour les retrouver sur tous tes écrans.',
+    accountRoleEmployee: 'Équipe',
     accountFieldRequired: 'Champ requis',
     accountFieldPhone: 'Numéro invalide',
     accountFieldAddress: 'Adresse invalide',
@@ -924,6 +960,7 @@ export const translations = {
     authErrorWeakPassword: 'Mot de passe trop faible ({n} caractères minimum).',
     authErrorInvalidEmail: 'Adresse e-mail invalide.',
     authErrorDisabled: 'Ce mode de connexion est désactivé pour le moment.',
+    authErrorLocked: 'Compte bloqué après trop d’essais. Réessaie plus tard ou contacte-nous.',
     authErrorUnknown: 'Une erreur est survenue. Réessaie.',
     errorNetwork: 'Connexion internet indisponible.',
     errorTooManyAttempts: 'Trop de tentatives. Réessaie dans quelques minutes.',
@@ -1169,7 +1206,6 @@ export const translations = {
     homeSeeAll: 'عرض الكل ({n})',
     homeReadyEmpty: 'اختر بعض المكوّنات الأساسية (بيض، طماطم، هريسة...) لتكتشف الوصفات الجاهزة للطهي!',
     homeFillFridge: 'املأ ثلاجتي',
-    logoBackofficeHint: '3 نقرات: دخول المدير',
     backofficeBadge: 'المدير',
     backofficeOpen: 'الدخول إلى لوحة الإدارة',
     backofficeLogout: 'تسجيل خروج المدير',
@@ -1203,7 +1239,6 @@ export const translations = {
     accountPasswordMin: '{n} أحرف على الأقل.',
     accountOr: 'أو',
     accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
-    accountBackofficeAccess: 'دخول المسؤول',
     accountName: 'الاسم المعروض',
     accountNamePlaceholder: 'اسمك الكامل',
     accountPhone: 'الهاتف',
@@ -1222,6 +1257,19 @@ export const translations = {
     accountCurrentPassword: 'كلمة المرور الحالية',
     accountNewPassword: 'كلمة المرور الجديدة',
     accountPasswordChanged: 'تم تغيير كلمة المرور!',
+    accountPasswordConfirm: 'تأكيد كلمة المرور',
+    accountPasswordMismatch: 'كلمتا المرور غير متطابقتين.',
+    accountPasswordShow: 'إظهار كلمة المرور',
+    accountPasswordHide: 'إخفاء كلمة المرور',
+    accountPasswordRuleDigit: 'رقم واحد على الأقل',
+    accountPasswordRuleUpper: 'حرف كبير واحد على الأقل',
+    accountPasswordRuleSpecial: 'رمز خاص واحد على الأقل',
+    passwordStrengthWeak: 'ضعيفة',
+    passwordStrengthFair: 'متوسطة',
+    passwordStrengthGood: 'جيدة',
+    passwordStrengthStrong: 'قوية جدًا',
+    accountGuestBanner: 'بياناتك تبقى على هذا الجهاز : أنشئ حسابك لتجدها على كل شاشاتك.',
+    accountRoleEmployee: 'الفريق',
     accountFieldRequired: 'حقل مطلوب',
     accountFieldPhone: 'رقم غير صالح',
     accountFieldAddress: 'عنوان غير صالح',
@@ -1232,6 +1280,7 @@ export const translations = {
     authErrorWeakPassword: 'كلمة المرور ضعيفة جدًا ({n} أحرف على الأقل).',
     authErrorInvalidEmail: 'عنوان البريد الإلكتروني غير صالح.',
     authErrorDisabled: 'طريقة تسجيل الدخول هذه معطّلة حاليًا.',
+    authErrorLocked: 'تم قفل الحساب بعد محاولات كثيرة. أعد المحاولة لاحقًا أو تواصل معنا.',
     authErrorUnknown: 'حدث خطأ. أعد المحاولة.',
     errorNetwork: 'الاتصال بالإنترنت غير متوفر.',
     errorTooManyAttempts: 'محاولات كثيرة جدًا. أعد المحاولة بعد بضع دقائق.',

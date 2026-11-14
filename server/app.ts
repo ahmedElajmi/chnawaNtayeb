@@ -2,7 +2,9 @@ import express from 'express';
 import { legacyRedirect } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import { createFirestoreStore } from './storage/firestoreStore';
+import { createMemoryDataStore } from './storage/memoryDataStore';
 import { getAdminFirestore } from './firebaseAdmin';
+import type { DataStore } from './storage/types';
 import { parseStoredCountries, type CountryRecord } from '../src/core/accounts';
 import type { BackofficeAuthConfig } from './backofficeAuth';
 import type { VisionProvider } from './vision/visionProvider';
@@ -45,9 +47,20 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
-  // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow
+  // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow.
+  // LOCAL_MEMORY_STORE=1 keeps everything in memory for a local run without Firebase —
+  // refused in production, where nothing would survive a restart.
   const adminDb = getAdminFirestore();
-  const dataStore = adminDb ? createFirestoreStore(adminDb) : null;
+  const dataStore: DataStore | null =
+    process.env.LOCAL_MEMORY_STORE === '1'
+      ? ((process.env.NODE_ENV === 'production'
+          ? (() => {
+              throw new Error('LOCAL_MEMORY_STORE=1 is refused in production: data would not survive a restart');
+            })()
+          : createMemoryDataStore()) as DataStore)
+      : adminDb
+        ? createFirestoreStore(adminDb)
+        : null;
   // Enabled countries for the server-side registration validation, read through the store
   let countriesCache: { at: number; list: CountryRecord[] } = { at: 0, list: [] };
   const countriesProvider = async (): Promise<readonly CountryRecord[]> => {

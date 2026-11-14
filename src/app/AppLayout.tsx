@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Header } from '@/app/layout/Header';
 import { BottomNav } from '@/app/layout/BottomNav';
 import { SettingsModal } from '@/features/settings/SettingsModal';
@@ -17,7 +17,6 @@ import { useGoHome, useHomeExitGuard } from './homeNavigation';
 
 /** Frame shared by every screen: header, page content, footer, mobile tab bar and global dialogs. */
 export function AppLayout() {
-  const navigate = useNavigate();
   const goHome = useGoHome();
   const { t } = useLanguage();
   const { pathname } = useLocation();
@@ -98,15 +97,7 @@ export function AppLayout() {
         </footer>
       )}
 
-      <UserAccountModal
-        isOpen={isUserModalOpen}
-        onClose={() => setIsUserModalOpen(false)}
-        currentUser={currentUser}
-        onOpenBackofficeLogin={() => {
-          setIsUserModalOpen(false);
-          navigate(PATHS.backoffice);
-        }}
-      />
+      <UserAccountModal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} currentUser={currentUser} />
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

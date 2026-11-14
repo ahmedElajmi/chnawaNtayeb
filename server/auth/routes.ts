@@ -14,7 +14,7 @@ import {
   updateProfile,
   verifyLogin,
 } from './users';
-import { getPolicy, mergePolicy, savePolicy } from './policy';
+import { DEFAULT_POLICY, getPolicy, mergePolicy, savePolicy } from './policy';
 import { createUserSessionToken, newGuestSub, verifyUserSessionToken, type UserSessionKind } from './sessions';
 
 /**
@@ -88,10 +88,17 @@ export function authRoutes(
         preferredLanguage: typeof body.preferredLanguage === 'string' ? body.preferredLanguage : undefined,
         type: 'client' as const,
       };
-      const { uid } = await createAccount(store, input, countries() as never, Date.now());
+      const { uid, profile } = await createAccount(store, input, await countries(), Date.now());
       const session = createUserSessionToken('client', uid, secret() as string);
       setSessionCookie(res, session.token);
-      return res.json({ ok: true, uid, token: session.token });
+      return res.json({
+        ok: true,
+        uid,
+        kind: 'client',
+        token: session.token,
+        expires_at: session.payload.exp,
+        user: profile,
+      });
     } catch (error) {
       return fail(res, error);
     }
@@ -111,7 +118,15 @@ export function authRoutes(
       const kind: UserSessionKind = profile.type === 'employee' ? 'employee' : 'client';
       const session = createUserSessionToken(kind, uid, secret() as string);
       setSessionCookie(res, session.token);
-      return res.json({ ok: true, uid, kind, token: session.token, force_change: forceChange });
+      return res.json({
+        ok: true,
+        uid,
+        kind,
+        token: session.token,
+        expires_at: session.payload.exp,
+        user: profile,
+        force_change: forceChange,
+      });
     } catch (error) {
       return fail(res, error);
     }
@@ -121,7 +136,28 @@ export function authRoutes(
     if (!secret()) return unconfigured(res);
     const session = createUserSessionToken('guest', newGuestSub(), secret() as string);
     setSessionCookie(res, session.token);
-    return res.json({ ok: true, token: session.token });
+    return res.json({
+      ok: true,
+      kind: 'guest',
+      uid: session.payload.sub,
+      token: session.token,
+      expires_at: session.payload.exp,
+    });
+  });
+
+  // Client-safe subset of the password policy: the registration form shows the live criteria
+  // (never the algorithm, the lockout or the migration mode).
+  router.get('/api/auth/password-criteria', async (_req, res) => {
+    const policy = store ? await getPolicy(store) : DEFAULT_POLICY;
+    return res.json({
+      ok: true,
+      criteria: {
+        min_length: policy.min_password_length,
+        require_digit: policy.require_digit,
+        require_uppercase: policy.require_uppercase,
+        require_special: policy.require_special,
+      },
+    });
   });
 
   router.get('/api/auth/me', async (req, res) => {
@@ -159,9 +195,14 @@ export function authRoutes(
       displayName: typeof body.displayName === 'string' ? body.displayName : undefined,
       phone: typeof body.phone === 'string' ? body.phone : undefined,
       preferredLanguage: typeof body.preferredLanguage === 'string' ? body.preferredLanguage : undefined,
+      address: (typeof body.address === 'object' && body.address !== null ? body.address : undefined) as never,
     };
-    const profile = await updateProfile(store, session.sub, patch, Date.now());
-    return profile ? res.json({ ok: true, user: profile }) : res.status(404).json({ ok: false, error: 'unknown' });
+    try {
+      const profile = await updateProfile(store, session.sub, patch, await countries(), Date.now());
+      return profile ? res.json({ ok: true, user: profile }) : res.status(404).json({ ok: false, error: 'unknown' });
+    } catch (error) {
+      return fail(res, error);
+    }
   });
 
   router.put('/api/auth/sync-lists', writeLimiter, async (req, res) => {
