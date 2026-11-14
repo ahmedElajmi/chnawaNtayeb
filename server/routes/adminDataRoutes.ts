@@ -105,6 +105,39 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
   const SETTINGS_DOCS = ['matching', 'review'] as const;
   type SettingsDoc = (typeof SETTINGS_DOCS)[number];
 
+  // How often the devices poll the change feed. A visitor reads it too (it drives their own
+  // polling); only the super admin changes it. Bounds: responsive enough for the editors,
+  // cheap enough for the free database plan.
+  const DEFAULT_POLLING_SECONDS = 60;
+  const MIN_POLLING_SECONDS = 15;
+  const MAX_POLLING_SECONDS = 600;
+
+  router.get('/api/settings/polling', async (_req, res) => {
+    if (!store) return unavailable(res);
+    const stored = await store.get('settings', 'polling');
+    const seconds =
+      stored && stored.deleted !== true && typeof stored.interval_seconds === 'number'
+        ? stored.interval_seconds
+        : DEFAULT_POLLING_SECONDS;
+    return res.json({ ok: true, interval_seconds: seconds });
+  });
+
+  router.put('/admin/api/settings/polling', writeLimiter, async (req, res) => {
+    if (!store) return unavailable(res);
+    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    if (!identity.owner) return forbidden(res);
+    const raw = (req.body ?? {}).interval_seconds;
+    const seconds = typeof raw === 'number' && Number.isFinite(raw) ? Math.round(raw) : NaN;
+    if (seconds < MIN_POLLING_SECONDS || seconds > MAX_POLLING_SECONDS) {
+      return bad(res, 'invalid_interval');
+    }
+    await store.put('settings', 'polling', {
+      interval_seconds: seconds,
+      updated_at: new Date().toISOString(),
+    });
+    return res.json({ ok: true, interval_seconds: seconds });
+  });
+
   router.get('/api/settings/:doc', async (req, res) => {
     if (!store) return unavailable(res);
     const doc = req.params.doc as SettingsDoc;

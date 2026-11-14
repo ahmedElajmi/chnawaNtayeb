@@ -4,10 +4,11 @@ import { fetchChanges, type ChangesPayload } from './dataApi';
  * One shared poller for every followed collection: a single POST /api/data/changes per tick
  * carries all the revisions the device knows, and the server answers only the late ones
  * (the watermark makes an up-to-date client cost zero database reads). Ticks: every minute
- * while the tab is visible, on window focus, and right after a write of this device.
+ * by default (configurable in the backoffice, served by /api/settings/polling) while the
+ * tab is visible, on window focus, and right after a write of this device.
  */
 
-const POLL_INTERVAL_MS = 60 * 1000;
+export const DEFAULT_POLL_INTERVAL_MS = 60 * 1000;
 
 interface Followed {
   /** Newest revision the device applied for this collection (0 = never read) */
@@ -23,9 +24,20 @@ interface Followed {
 export class DataPoller {
   private followed = new Map<string, Followed>();
   private timer: ReturnType<typeof setInterval> | null = null;
+  private intervalMs = DEFAULT_POLL_INTERVAL_MS;
   private busy = false;
   /** A refresh asked while a tick runs: one more poll happens right after (never lost). */
   private queued = false;
+
+  /** Applies the interval configured in the backoffice (the next ticks use it). */
+  setIntervalMs(ms: number): void {
+    if (!Number.isFinite(ms) || ms < 5_000 || ms > 15 * 60_000) return;
+    this.intervalMs = ms;
+    if (this.timer) {
+      this.stopTimer();
+      this.ensureTimer();
+    }
+  }
 
   /** Registers a collection (a re-follow with `since: null` reads everything again). */
   follow(name: string, since: number | null, onChanges: Followed['onChanges'], onError: Followed['onError']): void {
@@ -68,7 +80,7 @@ export class DataPoller {
     if (this.timer) return;
     this.timer = setInterval(() => {
       if (typeof document === 'undefined' || document.visibilityState === 'visible') void this.tick();
-    }, POLL_INTERVAL_MS);
+    }, this.intervalMs);
   }
 
   private stopTimer(): void {

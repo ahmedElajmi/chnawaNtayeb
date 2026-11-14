@@ -269,6 +269,16 @@ export interface PasswordPolicyGateway {
   save(policy: PasswordPolicy): Promise<void>;
 }
 
+/** How often the devices poll the change feed (seconds), configured in the backoffice. */
+export interface PollingSettings {
+  intervalSeconds: number;
+}
+
+export interface PollingSettingsGateway {
+  read(): Promise<PollingSettings>;
+  save(intervalSeconds: number): Promise<void>;
+}
+
 /** Creates staff accounts on the server (super-admin session required): the client never mints a right. */
 export interface AccountCreationGateway {
   /** Returns the temporary password exactly once, to hand to the employee. */
