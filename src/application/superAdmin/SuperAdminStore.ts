@@ -1,16 +1,16 @@
-import type { CloudStatus, PatronGateway, PatronLoginResult } from '../ports';
+import type { CloudStatus, SuperAdminGateway, SuperAdminLoginResult } from '../ports';
 import { Store } from '../store';
 
-export interface PatronState {
+export interface SuperAdminState {
   /** 'checking' while the server verifies a stored session. */
   status: 'checking' | 'signed-in' | 'signed-out';
   cloudStatus: CloudStatus;
 }
 
-/** Admin (patron) session, always confirmed by the server. */
-export class PatronStore extends Store<PatronState> {
+/** Admin (super-admin) session, always confirmed by the server. */
+export class SuperAdminStore extends Store<SuperAdminState> {
   constructor(
-    private readonly gateway: PatronGateway,
+    private readonly gateway: SuperAdminGateway,
     /** Called once the admin can write to the database (e.g. seeds an empty catalog) */
     private readonly onCloudConnected: () => Promise<void> = async () => {}
   ) {
@@ -29,7 +29,7 @@ export class PatronStore extends Store<PatronState> {
   }
 
   /** Checks the credentials with the server; signs in on success. */
-  async login(username: string, password: string): Promise<PatronLoginResult> {
+  async login(username: string, password: string): Promise<SuperAdminLoginResult> {
     const result = await this.gateway.login(username, password);
     if (result.ok) this.signedIn(result.cloud);
     return result;

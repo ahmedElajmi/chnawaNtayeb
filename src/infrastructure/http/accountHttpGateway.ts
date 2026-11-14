@@ -1,8 +1,8 @@
 import type { AccountCreationGateway } from '@/application';
-import { getPatronToken } from '@/infrastructure/http/patronAuth';
+import { getSuperAdminToken } from '@/infrastructure/http/superAdminAuth';
 
 /**
- * Employee account creation, done by our server (Admin SDK) behind the patron session:
+ * Employee account creation, done by our server (Admin SDK) behind the super-admin session:
  * the browser never creates a right, it only asks the server to.
  */
 export const accountHttpGateway: AccountCreationGateway = {
@@ -12,7 +12,7 @@ export const accountHttpGateway: AccountCreationGateway = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(getPatronToken() ? { Authorization: `Bearer ${getPatronToken()}` } : {}),
+          ...(getSuperAdminToken() ? { Authorization: `Bearer ${getSuperAdminToken()}` } : {}),
         },
         body: JSON.stringify({ email, displayName }),
       });

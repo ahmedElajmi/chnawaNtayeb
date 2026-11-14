@@ -24,9 +24,9 @@ import { useInstallApp } from '@/shared/ui/PWAInstallButton';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** When the patron is signed in: shortcut to the backoffice and logout (the phone header has no room for them). */
-  isPatronAuthenticated?: boolean;
-  onPatronLogout?: () => void;
+  /** When the super-admin is signed in: shortcut to the backoffice and logout (the phone header has no room for them). */
+  isSuperAdminAuthenticated?: boolean;
+  onSuperAdminLogout?: () => void;
 }
 
 type SettingsTab = 'display' | 'language' | 'app';
@@ -38,12 +38,12 @@ const segment = (active: boolean) =>
   }`;
 const HEADING = 'flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted';
 
-/** Settings, in short tabs: Display (mode, theme), Language, Application (install, patron). */
+/** Settings, in short tabs: Display (mode, theme), Language, Application (install, super-admin). */
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
-  isPatronAuthenticated = false,
-  onPatronLogout,
+  isSuperAdminAuthenticated = false,
+  onSuperAdminLogout,
 }) => {
   const { t, language, setLanguage, getThemeName } = useLanguage();
   const { themes, activeTheme, mode, resolvedMode, setMode, setThemeId, isPreviewing } = useTheme();
@@ -70,8 +70,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     label: languageInfo(id).selectorLabel,
   }));
 
-  // The Application tab only exists when it has something to offer (nothing once installed, unless patron)
-  const hasAppTab = install.canInstall || isPatronAuthenticated;
+  // The Application tab only exists when it has something to offer (nothing once installed, unless super-admin)
+  const hasAppTab = install.canInstall || isSuperAdminAuthenticated;
   const tabs: { id: SettingsTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'display', label: t.settingsTabDisplay, icon: Palette },
     { id: 'language', label: t.settingsLanguage, icon: Globe },
@@ -207,13 +207,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </section>
                 )}
 
-                {/* Patron session. On phones the header has no room for these buttons. */}
-                {isPatronAuthenticated && (
+                {/* SuperAdmin session. On phones the header has no room for these buttons. */}
+                {isSuperAdminAuthenticated && (
                   <section className="space-y-2">
-                    <h3 className={HEADING}>{t.patronBadge}</h3>
+                    <h3 className={HEADING}>{t.superAdminBadge}</h3>
                     <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2">
                       <Link
-                        to={PATHS.patron}
+                        to={PATHS.superAdmin}
                         onClick={onClose}
                         className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-bold bg-accent text-on-accent hover:bg-accent-strong transition"
                       >
@@ -223,12 +223,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button
                         onClick={() => {
                           onClose();
-                          onPatronLogout?.();
+                          onSuperAdminLogout?.();
                         }}
                         className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold border border-line text-ink-muted hover:text-rose-600 hover:border-rose-300 transition"
                       >
                         <LogOut className="w-4 h-4" />
-                        {t.patronExitMode}
+                        {t.superAdminExitMode}
                       </button>
                     </div>
                   </section>

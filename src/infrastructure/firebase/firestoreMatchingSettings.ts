@@ -36,7 +36,7 @@ const toStored = (d: SettingsDoc): StoredMatchingSettings => ({
 
 function friendlyError(raw: string): string {
   return /permission|insufficient/i.test(raw)
-    ? 'La base a refusé l’enregistrement (session patron non reliée à Firebase, ou règles Firestore non déployées).'
+    ? 'La base a refusé l’enregistrement (session superAdmin non reliée à Firebase, ou règles Firestore non déployées).'
     : 'La base de données est injoignable, réessaie plus tard.';
 }
 

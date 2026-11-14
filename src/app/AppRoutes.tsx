@@ -31,7 +31,7 @@ export function AppRoutes() {
   const pageLocation: Location | string = recipeMatch ? (background ?? PATHS.recipes) : location;
 
   // Old secret address of the backoffice
-  if (location.hash === '#patron') return <Navigate to={PATHS.patron} replace />; // old bookmark
+  if (location.hash === '#superAdmin') return <Navigate to={PATHS.superAdmin} replace />; // old bookmark
 
   return (
     <>
@@ -44,7 +44,7 @@ export function AppRoutes() {
           <Route path={PATHS.planner} element={<PlannerPage />} />
           <Route path={PATHS.grocery} element={<GroceryPage />} />
           <Route
-            path={`${PATHS.patron}/*`}
+            path={`${PATHS.superAdmin}/*`}
             element={
               <Suspense fallback={null}>
                 <BackofficePage />

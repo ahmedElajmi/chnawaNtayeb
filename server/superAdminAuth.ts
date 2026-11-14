@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 /**
- * Patron (admin) authentication for the /patron backoffice.
+ * super-admin (admin) authentication for the /admin backoffice.
  *
  * - The password only lives in the server environment (ADMIN_PASSWORD).
  * - A successful login returns a session token signed with HMAC-SHA256
@@ -15,10 +15,10 @@ const KNOWN_LEAKED_PASSWORDS = new Set(['patron2026!', 'admin', 'password', 'cha
 const MIN_PASSWORD_LENGTH = 12;
 const MIN_SECRET_LENGTH = 32;
 
-export type AdminConfig =
+export type SuperAdminConfig =
   { ok: true; username: string; password: string; secret: string } | { ok: false; reason: string };
 
-export function getAdminConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
+export function getSuperAdminConfig(env: NodeJS.ProcessEnv = process.env): SuperAdminConfig {
   const username = (env.ADMIN_USERNAME || 'admin').trim();
   const password = env.ADMIN_PASSWORD || '';
   const secret = env.ADMIN_SESSION_SECRET || '';

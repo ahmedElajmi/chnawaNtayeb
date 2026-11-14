@@ -6,7 +6,7 @@ import {
   KitchenStore,
   MatchingScenariosStore,
   MatchingSettingsStore,
-  PatronStore,
+  SuperAdminStore,
   RecipeDrafts,
   ReviewBoard,
   ReviewSettingsStore,
@@ -48,11 +48,11 @@ import { firestoreTeam } from '@/infrastructure/firebase/firestoreTeam';
 import { firestoreAccountDirectory } from '@/infrastructure/firebase/firestoreAccountDirectory';
 import { firebaseAccountProfile, firebaseUserAuth } from '@/infrastructure/firebase/userAuth';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
-import { patronHttpGateway } from '@/infrastructure/http/patronHttpGateway';
+import { superAdminHttpGateway } from '@/infrastructure/http/superAdminHttpGateway';
 import { visionHttpGateway } from '@/infrastructure/http/visionHttpGateway';
 import { createMiniSearchEngine } from '@/infrastructure/minisearch/miniSearchEngine';
 
-/** Rights of an account that is neither the patron nor a member of the team. */
+/** Rights of an account that is neither the super-admin nor a member of the team. */
 const NO_RIGHTS: RoleDefinition = { id: 'none', label: {}, permissions: [] };
 
 /** A device copy older than this is read again in full (deletion markers may have been purged). */
@@ -91,7 +91,7 @@ export function createContainer() {
   // Validation workflow: private workspaces (admin only, started from the backoffice)
   const recipesWorkspace = createFirestoreReviewWorkspace<'recipe'>('recipes');
   const ingredientsWorkspace = createFirestoreReviewWorkspace<'ingredient'>('ingredients');
-  const patron = new PatronStore(patronHttpGateway, () => catalogAdmin.seedIfEmpty());
+  const superAdmin = new SuperAdminStore(superAdminHttpGateway, () => catalogAdmin.seedIfEmpty());
   const reviewSettings = new ReviewSettingsStore(firestoreReviewSettings);
   const team = new TeamStore(firestoreTeam, { now, roles: () => reviewSettings.getState().settings.roles });
   const adminRole = DEFAULT_ROLES.find((r) => r.id === ADMIN_ROLE_ID)!;
@@ -120,9 +120,9 @@ export function createContainer() {
       }),
       writer: ingredientsWorkspace.writer,
     },
-    // The patron session is the admin; a team member acts with the role given by the admin
+    // The super-admin session is the admin; a team member acts with the role given by the admin
     actor: () => {
-      if (patron.getState().status === 'signed-in') return { id: 'patron', role: adminRole };
+      if (superAdmin.getState().status === 'signed-in') return { id: 'superAdmin', role: adminRole };
       const me = team.getState().me;
       const role = team.myRole();
       return me && role ? { id: me.email || me.uid, role } : { id: 'nobody', role: NO_RIGHTS };
@@ -180,7 +180,7 @@ export function createContainer() {
     // Text search on the device copy of the catalog (swap the engines here, e.g. for a server one)
     search: new CatalogSearch(catalog, { recipes: createMiniSearchEngine(), ingredients: createMiniSearchEngine() }),
     kitchen,
-    patron,
+    superAdmin,
     team,
     countries,
     accountProfile,

@@ -146,7 +146,7 @@ export const firebaseUserAuth: UserAuthGateway = {
   register: async (input) => void (await registerAccount(input)),
   logout: logoutUser,
   errorCode: authErrorCode,
-  isPatronAccount: (user) => user.uid === 'patron-admin',
+  isSuperAdminAccount: (user) => user.uid === 'super-admin',
   changePassword,
 };
 

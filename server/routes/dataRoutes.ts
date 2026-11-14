@@ -5,7 +5,7 @@ import { collectionSpec } from '../storage/collections';
 import { computeChanges } from '../storage/gateway';
 import { resolveIdentity } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
-import type { AdminConfig } from '../patronAuth';
+import type { SuperAdminConfig } from '../superAdminAuth';
 
 /** Body of the batched change feed: the client's newest revision per collection. */
 interface ChangesBody {
@@ -13,7 +13,7 @@ interface ChangesBody {
 }
 
 /** The change feed: one round trip answers every collection the client follows. */
-export function dataRoutes(adminConfig: AdminConfig, store: DataStore | null): express.Router {
+export function dataRoutes(superAdminConfig: SuperAdminConfig, store: DataStore | null): express.Router {
   const router = express.Router();
 
   // Idle polls cost nothing server-side (the watermark shortcut): a generous read limit
@@ -35,7 +35,7 @@ export function dataRoutes(adminConfig: AdminConfig, store: DataStore | null): e
 
   router.post('/api/data/changes', pollLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req, superAdminConfig);
     const body = (req.body ?? {}) as ChangesBody;
     const rev: Record<string, number> = {};
     for (const [name, value] of Object.entries(body.rev ?? {})) {
@@ -47,7 +47,7 @@ export function dataRoutes(adminConfig: AdminConfig, store: DataStore | null): e
 
   router.put('/api/data/:name/:id', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req, superAdminConfig);
     const spec = collectionSpec(req.params.name ?? '');
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
     if (!identity.canPublish || (spec.write === 'manager' && !identity.canManage)) {
@@ -64,7 +64,7 @@ export function dataRoutes(adminConfig: AdminConfig, store: DataStore | null): e
 
   router.delete('/api/data/:name/:id', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req, superAdminConfig);
     const spec = collectionSpec(req.params.name ?? '');
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
     if (!identity.canPublish || (spec.write === 'manager' && !identity.canManage)) {

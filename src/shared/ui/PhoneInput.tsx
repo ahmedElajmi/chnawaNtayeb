@@ -6,7 +6,7 @@ interface PhoneInputProps {
   /** Full E.164 value ('+21620123456'), '' when empty */
   value: string;
   onChange(value: string): void;
-  /** Countries whose dial codes users may pick (patron-enabled list) */
+  /** Countries whose dial codes users may pick (super-admin-enabled list) */
   options: readonly CountryRecord[];
   language: Language;
   id?: string;

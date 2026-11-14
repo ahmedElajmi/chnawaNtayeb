@@ -3,22 +3,22 @@ import { legacyRedirect } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import { createFirestoreStore } from './storage/firestoreStore';
 import { getAdminFirestore } from './firebaseAdmin';
-import type { AdminConfig } from './patronAuth';
+import type { SuperAdminConfig } from './superAdminAuth';
 import type { VisionProvider } from './vision/visionProvider';
 import { accountRoutes } from './routes/accountRoutes';
 import { dataRoutes } from './routes/dataRoutes';
-import { patronRoutes } from './routes/patronRoutes';
+import { superAdminRoutes } from './routes/superAdminRoutes';
 import { seoRoutes } from './routes/seoRoutes';
 import { VISION_PATH, visionRoutes } from './routes/visionRoutes';
 
 export interface AppDependencies {
-  adminConfig: AdminConfig;
+  superAdminConfig: SuperAdminConfig;
   /** Fridge photo AI; null = scanner disabled */
   vision: VisionProvider | null;
 }
 
 /** API of the app (the web pages are added by server.ts: Vite in dev, dist/ in production). */
-export function createApiApp({ adminConfig, vision }: AppDependencies): express.Express {
+export function createApiApp({ superAdminConfig, vision }: AppDependencies): express.Express {
   const app = express();
   // Render (and most hosts) put the app behind one proxy: needed for correct client IPs in rate limiting
   app.set('trust proxy', 1);
@@ -43,11 +43,11 @@ export function createApiApp({ adminConfig, vision }: AppDependencies): express.
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
-  app.use(patronRoutes(adminConfig));
-  app.use(accountRoutes(adminConfig));
+  app.use(superAdminRoutes(superAdminConfig));
+  app.use(accountRoutes(superAdminConfig));
   // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow
   const adminDb = getAdminFirestore();
-  app.use(dataRoutes(adminConfig, adminDb ? createFirestoreStore(adminDb) : null));
+  app.use(dataRoutes(superAdminConfig, adminDb ? createFirestoreStore(adminDb) : null));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
   return app;

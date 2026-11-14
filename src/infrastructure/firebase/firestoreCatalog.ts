@@ -10,6 +10,6 @@ export const firestoreIngredients = createFirestoreSharedCollection<Ingredient>(
 /** Categories managed in the backoffice (one collection per kind of content). */
 export const firestoreRecipeCategories = createFirestoreSharedCollection<ContentCategory>('recipe_categories');
 export const firestoreIngredientCategories = createFirestoreSharedCollection<ContentCategory>('ingredient_categories');
-/** Countries users may pick (address, phone): edited by the patron, followed like the catalog. */
+/** Countries users may pick (address, phone): edited by the super-admin, followed like the catalog. */
 export const firestoreCountries = createFirestoreSharedCollection<CountryRecord>('countries');
 export const firestoreCloudName = firebaseProjectId;

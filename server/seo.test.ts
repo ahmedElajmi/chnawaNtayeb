@@ -74,7 +74,7 @@ describe('server pages for robots', () => {
   });
 
   it('leaves the other addresses to the app', () => {
-    for (const path of ['/patron', '/api/health', '/assets/index.js', '/sw.js']) {
+    for (const path of ['/superAdmin', '/api/health', '/assets/index.js', '/sw.js']) {
       expect(isSeoPath(path)).toBe(false);
       expect(resolvePage(path, BASE, catalog)).toBeNull();
     }
@@ -179,7 +179,7 @@ describe('sitemap', () => {
   it('never lists a non-public or French-era URL', () => {
     const xml = sitemapXml(BASE, catalog);
     for (const forbidden of [
-      '/patron',
+      '/superAdmin',
       '/admin',
       '/api/',
       '/frigo',

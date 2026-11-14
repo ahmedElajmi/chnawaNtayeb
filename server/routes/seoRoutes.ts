@@ -17,7 +17,7 @@ export function seoRoutes(): express.Router {
     res.send(`User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /patron
+Disallow: /superAdmin
 Disallow: /api/
 
 Sitemap: ${getBaseUrl()}/sitemap.xml

@@ -19,10 +19,10 @@ service cloud.firestore {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Owner = the patron session bridged by the server (custom token with the `patron` claim).
+    // Owner = the super-admin session bridged by the server (custom token with the `superAdmin` claim).
     // No e-mail shortcut: a right never comes from an address written in this file.
     function isOwner() {
-      return isSignedIn() && request.auth.token.patron == true;
+      return isSignedIn() && request.auth.token.superAdmin == true;
     }
 
     function isMember() {
@@ -227,7 +227,7 @@ service cloud.firestore {
         && d.note is string && d.note.size() <= 200;
     }
 
-    // Countries users may pick (dial codes, address regions): public read, patron writes
+    // Countries users may pick (dial codes, address regions): public read, super-admin writes
     match /countries/{countryId} {
       allow read: if true;
       allow create, update: if canPublish() && isValidId(countryId) && isVersionedWrite(request.resource.data);

@@ -52,7 +52,7 @@ function cleanText(value: string): string {
 }
 
 /**
- * Validates the address against the countries the patron enabled: the region must exist in
+ * Validates the address against the countries the super-admin enabled: the region must exist in
  * the country's list (when it has one), the postal code follows the country's digit count
  * or a generic 3-10 alphanumerics. Returns the field errors found (empty = valid).
  */

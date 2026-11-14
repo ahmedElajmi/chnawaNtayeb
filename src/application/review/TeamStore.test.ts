@@ -14,9 +14,9 @@ function setup(roles: RoleDefinition[] = [...DEFAULT_ROLES]) {
 describe('TeamStore', () => {
   it('adds an account found by its e-mail, with the rights of its role', async () => {
     const { team } = setup();
-    expect((await team.add('nobody@example.com', 'editor', 'patron')).ok).toBe(false);
-    expect((await team.add('sara@example.com', 'admin', 'patron')).ok).toBe(false);
-    expect(await team.add(' Sara@example.com ', 'reviewer', 'patron')).toEqual({ ok: true });
+    expect((await team.add('nobody@example.com', 'editor', 'superAdmin')).ok).toBe(false);
+    expect((await team.add('sara@example.com', 'admin', 'superAdmin')).ok).toBe(false);
+    expect(await team.add(' Sara@example.com ', 'reviewer', 'superAdmin')).toEqual({ ok: true });
     expect(team.getState().members).toEqual([
       expect.objectContaining({ uid: 'u1', role: 'reviewer', can_publish: true, can_manage: false }),
     ]);
@@ -24,7 +24,7 @@ describe('TeamStore', () => {
 
   it('knows the role of the account signed in on this device', async () => {
     const { team } = setup();
-    await team.add('sara@example.com', 'translator', 'patron');
+    await team.add('sara@example.com', 'translator', 'superAdmin');
     await team.identify('u1');
     expect(team.myRole()?.id).toBe('translator');
     await team.identify('someone-else');
@@ -35,7 +35,7 @@ describe('TeamStore', () => {
 
   it('refreshes the rights copied on members when a role changes', async () => {
     const { team, setRoles } = setup();
-    await team.add('sara@example.com', 'editor', 'patron');
+    await team.add('sara@example.com', 'editor', 'superAdmin');
     expect(team.getState().members[0].can_publish).toBe(false);
     const roles = DEFAULT_ROLES.map((r) =>
       r.id === 'editor' ? { ...r, permissions: [...r.permissions, 'publish' as const] } : r

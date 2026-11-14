@@ -13,7 +13,7 @@ import {
 } from '@/core/review';
 import { useCatalog, useReview } from '@/app/ContainerContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
-import { patronPath } from '@/shared/paths';
+import { superAdminPath } from '@/shared/paths';
 import { RecipeDetailModal } from '@/features/recipes/components/RecipeDetailModal';
 import { format } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -30,12 +30,12 @@ import {
   ruleLabel,
 } from './reviewUi';
 
-/** /patron/recettes/:id */
+/** /super-admin/recettes/:id */
 export function RecipeReviewRoute() {
   return <ReviewPage view={useRecipeView()} />;
 }
 
-/** /patron/ingredients/:id */
+/** /super-admin/ingredients/:id */
 export function IngredientReviewRoute() {
   return <ReviewPage view={useIngredientView()} />;
 }
@@ -61,7 +61,7 @@ function ReviewPage<K extends ReviewKind>({ view }: { view: KindView<K> }) {
 
   const back = (
     <Link
-      to={patronPath(view.listPage)}
+      to={superAdminPath(view.listPage)}
       className="inline-flex items-center gap-1 text-xs font-semibold text-ink-muted hover:text-ink"
     >
       <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" />

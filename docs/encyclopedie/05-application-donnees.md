@@ -11,7 +11,7 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)    |
 | `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                           |
 | `KitchenStore`          | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement        |
-| `PatronStore`           | `checking` / `signed-in` / `signed-out`, statut cloud     | Session patron, toujours confirmée par le serveur                                       |
+| `SuperAdminStore`       | `checking` / `signed-in` / `signed-out`, statut cloud     | Session super admin, toujours confirmée par le serveur                                  |
 | `MatchingSettingsStore` | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                   |
 | `RecipeDrafts`          | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                   |
 | `CatalogAdmin`          | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration       |
@@ -22,28 +22,28 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 | `CategoryStore`         | catégories d'un type (liste + arbre)                      | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées |
 | `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                       |
 
-Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `usePatron()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `useSuperAdmin()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
-| Port                         | Rôle                                           | Adapter actuel                                      |
-| ---------------------------- | ---------------------------------------------- | --------------------------------------------------- |
-| `SharedCollectionSource`     | Collection partagée suivie en direct           | `infrastructure/firebase/firestoreSharedCollection` |
-| `SharedCollectionWriter<T>`  | Écritures du patron (versionnées, sans fusion) | `infrastructure/firebase/firestoreSharedCollection` |
-| `LocalCollectionCache<T>`    | Copie hors ligne d'une collection partagée     | `infrastructure/indexeddb/indexedDbCollectionCache` |
-| `KitchenRepository`          | Frigo, placard, favoris, menu, courses         | `infrastructure/local/localRepositories`            |
-| `PreferencesRepository`      | Langue, thème, mode, placard                   | `infrastructure/local/localPreferences`             |
-| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition   | `infrastructure/firebase/themes`                    |
-| `MatchingSettingsRepository` | Réglages du moteur et leur historique          | `infrastructure/firebase/firestoreMatchingSettings` |
-| `MatchingSettingsCache`      | Copie hors ligne des réglages                  | `infrastructure/local/localMatchingSettingsCache`   |
-| `UserAuthGateway`            | Comptes visiteurs (invité, e-mail)             | `infrastructure/firebase/userAuth`                  |
-| `PatronGateway`              | Connexion et session patron                    | `infrastructure/http/patronHttpGateway`             |
-| `VisionGateway`              | Scan photo du frigo                            | `infrastructure/http/visionHttpGateway`             |
-| `RecipeDraftRepository`      | Brouillons de recettes non enregistrés         | `infrastructure/local/localRecipeDrafts`            |
-| `SearchEngine`               | Recherche texte (recettes, ingrédients)        | `infrastructure/minisearch/miniSearchEngine`        |
-| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication       | `infrastructure/firebase/firestoreReviewWorkspace`  |
-| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions          | `infrastructure/firebase/firestoreReviewSettings`   |
-| `TeamRepository`             | Membres de l'équipe (`admins`)                 | `infrastructure/firebase/firestoreTeam`             |
+| Port                         | Rôle                                                | Adapter actuel                                      |
+| ---------------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| `SharedCollectionSource`     | Collection partagée suivie en direct                | `infrastructure/firebase/firestoreSharedCollection` |
+| `SharedCollectionWriter<T>`  | Écritures du super admin (versionnées, sans fusion) | `infrastructure/firebase/firestoreSharedCollection` |
+| `LocalCollectionCache<T>`    | Copie hors ligne d'une collection partagée          | `infrastructure/indexeddb/indexedDbCollectionCache` |
+| `KitchenRepository`          | Frigo, placard, favoris, menu, courses              | `infrastructure/local/localRepositories`            |
+| `PreferencesRepository`      | Langue, thème, mode, placard                        | `infrastructure/local/localPreferences`             |
+| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition        | `infrastructure/firebase/themes`                    |
+| `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/firebase/firestoreMatchingSettings` |
+| `MatchingSettingsCache`      | Copie hors ligne des réglages                       | `infrastructure/local/localMatchingSettingsCache`   |
+| `UserAuthGateway`            | Comptes visiteurs (invité, e-mail)                  | `infrastructure/firebase/userAuth`                  |
+| `SuperAdminGateway`          | Connexion et session super admin                    | `infrastructure/http/adminHttpGateway`              |
+| `VisionGateway`              | Scan photo du frigo                                 | `infrastructure/http/visionHttpGateway`             |
+| `RecipeDraftRepository`      | Brouillons de recettes non enregistrés              | `infrastructure/local/localRecipeDrafts`            |
+| `SearchEngine`               | Recherche texte (recettes, ingrédients)             | `infrastructure/minisearch/miniSearchEngine`        |
+| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication            | `infrastructure/firebase/firestoreReviewWorkspace`  |
+| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions               | `infrastructure/firebase/firestoreReviewSettings`   |
+| `TeamRepository`             | Membres de l'équipe (`admins`)                      | `infrastructure/firebase/firestoreTeam`             |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par
@@ -57,22 +57,22 @@ Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part a
 
 ### Firestore (base partagée, source de vérité)
 
-| Collection / document             | Contenu                                  | Lecture                           | Écriture                         |
-| --------------------------------- | ---------------------------------------- | --------------------------------- | -------------------------------- |
-| `recipes/{id}`                    | Recettes                                 | publique                          | patron                           |
-| `ingredients/{id}`                | Ingrédients et prix                      | publique                          | patron                           |
-| `themes/{id}`                     | Thèmes créés dans le backoffice          | thèmes publiés : publique         | patron (validés champ par champ) |
-| `settings/matching`               | Réglages actifs du moteur                | publique                          | patron                           |
-| `matching_settings_versions/v<n>` | Historique des réglages (jamais modifié) | patron                            | patron (création seulement)      |
-| `matching_scenarios/{id}`         | Scénarios du chef                        | patron                            | patron (enveloppe validée)       |
-| `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, patron                  | lui-même (champs limités)        |
-| `admins/{uid}`                    | Membres de l'équipe (rôle, droits)       | le membre lui-même, gestionnaires | gestionnaires (champs vérifiés)  |
-| `recipes_workspace/{id}`          | Copies de travail des recettes (atelier) | patron                            | patron (enveloppe validée)       |
-| `ingredients_workspace/{id}`      | Copies de travail des ingrédients        | patron                            | patron (enveloppe validée)       |
-| `recipes_versions/{id}-{t}`       | Versions publiées d'une recette          | patron                            | patron (création seulement)      |
-| `ingredients_versions/{id}-{t}`   | Versions publiées d'un ingrédient        | patron                            | patron (création seulement)      |
-| `settings/review`                 | Workflows et rôles en vigueur            | patron                            | patron                           |
-| `review_settings_versions/v<n>`   | Historique des workflows et rôles        | patron                            | patron (création seulement)      |
+| Collection / document             | Contenu                                  | Lecture                           | Écriture                              |
+| --------------------------------- | ---------------------------------------- | --------------------------------- | ------------------------------------- |
+| `recipes/{id}`                    | Recettes                                 | publique                          | super admin                           |
+| `ingredients/{id}`                | Ingrédients et prix                      | publique                          | super admin                           |
+| `themes/{id}`                     | Thèmes créés dans le backoffice          | thèmes publiés : publique         | super admin (validés champ par champ) |
+| `settings/matching`               | Réglages actifs du moteur                | publique                          | super admin                           |
+| `matching_settings_versions/v<n>` | Historique des réglages (jamais modifié) | super admin                       | super admin (création seulement)      |
+| `matching_scenarios/{id}`         | Scénarios du chef                        | super admin                       | super admin (enveloppe validée)       |
+| `users/{uid}`                     | Profil d'un visiteur connecté            | lui-même, super admin             | lui-même (champs limités)             |
+| `admins/{uid}`                    | Membres de l'équipe (rôle, droits)       | le membre lui-même, gestionnaires | gestionnaires (champs vérifiés)       |
+| `recipes_workspace/{id}`          | Copies de travail des recettes (atelier) | super admin                       | super admin (enveloppe validée)       |
+| `ingredients_workspace/{id}`      | Copies de travail des ingrédients        | super admin                       | super admin (enveloppe validée)       |
+| `recipes_versions/{id}-{t}`       | Versions publiées d'une recette          | super admin                       | super admin (création seulement)      |
+| `ingredients_versions/{id}-{t}`   | Versions publiées d'un ingrédient        | super admin                       | super admin (création seulement)      |
+| `settings/review`                 | Workflows et rôles en vigueur            | super admin                       | super admin                           |
+| `review_settings_versions/v<n>`   | Historique des workflows et rôles        | super admin                       | super admin (création seulement)      |
 
 **Atelier du workflow de validation** (`ReviewBoard`, `src/application/review/`) : chaque type de contenu
 a un atelier privé (`<collection>_workspace`), suivi par le même `SyncedCollectionStore` que le
@@ -87,15 +87,15 @@ demande de recharger. `importPublished` fait le premier passage au workflow : ce
 devient une copie validée, une recette en brouillon passe dans l'atelier et quitte la collection
 publique. Recettes et ingrédients passent par l'atelier (éditeurs, pages de validation : voir
 [07](07-backoffice.md)). **Qui agit** (`ReviewBoard.actor()`, défini dans `container.ts`) : la session
-patron a le rôle administrateur ; sinon le compte connecté sur le site, s'il est membre de l'équipe
+super admin a le rôle administrateur ; sinon le compte connecté sur le site, s'il est membre de l'équipe
 (`TeamStore`), agit avec son rôle ; sinon aucun droit. Une écriture refusée ou impossible (base injoignable, mode local) garde la
 modification sur l'appareil (`local: true`, message d'erreur), comme le catalogue ; un conflit
 (`written_at`) n'écrit rien.
 
 **Écriture d'une recette ou d'un ingrédient** : le document est **remplacé en entier** (pas de
 fusion), sans aucune valeur `undefined` (`withoutUndefined`, `@/core/shared` ; Firestore refuse
-`undefined` et l'enregistrement restait sinon bloqué sur l'appareil du patron). Un champ retiré par le
-patron (vidéo, « healthy », substitut…) disparaît donc aussi de la base et des autres appareils.
+`undefined` et l'enregistrement restait sinon bloqué sur l'appareil du super admin). Un champ retiré par le
+super admin (vidéo, « healthy », substitut…) disparaît donc aussi de la base et des autres appareils.
 
 ### Synchronisation incrémentale et en direct (toutes les collections partagées)
 
@@ -120,8 +120,8 @@ qu'il connaît` : sans changement, **aucun document lu**. Il reste ensuite abonn
 - Les pages SEO du serveur (`server/seo.ts`) se mettent à jour de la même façon (changements seulement,
   au plus toutes les 60 s).
 
-Les règles sont dans `firestore.rules` (tout est refusé par défaut). « Patron » = session ouverte
-par le serveur (jeton Firebase avec le droit `patron`), compte propriétaire vérifié, ou uid listé
+Les règles sont dans `firestore.rules` (tout est refusé par défaut). « Super admin » = session ouverte
+par le serveur (jeton Firebase avec le droit `super admin`), compte propriétaire vérifié, ou uid listé
 dans `admins`. Déploiement : voir [10 Exploitation](10-exploitation.md).
 
 ### Navigateur (copie hors ligne et données personnelles)
@@ -143,7 +143,7 @@ déplacée une fois dans IndexedDB puis effacée.
 | `chnowa_matching_settings_cache_v1`    | Copie des réglages du moteur                                                     |
 | `chnowa_recipe_draft_v1:<id>` / `:new` | Brouillon de l'éditeur de recette (personnel à l'appareil, jamais partagé)       |
 
-`sessionStorage` : `patron_session_token` (jeton de session patron, 8 heures).
+`sessionStorage` : `super_admin_session_token` (jeton de session super admin, 8 heures).
 
 ### Fichiers JSON
 
@@ -162,7 +162,7 @@ Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
 1. Les stores affichent le catalogue intégré, puis la copie de l'appareil (IndexedDB) dès qu'elle est lue :
    l'application s'affiche tout de suite, même hors ligne.
 2. En parallèle : suivi en direct du catalogue (`catalog.start()`) et des réglages du moteur
-   (`matchingSettings.start()`), vérification d'une session patron, thèmes publiés.
+   (`matchingSettings.start()`), vérification d'une session super admin, thèmes publiés.
 3. Chaque store notifie l'interface à chaque changement reçu, pendant toute la visite.
 
 ## Catégories et catalogue public

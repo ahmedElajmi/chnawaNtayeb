@@ -7,7 +7,7 @@ Chaque guide se termine par `npm run check`.
 1. Ajouter la recette dans `src/core/catalog/seed/` (tunisienne, internationale ou dessert),
    avec un **rôle sur chaque ingrédient** (`key`, `secondary`, `staple`) et un `slug` unique.
 2. Ajouter les ingrédients nouveaux dans `seed/initialIngredients.ts`.
-3. Après le déploiement, « Envoyer vers le cloud » dans /patron la publie (la base est la référence).
+3. Après le déploiement, « Envoyer vers le cloud » dans /admin la publie (la base est la référence).
 4. Ajouter un scénario du chef si la recette doit sortir pour un frigo précis.
 
 Une recette ajoutée depuis le backoffice n'a besoin d'aucune de ces étapes.
@@ -20,7 +20,7 @@ Un seul mécanisme pour toutes les données partagées (voir [05](05-application
 2. Application : un `SyncedCollectionStore<T>` (rien à écrire, il est générique).
 3. Infrastructure : `createFirestoreSharedCollection<T>('<collection>')` et une copie
    `createIndexedDbCollectionCache` (ajouter le nom dans `COLLECTIONS`, monter `DB_VERSION`).
-4. `firestore.rules` : lecture, écriture patron avec `isVersionedWrite`, schéma strict ; `npm run deploy:rules`.
+4. `firestore.rules` : lecture, écriture super admin avec `isVersionedWrite`, schéma strict ; `npm run deploy:rules`.
 5. Brancher dans `src/app/container.ts`, démarrer le suivi dans `App.tsx`.
 
 ## Ajouter un écran
@@ -69,7 +69,7 @@ Un seul mécanisme pour toutes les données partagées (voir [05](05-application
 
 ## Ajouter un scénario du chef
 
-Dans /patron › Moteur › Scénarios du chef › Ajouter : un titre clair, le frigo, éventuellement un
+Dans /admin › Moteur › Scénarios du chef › Ajouter : un titre clair, le frigo, éventuellement un
 placard ou des filtres, et les vérifications attendues. Il est enregistré en base et rejoué avec le
 brouillon avant chaque publication. Un nouveau **type** de vérification se code dans
 `core/matching/scenarios.ts` (évaluation), `scenarioSchema.ts` (lecture, validation, valeur par

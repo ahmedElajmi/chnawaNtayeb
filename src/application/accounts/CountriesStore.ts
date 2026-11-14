@@ -9,7 +9,7 @@ import type { SyncedCollectionStore } from '../sync/SyncedCollectionStore';
 /**
  * Countries of the app: a shared collection followed like the catalog, edited in the
  * backoffice (enable/disable, regions) without a deploy. A built-in seed covers the first
- * launch until the patron imports the full list. The per-language ordering is done by the
+ * launch until the super-admin imports the full list. The per-language ordering is done by the
  * interface (the store only holds the data).
  */
 export class CountriesStore extends Store<{ countries: CountryRecord[] }> {

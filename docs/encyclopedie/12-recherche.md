@@ -26,7 +26,7 @@ Comportement :
   l'ordre de chaque niveau du frigo.
 - **Repli sans régression** : tant que le moteur n'a pas répondu (première frappe) ou s'il échoue,
   l'ancien filtre par nom s'applique ; les autres filtres (catégorie, budget, temps, sain) ne changent pas.
-- **Mises à jour en direct** : une recette modifiée par le patron est réindexée seule ; un ingrédient
+- **Mises à jour en direct** : une recette modifiée par le super admin est réindexée seule ; un ingrédient
   modifié réindexe les recettes (leurs mots contiennent les noms d'ingrédients).
 
 Changer de moteur (Orama, moteur serveur…) : écrire un adapter qui passe
@@ -37,7 +37,7 @@ Changer de moteur (Orama, moteur serveur…) : écrire un adapter qui passe
 > **Statut : étude réalisée avant l'implémentation ci-dessus.** Cette page compare des moteurs de recherche
 > gratuits et rapides pour un catalogue qui peut atteindre des milliers de recettes et d'ingrédients
 > en trois langues, propose un moteur et un plan d'intégration, puis une stratégie pour lire la base le
-> moins possible (navigation, recherche, filtres gérés par le patron). Faits vérifiés le 12/11/2026
+> moins possible (navigation, recherche, filtres gérés par le super admin). Faits vérifiés le 12/11/2026
 > (sources en fin de page).
 
 ## Ce qui existe aujourd'hui
@@ -239,7 +239,7 @@ le frigo et `IngredientSearch` du backoffice.
   reçus (`applyChanges`). Le store de recherche suit ces changements : réponse complète (`complete`,
   première visite) → `rebuild` ; élément changé → `upsert` ; marque de suppression ou élément retiré →
   `remove`. Aucune lecture de la base en plus : l'index suit la copie de l'appareil.
-- Moteur serveur (plus tard) : l'indexation suit les écritures du patron côté serveur (`server/`), et un
+- Moteur serveur (plus tard) : l'indexation suit les écritures du super admin côté serveur (`server/`), et un
   adapter HTTP implémente `RecipeSearchEngine` ; le moteur local reste le repli hors ligne.
 
 ### 5. Interface
@@ -303,7 +303,7 @@ catalogue réel avant la PR.
 ## Moins d'appels à la base : catalogue, navigation, filtres
 
 Objectif : la navigation, la recherche et les filtres ne lisent **jamais** la base ; la base n'est lue
-que pour ce qui a changé. Tout reste géré depuis `/patron`.
+que pour ce qui a changé. Tout reste géré depuis `/admin`.
 
 ### Ce qui est déjà en place (`develop`)
 
@@ -313,7 +313,7 @@ couvre déjà l'essentiel :
 
 - chaque écriture porte `revision` = heure du serveur ; une suppression est une marque `deleted` ;
 - au démarrage, l'appareil affiche sa copie IndexedDB puis ne demande que `revision >=` la plus récente
-  qu'il connaît, et reste abonné : une modification du patron arrive sur les appareils connectés en
+  qu'il connaît, et reste abonné : une modification du super admin arrive sur les appareils connectés en
   quelques secondes, pour une lecture par appareil ;
 - les pages SEO du serveur se mettent à jour de la même façon (au plus toutes les 60 s) ;
 - navigation, fiche recette, recherche et filtres travaillent sur la copie de l'appareil : **aucune
@@ -325,7 +325,7 @@ couvre déjà l'essentiel :
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Première visite**, copie de plus de 30 jours, « Récupérer depuis le cloud » | **toute** la collection, marques de suppression comprises                                               |
 | Ouverture sans changement                                                     | ≈ 1 à 2 par collection (minimum facturé par requête, `>=`)                                              |
-| Modification du patron                                                        | 1 par appareil connecté et par élément modifié                                                          |
+| Modification du super admin                                                   | 1 par appareil connecté et par élément modifié                                                          |
 | Thèmes et scénarios                                                           | encore l'ancien chargement complet (petits volumes, à migrer)                                           |
 | Marques de suppression                                                        | jamais purgées : elles s'ajoutent aux lectures complètes                                                |
 | Réveil du serveur Render (SEO)                                                | **toute** la collection, à chaque réveil (évité par le moniteur UptimeRobot, voir `10-exploitation.md`) |
@@ -352,11 +352,11 @@ changé depuis ce fichier.
 
 Trois façons de faire, comparées :
 
-| Option                                                    | Lectures d'une première visite        | Point de départ à jour…                 | Remarques                                                                                     |
-| --------------------------------------------------------- | ------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- |
-| A. Lecture complète (aujourd'hui)                         | 2 500 (une par élément)               | toujours                                | simple, mais coûte cher en lectures                                                           |
-| B. Copie compacte **dans la base** (2 ou 3 documents)     | 2 à 3 + changements depuis la copie   | à la dernière publication du patron     | 100 % Firestore ; documents limités à 1 Mo chacun                                             |
-| **C. Fichier JSON de démarrage servi avec l'application** | **0** + changements depuis le fichier | au dernier déploiement (ou publication) | une requête HTTP, compressé, mis en cache par le navigateur ; sert aussi au serveur au réveil |
+| Option                                                    | Lectures d'une première visite        | Point de départ à jour…                  | Remarques                                                                                     |
+| --------------------------------------------------------- | ------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
+| A. Lecture complète (aujourd'hui)                         | 2 500 (une par élément)               | toujours                                 | simple, mais coûte cher en lectures                                                           |
+| B. Copie compacte **dans la base** (2 ou 3 documents)     | 2 à 3 + changements depuis la copie   | à la dernière publication du super admin | 100 % Firestore ; documents limités à 1 Mo chacun                                             |
+| **C. Fichier JSON de démarrage servi avec l'application** | **0** + changements depuis le fichier | au dernier déploiement (ou publication)  | une requête HTTP, compressé, mis en cache par le navigateur ; sert aussi au serveur au réveil |
 
 **Recommandée : C**, avec A comme repli.
 
@@ -366,7 +366,7 @@ Trois façons de faire, comparées :
   se met à jour **tout seul à chaque déploiement** : aucun nouveau bouton n'est nécessaire, et les
   modifications faites entre deux déploiements arrivent de toute façon par la synchronisation en direct.
   Option ultérieure, seulement si l'écart devient grand : une action « Mettre à jour le fichier de
-  démarrage » dans `/patron` › Données (section « Base de données en ligne », à côté d'« Envoyer vers le
+  démarrage » dans `/admin` › Données (section « Base de données en ligne », à côté d'« Envoyer vers le
   cloud »), qui relance un déploiement Render (« deploy hook », à vérifier).
 - **Première visite** (ou copie de plus de 30 jours, ou navigateur sans IndexedDB) : l'application
   télécharge le fichier, le **relit par le domaine** (`parseStoredRecipes` / `parseStoredIngredients`,
@@ -394,7 +394,7 @@ Trois façons de faire, comparées :
 - Écarté : les « bundles » Firestore (même idée, mais format propre à Firestore et fichier à héberger
   quand même) et un catalogue servi par l'API du serveur depuis sa mémoire (perdue à chaque veille).
 
-### Étape 2 : catégories en filtres, gérées par le patron
+### Étape 2 : catégories en filtres, gérées par le super admin
 
 - Nouveau concept du domaine : l'**étiquette** (`RecipeTag`) : nom dans les trois langues, **groupe**
   (« Occasion », « Saison », « Régime »… le groupe devient une famille de filtres), ordre, publiée ou non.
@@ -403,7 +403,7 @@ Trois façons de faire, comparées :
 - Stockage : une collection partagée de plus, avec le mécanisme générique existant
   (`SyncedCollectionStore` + `createFirestoreSharedCollection('recipe_tags')` + copie IndexedDB) : suivie
   en direct, relue seulement quand elle change.
-- `/patron` : onglet « Étiquettes » (création, traduction avec `LocalizedField`, ordre, masquage) ; choix
+- `/admin` : onglet « Étiquettes » (création, traduction avec `LocalizedField`, ordre, masquage) ; choix
   des étiquettes dans l'éditeur de recette ; suppression d'une étiquette utilisée refusée ou confirmée
   avec le nombre de recettes concernées.
 - Public : la barre de filtres est **générée** depuis les étiquettes publiées, avec le nombre de recettes

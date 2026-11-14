@@ -2,8 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { ChevronDown, Cloud, CloudOff, LogOut, Menu, X } from 'lucide-react';
 import { canPerform } from '@/core/review';
-import { useContainer, usePatron, useReviewSettings, useTeam } from '@/app/ContainerContext';
-import { PATHS, patronPath } from '@/shared/paths';
+import { useContainer, useSuperAdmin, useReviewSettings, useTeam } from '@/app/ContainerContext';
+import { PATHS, superAdminPath } from '@/shared/paths';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -22,10 +22,10 @@ export function useAllowedSections() {
   return BACKOFFICE_SECTIONS.filter((s) => !s.requires || canPerform(role, s.requires));
 }
 
-/** Whether the patron's changes reach every device, with the explanation on demand. */
+/** Whether the super-admin's changes reach every device, with the explanation on demand. */
 function StatusPill() {
   const b = useBackofficeText();
-  const { cloudStatus } = usePatron();
+  const { cloudStatus } = useSuperAdmin();
   const [open, setOpen] = useState(false);
   const online = cloudStatus === 'connected';
   const Icon = online ? Cloud : CloudOff;
@@ -73,7 +73,7 @@ function SectionLinks({ counts, onNavigate }: { counts: SectionCounts; onNavigat
         return (
           <li key={s.page}>
             <NavLink
-              to={patronPath(s.page)}
+              to={superAdminPath(s.page)}
               end={s.page === ''}
               replace={Boolean(onNavigate)}
               onClick={onNavigate}
@@ -110,7 +110,7 @@ function SubPageTabs({ section }: { section: BackofficeSection }) {
       {section.subPages.map((sub) => (
         <NavLink
           key={sub.page}
-          to={patronPath(section.page, sub.page)}
+          to={superAdminPath(section.page, sub.page)}
           className={({ isActive }) =>
             `px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
               isActive ? 'bg-card text-ink shadow-xs' : 'text-ink-muted hover:text-ink'
@@ -147,7 +147,7 @@ export function BackofficeLayout({ onLogout }: { onLogout: () => void }) {
   // What the team works on (work copies included), not only what is online
   const recipes = useTeamRecipes();
   const { ingredients } = useIngredientEditor();
-  const { cloudStatus } = usePatron();
+  const { cloudStatus } = useSuperAdmin();
   const [menuOpen, setMenuOpen] = useState(false);
   useCloseOnBack(menuOpen, () => setMenuOpen(false));
   // The validation workspace (admin only) is followed while the backoffice is open

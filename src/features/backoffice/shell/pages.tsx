@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router';
 import { RotateCcw } from 'lucide-react';
 import type { Ingredient, Recipe } from '@/core/catalog';
 import { itemStatus } from '@/core/review';
-import { useCatalog, usePatron, useReview } from '@/app/ContainerContext';
+import { useCatalog, useSuperAdmin, useReview } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { patronPath, PATRON_PAGES } from '@/shared/paths';
+import { superAdminPath, SUPER_ADMIN_PAGES } from '@/shared/paths';
 import { DashboardTab } from '../dashboard/DashboardTab';
 import { DataTab } from '../data/DataTab';
 import { IngredientsTab, type IngredientInfo } from '../ingredients/IngredientsTab';
@@ -36,7 +36,7 @@ export function HomePage() {
         recipes={recipes}
         ingredients={ingredients}
         onAddRecipe={addRecipe}
-        onOpenIngredients={() => navigate(patronPath(PATRON_PAGES.ingredients))}
+        onOpenIngredients={() => navigate(superAdminPath(SUPER_ADMIN_PAGES.ingredients))}
         onDownloadBackup={admin.downloadBackup}
       />
     </div>
@@ -160,7 +160,7 @@ function ReviewResetCard() {
 
 export function DataPage() {
   const admin = useAdmin();
-  const { cloudStatus } = usePatron();
+  const { cloudStatus } = useSuperAdmin();
   return (
     <div className="space-y-4">
       <ReviewResetCard />

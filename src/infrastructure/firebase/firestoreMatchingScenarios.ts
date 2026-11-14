@@ -39,7 +39,7 @@ function failure(error: unknown, operation: OperationType, path: string): WriteR
   return {
     ok: false,
     error: /permission|insufficient/i.test(info.error)
-      ? 'La base a refusé l’enregistrement (session patron non reliée à Firebase, ou règles Firestore non déployées).'
+      ? 'La base a refusé l’enregistrement (session superAdmin non reliée à Firebase, ou règles Firestore non déployées).'
       : 'La base de données est injoignable, réessaie plus tard.',
   };
 }

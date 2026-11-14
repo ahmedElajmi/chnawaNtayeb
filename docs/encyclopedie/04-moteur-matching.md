@@ -63,15 +63,15 @@ critères des idées et marquées `ideas`.
 
 Chaque niveau a sa liste de critères, appliqués l'un après l'autre en cas d'égalité, puis le nom :
 
-| Critère      | Sens                                   | Par défaut dans              |
-| ------------ | -------------------------------------- | ---------------------------- |
-| `boost`      | Recettes mises en avant par le patron  | tous les niveaux, en premier |
-| `fridgeUsed` | Utilise le plus d'ingrédients du frigo | prêtes (anti-gaspillage)     |
-| `toBuy`      | Le moins d'achats                      | presque prêtes               |
-| `missingKey` | Le moins de clés manquantes            | presque prêtes               |
-| `score`      | Meilleur score                         | tous                         |
-| `time`       | Le plus rapide                         | tous                         |
-| `cost`       | Le moins cher                          | prêtes                       |
+| Critère      | Sens                                       | Par défaut dans              |
+| ------------ | ------------------------------------------ | ---------------------------- |
+| `boost`      | Recettes mises en avant par le super admin | tous les niveaux, en premier |
+| `fridgeUsed` | Utilise le plus d'ingrédients du frigo     | prêtes (anti-gaspillage)     |
+| `toBuy`      | Le moins d'achats                          | presque prêtes               |
+| `missingKey` | Le moins de clés manquantes                | presque prêtes               |
+| `score`      | Meilleur score                             | tous                         |
+| `time`       | Le plus rapide                             | tous                         |
+| `cost`       | Le moins cher                              | prêtes                       |
 
 Une mise en avant a un poids de 1 à 10 et une date de fin facultative ; le jour courant est
 injecté (`today`), ce qui rend le tri testable.
@@ -94,8 +94,8 @@ doit être en tête des prêtes », « aucun dessert ne doit être proposé », 
 remplacer les tomates d'une salade »… Types de vérification : `tier`, `first`, `contains`, `top`,
 `noCourse`, `toBuy`, `fridgeUsed`, `substitution`, `minScore`.
 
-Les scénarios sont des **données en base** (collection `matching_scenarios`), gérés par le patron dans
-/patron › Moteur › Scénarios du chef : ajout, modification, test, suppression, export / import JSON.
+Les scénarios sont des **données en base** (collection `matching_scenarios`), gérés par le super admin dans
+/admin › Moteur › Scénarios du chef : ajout, modification, test, suppression, export / import JSON.
 Le code ne contient plus aucune liste de scénarios : il fournit les types, l'évaluation
 (`evaluateScenario`) et la validation (`parseScenario` pour toute donnée lue, `validateScenario`
 pour le formulaire). Les tests (`scenarios.test.ts`, `scenarioSchema.test.ts`) vérifient chaque type

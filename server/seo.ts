@@ -552,7 +552,7 @@ export function isSeoPath(path: string): boolean {
   return isLegacyPath(p) || p in SCREENS || p.startsWith(PATHS.recipe.replace(':slug', ''));
 }
 
-/** The page for a public address, or null when the address is left to the app (/patron, files...). */
+/** The page for a public address, or null when the address is left to the app (/super-admin, files...). */
 export function resolvePage(path: string, base: string, catalog: Catalog, page = 1): SeoPage | null {
   const p = normalizePath(path);
   const screen = SCREENS[p];

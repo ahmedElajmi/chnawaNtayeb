@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { createApiApp } from './server/app';
 import { appUrlStartupError } from './server/http';
-import { getAdminConfig } from './server/patronAuth';
+import { getSuperAdminConfig } from './server/superAdminAuth';
 import { isFirebaseAdminConfigured } from './server/firebaseAdmin';
 import { createGeminiVisionProvider } from './server/vision/geminiVisionProvider';
 import { seoPages } from './server/routes/seoRoutes';
@@ -26,16 +26,16 @@ if (appUrlError) {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-const adminConfig = getAdminConfig();
-if (!adminConfig.ok) console.warn(`[patron] Connexion admin désactivée : ${adminConfig.reason}`);
+const superAdminConfig = getSuperAdminConfig();
+if (!superAdminConfig.ok) console.warn(`[super-admin] Connexion admin désactivée : ${superAdminConfig.reason}`);
 if (!isFirebaseAdminConfigured()) {
   console.warn(
-    '[patron] FIREBASE_SERVICE_ACCOUNT absent : le backoffice fonctionnera en mode local (pas d écriture Firestore).'
+    '[super-admin] FIREBASE_SERVICE_ACCOUNT absent : le backoffice fonctionnera en mode local (pas d écriture Firestore).'
   );
 }
 
 const app = createApiApp({
-  adminConfig,
+  superAdminConfig,
   vision: process.env.GEMINI_API_KEY ? createGeminiVisionProvider(process.env.GEMINI_API_KEY) : null,
 });
 

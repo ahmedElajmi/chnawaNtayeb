@@ -4,17 +4,17 @@ Qui peut faire quoi, où vivent les données d'un compte, et comment créer un e
 
 ## Le modèle en trois niveaux
 
-| Niveau      | Identité                                                                                                                                                                 | Droits                                                                                   | Où                             |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------ |
-| **Client**  | Compte Firebase créé par le formulaire (`/inscription`)                                                                                                                  | Tout ce qu'un visiteur fait + ses données personnelles (favoris, frigo, profil)          | `users/{uid}`                  |
-| **Employé** | Même chose, mais le compte est **créé par le patron** depuis le backoffice                                                                                               | + les droits de son rôle de l'équipe (voir [09](09-qualite-tests.md) et l'onglet Équipe) | `users/{uid}` + `admins/{uid}` |
-| **Patron**  | **Jamais un compte Firebase normal** : identifiant/mot de passe du serveur (`ADMIN_USERNAME`, `ADMIN_PASSWORD`) → session signée → jeton Firebase avec le droit `patron` | Tous les droits                                                                          | Session serveur uniquement     |
+| Niveau          | Identité                                                                                                                                                                      | Droits                                                                                   | Où                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| **Client**      | Compte Firebase créé par le formulaire (`/inscription`)                                                                                                                       | Tout ce qu'un visiteur fait + ses données personnelles (favoris, frigo, profil)          | `users/{uid}`                  |
+| **Employé**     | Même chose, mais le compte est **créé par le super admin** depuis le backoffice                                                                                               | + les droits de son rôle de l'équipe (voir [09](09-qualite-tests.md) et l'onglet Équipe) | `users/{uid}` + `admins/{uid}` |
+| **Super admin** | **Jamais un compte Firebase normal** : identifiant/mot de passe du serveur (`ADMIN_USERNAME`, `ADMIN_PASSWORD`) → session signée → jeton Firebase avec le droit `super admin` | Tous les droits                                                                          | Session serveur uniquement     |
 
 Règles d'or :
 
 - **Le champ `type` d'un profil vaut `client` ou `employee`** — il décrit la structure, jamais des variantes de clients (celles-là sont des données : `segment`, `tags`, futurs abonnements). Une variante de client ne doit jamais devenir une valeur de `type`.
-- **Les fonctions client sont universelles** : un employé consulte le frigo, les suggestions et les courses avec son propre compte, exactement comme un client ; ses droits ne s'activent que dans `/patron`.
-- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le patron passe par sa session, un employé par son rôle.
+- **Les fonctions client sont universelles** : un employé consulte le frigo, les suggestions et les courses avec son propre compte, exactement comme un client ; ses droits ne s'activent que dans `/admin`.
+- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le super admin passe par sa session, un employé par son rôle.
 
 ## Le profil (`users/{uid}`)
 
@@ -26,7 +26,7 @@ nombre, jamais un champ séparé), `address` (bloc facultatif : `line`, `region`
 - Validations : `src/core/accounts` (`validateRegistration`, `validateProfileUpdate`, `normalizePhone` — via
   `libphonenumber-js`, la seule dépendance ajoutée). Le téléphone est facultatif et **non vérifié** pour l'instant :
   la porte d'une vérification SMS est le champ futur `phone_verified`.
-- Le client ne peut écrire que son propre profil, avec la whitelist des règles (`isValidUserProfile`) ; le patron et
+- Le client ne peut écrire que son propre profil, avec la whitelist des règles (`isValidUserProfile`) ; le super admin et
   les membres `can_manage` peuvent les lire (jamais les favoris du frigo affichés : la fiche du backoffice ne montre
   que l'e-mail, l'inscription et la dernière connexion).
 - Port : `AccountProfileRepository` (+ contrat `accountProfile.contract.ts`), store `AccountProfileStore`.
@@ -45,11 +45,11 @@ nombre, jamais un champ séparé), `address` (bloc facultatif : `line`, `region`
 
 ## Les pays (`countries/{iso}`)
 
-Collection partagée **comme les recettes** : `SyncedCollectionStore` + copie IndexedDB, écritures du patron,
+Collection partagée **comme les recettes** : `SyncedCollectionStore` + copie IndexedDB, écritures du super admin,
 lecture publique. Chaque document : `id` (ISO 2 lettres), `dial` (`+216`), `enabled`, `regions`
 (`{id, name_fr, name_ar}` — la derja affiche le nom arabe), `postal_digits` facultatif.
 
-- **Le patron active ou désactive un pays d'un clic** (backoffice › Utilisateurs & pays), sans déploiement ;
+- **Le super admin active ou désactive un pays d'un clic** (backoffice › Utilisateurs & pays), sans déploiement ;
   les sélecteurs de l'application ne proposent que les pays activés (téléphone : tous les indicatifs connus,
   pour ne jamais bloquer un numéro étranger).
 - La **graine intégrée** (`src/core/accounts/countriesSeed.ts`) couvre la première visite : régénérée par
@@ -64,9 +64,9 @@ lecture publique. Chaque document : `id` (ISO 2 lettres), `dial` (`+216`), `enab
 
 Backoffice › **Équipe** pour les membres, **Clients › Pays** pour les pays, **Clients › Comptes** pour l'annuaire :
 
-1. Le patron saisit l'e-mail, le nom affiché et le rôle, puis « **Créer le compte** ».
+1. Le super admin saisit l'e-mail, le nom affiché et le rôle, puis « **Créer le compte** ».
 2. Le serveur (`POST /admin/api/employees`, session admin obligatoire, Admin SDK) crée le compte Firebase
-   avec un **mot de passe temporaire** et l'affiche une fois : le patron le transmet lui-même.
+   avec un **mot de passe temporaire** et l'affiche une fois : le super admin le transmet lui-même.
 3. Le membre est ajouté à l'équipe (`admins/{uid}`) avec son rôle (les droits que lisent les règles).
 4. L'employé se connecte avec le mot de passe temporaire et le change dans Mon profil.
 

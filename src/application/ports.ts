@@ -206,8 +206,8 @@ export interface UserAuthGateway {
   logout(): Promise<void>;
   /** Why a sign-in failed, as a code the interface translates */
   errorCode(error: unknown): UserAuthError;
-  /** Technical account of a patron session (signed in through the server) */
-  isPatronAccount(user: AppUser): boolean;
+  /** Technical account of a super-admin session (signed in through the server) */
+  isSuperAdminAccount(user: AppUser): boolean;
   /** Changes the password, re-checking the current one */
   changePassword(currentPassword: string, newPassword: string): Promise<void>;
 }
@@ -248,7 +248,7 @@ export interface AccountDirectoryRepository {
   list(query: AccountDirectoryQuery): Promise<AccountDirectoryPage>;
 }
 
-/** Creates staff accounts on the server (patron session required): the client never mints a right. */
+/** Creates staff accounts on the server (super-admin session required): the client never mints a right. */
 export interface AccountCreationGateway {
   /** Returns the temporary password exactly once, to hand to the employee. */
   createEmployee(input: {
@@ -287,16 +287,16 @@ export type BackupImportResult = { ok: true; recipes: number; ingredients: numbe
 export type CloudStatus = 'connected' | 'local-only';
 
 /**
- * Why a patron sign-in failed (the interface turns it into a text in the current language):
+ * Why a super-admin sign-in failed (the interface turns it into a text in the current language):
  * server out of reach, wrong credentials, too many attempts, or access not available on the server.
  */
-export type PatronLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
+export type SuperAdminLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
 
-export type PatronLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: PatronLoginError };
+export type SuperAdminLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: SuperAdminLoginError };
 
-/** Admin (patron) session. Only the server decides who is admin. */
-export interface PatronGateway {
-  login(username: string, password: string): Promise<PatronLoginResult>;
+/** Admin (super-admin) session. Only the server decides who is admin. */
+export interface SuperAdminGateway {
+  login(username: string, password: string): Promise<SuperAdminLoginResult>;
   hasStoredSession(): boolean;
   verifySession(): Promise<boolean>;
   connectCloud(): Promise<CloudStatus>;

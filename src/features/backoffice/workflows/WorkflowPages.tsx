@@ -200,7 +200,7 @@ const LEVEL_LABEL: Record<RuleLevel, (b: BackofficeTexts) => string> = {
   off: (b) => b.workflowsRuleOff,
 };
 
-/** /patron/workflows/etapes — steps, cells, required parts, checks and options of each workflow. */
+/** /super-admin/workflows/etapes — steps, cells, required parts, checks and options of each workflow. */
 export function WorkflowStepsPage() {
   const b = useBackofficeText();
   const { language } = useLanguage();
@@ -457,7 +457,7 @@ const PERMISSION_LABEL: Record<Permission, (b: BackofficeTexts) => string> = {
   manage_roles: (b) => b.permManageRoles,
 };
 
-/** /patron/workflows/roles — what each role may do (the admin keeps every right). */
+/** /super-admin/workflows/roles — what each role may do (the admin keeps every right). */
 export function RolesEditorPage() {
   const b = useBackofficeText();
   const { language } = useLanguage();
@@ -574,7 +574,7 @@ export function RolesEditorPage() {
   );
 }
 
-/** /patron/workflows/equipe — accounts of the team and their roles. */
+/** /super-admin/workflows/equipe — accounts of the team and their roles. */
 export function TeamPage() {
   const b = useBackofficeText();
   const notify = useNotify();
@@ -607,7 +607,7 @@ export function TeamPage() {
         return;
       }
       setTemporaryPassword(created.temporaryPassword);
-      const added = await team.add(email.trim(), role, 'patron');
+      const added = await team.add(email.trim(), role, 'superAdmin');
       report(added, b.teamAdded);
       if (added.ok) setEmail('');
     } finally {
@@ -622,7 +622,7 @@ export function TeamPage() {
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
-          const result = await team.add(email, role, 'patron');
+          const result = await team.add(email, role, 'superAdmin');
           setBusy(false);
           report(result, b.teamAdded);
           if (result.ok) setEmail('');

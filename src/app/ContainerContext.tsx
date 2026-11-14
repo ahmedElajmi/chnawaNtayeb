@@ -114,9 +114,9 @@ export const useMatchingScenarios = () => {
   return { ...useStore(matchingScenarios), matchingScenarios };
 };
 
-export const usePatron = () => {
-  const { patron } = useContainer();
-  return { ...useStore(patron), patron };
+export const useSuperAdmin = () => {
+  const { superAdmin } = useContainer();
+  return { ...useStore(superAdmin), superAdmin };
 };
 
 // Recipe costs: computed once per version of a recipe and of the ingredient list, never at

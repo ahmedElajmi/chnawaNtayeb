@@ -9,10 +9,10 @@ import { InstallBanner } from '@/shared/ui/InstallBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
 import { ScrollToTopButton } from '@/shared/ui/ScrollToTopButton';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
-import { isPatronPath, PATHS } from '@/shared/paths';
+import { isSuperAdminPath, PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import type { AppUser } from '@/application';
-import { useContainer, useKitchen, usePatron } from './ContainerContext';
+import { useContainer, useKitchen, useSuperAdmin } from './ContainerContext';
 import { useGoHome, useHomeExitGuard } from './homeNavigation';
 
 /** Frame shared by every screen: header, page content, footer, mobile tab bar and global dialogs. */
@@ -22,12 +22,12 @@ export function AppLayout() {
   const { t } = useLanguage();
   const { pathname } = useLocation();
   const { fridge } = useKitchen();
-  const { status: patronStatus, patron } = usePatron();
+  const { status: superAdminStatus, superAdmin } = useSuperAdmin();
   const { userAuth, accountProfile, team } = useContainer();
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const isBackoffice = isPatronPath(pathname);
+  const isBackoffice = isSuperAdminPath(pathname);
   const [showExitHint, setShowExitHint] = useState(false);
   const [year] = useState(() => new Date().getFullYear());
   const exitHintTimer = useRef<number | undefined>(undefined);
@@ -55,9 +55,9 @@ export function AppLayout() {
     window.scrollTo({ top: 0 });
   }, [pathname]);
 
-  const isPatron = patronStatus === 'signed-in';
-  const patronLogout = () => {
-    patron.logout();
+  const isSuperAdmin = superAdminStatus === 'signed-in';
+  const superAdminLogout = () => {
+    superAdmin.logout();
     if (isBackoffice) goHome();
   };
 
@@ -69,8 +69,8 @@ export function AppLayout() {
       <Header
         currentUser={currentUser}
         onOpenUserModal={() => setIsUserModalOpen(true)}
-        isPatronAuthenticated={isPatron}
-        onPatronLogout={patronLogout}
+        isSuperAdminAuthenticated={isSuperAdmin}
+        onSuperAdminLogout={superAdminLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -102,16 +102,16 @@ export function AppLayout() {
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
         currentUser={currentUser}
-        onOpenPatronLogin={() => {
+        onOpenSuperAdminLogin={() => {
           setIsUserModalOpen(false);
-          navigate(PATHS.patron);
+          navigate(PATHS.superAdmin);
         }}
       />
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        isPatronAuthenticated={isPatron}
-        onPatronLogout={patronLogout}
+        isSuperAdminAuthenticated={isSuperAdmin}
+        onSuperAdminLogout={superAdminLogout}
       />
       {/* "Press back again to exit" hint */}
       {showExitHint && (

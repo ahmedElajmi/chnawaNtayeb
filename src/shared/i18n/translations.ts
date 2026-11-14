@@ -212,7 +212,7 @@ export interface TranslationDictionary {
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
-  // Public screens: home, header, account, patron access, recipe and list labels
+  // Public screens: home, header, account, super admin access, recipe and list labels
   minutesValue: string;
   servingsShort: string;
   homeBadge: string;
@@ -228,12 +228,12 @@ export interface TranslationDictionary {
   homeSeeAll: string;
   homeReadyEmpty: string;
   homeFillFridge: string;
-  logoPatronHint: string;
-  patronBadge: string;
-  patronOpenBackoffice: string;
-  patronLogout: string;
-  patronQuit: string;
-  patronExitMode: string;
+  logoSuperAdminHint: string;
+  superAdminBadge: string;
+  superAdminOpenBackoffice: string;
+  superAdminLogout: string;
+  superAdminQuit: string;
+  superAdminExitMode: string;
   themePreviewNote: string;
   languageSelectLabel: string;
   networkStatusLabel: string;
@@ -245,7 +245,7 @@ export interface TranslationDictionary {
   accountStatus: string;
   accountConnected: string;
   accountIdentifier: string;
-  accountPatronSession: string;
+  accountSuperAdminSession: string;
   accountGuestName: string;
   accountGuest: string;
   accountRole: string;
@@ -262,7 +262,7 @@ export interface TranslationDictionary {
   accountPasswordMin: string;
   accountOr: string;
   accountGuestContinue: string;
-  accountPatronAccess: string;
+  accountSuperAdminAccess: string;
   accountName: string;
   accountNamePlaceholder: string;
   accountPhone: string;
@@ -294,13 +294,13 @@ export interface TranslationDictionary {
   authErrorUnknown: string;
   errorNetwork: string;
   errorTooManyAttempts: string;
-  patronLoginTitle: string;
-  patronLoginSubtitle: string;
-  patronLoginUsername: string;
-  patronLoginSubmit: string;
-  patronErrorUnreachable: string;
-  patronErrorInvalid: string;
-  patronErrorUnavailable: string;
+  superAdminLoginTitle: string;
+  superAdminLoginSubtitle: string;
+  superAdminLoginUsername: string;
+  superAdminLoginSubmit: string;
+  superAdminErrorUnreachable: string;
+  superAdminErrorInvalid: string;
+  superAdminErrorUnavailable: string;
   readyBadge: string;
   missingCountBadge: string;
   mealIdea: string;
@@ -546,12 +546,12 @@ export const translations = {
     homeReadyEmpty:
       'Ekhtar chwaya ingrédients (3dham, tmatem, hrissa...) bech tchouf el maklet elli tnejjem ttayebhom tawa !',
     homeFillFridge: '3abbi el frigo mte3i',
-    logoPatronHint: '3 clics : dokhoul el patron',
-    patronBadge: 'Patron',
-    patronOpenBackoffice: 'Odkhel lel backoffice',
-    patronLogout: 'Okhrej mel compte patron',
-    patronQuit: 'Okhrej',
-    patronExitMode: 'Okhrej mel mode patron',
+    logoSuperAdminHint: '3 clics : dokhoul el super admin',
+    superAdminBadge: 'Super admin',
+    superAdminOpenBackoffice: 'Odkhel lel backoffice',
+    superAdminLogout: 'Okhrej mel compte super admin',
+    superAdminQuit: 'Okhrej',
+    superAdminExitMode: 'Okhrej mel mode super admin',
     themePreviewNote: 'Thème fi west el aperçu (backoffice).',
     languageSelectLabel: 'Ekhtar el lougha',
     networkStatusLabel: '7alet el réseau',
@@ -563,7 +563,7 @@ export const translations = {
     accountStatus: 'El 7ala :',
     accountConnected: 'Connecté',
     accountIdentifier: 'El identifiant :',
-    accountPatronSession: 'Session patron',
+    accountSuperAdminSession: 'Session super admin',
     accountGuestName: 'Dhif y7eb el makla',
     accountGuest: 'Dhif',
     accountRole: 'Dawr :',
@@ -581,7 +581,7 @@ export const translations = {
     accountPasswordMin: '{n} 7orouf 3al a9al.',
     accountOr: 'Walla',
     accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
-    accountPatronAccess: 'Edkhel ka patron',
+    accountSuperAdminAccess: 'Edkhel ka super admin',
     accountName: 'Esmek',
     accountNamePlaceholder: 'Esmek el kamel',
     accountPhone: 'Telifoun',
@@ -613,13 +613,13 @@ export const translations = {
     authErrorUnknown: 'Famma ghalta. 3awed.',
     errorNetwork: 'Ma famech connexion internet.',
     errorTooManyAttempts: 'Barcha mo7awlet. 3awed ba3d chwaya d9aye9.',
-    patronLoginTitle: 'Dokhoul el patron',
-    patronLoginSubtitle: 'Idara m2ammna (/patron)',
-    patronLoginUsername: 'Identifiant super-user',
-    patronLoginSubmit: '7ell el backoffice',
-    patronErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
-    patronErrorInvalid: 'Identifiant walla mot de passe ghalet.',
-    patronErrorUnavailable: 'Dokhoul el patron mouch mawjoud tawa.',
+    superAdminLoginTitle: 'Dokhoul el super admin',
+    superAdminLoginSubtitle: 'Idara m2ammna (/super admin)',
+    superAdminLoginUsername: 'Identifiant super-user',
+    superAdminLoginSubmit: '7ell el backoffice',
+    superAdminErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
+    superAdminErrorInvalid: 'Identifiant walla mot de passe ghalet.',
+    superAdminErrorUnavailable: 'Dokhoul el super admin mouch mawjoud tawa.',
     readyBadge: '100% 7adher !',
     missingCountBadge: '{n} na9es',
     mealIdea: 'Fekra makla',
@@ -860,12 +860,12 @@ export const translations = {
     homeReadyEmpty:
       'Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à cuisiner !',
     homeFillFridge: 'Remplir mon frigo',
-    logoPatronHint: '3 clics : accès patron',
-    patronBadge: 'Patron',
-    patronOpenBackoffice: 'Accéder au backoffice patron',
-    patronLogout: 'Déconnexion patron',
-    patronQuit: 'Quitter',
-    patronExitMode: 'Quitter le mode patron',
+    logoSuperAdminHint: '3 clics : accès super admin',
+    superAdminBadge: 'Super admin',
+    superAdminOpenBackoffice: 'Accéder au backoffice super admin',
+    superAdminLogout: 'Déconnexion super admin',
+    superAdminQuit: 'Quitter',
+    superAdminExitMode: 'Quitter le mode super admin',
     themePreviewNote: 'Aperçu d’un thème en cours (backoffice).',
     languageSelectLabel: 'Choisir la langue',
     networkStatusLabel: 'Statut réseau',
@@ -877,7 +877,7 @@ export const translations = {
     accountStatus: 'Statut :',
     accountConnected: 'Connecté',
     accountIdentifier: 'Identifiant :',
-    accountPatronSession: 'Session patron',
+    accountSuperAdminSession: 'Session super admin',
     accountGuestName: 'Invité gourmand',
     accountGuest: 'Invité',
     accountRole: 'Rôle :',
@@ -895,7 +895,7 @@ export const translations = {
     accountPasswordMin: '{n} caractères minimum.',
     accountOr: 'Ou',
     accountGuestContinue: 'Continuer en 1 clic (invité)',
-    accountPatronAccess: 'Accès patron',
+    accountSuperAdminAccess: 'Accès super admin',
     accountName: 'Nom affiché',
     accountNamePlaceholder: 'Votre nom complet',
     accountPhone: 'Téléphone',
@@ -927,13 +927,13 @@ export const translations = {
     authErrorUnknown: 'Une erreur est survenue. Réessaie.',
     errorNetwork: 'Connexion internet indisponible.',
     errorTooManyAttempts: 'Trop de tentatives. Réessaie dans quelques minutes.',
-    patronLoginTitle: 'Accès patron',
-    patronLoginSubtitle: 'Administration sécurisée (/patron)',
-    patronLoginUsername: 'Identifiant super-user',
-    patronLoginSubmit: 'Déverrouiller le backoffice',
-    patronErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
-    patronErrorInvalid: 'Identifiant ou mot de passe incorrect.',
-    patronErrorUnavailable: 'Accès patron indisponible pour le moment.',
+    superAdminLoginTitle: 'Accès super admin',
+    superAdminLoginSubtitle: 'Administration sécurisée (/super admin)',
+    superAdminLoginUsername: 'Identifiant super-user',
+    superAdminLoginSubmit: 'Déverrouiller le backoffice',
+    superAdminErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
+    superAdminErrorInvalid: 'Identifiant ou mot de passe incorrect.',
+    superAdminErrorUnavailable: 'Accès super admin indisponible pour le moment.',
     readyBadge: '100 % prêt !',
     missingCountBadge: '{n} manquant(s)',
     mealIdea: 'Idée repas',
@@ -1169,12 +1169,12 @@ export const translations = {
     homeSeeAll: 'عرض الكل ({n})',
     homeReadyEmpty: 'اختر بعض المكوّنات الأساسية (بيض، طماطم، هريسة...) لتكتشف الوصفات الجاهزة للطهي!',
     homeFillFridge: 'املأ ثلاجتي',
-    logoPatronHint: '3 نقرات: دخول المدير',
-    patronBadge: 'المدير',
-    patronOpenBackoffice: 'الدخول إلى لوحة الإدارة',
-    patronLogout: 'تسجيل خروج المدير',
-    patronQuit: 'خروج',
-    patronExitMode: 'الخروج من وضع المدير',
+    logoSuperAdminHint: '3 نقرات: دخول المدير',
+    superAdminBadge: 'المدير',
+    superAdminOpenBackoffice: 'الدخول إلى لوحة الإدارة',
+    superAdminLogout: 'تسجيل خروج المدير',
+    superAdminQuit: 'خروج',
+    superAdminExitMode: 'الخروج من وضع المدير',
     themePreviewNote: 'معاينة سمة جارية من لوحة الإدارة.',
     languageSelectLabel: 'اختر اللغة',
     networkStatusLabel: 'حالة الشبكة',
@@ -1186,7 +1186,7 @@ export const translations = {
     accountStatus: 'الحالة:',
     accountConnected: 'متصل',
     accountIdentifier: 'المعرّف:',
-    accountPatronSession: 'جلسة المدير',
+    accountSuperAdminSession: 'جلسة المدير',
     accountGuestName: 'ضيف ذوّاق',
     accountGuest: 'ضيف',
     accountRole: 'الدور:',
@@ -1203,7 +1203,7 @@ export const translations = {
     accountPasswordMin: '{n} أحرف على الأقل.',
     accountOr: 'أو',
     accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
-    accountPatronAccess: 'دخول المسؤول',
+    accountSuperAdminAccess: 'دخول المسؤول',
     accountName: 'الاسم المعروض',
     accountNamePlaceholder: 'اسمك الكامل',
     accountPhone: 'الهاتف',
@@ -1235,13 +1235,13 @@ export const translations = {
     authErrorUnknown: 'حدث خطأ. أعد المحاولة.',
     errorNetwork: 'الاتصال بالإنترنت غير متوفر.',
     errorTooManyAttempts: 'محاولات كثيرة جدًا. أعد المحاولة بعد بضع دقائق.',
-    patronLoginTitle: 'دخول المدير',
-    patronLoginSubtitle: 'إدارة آمنة (/patron)',
-    patronLoginUsername: 'اسم المستخدم المسؤول',
-    patronLoginSubmit: 'فتح لوحة الإدارة',
-    patronErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
-    patronErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
-    patronErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
+    superAdminLoginTitle: 'دخول المدير',
+    superAdminLoginSubtitle: 'إدارة آمنة (/super admin)',
+    superAdminLoginUsername: 'اسم المستخدم المسؤول',
+    superAdminLoginSubmit: 'فتح لوحة الإدارة',
+    superAdminErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
+    superAdminErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+    superAdminErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
     readyBadge: 'جاهز 100%!',
     missingCountBadge: 'ينقص {n}',
     mealIdea: 'فكرة وجبة',
