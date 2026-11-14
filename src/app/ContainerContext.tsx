@@ -114,9 +114,9 @@ export const useMatchingScenarios = () => {
   return { ...useStore(matchingScenarios), matchingScenarios };
 };
 
-export const useSuperAdmin = () => {
-  const { superAdmin } = useContainer();
-  return { ...useStore(superAdmin), superAdmin };
+export const useBackofficeSession = () => {
+  const { backofficeSession } = useContainer();
+  return { ...useStore(backofficeSession), backofficeSessionStore: backofficeSession };
 };
 
 // Recipe costs: computed once per version of a recipe and of the ingredient list, never at

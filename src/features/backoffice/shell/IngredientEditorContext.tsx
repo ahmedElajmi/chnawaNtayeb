@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { validateIngredient, type Ingredient, type PriceRange } from '@/core/catalog';
 import { useCatalog, useContainer, useReview } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { superAdminPath, SUPER_ADMIN_PAGES } from '@/shared/paths';
+import { backofficePath, BACKOFFICE_PAGES } from '@/shared/paths';
 import { IngredientEditorModal, NEW_INGREDIENT } from '../ingredients/IngredientEditorModal';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { format } from '../i18n/backofficeTexts';
@@ -93,7 +93,7 @@ export function IngredientEditorProvider({ children }: { children: ReactNode }) 
             const saved = ingredient.id ? ingredient : catalogAdmin.createIngredient(data);
             const result = await store.save(saved);
             notify(result.ok ? b.reviewSaved : result.error, !result.ok);
-            if (result.ok || result.local) navigate(superAdminPath(SUPER_ADMIN_PAGES.ingredients, saved.id));
+            if (result.ok || result.local) navigate(backofficePath(BACKOFFICE_PAGES.ingredients, saved.id));
           }}
         />
       )}

@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import { useNavigate } from 'react-router';
 import type { Recipe } from '@/core/catalog';
 import { useCatalog, useReview } from '@/app/ContainerContext';
-import { superAdminPath, SUPER_ADMIN_PAGES } from '@/shared/paths';
+import { backofficePath, BACKOFFICE_PAGES } from '@/shared/paths';
 import { RecipeEditorModal } from '../recipes/RecipeEditorModal';
 import { duplicateRecipeDraft, newRecipeDraft } from '../recipes/recipeDraft';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -68,7 +68,7 @@ export function RecipeEditorProvider({ children }: { children: ReactNode }) {
             setEditing(null);
             const result = await store.save(recipe);
             notify(result.ok ? b.reviewSaved : result.error, !result.ok);
-            if (result.ok || result.local) navigate(superAdminPath(SUPER_ADMIN_PAGES.recipes, recipe.id));
+            if (result.ok || result.local) navigate(backofficePath(BACKOFFICE_PAGES.recipes, recipe.id));
           }}
         />
       )}

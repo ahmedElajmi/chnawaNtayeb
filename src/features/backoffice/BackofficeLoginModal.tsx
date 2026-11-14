@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, User, X, Loader2, AlertCircle } from 'lucide-react';
-import type { SuperAdminLoginError } from '@/application';
+import type { BackofficeLoginError } from '@/application';
 import { useContainer } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import type { TranslationDictionary } from '@/shared/i18n/translations';
 import { ModalShell } from '@/shared/ui/ModalShell';
 
 /** Text of a failed super-admin sign-in, in the current language (the gateway only gives a code). */
-const SUPER_ADMIN_LOGIN_ERRORS: Record<SuperAdminLoginError, keyof TranslationDictionary> = {
-  unreachable: 'superAdminErrorUnreachable',
-  invalid: 'superAdminErrorInvalid',
+const BACKOFFICE_LOGIN_ERRORS: Record<BackofficeLoginError, keyof TranslationDictionary> = {
+  unreachable: 'backofficeErrorUnreachable',
+  invalid: 'backofficeErrorInvalid',
   'too-many-attempts': 'errorTooManyAttempts',
-  unavailable: 'superAdminErrorUnavailable',
+  unavailable: 'backofficeErrorUnavailable',
 };
 
-interface SuperAdminLoginModalProps {
+interface BackofficeLoginModalProps {
   isOpen: boolean;
   /** Cancel (a successful login signs the super-admin in: the backoffice replaces this form) */
   onClose: () => void;
 }
 
-export const SuperAdminLoginModal: React.FC<SuperAdminLoginModalProps> = ({ isOpen, onClose }) => {
-  const { superAdmin } = useContainer();
+export const BackofficeLoginModal: React.FC<BackofficeLoginModalProps> = ({ isOpen, onClose }) => {
+  const { backofficeSession } = useContainer();
   const { t } = useLanguage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<SuperAdminLoginError | null>(null);
+  const [error, setError] = useState<BackofficeLoginError | null>(null);
 
   if (!isOpen) return null;
 
@@ -36,7 +36,7 @@ export const SuperAdminLoginModal: React.FC<SuperAdminLoginModalProps> = ({ isOp
     setError(null);
 
     // The server is the only judge: there is no client-side fallback
-    const result = await superAdmin.login(username, password);
+    const result = await backofficeSession.login(username, password);
     setIsLoading(false);
 
     if (result.ok) {
@@ -55,8 +55,8 @@ export const SuperAdminLoginModal: React.FC<SuperAdminLoginModalProps> = ({ isOp
               <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-ink">{t.superAdminLoginTitle}</h3>
-              <p className="text-[11px] text-slate-400">{t.superAdminLoginSubtitle}</p>
+              <h3 className="font-extrabold text-base text-ink">{t.backofficeLoginTitle}</h3>
+              <p className="text-[11px] text-slate-400">{t.backofficeLoginSubtitle}</p>
             </div>
           </div>
           <button
@@ -71,13 +71,13 @@ export const SuperAdminLoginModal: React.FC<SuperAdminLoginModalProps> = ({ isOp
         {error && (
           <div className="mt-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-            <span>{t[SUPER_ADMIN_LOGIN_ERRORS[error]]}</span>
+            <span>{t[BACKOFFICE_LOGIN_ERRORS[error]]}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
           <div>
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.superAdminLoginUsername}</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.backofficeLoginUsername}</label>
             <div className="relative mt-1">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -114,7 +114,7 @@ export const SuperAdminLoginModal: React.FC<SuperAdminLoginModalProps> = ({ isOp
             className="mt-2 w-full py-2.5 rounded-xl bg-accent text-on-accent font-bold text-sm hover:bg-accent-strong transition flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{t.superAdminLoginSubmit}</span>
+            <span>{t.backofficeLoginSubmit}</span>
           </button>
         </form>
       </div>

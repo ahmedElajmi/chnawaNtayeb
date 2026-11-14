@@ -11,16 +11,16 @@ import { useGoHome } from '@/app/homeNavigation';
 interface HeaderProps {
   currentUser: AppUser | null;
   onOpenUserModal: () => void;
-  isSuperAdminAuthenticated: boolean;
-  onSuperAdminLogout: () => void;
+  isBackofficeAuthenticated: boolean;
+  onBackofficeLogout: () => void;
   onOpenSettings: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onOpenUserModal,
-  isSuperAdminAuthenticated,
-  onSuperAdminLogout,
+  isBackofficeAuthenticated,
+  onBackofficeLogout,
   onOpenSettings,
 }) => {
   const { language, setLanguage, t } = useLanguage();
@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
     setLogoClicks(next);
     if (next >= 3) {
       setLogoClicks(0);
-      navigate(PATHS.superAdmin);
+      navigate(PATHS.backoffice);
     } else {
       goHome();
       setTimeout(() => setLogoClicks(0), 3000);
@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Zone 1: Brand Wordmark (with discrete 3-clicks superAdmin trigger) */}
         <button
           onClick={handleLogoClick}
-          title={`Chnowa Ntayeb (${t.logoSuperAdminHint})`}
+          title={`Chnowa Ntayeb (${t.logoBackofficeHint})`}
           className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0"
         >
           <img
@@ -101,10 +101,10 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Zone 3: Actions & Controls */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* SuperAdmin badge and logout (from sm up; on phones they live in Settings so the brand stays readable) */}
-          {isSuperAdminAuthenticated && (
+          {isBackofficeAuthenticated && (
             <div className="hidden sm:flex items-center gap-1.5">
               <NavLink
-                to={PATHS.superAdmin}
+                to={PATHS.backoffice}
                 className={({ isActive }) =>
                   `inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg transition shadow-xs ${
                     isActive
@@ -112,17 +112,17 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'bg-accent/10 text-accent-text dark:bg-accent/20 hover:bg-accent hover:text-on-accent'
                   }`
                 }
-                title={t.superAdminOpenBackoffice}
+                title={t.backofficeOpen}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{t.superAdminBadge}</span>
+                <span>{t.backofficeBadge}</span>
               </NavLink>
               <button
-                onClick={onSuperAdminLogout}
+                onClick={onBackofficeLogout}
                 className="text-[11px] text-slate-400 hover:text-rose-500 font-semibold px-1"
-                title={t.superAdminLogout}
+                title={t.backofficeLogout}
               >
-                {t.superAdminQuit}
+                {t.backofficeQuit}
               </button>
             </div>
           )}

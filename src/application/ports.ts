@@ -290,13 +290,13 @@ export type CloudStatus = 'connected' | 'local-only';
  * Why a super-admin sign-in failed (the interface turns it into a text in the current language):
  * server out of reach, wrong credentials, too many attempts, or access not available on the server.
  */
-export type SuperAdminLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
+export type BackofficeLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
 
-export type SuperAdminLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: SuperAdminLoginError };
+export type BackofficeLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: BackofficeLoginError };
 
 /** Admin (super-admin) session. Only the server decides who is admin. */
-export interface SuperAdminGateway {
-  login(username: string, password: string): Promise<SuperAdminLoginResult>;
+export interface BackofficeSessionGateway {
+  login(username: string, password: string): Promise<BackofficeLoginResult>;
   hasStoredSession(): boolean;
   verifySession(): Promise<boolean>;
   connectCloud(): Promise<CloudStatus>;

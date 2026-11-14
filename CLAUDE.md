@@ -175,7 +175,7 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
   `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
   `parseStoredRecipes` / `parseStoredIngredients`. Libellés : `useBackofficeText()`.
-- **Pages du backoffice** : une adresse par page (`SUPER_ADMIN_PAGES` / `ENGINE_PAGES` + `superAdminPath()` dans
+- **Pages du backoffice** : une adresse par page (`BACKOFFICE_PAGES` / `ENGINE_PAGES` + `backofficePath()` dans
   `src/shared/paths.ts`) ; une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`
   (`src/features/backoffice/shell/sections.tsx`), jamais un onglet ajouté à la main. Messages avec
   `useNotify()`, éditeur de recette avec `useRecipeEditor()`, actions du catalogue avec `useAdmin()`.

@@ -66,14 +66,14 @@ interface UserAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: AppUser | null;
-  onOpenSuperAdminLogin?: () => void;
+  onOpenBackofficeLogin?: () => void;
 }
 
 export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   isOpen,
   onClose,
   currentUser,
-  onOpenSuperAdminLogin,
+  onOpenBackofficeLogin,
 }) => {
   const { userAuth } = useContainer();
   const { profile: accountProfile, accountProfileStore } = useAccountProfile();
@@ -274,7 +274,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                 <span className="text-xs font-semibold text-slate-500">{t.accountIdentifier}</span>
                 <span className="text-xs font-bold text-ink truncate max-w-[180px]">
                   {isSuperAdminSession
-                    ? t.accountSuperAdminSession
+                    ? t.accountBackofficeSession
                     : currentUser.isAnonymous
                       ? t.accountGuestName
                       : currentUser.email}
@@ -638,12 +638,12 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             type="button"
             onClick={() => {
               onClose();
-              if (onOpenSuperAdminLogin) onOpenSuperAdminLogin();
+              if (onOpenBackofficeLogin) onOpenBackofficeLogin();
             }}
             className="text-[11px] text-slate-400 hover:text-accent-text transition inline-flex items-center gap-1"
           >
             <Shield className="w-3 h-3" />
-            <span>{t.accountSuperAdminAccess}</span>
+            <span>{t.accountBackofficeAccess}</span>
           </button>
         </div>
       </div>

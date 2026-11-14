@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router';
-import { useContainer, useSuperAdmin, useTeam } from '@/app/ContainerContext';
+import { useContainer, useBackofficeSession, useTeam } from '@/app/ContainerContext';
 import { useGoHome } from '@/app/homeNavigation';
-import { PATHS, SUPER_ADMIN_PAGES } from '@/shared/paths';
-import { SuperAdminLoginModal } from './SuperAdminLoginModal';
+import { PATHS, BACKOFFICE_PAGES } from '@/shared/paths';
+import { BackofficeLoginModal } from './BackofficeLoginModal';
 import { BackofficeLayout, SubPagesOutlet, useAllowedSections } from './shell/BackofficeLayout';
 import { NotifyProvider } from './shell/NotifyContext';
 import { RecipeEditorProvider } from './shell/RecipeEditorContext';
@@ -18,7 +18,7 @@ import { IngredientEditorProvider } from './shell/IngredientEditorContext';
 export default function BackofficePage() {
   const navigate = useNavigate();
   const goHome = useGoHome();
-  const { status, superAdmin } = useSuperAdmin();
+  const { status, backofficeSessionStore } = useBackofficeSession();
   const { userAuth } = useContainer();
   const { me, meStatus, team } = useTeam();
   // Pages the role cannot use have no route (their address leads back to /super-admin)
@@ -31,10 +31,10 @@ export default function BackofficePage() {
 
   if (status === 'checking' || (status === 'signed-out' && meStatus === 'checking')) return null;
   if (status === 'signed-out' && !me)
-    return <SuperAdminLoginModal isOpen onClose={() => navigate(PATHS.home, { replace: true })} />;
+    return <BackofficeLoginModal isOpen onClose={() => navigate(PATHS.home, { replace: true })} />;
 
   const logout = () => {
-    if (status === 'signed-in') superAdmin.logout();
+    if (status === 'signed-in') backofficeSessionStore.logout();
     else void userAuth.logout();
     goHome();
   };
@@ -46,8 +46,7 @@ export default function BackofficePage() {
           <Routes>
             <Route element={<BackofficeLayout onLogout={logout} />}>
               {sections.map((section) => {
-                if (section.page === SUPER_ADMIN_PAGES.home)
-                  return <Route key="home" index element={section.element} />;
+                if (section.page === BACKOFFICE_PAGES.home) return <Route key="home" index element={section.element} />;
                 if (!section.subPages)
                   return [
                     <Route key={section.page} path={section.page} element={section.element} />,
@@ -64,7 +63,7 @@ export default function BackofficePage() {
                   </Route>
                 );
               })}
-              <Route path="*" element={<Navigate to={PATHS.superAdmin} replace />} />
+              <Route path="*" element={<Navigate to={PATHS.backoffice} replace />} />
             </Route>
           </Routes>
         </IngredientEditorProvider>

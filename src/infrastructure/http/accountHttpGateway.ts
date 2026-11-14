@@ -1,5 +1,5 @@
 import type { AccountCreationGateway } from '@/application';
-import { getSuperAdminToken } from '@/infrastructure/http/superAdminAuth';
+import { getBackofficeToken } from '@/infrastructure/http/backofficeAuth';
 
 /**
  * Employee account creation, done by our server (Admin SDK) behind the super-admin session:
@@ -12,7 +12,7 @@ export const accountHttpGateway: AccountCreationGateway = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(getSuperAdminToken() ? { Authorization: `Bearer ${getSuperAdminToken()}` } : {}),
+          ...(getBackofficeToken() ? { Authorization: `Bearer ${getBackofficeToken()}` } : {}),
         },
         body: JSON.stringify({ email, displayName }),
       });

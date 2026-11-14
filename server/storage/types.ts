@@ -32,10 +32,3 @@ export interface DataStore {
   /** Publishes a deletion marker. Returns the new revision. */
   remove(name: CollectionName, id: string): Promise<number>;
 }
-
-/** Thrown by implementations when a collection is not declared in collections.ts. */
-export class UnknownCollectionError extends Error {
-  constructor(name: string) {
-    super(`Unknown collection: ${name}`);
-  }
-}

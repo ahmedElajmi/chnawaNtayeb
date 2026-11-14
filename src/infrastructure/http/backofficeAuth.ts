@@ -12,9 +12,9 @@ import { auth } from '@/infrastructure/firebase/client';
 const TOKEN_KEY = 'super_admin_session_token';
 const SUPER_ADMIN_FIREBASE_UID = 'super-admin';
 
-import type { CloudStatus, SuperAdminLoginError, SuperAdminLoginResult } from '@/application';
+import type { CloudStatus, BackofficeLoginError, BackofficeLoginResult } from '@/application';
 
-export function getSuperAdminToken(): string | null {
+export function getBackofficeToken(): string | null {
   try {
     return sessionStorage.getItem(TOKEN_KEY);
   } catch {
@@ -22,13 +22,13 @@ export function getSuperAdminToken(): string | null {
   }
 }
 
-function setSuperAdminToken(token: string) {
+function setBackofficeToken(token: string) {
   try {
     sessionStorage.setItem(TOKEN_KEY, token);
   } catch {}
 }
 
-export function clearSuperAdminToken() {
+export function clearBackofficeToken() {
   try {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem('patron_username'); // legacy key
@@ -47,13 +47,13 @@ async function connectFirebase(firebaseToken: string | null | undefined): Promis
 }
 
 /** Server answer → domain code (the server's own message is never shown: the interface translates). */
-function loginErrorOf(status: number): SuperAdminLoginError {
+function loginErrorOf(status: number): BackofficeLoginError {
   if (status === 429) return 'too-many-attempts';
   if (status === 400 || status === 401 || status === 403) return 'invalid';
   return 'unavailable';
 }
 
-export async function loginSuperAdmin(username: string, password: string): Promise<SuperAdminLoginResult> {
+export async function loginBackoffice(username: string, password: string): Promise<BackofficeLoginResult> {
   let res: Response;
   try {
     res = await fetch('/admin/api/login', {
@@ -71,18 +71,18 @@ export async function loginSuperAdmin(username: string, password: string): Promi
     return { ok: false, error: loginErrorOf(res.status) };
   }
 
-  setSuperAdminToken(data.token);
+  setBackofficeToken(data.token);
   return { ok: true, cloud: await connectFirebase(data.firebaseToken) };
 }
 
 /** Asks the server whether the stored token is still valid. Clears it when it is not. */
-export async function verifySuperAdminSession(): Promise<boolean> {
-  const token = getSuperAdminToken();
+export async function verifyBackofficeSession(): Promise<boolean> {
+  const token = getBackofficeToken();
   if (!token) return false;
   try {
     const res = await fetch('/admin/api/verify', { headers: { Authorization: `Bearer ${token}` } });
     if (res.ok) return true;
-    if (res.status === 401) clearSuperAdminToken();
+    if (res.status === 401) clearBackofficeToken();
     return false;
   } catch {
     return false; // offline: keep the token, but do not open the backoffice
@@ -90,13 +90,13 @@ export async function verifySuperAdminSession(): Promise<boolean> {
 }
 
 /** Makes sure the Firebase identity has the super-admin claim (needed after a page reload). */
-export async function ensureSuperAdminCloudSession(): Promise<CloudStatus> {
+export async function ensureBackofficeCloudSession(): Promise<CloudStatus> {
   const current = auth.currentUser;
   if (current?.uid === SUPER_ADMIN_FIREBASE_UID) {
     const result = await current.getIdTokenResult().catch(() => null);
     if (result?.claims.superAdmin === true) return 'connected';
   }
-  const token = getSuperAdminToken();
+  const token = getBackofficeToken();
   if (!token) return 'local-only';
   try {
     const res = await fetch('/admin/api/firebase-token', {
@@ -111,8 +111,8 @@ export async function ensureSuperAdminCloudSession(): Promise<CloudStatus> {
   }
 }
 
-export async function logoutSuperAdmin(): Promise<void> {
-  clearSuperAdminToken();
+export async function logoutBackoffice(): Promise<void> {
+  clearBackofficeToken();
   if (auth.currentUser?.uid === SUPER_ADMIN_FIREBASE_UID) {
     await signOut(auth).catch(() => {});
   }

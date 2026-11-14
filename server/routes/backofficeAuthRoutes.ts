@@ -5,12 +5,12 @@ import {
   readBearerToken,
   safeEqual,
   verifySessionToken,
-  type SuperAdminConfig,
-} from '../superAdminAuth';
+  type BackofficeAuthConfig,
+} from '../backofficeAuth';
 import { createSuperAdminFirebaseToken } from '../firebaseAdmin';
 
 /** super-admin (admin) authentication: login, session check, Firebase token for cloud edits. */
-export function superAdminRoutes(superAdminConfig: SuperAdminConfig): express.Router {
+export function backofficeAuthRoutes(backofficeAuthConfig: BackofficeAuthConfig): express.Router {
   const router = express.Router();
 
   // 5 failed attempts per IP every 15 minutes (successful logins are not counted)
@@ -24,8 +24,8 @@ export function superAdminRoutes(superAdminConfig: SuperAdminConfig): express.Ro
   });
 
   const requireSession = (req: express.Request): { username: string; expiresAt: number } | null => {
-    if (!superAdminConfig.ok) return null;
-    const payload = verifySessionToken(readBearerToken(req.headers.authorization), superAdminConfig.secret);
+    if (!backofficeAuthConfig.ok) return null;
+    const payload = verifySessionToken(readBearerToken(req.headers.authorization), backofficeAuthConfig.secret);
     return payload ? { username: payload.sub, expiresAt: payload.exp } : null;
   };
 
@@ -43,7 +43,7 @@ export function superAdminRoutes(superAdminConfig: SuperAdminConfig): express.Ro
     ['/admin/api/login', '/api/auth/admin-login', '/api/auth/superAdmin-login'],
     loginLimiter,
     async (req, res) => {
-      if (!superAdminConfig.ok) {
+      if (!backofficeAuthConfig.ok) {
         return res.status(503).json({ success: false, error: 'Accès superAdmin non configuré sur le serveur.' });
       }
       const { username, password } = req.body ?? {};
@@ -56,17 +56,17 @@ export function superAdminRoutes(superAdminConfig: SuperAdminConfig): express.Ro
         return res.status(400).json({ success: false, error: 'Requête invalide.' });
       }
       // Both comparisons always run (no early exit) so timing does not reveal which field is wrong
-      const userOk = safeEqual(username.trim(), superAdminConfig.username);
-      const passOk = safeEqual(password, superAdminConfig.password);
+      const userOk = safeEqual(username.trim(), backofficeAuthConfig.username);
+      const passOk = safeEqual(password, backofficeAuthConfig.password);
       if (!userOk || !passOk) {
         return res.status(401).json({ success: false, error: 'Identifiants superAdmin incorrects.' });
       }
-      const { token, payload } = createSessionToken(superAdminConfig.username, superAdminConfig.secret);
+      const { token, payload } = createSessionToken(backofficeAuthConfig.username, backofficeAuthConfig.secret);
       return res.json({
         success: true,
         token,
         expiresAt: payload.exp,
-        user: { username: superAdminConfig.username, role: 'admin' },
+        user: { username: backofficeAuthConfig.username, role: 'admin' },
         firebaseToken: await safeCreateFirebaseToken(),
       });
     }

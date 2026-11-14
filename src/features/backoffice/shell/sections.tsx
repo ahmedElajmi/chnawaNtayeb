@@ -17,10 +17,10 @@ import {
   CATEGORY_PAGES,
   CLIENTS_PAGES,
   ENGINE_PAGES,
-  SUPER_ADMIN_PAGES,
-  superAdminPath,
+  BACKOFFICE_PAGES,
+  backofficePath,
   WORKFLOW_PAGES,
-  type SuperAdminPage,
+  type BackofficePageId,
 } from '@/shared/paths';
 import { IngredientCategoriesPage, RecipeCategoriesPage } from '../categories/CategoriesPage';
 import { ClientsPage } from '../users/ClientsPage';
@@ -63,7 +63,7 @@ export interface BackofficeSubPage {
 }
 
 export interface BackofficeSection {
-  page: SuperAdminPage;
+  page: BackofficePageId;
   icon: LucideIcon;
   label: (b: BackofficeTexts) => string;
   hint: (b: BackofficeTexts) => string;
@@ -105,18 +105,18 @@ function WorkflowsFrame({ children }: { children: ReactNode }) {
 
 /**
  * Every page of the backoffice, in menu order. Adding a page = one entry here (+ its slug in
- * SUPER_ADMIN_PAGES and its labels in backofficeTexts): menu, mobile menu, address and title follow.
+ * BACKOFFICE_PAGES and its labels in backofficeTexts): menu, mobile menu, address and title follow.
  */
 export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
   {
-    page: SUPER_ADMIN_PAGES.home,
+    page: BACKOFFICE_PAGES.home,
     icon: LayoutDashboard,
     label: (b) => b.home,
     hint: (b) => b.homeHint,
     element: <HomePage />,
   },
   {
-    page: SUPER_ADMIN_PAGES.review,
+    page: BACKOFFICE_PAGES.review,
     icon: ClipboardCheck,
     label: (b) => b.queueTitle,
     hint: (b) => b.queueHint,
@@ -124,7 +124,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     element: <QueuePage />,
   },
   {
-    page: SUPER_ADMIN_PAGES.recipes,
+    page: BACKOFFICE_PAGES.recipes,
     icon: UtensilsCrossed,
     label: (b) => b.recipes,
     hint: (b) => b.recipesHint,
@@ -133,7 +133,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     routes: [{ path: ':id', element: <RecipeReviewRoute /> }],
   },
   {
-    page: SUPER_ADMIN_PAGES.ingredients,
+    page: BACKOFFICE_PAGES.ingredients,
     icon: Carrot,
     label: (b) => b.ingredients,
     hint: (b) => b.ingredientsHint,
@@ -142,7 +142,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     routes: [{ path: ':id', element: <IngredientReviewRoute /> }],
   },
   {
-    page: SUPER_ADMIN_PAGES.categories,
+    page: BACKOFFICE_PAGES.categories,
     icon: FolderTree,
     label: (b) => b.categories,
     hint: (b) => b.categoriesHint,
@@ -153,7 +153,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     ],
   },
   {
-    page: SUPER_ADMIN_PAGES.engine,
+    page: BACKOFFICE_PAGES.engine,
     icon: SlidersHorizontal,
     label: (b) => b.engine,
     hint: (b) => b.engineHint,
@@ -169,7 +169,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     ],
   },
   {
-    page: SUPER_ADMIN_PAGES.appearance,
+    page: BACKOFFICE_PAGES.appearance,
     icon: Palette,
     label: (b) => b.appearance,
     hint: (b) => b.appearanceHint,
@@ -177,7 +177,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     element: <AppearancePage />,
   },
   {
-    page: SUPER_ADMIN_PAGES.team,
+    page: BACKOFFICE_PAGES.team,
     icon: UserRound,
     label: (b) => b.teamTitle,
     hint: (b) => b.teamHint,
@@ -185,7 +185,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     element: <TeamPage />,
   },
   {
-    page: SUPER_ADMIN_PAGES.clients,
+    page: BACKOFFICE_PAGES.clients,
     icon: Users,
     label: (b) => b.clientsTitle,
     hint: (b) => b.clientsHint,
@@ -197,7 +197,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     ],
   },
   {
-    page: SUPER_ADMIN_PAGES.workflows,
+    page: BACKOFFICE_PAGES.workflows,
     icon: GitBranch,
     label: (b) => b.workflowsTitle,
     hint: (b) => b.workflowsHint,
@@ -209,7 +209,7 @@ export const BACKOFFICE_SECTIONS: readonly BackofficeSection[] = [
     ],
   },
   {
-    page: SUPER_ADMIN_PAGES.data,
+    page: BACKOFFICE_PAGES.data,
     icon: Database,
     label: (b) => b.data,
     hint: (b) => b.dataHint,
@@ -223,8 +223,8 @@ export function sectionOf(pathname: string): BackofficeSection {
   const path = pathname.replace(/\/+$/, '');
   return (
     BACKOFFICE_SECTIONS.find((s) => {
-      if (s.page === SUPER_ADMIN_PAGES.home) return false;
-      const base = superAdminPath(s.page);
+      if (s.page === BACKOFFICE_PAGES.home) return false;
+      const base = backofficePath(s.page);
       return path === base || path.startsWith(`${base}/`);
     }) ?? BACKOFFICE_SECTIONS[0]
   );

@@ -15,7 +15,7 @@ export default function App() {
     const stopSettings = container.matchingSettings.start();
     const stopRecipeCategories = container.categories.recipe.start();
     const stopIngredientCategories = container.categories.ingredient.start();
-    container.superAdmin.restoreSession();
+    container.backofficeSession.restoreSession();
     return () => {
       stopCatalog();
       stopSettings();

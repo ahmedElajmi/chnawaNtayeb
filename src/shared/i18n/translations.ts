@@ -228,12 +228,12 @@ export interface TranslationDictionary {
   homeSeeAll: string;
   homeReadyEmpty: string;
   homeFillFridge: string;
-  logoSuperAdminHint: string;
-  superAdminBadge: string;
-  superAdminOpenBackoffice: string;
-  superAdminLogout: string;
-  superAdminQuit: string;
-  superAdminExitMode: string;
+  logoBackofficeHint: string;
+  backofficeBadge: string;
+  backofficeOpen: string;
+  backofficeLogout: string;
+  backofficeQuit: string;
+  backofficeExitMode: string;
   themePreviewNote: string;
   languageSelectLabel: string;
   networkStatusLabel: string;
@@ -245,7 +245,7 @@ export interface TranslationDictionary {
   accountStatus: string;
   accountConnected: string;
   accountIdentifier: string;
-  accountSuperAdminSession: string;
+  accountBackofficeSession: string;
   accountGuestName: string;
   accountGuest: string;
   accountRole: string;
@@ -262,7 +262,7 @@ export interface TranslationDictionary {
   accountPasswordMin: string;
   accountOr: string;
   accountGuestContinue: string;
-  accountSuperAdminAccess: string;
+  accountBackofficeAccess: string;
   accountName: string;
   accountNamePlaceholder: string;
   accountPhone: string;
@@ -294,13 +294,13 @@ export interface TranslationDictionary {
   authErrorUnknown: string;
   errorNetwork: string;
   errorTooManyAttempts: string;
-  superAdminLoginTitle: string;
-  superAdminLoginSubtitle: string;
-  superAdminLoginUsername: string;
-  superAdminLoginSubmit: string;
-  superAdminErrorUnreachable: string;
-  superAdminErrorInvalid: string;
-  superAdminErrorUnavailable: string;
+  backofficeLoginTitle: string;
+  backofficeLoginSubtitle: string;
+  backofficeLoginUsername: string;
+  backofficeLoginSubmit: string;
+  backofficeErrorUnreachable: string;
+  backofficeErrorInvalid: string;
+  backofficeErrorUnavailable: string;
   readyBadge: string;
   missingCountBadge: string;
   mealIdea: string;
@@ -546,12 +546,12 @@ export const translations = {
     homeReadyEmpty:
       'Ekhtar chwaya ingrédients (3dham, tmatem, hrissa...) bech tchouf el maklet elli tnejjem ttayebhom tawa !',
     homeFillFridge: '3abbi el frigo mte3i',
-    logoSuperAdminHint: '3 clics : dokhoul el super admin',
-    superAdminBadge: 'Super admin',
-    superAdminOpenBackoffice: 'Odkhel lel backoffice',
-    superAdminLogout: 'Okhrej mel compte super admin',
-    superAdminQuit: 'Okhrej',
-    superAdminExitMode: 'Okhrej mel mode super admin',
+    logoBackofficeHint: '3 clics : dokhoul el super admin',
+    backofficeBadge: 'Super admin',
+    backofficeOpen: 'Odkhel lel backoffice',
+    backofficeLogout: 'Okhrej mel compte super admin',
+    backofficeQuit: 'Okhrej',
+    backofficeExitMode: 'Okhrej mel mode super admin',
     themePreviewNote: 'Thème fi west el aperçu (backoffice).',
     languageSelectLabel: 'Ekhtar el lougha',
     networkStatusLabel: '7alet el réseau',
@@ -563,7 +563,7 @@ export const translations = {
     accountStatus: 'El 7ala :',
     accountConnected: 'Connecté',
     accountIdentifier: 'El identifiant :',
-    accountSuperAdminSession: 'Session super admin',
+    accountBackofficeSession: 'Session super admin',
     accountGuestName: 'Dhif y7eb el makla',
     accountGuest: 'Dhif',
     accountRole: 'Dawr :',
@@ -581,7 +581,7 @@ export const translations = {
     accountPasswordMin: '{n} 7orouf 3al a9al.',
     accountOr: 'Walla',
     accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
-    accountSuperAdminAccess: 'Edkhel ka super admin',
+    accountBackofficeAccess: 'Edkhel ka super admin',
     accountName: 'Esmek',
     accountNamePlaceholder: 'Esmek el kamel',
     accountPhone: 'Telifoun',
@@ -613,13 +613,13 @@ export const translations = {
     authErrorUnknown: 'Famma ghalta. 3awed.',
     errorNetwork: 'Ma famech connexion internet.',
     errorTooManyAttempts: 'Barcha mo7awlet. 3awed ba3d chwaya d9aye9.',
-    superAdminLoginTitle: 'Dokhoul el super admin',
-    superAdminLoginSubtitle: 'Idara m2ammna (/super admin)',
-    superAdminLoginUsername: 'Identifiant super-user',
-    superAdminLoginSubmit: '7ell el backoffice',
-    superAdminErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
-    superAdminErrorInvalid: 'Identifiant walla mot de passe ghalet.',
-    superAdminErrorUnavailable: 'Dokhoul el super admin mouch mawjoud tawa.',
+    backofficeLoginTitle: 'Dokhoul el super admin',
+    backofficeLoginSubtitle: 'Idara m2ammna (/super admin)',
+    backofficeLoginUsername: 'Identifiant super-user',
+    backofficeLoginSubmit: '7ell el backoffice',
+    backofficeErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
+    backofficeErrorInvalid: 'Identifiant walla mot de passe ghalet.',
+    backofficeErrorUnavailable: 'Dokhoul el super admin mouch mawjoud tawa.',
     readyBadge: '100% 7adher !',
     missingCountBadge: '{n} na9es',
     mealIdea: 'Fekra makla',
@@ -860,12 +860,12 @@ export const translations = {
     homeReadyEmpty:
       'Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à cuisiner !',
     homeFillFridge: 'Remplir mon frigo',
-    logoSuperAdminHint: '3 clics : accès super admin',
-    superAdminBadge: 'Super admin',
-    superAdminOpenBackoffice: 'Accéder au backoffice super admin',
-    superAdminLogout: 'Déconnexion super admin',
-    superAdminQuit: 'Quitter',
-    superAdminExitMode: 'Quitter le mode super admin',
+    logoBackofficeHint: '3 clics : accès super admin',
+    backofficeBadge: 'Super admin',
+    backofficeOpen: 'Accéder au backoffice super admin',
+    backofficeLogout: 'Déconnexion super admin',
+    backofficeQuit: 'Quitter',
+    backofficeExitMode: 'Quitter le mode super admin',
     themePreviewNote: 'Aperçu d’un thème en cours (backoffice).',
     languageSelectLabel: 'Choisir la langue',
     networkStatusLabel: 'Statut réseau',
@@ -877,7 +877,7 @@ export const translations = {
     accountStatus: 'Statut :',
     accountConnected: 'Connecté',
     accountIdentifier: 'Identifiant :',
-    accountSuperAdminSession: 'Session super admin',
+    accountBackofficeSession: 'Session super admin',
     accountGuestName: 'Invité gourmand',
     accountGuest: 'Invité',
     accountRole: 'Rôle :',
@@ -895,7 +895,7 @@ export const translations = {
     accountPasswordMin: '{n} caractères minimum.',
     accountOr: 'Ou',
     accountGuestContinue: 'Continuer en 1 clic (invité)',
-    accountSuperAdminAccess: 'Accès super admin',
+    accountBackofficeAccess: 'Accès super admin',
     accountName: 'Nom affiché',
     accountNamePlaceholder: 'Votre nom complet',
     accountPhone: 'Téléphone',
@@ -927,13 +927,13 @@ export const translations = {
     authErrorUnknown: 'Une erreur est survenue. Réessaie.',
     errorNetwork: 'Connexion internet indisponible.',
     errorTooManyAttempts: 'Trop de tentatives. Réessaie dans quelques minutes.',
-    superAdminLoginTitle: 'Accès super admin',
-    superAdminLoginSubtitle: 'Administration sécurisée (/super admin)',
-    superAdminLoginUsername: 'Identifiant super-user',
-    superAdminLoginSubmit: 'Déverrouiller le backoffice',
-    superAdminErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
-    superAdminErrorInvalid: 'Identifiant ou mot de passe incorrect.',
-    superAdminErrorUnavailable: 'Accès super admin indisponible pour le moment.',
+    backofficeLoginTitle: 'Accès super admin',
+    backofficeLoginSubtitle: 'Administration sécurisée (/super admin)',
+    backofficeLoginUsername: 'Identifiant super-user',
+    backofficeLoginSubmit: 'Déverrouiller le backoffice',
+    backofficeErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
+    backofficeErrorInvalid: 'Identifiant ou mot de passe incorrect.',
+    backofficeErrorUnavailable: 'Accès super admin indisponible pour le moment.',
     readyBadge: '100 % prêt !',
     missingCountBadge: '{n} manquant(s)',
     mealIdea: 'Idée repas',
@@ -1169,12 +1169,12 @@ export const translations = {
     homeSeeAll: 'عرض الكل ({n})',
     homeReadyEmpty: 'اختر بعض المكوّنات الأساسية (بيض، طماطم، هريسة...) لتكتشف الوصفات الجاهزة للطهي!',
     homeFillFridge: 'املأ ثلاجتي',
-    logoSuperAdminHint: '3 نقرات: دخول المدير',
-    superAdminBadge: 'المدير',
-    superAdminOpenBackoffice: 'الدخول إلى لوحة الإدارة',
-    superAdminLogout: 'تسجيل خروج المدير',
-    superAdminQuit: 'خروج',
-    superAdminExitMode: 'الخروج من وضع المدير',
+    logoBackofficeHint: '3 نقرات: دخول المدير',
+    backofficeBadge: 'المدير',
+    backofficeOpen: 'الدخول إلى لوحة الإدارة',
+    backofficeLogout: 'تسجيل خروج المدير',
+    backofficeQuit: 'خروج',
+    backofficeExitMode: 'الخروج من وضع المدير',
     themePreviewNote: 'معاينة سمة جارية من لوحة الإدارة.',
     languageSelectLabel: 'اختر اللغة',
     networkStatusLabel: 'حالة الشبكة',
@@ -1186,7 +1186,7 @@ export const translations = {
     accountStatus: 'الحالة:',
     accountConnected: 'متصل',
     accountIdentifier: 'المعرّف:',
-    accountSuperAdminSession: 'جلسة المدير',
+    accountBackofficeSession: 'جلسة المدير',
     accountGuestName: 'ضيف ذوّاق',
     accountGuest: 'ضيف',
     accountRole: 'الدور:',
@@ -1203,7 +1203,7 @@ export const translations = {
     accountPasswordMin: '{n} أحرف على الأقل.',
     accountOr: 'أو',
     accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
-    accountSuperAdminAccess: 'دخول المسؤول',
+    accountBackofficeAccess: 'دخول المسؤول',
     accountName: 'الاسم المعروض',
     accountNamePlaceholder: 'اسمك الكامل',
     accountPhone: 'الهاتف',
@@ -1235,13 +1235,13 @@ export const translations = {
     authErrorUnknown: 'حدث خطأ. أعد المحاولة.',
     errorNetwork: 'الاتصال بالإنترنت غير متوفر.',
     errorTooManyAttempts: 'محاولات كثيرة جدًا. أعد المحاولة بعد بضع دقائق.',
-    superAdminLoginTitle: 'دخول المدير',
-    superAdminLoginSubtitle: 'إدارة آمنة (/super admin)',
-    superAdminLoginUsername: 'اسم المستخدم المسؤول',
-    superAdminLoginSubmit: 'فتح لوحة الإدارة',
-    superAdminErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
-    superAdminErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
-    superAdminErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
+    backofficeLoginTitle: 'دخول المدير',
+    backofficeLoginSubtitle: 'إدارة آمنة (/super admin)',
+    backofficeLoginUsername: 'اسم المستخدم المسؤول',
+    backofficeLoginSubmit: 'فتح لوحة الإدارة',
+    backofficeErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
+    backofficeErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+    backofficeErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
     readyBadge: 'جاهز 100%!',
     missingCountBadge: 'ينقص {n}',
     mealIdea: 'فكرة وجبة',

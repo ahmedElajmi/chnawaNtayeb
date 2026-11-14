@@ -13,7 +13,7 @@ import {
 import { languageInfo, pickLocalized } from '@/core/shared';
 import { useReview } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { superAdminPath } from '@/shared/paths';
+import { backofficePath } from '@/shared/paths';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useNotify } from '../shell/NotifyContext';
@@ -168,7 +168,7 @@ export function QueuePage() {
           </button>
         )}
         <Link
-          to={superAdminPath(views[current.kind].listPage, current.entry)}
+          to={backofficePath(views[current.kind].listPage, current.entry)}
           className="inline-block text-xs font-semibold text-ink-muted hover:text-ink underline"
         >
           {b.queueOpenItem}
@@ -252,7 +252,7 @@ export function QueuePage() {
                   )}
                   {grouping === 'item' && (
                     <Link
-                      to={superAdminPath(views[kindOfGroup].listPage, group.key.slice(group.key.indexOf(':') + 1))}
+                      to={backofficePath(views[kindOfGroup].listPage, group.key.slice(group.key.indexOf(':') + 1))}
                       className={SECONDARY}
                     >
                       {b.queueOpenItem}

@@ -1,16 +1,16 @@
-import type { CloudStatus, SuperAdminGateway, SuperAdminLoginResult } from '../ports';
+import type { CloudStatus, BackofficeSessionGateway, BackofficeLoginResult } from '../ports';
 import { Store } from '../store';
 
-export interface SuperAdminState {
+export interface BackofficeSessionState {
   /** 'checking' while the server verifies a stored session. */
   status: 'checking' | 'signed-in' | 'signed-out';
   cloudStatus: CloudStatus;
 }
 
 /** Admin (super-admin) session, always confirmed by the server. */
-export class SuperAdminStore extends Store<SuperAdminState> {
+export class BackofficeSessionStore extends Store<BackofficeSessionState> {
   constructor(
-    private readonly gateway: SuperAdminGateway,
+    private readonly gateway: BackofficeSessionGateway,
     /** Called once the admin can write to the database (e.g. seeds an empty catalog) */
     private readonly onCloudConnected: () => Promise<void> = async () => {}
   ) {
@@ -29,7 +29,7 @@ export class SuperAdminStore extends Store<SuperAdminState> {
   }
 
   /** Checks the credentials with the server; signs in on success. */
-  async login(username: string, password: string): Promise<SuperAdminLoginResult> {
+  async login(username: string, password: string): Promise<BackofficeLoginResult> {
     const result = await this.gateway.login(username, password);
     if (result.ok) this.signedIn(result.cloud);
     return result;

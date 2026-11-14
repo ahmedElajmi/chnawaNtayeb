@@ -100,7 +100,7 @@ l'arabe (`ar`) est de l'arabe littéraire sans aucun mot de derja (باش، شن
 `translations.test.ts` : toutes les clés du français présentes et non vides dans chaque langue, mêmes
 `{marques}`, aucun mot de derja dans `ar`. Aucun texte affiché en dur dans les écrans publics (accueil,
 en-tête, compte, accès super admin, Réglages) : tout passe par `t`. Les erreurs de connexion (visiteur et super admin)
-arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `SuperAdminLoginError` dans
+arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `BackofficeLoginError` dans
 `src/application/ports.ts`) que l'écran traduit. Sélecteurs (en-tête,
 Réglages › Langue) : Derja, دارجة, Français, العربية الفصحى (`SELECTOR_ORDER`). `useLanguage()` fournit `t` (les textes),
 `language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,

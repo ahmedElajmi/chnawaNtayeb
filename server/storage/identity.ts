@@ -1,5 +1,5 @@
 import type express from 'express';
-import { readBearerToken, verifySessionToken, type SuperAdminConfig } from '../superAdminAuth';
+import { readBearerToken, verifySessionToken, type BackofficeAuthConfig } from '../backofficeAuth';
 import { verifyEmployeeToken } from '../firebaseAdmin';
 
 /**
@@ -16,10 +16,13 @@ export interface Identity {
 
 const VISITOR: Identity = { owner: false, canPublish: false, canManage: false };
 
-export async function resolveIdentity(req: express.Request, superAdminConfig: SuperAdminConfig): Promise<Identity> {
+export async function resolveIdentity(
+  req: express.Request,
+  backofficeAuthConfig: BackofficeAuthConfig
+): Promise<Identity> {
   const token = readBearerToken(req.headers.authorization);
-  if (token && superAdminConfig.ok) {
-    const session = verifySessionToken(token, superAdminConfig.secret);
+  if (token && backofficeAuthConfig.ok) {
+    const session = verifySessionToken(token, backofficeAuthConfig.secret);
     if (session) return { owner: true, canPublish: true, canManage: true };
   }
   if (token) {

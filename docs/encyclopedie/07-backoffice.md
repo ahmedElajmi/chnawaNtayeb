@@ -22,7 +22,7 @@
 
 ## Navigation et pages (`src/features/backoffice/`)
 
-**Une adresse par page** (`SUPER_ADMIN_PAGES`, `ENGINE_PAGES`, `superAdminPath()` dans `src/shared/paths.ts`) : le
+**Une adresse par page** (`BACKOFFICE_PAGES`, `ENGINE_PAGES`, `backofficePath()` dans `src/shared/paths.ts`) : le
 retour et le rechargement gardent la page. `AppRoutes` envoie `/admin/*` au backoffice, qui déclare ses
 routes à partir du **registre des sections** (`shell/sections.tsx`).
 
@@ -50,7 +50,7 @@ routes à partir du **registre des sections** (`shell/sections.tsx`).
 - titre et description de la page, puis la page.
 
 **Ajouter une page** = une entrée dans `BACKOFFICE_SECTIONS` (icône, libellés, page ou sous-pages, nombre
-affiché, cadre partagé des sous-pages) + son adresse dans `SUPER_ADMIN_PAGES` + ses libellés : menu, menu
+affiché, cadre partagé des sous-pages) + son adresse dans `BACKOFFICE_PAGES` + ses libellés : menu, menu
 mobile, adresse et titre suivent.
 
 **Partagé par toutes les pages** (`shell/`) :

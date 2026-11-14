@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { catalogHealth } from '@/core/catalog';
 import { useReview } from '@/app/ContainerContext';
-import { LIST_FILTER_PARAM, superAdminPath, SUPER_ADMIN_PAGES, type SuperAdminPage } from '@/shared/paths';
+import { LIST_FILTER_PARAM, backofficePath, BACKOFFICE_PAGES, type BackofficePageId } from '@/shared/paths';
 import { format } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useIngredientEditor } from '../shell/IngredientEditorContext';
@@ -13,7 +13,7 @@ import { useTeamRecipes } from './useTeamRecipes';
 interface Todo {
   label: string;
   count: number;
-  page: SuperAdminPage;
+  page: BackofficePageId;
   /** Filter given to the list (`?filtre=`) or grouping of the queue (`?groupe=`) */
   query?: string;
   /** Something that blocks or waits for the reviewer (shown first, in colour) */
@@ -42,57 +42,57 @@ export function TodoList() {
     {
       label: format(b.todoReview, { count: counts.pending }),
       count: counts.pending,
-      page: SUPER_ADMIN_PAGES.review,
+      page: BACKOFFICE_PAGES.review,
       urgent: true,
     },
     {
       label: b.todoToFix,
       count: counts.toFix,
-      page: SUPER_ADMIN_PAGES.recipes,
+      page: BACKOFFICE_PAGES.recipes,
       query: `${LIST_FILTER_PARAM}=to_fix`,
       urgent: true,
     },
     {
       label: b.todoPublishable,
       count: counts.publishable,
-      page: SUPER_ADMIN_PAGES.recipes,
+      page: BACKOFFICE_PAGES.recipes,
       query: `${LIST_FILTER_PARAM}=review`,
       urgent: true,
     },
     {
       label: b.todoRecipesToEnrich,
       count: toEnrich,
-      page: SUPER_ADMIN_PAGES.recipes,
+      page: BACKOFFICE_PAGES.recipes,
       query: `${LIST_FILTER_PARAM}=to-enrich`,
     },
     {
       label: b.todoRecipesToTranslate,
       count: health.recipesToTranslate,
-      page: SUPER_ADMIN_PAGES.recipes,
+      page: BACKOFFICE_PAGES.recipes,
       query: `${LIST_FILTER_PARAM}=to-translate`,
     },
     {
       label: b.todoRecipesWithoutPhoto,
       count: health.recipesWithoutPhoto,
-      page: SUPER_ADMIN_PAGES.recipes,
+      page: BACKOFFICE_PAGES.recipes,
       query: `${LIST_FILTER_PARAM}=no-photo`,
     },
     {
       label: b.todoIngredientsUnitCheck,
       count: health.ingredientsUnitCheck,
-      page: SUPER_ADMIN_PAGES.ingredients,
+      page: BACKOFFICE_PAGES.ingredients,
       query: `${LIST_FILTER_PARAM}=unit-check`,
     },
     {
       label: b.todoIngredientsWithoutPhoto,
       count: health.ingredientsWithoutPhoto,
-      page: SUPER_ADMIN_PAGES.ingredients,
+      page: BACKOFFICE_PAGES.ingredients,
       query: `${LIST_FILTER_PARAM}=no-photo`,
     },
     {
       label: b.todoIngredientsUnused,
       count: health.ingredientsUnused,
-      page: SUPER_ADMIN_PAGES.ingredients,
+      page: BACKOFFICE_PAGES.ingredients,
       query: `${LIST_FILTER_PARAM}=unused`,
     },
   ].filter((t) => t.count > 0);
@@ -107,7 +107,7 @@ export function TodoList() {
           {todos.map((t) => (
             <li key={t.label}>
               <Link
-                to={`${superAdminPath(t.page)}${t.query ? `?${t.query}` : ''}`}
+                to={`${backofficePath(t.page)}${t.query ? `?${t.query}` : ''}`}
                 className="flex items-center gap-3 py-2.5 text-sm hover:text-brand-text"
               >
                 <span

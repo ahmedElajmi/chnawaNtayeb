@@ -6,23 +6,23 @@ Un store est un petit conteneur d'état observable, **sans React** (`store.ts`) 
 `subscribe(listener)`, et des méthodes métier qui enregistrent puis notifient. Côté React,
 `useStore` (dans `src/app/ContainerContext.tsx`) s'abonne via `useSyncExternalStore`.
 
-| Store                   | État                                                      | Rôle                                                                                    |
-| ----------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `SyncedCollectionStore` | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)    |
-| `CatalogStore`          | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                           |
-| `KitchenStore`          | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement        |
-| `SuperAdminStore`       | `checking` / `signed-in` / `signed-out`, statut cloud     | Session super admin, toujours confirmée par le serveur                                  |
-| `MatchingSettingsStore` | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                   |
-| `RecipeDrafts`          | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                   |
-| `CatalogAdmin`          | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration       |
-| `CatalogSearch`         | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))       |
-| `ReviewSettingsStore`   | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée            |
-| `ReviewStore<K>`        | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer         |
-| `TeamStore`             | membres de l'équipe, fiche du compte connecté             | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles        |
-| `CategoryStore`         | catégories d'un type (liste + arbre)                      | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées |
-| `ReviewBoard`           | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                       |
+| Store                    | État                                                      | Rôle                                                                                    |
+| ------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `SyncedCollectionStore`  | éléments d'une collection partagée, copie lue, base lue   | **Mécanisme générique** de synchronisation incrémentale et en direct (voir plus bas)    |
+| `CatalogStore`           | recettes, ingrédients, catalogue distant chargé ou non    | Assemble deux `SyncedCollectionStore` (recettes, ingrédients)                           |
+| `KitchenStore`           | frigo, placard, favoris, menu, liste de courses           | Toutes les données de cuisine de l'utilisateur, enregistrées à chaque changement        |
+| `BackofficeSessionStore` | `checking` / `signed-in` / `signed-out`, statut cloud     | Session super admin, toujours confirmée par le serveur                                  |
+| `MatchingSettingsStore`  | réglages du moteur, version, source                       | Base = référence, copie locale hors ligne, valeurs du code par défaut                   |
+| `RecipeDrafts`           | (service) brouillons de l'éditeur de recette              | Garde, propose à nouveau et efface les modifications non enregistrées                   |
+| `CatalogAdmin`           | (service) actions du backoffice sur le catalogue          | Affiche la modification tout de suite, l'écrit en base, sauvegarde / restauration       |
+| `CatalogSearch`          | révision des index de recherche                           | Recherche texte sur la copie de l'appareil (voir [12 Recherche](12-recherche.md))       |
+| `ReviewSettingsStore`    | workflows et rôles en vigueur, version, avertissements    | Réglages du workflow de validation : suivis en direct, chaque version gardée            |
+| `ReviewStore<K>`         | copies de travail et où chacune en est (par type)         | Atelier d'un type : enregistrer, valider / renvoyer des cases, publier, retirer         |
+| `TeamStore`              | membres de l'équipe, fiche du compte connecté             | Ajouter (par e-mail), changer le rôle, retirer ; droits recopiés pour les règles        |
+| `CategoryStore`          | catégories d'un type (liste + arbre)                      | Enregistrer (validé par le core), réordonner, supprimer ; catégories d'origine ajoutées |
+| `ReviewBoard`            | (service) recettes + ingrédients + contexte des contrôles | Regroupe les deux ateliers ; démarré seulement dans le backoffice                       |
 
-Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `useSuperAdmin()`, `useMatchingSettings()`, `useContainer()`.
+Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useReviewSettings()`, `useSearchMatches(kind, query)`, `useCatalog()`, `useKitchen()`, `useBackofficeSession()`, `useMatchingSettings()`, `useContainer()`.
 
 ## Ports (`src/application/ports.ts`)
 
@@ -37,7 +37,7 @@ Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useRevi
 | `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/firebase/firestoreMatchingSettings` |
 | `MatchingSettingsCache`      | Copie hors ligne des réglages                       | `infrastructure/local/localMatchingSettingsCache`   |
 | `UserAuthGateway`            | Comptes visiteurs (invité, e-mail)                  | `infrastructure/firebase/userAuth`                  |
-| `SuperAdminGateway`          | Connexion et session super admin                    | `infrastructure/http/adminHttpGateway`              |
+| `BackofficeSessionGateway`   | Connexion et session super admin                    | `infrastructure/http/adminHttpGateway`              |
 | `VisionGateway`              | Scan photo du frigo                                 | `infrastructure/http/visionHttpGateway`             |
 | `RecipeDraftRepository`      | Brouillons de recettes non enregistrés              | `infrastructure/local/localRecipeDrafts`            |
 | `SearchEngine`               | Recherche texte (recettes, ingrédients)             | `infrastructure/minisearch/miniSearchEngine`        |

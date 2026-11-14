@@ -10,7 +10,7 @@ export const PATHS = {
   recipe: '/recipe/:slug',
   planner: '/planner',
   grocery: '/grocery',
-  superAdmin: '/admin',
+  backoffice: '/admin',
 } as const;
 
 /**
@@ -32,7 +32,7 @@ export const LEGACY_RECIPE_PREFIX = '/recette';
  * Pages of the backoffice, under /admin (one address per page, so back and reload keep it).
  * The routes themselves are declared by the backoffice section registry.
  */
-export const SUPER_ADMIN_PAGES = {
+export const BACKOFFICE_PAGES = {
   home: '',
   review: 'a-valider',
   recipes: 'recettes',
@@ -77,15 +77,15 @@ export const ENGINE_PAGES = {
   history: 'historique',
 } as const;
 
-export type SuperAdminPage = (typeof SUPER_ADMIN_PAGES)[keyof typeof SUPER_ADMIN_PAGES];
+export type BackofficePageId = (typeof BACKOFFICE_PAGES)[keyof typeof BACKOFFICE_PAGES];
 
-/** Address of a backoffice page (and sub-page): superAdminPath('engine', 'scenarios') = /admin/engine/scenarios. */
-export function superAdminPath(page: SuperAdminPage = SUPER_ADMIN_PAGES.home, subPage?: string): string {
-  return [PATHS.superAdmin, page, subPage].filter(Boolean).join('/');
+/** Address of a backoffice page (and sub-page): backofficePath('engine', 'scenarios') = /admin/engine/scenarios. */
+export function backofficePath(page: BackofficePageId = BACKOFFICE_PAGES.home, subPage?: string): string {
+  return [PATHS.backoffice, page, subPage].filter(Boolean).join('/');
 }
 
-export function isSuperAdminPath(pathname: string): boolean {
-  return pathname === PATHS.superAdmin || pathname.startsWith(`${PATHS.superAdmin}/`);
+export function isBackofficePath(pathname: string): boolean {
+  return pathname === PATHS.backoffice || pathname.startsWith(`${PATHS.backoffice}/`);
 }
 
 /** The two recipe list screens: the whole catalog and the suggestions for the fridge. */

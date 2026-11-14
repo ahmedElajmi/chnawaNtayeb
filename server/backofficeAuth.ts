@@ -15,10 +15,10 @@ const KNOWN_LEAKED_PASSWORDS = new Set(['patron2026!', 'admin', 'password', 'cha
 const MIN_PASSWORD_LENGTH = 12;
 const MIN_SECRET_LENGTH = 32;
 
-export type SuperAdminConfig =
+export type BackofficeAuthConfig =
   { ok: true; username: string; password: string; secret: string } | { ok: false; reason: string };
 
-export function getSuperAdminConfig(env: NodeJS.ProcessEnv = process.env): SuperAdminConfig {
+export function getBackofficeAuthConfig(env: NodeJS.ProcessEnv = process.env): BackofficeAuthConfig {
   const username = (env.ADMIN_USERNAME || 'admin').trim();
   const password = env.ADMIN_PASSWORD || '';
   const secret = env.ADMIN_SESSION_SECRET || '';
