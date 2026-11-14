@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addGroceryItems,
   buildGroceryListFromPlan,
+  changeGroceryItemUnit,
   clearCheckedGroceryItems,
   removeGroceryItem,
   toggleGroceryItem,
@@ -9,6 +10,7 @@ import {
 } from './groceryList';
 import type { Ingredient, Recipe } from '../catalog/types';
 import type { DayPlan } from '../planning/types';
+import type { GroceryItem } from './types';
 
 let n = 0;
 const newId = (prefix: string) => `${prefix}_${++n}`;
@@ -151,5 +153,125 @@ describe('grocery list editing', () => {
     expect(updateGroceryItemQuantity(list, list[0].id, -1)).toEqual(list);
     expect(updateGroceryItemQuantity(list, list[0].id, NaN)).toEqual(list);
     expect(updateGroceryItemQuantity(list, 'missing', 3)).toEqual(list);
+  });
+});
+
+describe('addGroceryItems: merging on compatible units', () => {
+  const item = (overrides: Partial<GroceryItem> & { name: string }): GroceryItem => ({
+    id: `g_${overrides.name.toLowerCase().replace(/\s+/g, '_')}`,
+    quantity: 1,
+    unit: 'pièce',
+    category: 'other',
+    is_checked: false,
+    ...overrides,
+  });
+
+  it('merges a compatible unit into the existing row, converted to its unit', () => {
+    const list = [item({ name: 'Lait', quantity: 1, unit: 'L', is_custom: true, is_checked: true })];
+    const next = addGroceryItems(list, [{ name: 'lait', quantity: 500, unit: 'ml' }], newId);
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatchObject({ name: 'Lait', quantity: 1.5, unit: 'L', is_checked: false, is_custom: true });
+  });
+
+  it('merges by ingredient id and keeps the category and custom flag of the existing row', () => {
+    const list = [
+      item({ name: 'Tomate', ingredient_id: 'ing_tomate', quantity: 500, unit: 'g', category: 'vegetables' }),
+    ];
+    const next = addGroceryItems(
+      list,
+      [{ name: 'Tomate', ingredient_id: 'ing_tomate', quantity: 1, unit: 'kg' }],
+      newId
+    );
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatchObject({
+      ingredient_id: 'ing_tomate',
+      quantity: 1500, // 500 g + 1 kg converted to the existing row's unit (g)
+      unit: 'g',
+      category: 'vegetables',
+    });
+    expect(next[0].id).toBe(list[0].id);
+    expect('is_custom' in next[0]).toBe(false);
+  });
+
+  it('unchecks the row it merges into (something to buy was just added)', () => {
+    const list = [item({ name: 'Farine', quantity: 2, unit: 'kg', is_checked: true, is_custom: true })];
+    const next = addGroceryItems(list, [{ name: 'Farine', quantity: 1, unit: 'kg' }], newId);
+    expect(next[0]).toMatchObject({ quantity: 3, unit: 'kg', is_checked: false });
+  });
+
+  it('keeps two rows when the units are incompatible', () => {
+    const list = [item({ name: 'Tomate', ingredient_id: 'ing_tomate', quantity: 500, unit: 'g', is_checked: true })];
+    const next = addGroceryItems(list, [{ name: 'Tomate', quantity: 2, unit: 'pièces' }], newId);
+    expect(next.map((i) => [i.quantity, i.unit, i.is_checked, i.is_custom])).toEqual([
+      [500, 'g', true, undefined],
+      [2, 'pièces', false, true],
+    ]);
+  });
+
+  it('keeps two rows for different counted things of the same ingredient', () => {
+    const list = [item({ name: 'Ail', quantity: 2, unit: 'tête' })];
+    const next = addGroceryItems(list, [{ name: 'Ail', quantity: 3, unit: 'gousse' }], newId);
+    expect(next.map((i) => i.unit)).toEqual(['tête', 'gousse']);
+  });
+
+  it('merges two added items of the same name into one row', () => {
+    const next = addGroceryItems(
+      [],
+      [
+        { name: 'Eau', quantity: 1, unit: 'l' },
+        { name: 'eau', quantity: 500, unit: 'ml' },
+      ],
+      newId
+    );
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatchObject({ quantity: 1.5, unit: 'l', is_custom: true });
+  });
+
+  it('adds a row when the name alone differs, even in the same unit', () => {
+    const list = [item({ name: 'Lait', quantity: 1, unit: 'l' })];
+    const next = addGroceryItems(list, [{ name: 'Eau', quantity: 1, unit: 'l' }], newId);
+    expect(next.map((i) => i.name)).toEqual(['Lait', 'Eau']);
+  });
+});
+
+describe('changeGroceryItemUnit', () => {
+  const item = (overrides: Partial<GroceryItem> & { name: string }): GroceryItem => ({
+    id: `g_${overrides.name.toLowerCase()}`,
+    quantity: 1,
+    unit: 'pièce',
+    category: 'other',
+    is_checked: false,
+    ...overrides,
+  });
+
+  it('converts the quantity to the new unit', () => {
+    const list = [item({ name: 'Tomate', quantity: 500, unit: 'g' })];
+    const next = changeGroceryItemUnit(list, list[0].id, 'kg');
+    expect(next).toEqual([item({ name: 'Tomate', quantity: 0.5, unit: 'kg' })]);
+    expect(list[0].unit).toBe('g'); // the original list is untouched
+  });
+
+  it('accepts the same unit written differently, including plural forms', () => {
+    const list = [item({ name: 'Oeuf', quantity: 6, unit: 'pièces' })];
+    expect(changeGroceryItemUnit(list, list[0].id, 'pièce')?.[0]).toMatchObject({ quantity: 6, unit: 'pièce' });
+    expect(changeGroceryItemUnit(list, list[0].id, 'PIECES')).toBeNull(); // not the same written label
+    expect(changeGroceryItemUnit(list, list[0].id, 'Pièces')?.[0]).toMatchObject({ quantity: 6, unit: 'Pièces' });
+  });
+
+  it('keeps units that cannot be compared when asked for themselves', () => {
+    const list = [item({ name: 'Huile', quantity: 3, unit: 'c.à.s / bol' })];
+    expect(changeGroceryItemUnit(list, list[0].id, 'c.à.s / bol')?.[0]).toMatchObject({
+      quantity: 3,
+      unit: 'c.à.s / bol',
+    });
+  });
+
+  it('returns null and leaves the list untouched on an incompatible unit', () => {
+    const list = [item({ name: 'Tomate', quantity: 500, unit: 'g' }), item({ name: 'Oeuf', quantity: 2 })];
+    expect(changeGroceryItemUnit(list, list[0].id, 'ml')).toBeNull();
+    expect(changeGroceryItemUnit(list, list[0].id, 'pièce')).toBeNull();
+    expect(changeGroceryItemUnit(list, list[0].id, '')).toBeNull();
+    expect(changeGroceryItemUnit(list, 'missing', 'kg')).toBeNull();
+    expect(list).toEqual([item({ name: 'Tomate', quantity: 500, unit: 'g' }), item({ name: 'Oeuf', quantity: 2 })]);
   });
 });

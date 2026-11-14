@@ -24,6 +24,7 @@ import {
 } from '@/core/catalog';
 import { createId } from '@/core/shared';
 import { BUILT_IN_CATEGORIES, parseStoredCategories, type CategoryKind, type ContentCategory } from '@/core/categories';
+import { parseStoredUnitInfos, type UnitInfo } from '@/core/units';
 import { initialCountries, parseStoredCountries, type CountryRecord } from '@/core/accounts';
 import { localMatchingSettingsCache } from '@/infrastructure/local/localMatchingSettingsCache';
 import { localPreferences } from '@/infrastructure/local/localPreferences';
@@ -77,6 +78,7 @@ export function createContainer() {
   });
   const recipesCloud = createHttpSharedCollection<Recipe>('recipes');
   const ingredientsCloud = createHttpSharedCollection<Ingredient>('ingredients');
+  const unitsCloud = createHttpSharedCollection<UnitInfo>('units');
   const countriesCloud = createHttpSharedCollection<CountryRecord>('countries');
   const recipes = new SyncedCollectionStore<Recipe>({
     source: recipesCloud.source,
@@ -95,7 +97,16 @@ export function createContainer() {
     now,
     fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
   });
-  const catalog = new CatalogStore(recipes, ingredients);
+  // Unit descriptions: public, followed like the catalog; edited by an account allowed to publish
+  const units = new SyncedCollectionStore<UnitInfo>({
+    source: unitsCloud.source,
+    cache: createIndexedDbCollectionCache<UnitInfo>('units'),
+    read: parseStoredUnitInfos,
+    builtIn: () => [],
+    now,
+    fullRefreshAfterMs: FULL_REFRESH_AFTER_MS,
+  });
+  const catalog = new CatalogStore(recipes, ingredients, units);
 
   // Validation workflow: private workspaces (admin only, started from the backoffice)
   const recipesWorkspace = createHttpReviewWorkspace<'recipe'>('recipes');
@@ -209,11 +220,18 @@ export function createContainer() {
       kitchenSync.notifyPreferencesChanged();
     },
   };
-  const catalogAdmin = new CatalogAdmin(catalog, recipesCloud.writer, ingredientsCloud.writer, kitchen, {
-    cloudName: 'Serveur',
-    newId: createId,
-    nowIso: () => new Date().toISOString(),
-  });
+  const catalogAdmin = new CatalogAdmin(
+    catalog,
+    recipesCloud.writer,
+    ingredientsCloud.writer,
+    unitsCloud.writer,
+    kitchen,
+    {
+      cloudName: 'Serveur',
+      newId: createId,
+      nowIso: () => new Date().toISOString(),
+    }
+  );
 
   return {
     // Stores (state shared by the screens)

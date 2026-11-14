@@ -4,6 +4,7 @@ import { accessTexts } from './texts/access';
 import { editorsTexts } from './texts/editors';
 import { enginesTexts } from './texts/engine';
 import { panelsTexts } from './texts/panels';
+import { unitsTexts } from './texts/units';
 
 /**
  * Labels of the backoffice, in every language and variant (they follow the current language like the
@@ -2083,13 +2084,14 @@ const derjaArabic: CoreTexts = {
 };
 
 const CORE: Record<Language, CoreTexts> = { fr, derja, ar, derja_ar: derjaArabic };
-const AREAS = [accessTexts, editorsTexts, enginesTexts, panelsTexts] as const;
+const AREAS = [accessTexts, editorsTexts, enginesTexts, panelsTexts, unitsTexts] as const;
 
 export type BackofficeTexts = CoreTexts &
   (typeof accessTexts)['fr'] &
   (typeof editorsTexts)['fr'] &
   (typeof enginesTexts)['fr'] &
-  (typeof panelsTexts)['fr'];
+  (typeof panelsTexts)['fr'] &
+  (typeof unitsTexts)['fr'];
 
 const textsOf = (lang: Language): BackofficeTexts =>
   Object.assign({}, CORE[lang], ...AREAS.map((area) => area[lang])) as BackofficeTexts;

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Sparkles, Trash2, Check, ArrowRight, Package, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { Ingredient, STAPLE_INGREDIENT_IDS, ingredientPriceRange } from '@/core/catalog';
+import type { NewGroceryItem } from '@/core/grocery';
 import { sortBySearchScore } from '@/core/search';
 import { categoryUsage, categoryWithDescendants } from '@/core/categories';
 import { useCategoryNames } from '@/shared/i18n/useCategoryNames';
@@ -9,6 +10,7 @@ import { useSearchMatches } from '@/app/ContainerContext';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { PhotoScannerModal } from '@/features/fridge/components/PhotoScannerModal';
+import { AddToCartButton } from '@/features/fridge/components/AddToCartButton';
 import confetti from 'canvas-confetti';
 
 interface FridgeSelectorProps {
@@ -20,6 +22,8 @@ interface FridgeSelectorProps {
   onToggleIngredient: (id: string) => void;
   onClearAll: () => void;
   onSearchRecipes: () => void;
+  /** Adds one ingredient to the shopping list (never touches the fridge) */
+  onAddToGrocery: (item: NewGroceryItem) => void;
 }
 
 /** Selected ingredients shown before "show all" in the summary. */
@@ -34,6 +38,7 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
   onToggleIngredient,
   onClearAll,
   onSearchRecipes,
+  onAddToGrocery,
 }) => {
   const { t, getIngredientName } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
@@ -293,42 +298,65 @@ export const FridgeSelector: React.FC<FridgeSelectorProps> = ({
           const name = getIngredientName(ing);
 
           return (
-            <button
+            <div
               key={ing.id}
-              onClick={() => onToggleIngredient(ing.id)}
-              aria-pressed={isChosen}
-              className={`group relative flex items-center gap-2.5 p-2 pe-3 rounded-xl border text-start transition active:scale-97 min-h-[60px] min-w-0 ${
+              className={`group relative flex items-stretch rounded-xl border text-start transition min-h-[60px] min-w-0 ${
                 isChosen
                   ? 'bg-brand/10 border-brand-text text-brand-text shadow-xs'
                   : 'bg-card border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xs'
-              } ${isUnused && !isChosen ? 'opacity-55' : ''}`}
+              }`}
               title={isUnused ? t.noRecipeYet : undefined}
             >
-              <span className="relative shrink-0">
-                <IngredientThumb ingredient={ing} size="md" />
-                {/* Check mark pinned on the picture corner */}
-                <span
-                  className={`absolute -top-1 -end-1 w-[18px] h-[18px] rounded-full flex items-center justify-center ring-2 ring-card transition ${
-                    isChosen
-                      ? 'bg-brand text-on-brand scale-100'
-                      : 'bg-card border border-slate-300 dark:border-slate-600 scale-90 group-hover:border-brand'
-                  }`}
-                >
-                  {isChosen && <Check className="w-3 h-3 stroke-[3]" />}
+              {/* Fridge toggle: same behavior as before, on its own button */}
+              <button
+                type="button"
+                onClick={() => onToggleIngredient(ing.id)}
+                aria-pressed={isChosen}
+                className={`flex flex-1 items-center gap-2.5 p-2 pe-1.5 text-start transition active:scale-97 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-xl ${
+                  isUnused && !isChosen ? 'opacity-55' : ''
+                }`}
+              >
+                <span className="relative shrink-0">
+                  <IngredientThumb ingredient={ing} size="md" />
+                  {/* Check mark pinned on the picture corner */}
+                  <span
+                    className={`absolute -top-1 -end-1 w-[18px] h-[18px] rounded-full flex items-center justify-center ring-2 ring-card transition ${
+                      isChosen
+                        ? 'bg-brand text-on-brand scale-100'
+                        : 'bg-card border border-slate-300 dark:border-slate-600 scale-90 group-hover:border-brand'
+                    }`}
+                  >
+                    {isChosen && <Check className="w-3 h-3 stroke-[3]" />}
+                  </span>
                 </span>
-              </span>
 
-              <span className="flex flex-col min-w-0">
-                <span className="text-xs sm:text-sm font-semibold truncate">{name}</span>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                  {isUnused
-                    ? t.noRecipeYet
-                    : inPantry && !isChosen
-                      ? t.inPantry
-                      : `${formatPriceRange(ingredientPriceRange(ing), t.currency)} / ${ing.unit_default}`}
+                <span className="flex flex-col min-w-0">
+                  <span className="text-xs sm:text-sm font-semibold truncate">{name}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                    {isUnused
+                      ? t.noRecipeYet
+                      : inPantry && !isChosen
+                        ? t.inPantry
+                        : `${formatPriceRange(ingredientPriceRange(ing), t.currency)} / ${ing.unit_default}`}
+                  </span>
                 </span>
-              </span>
-            </button>
+              </button>
+
+              {/* Shopping list: distinct trailing action, never toggles the fridge */}
+              <AddToCartButton
+                label={t.cartAddLabel.replace('{name}', name)}
+                addedLabel={t.cartAddedLabel}
+                onAdd={() =>
+                  onAddToGrocery({
+                    ingredient_id: ing.id,
+                    name,
+                    quantity: 1,
+                    unit: ing.unit_default,
+                    category: ing.category,
+                  })
+                }
+              />
+            </div>
           );
         })}
       </div>

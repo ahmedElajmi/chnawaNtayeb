@@ -26,17 +26,17 @@
 retour et le rechargement gardent la page. `AppRoutes` envoie `/admin/*` au backoffice, qui déclare ses
 routes à partir du **registre des sections** (`shell/sections.tsx`).
 
-| Page        | Adresse               | Fichier                                             | Fonctions                                                        |
-| ----------- | --------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| Accueil     | `/admin`              | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
-| À valider   | `/admin/a-valider`    | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
-| Recettes    | `/admin/recettes`     | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
-| Ingrédients | `/admin/ingredients`  | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
-| Catégories  | `/admin/categories/…` | `categories/CategoriesPage.tsx`                     | Arbres des catégories (recettes, ingrédients), affectation       |
-| Moteur      | `/admin/moteur/…`     | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
-| Apparence   | `/admin/apparence`    | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
-| Workflows   | `/admin/workflows/…`  | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
-| Données     | `/admin/donnees`      | `data/DataTab.tsx`                                  | Tout remettre à valider, sauvegarde JSON, synchronisation        |
+| Page        | Adresse               | Fichier                                             | Fonctions                                                                               |
+| ----------- | --------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Accueil     | `/admin`              | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                                             |
+| À valider   | `/admin/a-valider`    | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée                                  |
+| Recettes    | `/admin/recettes`     | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer                         |
+| Ingrédients | `/admin/ingredients`  | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier), descriptions d'unités |
+| Catégories  | `/admin/categories/…` | `categories/CategoriesPage.tsx`                     | Arbres des catégories (recettes, ingrédients), affectation                              |
+| Moteur      | `/admin/moteur/…`     | `matching/`                                         | Six sous-pages (voir ci-dessous)                                                        |
+| Apparence   | `/admin/apparence`    | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)                            |
+| Workflows   | `/admin/workflows/…`  | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                                        |
+| Données     | `/admin/donnees`      | `data/DataTab.tsx`                                  | Tout remettre à valider, sauvegarde JSON, synchronisation                               |
 
 **Cadre** (`shell/BackofficeLayout.tsx`) :
 
@@ -148,6 +148,21 @@ saisie et refusé à l'enregistrement (`findDuplicateIngredient`).
 fourchette (min ≤ max) avant d'écrire quoi que ce soit. **Filtres** : ce qu'il reste à compléter
 (Sans photo, Prix fixe min = max, Dans aucune recette, avec leur nombre) et catégories ; le nombre
 d'ingrédients affichés est indiqué.
+
+**Descriptions d'unités** (`ingredients/UnitsSection.tsx`, bas de l'onglet Ingrédients) : la section
+**Unités** gère les infobulles expliquées au public (« c.à.s » → « Cuillère à soupe… »), sur la
+collection partagée `units` (suivie comme le catalogue, voir [05](05-application-donnees.md)) :
+
+- ajouter ou modifier une unité : **libellé exact** tel qu'écrit sur les ingrédients et les articles
+  (l'id est créé en le slugifiant : « c.à.s » → `c-a-s`) et **description dans chaque langue et
+  variante** (`LocalizedField`, le français est obligatoire) ; validé par `validateUnitInfo`
+  (libellé unique — « KG » et « kg » sont le même —, description française requise) ;
+- suppression avec confirmation (marque de suppression) ; chaque écriture passe par
+  `CatalogAdmin.saveUnit` / `deleteUnit` : affichée tout de suite sur l'appareil, écrite en base,
+  arrivée en direct ailleurs ;
+- le public voit la description en infobulle (`UnitInfo`) partout où l'unité est affichée ; sans
+  description configurée, l'unité reste nue (rien n'est écrit dans le code). Les règles Firestore du
+  bloc `units` doivent être déployées (`npm run deploy:rules`) pour que les écritures passent.
 
 **Restauration d'une sauvegarde** (onglet Données) : relue par `parseBackup` ; le message indique le
 nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
