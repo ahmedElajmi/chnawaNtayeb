@@ -40,6 +40,13 @@ export const panelsTexts = defineTexts(
     panPull: 'Recharger depuis la base',
     panResetCloud: 'Initialiser la base avec le catalogue intégré',
     panCloudSessionRequired: 'Connexion à la base requise',
+    panSyncTitle: 'Synchronisation des appareils',
+    panSyncIntro:
+      'Les appareils interrogent le serveur régulièrement pour récupérer les nouveautés. Un intervalle court réagit plus vite mais sollicite davantage la base.',
+    panSyncLabel: 'Intervalle de synchronisation (secondes)',
+    panSyncLimitLabel: 'Appels de synchro max par minute et par IP',
+    panSyncSaved: "Intervalle enregistré : les visiteurs l'appliquent à leur prochaine visite.",
+    panSyncError: 'Enregistrement impossible (session super admin requise).',
 
     // Catalog actions (messages and confirmations)
     panRecipeSaved: 'Recette enregistrée et synchronisée',
@@ -164,6 +171,13 @@ export const panelsTexts = defineTexts(
       panPull: '3awed 7ammel mel base',
       panResetCloud: 'Bda el base bel catalogue el asli',
       panCloudSessionRequired: 'Lazem connexion lel base',
+      panSyncTitle: 'Synchro mta3 les appareils',
+      panSyncIntro:
+        'Les appareils ysakso el serveur bech yjibou el jdid. Intervalle 9sir ye5dem wes3 ama yezid 3la el base.',
+      panSyncLabel: 'Intervalle mta3 el synchro (thawani)',
+      panSyncLimitLabel: '3adad el appels de synchro el 9ad fi d9i9a lel kol IP',
+      panSyncSaved: 'Tsejjel : el visiteurs el jdid bech yapplikiwha fi zeet el jey.',
+      panSyncError: 'Manajmetch tsajjel (lazem session super admin).',
 
       panRecipeSaved: 'El makla tsajjlet w tsynchroniset',
       panPricesUpdated: 'Aswem el souq tbaddlou',
@@ -280,6 +294,12 @@ export const panelsTexts = defineTexts(
       panPull: 'إعادة التحميل من القاعدة',
       panResetCloud: 'تهيئة القاعدة بالكتالوج المدمج',
       panCloudSessionRequired: 'يلزم الاتصال بالقاعدة',
+      panSyncTitle: 'مزامنة الأجهزة',
+      panSyncIntro: 'تستعلم الأجهزة من الخادم دوريًا لجلب الجديد. المدة القصيرة أسرع لكنها أكثر طلبًا للقاعدة.',
+      panSyncLabel: 'مدة المزامنة (بالثواني)',
+      panSyncLimitLabel: 'الحد الأقصى لطلبات المزامنة في الدقيقة لكل عنوان IP',
+      panSyncSaved: 'تم الحفظ: سيطبّقها الزوار الجدد في زيارتهم القادمة.',
+      panSyncError: 'تعذّر الحفظ (يلزم جلسة المشرف العام).',
 
       panRecipeSaved: 'حُفظت الوصفة وتمّت مزامنتها',
       panPricesUpdated: 'حُدّثت أسعار السوق',
@@ -395,6 +415,12 @@ export const panelsTexts = defineTexts(
       panPull: 'عاود حمّل من الداتا',
       panResetCloud: 'ابدا الداتا بالكتالوڨ الأصلي',
       panCloudSessionRequired: 'لازم كونيكسيون للداتا',
+      panSyncTitle: 'سينكرو متاع الأجهزة',
+      panSyncIntro: 'الأجهزة تسقسي السيرفر باش تجيب الجديد. المدة القصيرة أسرع أمّا تزيد على الداتا.',
+      panSyncLabel: 'المدة متاع السينكرو (ثواني)',
+      panSyncLimitLabel: 'العدد الأقصى لطلبات السينكرو في الدقيقة لكل IP',
+      panSyncSaved: 'تسجّل: الزوار الجداد باش يطبّقوها في زيارة الجاية.',
+      panSyncError: 'ما نجمتش تسجّل (لازم سيسيون المشرف الأعلى).',
 
       panRecipeSaved: 'الماكلة تسجّلت وتبعثت',
       panPricesUpdated: 'أسوام السوق تبدّلوا',

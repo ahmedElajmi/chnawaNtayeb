@@ -38,6 +38,8 @@ import { themesHttp } from '@/infrastructure/http/themesHttp';
 import { createHttpReviewWorkspace } from '@/infrastructure/http/reviewWorkspaceHttp';
 import { accountDirectoryHttp } from '@/infrastructure/http/accountDirectoryHttp';
 import { DataPoller, dataPoller } from '@/infrastructure/http/dataPoller';
+import { readInjectedPollingSeconds } from '@/infrastructure/http/dataApi';
+import { pollingSettingsGateway } from '@/infrastructure/http/pollingSettingsGateway';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
 import { accountProfileHttpGateway } from '@/infrastructure/http/accountProfileHttpGateway';
 import { backofficeSessionHttpGateway } from '@/infrastructure/http/backofficeSessionHttpGateway';
@@ -65,7 +67,11 @@ export function createContainer() {
   const now = () => Date.now();
   // Every collection through our server: the poller batches all the follow-ups into one
   // request per minute (watermark fast-path) and refreshes right after a write or a focus.
+  // The interval itself is configured in the backoffice and served by the server.
   DataPoller.installLifecycle(dataPoller);
+  // The interval is injected into the served page (server/appConfig.ts): zero request
+  const injected = readInjectedPollingSeconds();
+  if (injected) dataPoller.setIntervalMs(injected * 1000);
   const recipesCloud = createHttpSharedCollection<Recipe>('recipes');
   const ingredientsCloud = createHttpSharedCollection<Ingredient>('ingredients');
   const countriesCloud = createHttpSharedCollection<CountryRecord>('countries');
@@ -198,6 +204,7 @@ export function createContainer() {
     userAuth: userAuthHttpGateway,
     accountCreation: accountHttpGateway,
     backofficePolicy: passwordPolicyGateway,
+    pollingSettings: pollingSettingsGateway,
     catalogAdmin,
     // Validation workflow (workspaces, workflows, roles): followed only in the backoffice
     review,

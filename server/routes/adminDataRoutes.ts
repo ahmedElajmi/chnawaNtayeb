@@ -8,6 +8,7 @@ import type { DataStore, WriteOp } from '../storage/types';
 import { resolveIdentity } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
+import { clampPollLimit, clampPollingSeconds, type RuntimeLimits } from '../appConfig';
 
 /**
  * The privileged data operations the generic /api/data endpoints cannot express:
@@ -62,7 +63,11 @@ function summarize(raw: Record<string, unknown>): AccountSummary | null {
   };
 }
 
-export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: DataStore | null): express.Router {
+export function adminDataRoutes(
+  backofficeAuthConfig: BackofficeAuthConfig,
+  store: DataStore | null,
+  runtime: RuntimeLimits
+): express.Router {
   const router = express.Router();
 
   const writeLimiter = rateLimit({
@@ -104,6 +109,57 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
   // ------------------------------------------------------- active settings (matching, review)
   const SETTINGS_DOCS = ['matching', 'review'] as const;
   type SettingsDoc = (typeof SETTINGS_DOCS)[number];
+
+  // The "Synchronisation des appareils" settings: the polling interval and the abuse ceiling
+  // (per IP per minute) the server enforces. Read by managers (the backoffice card), written
+  // by the super admin. There is NO public endpoint: visitors receive the interval injected
+  // in the served page; the ceiling is server-side and never client-set.
+  router.get('/admin/api/settings/polling', async (req, res) => {
+    if (!store) return unavailable(res);
+    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    if (!identity.canManage) return forbidden(res);
+    const stored = await store.get('settings', 'polling');
+    const exists = stored && stored.deleted !== true;
+    return res.json({
+      ok: true,
+      interval_seconds: exists ? clampPollingSeconds(stored?.interval_seconds) : undefined,
+      poll_requests_per_minute: exists ? clampPollLimit(stored?.poll_limit_per_minute) : undefined,
+    });
+  });
+
+  router.put('/admin/api/settings/polling', writeLimiter, async (req, res) => {
+    if (!store) return unavailable(res);
+    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    if (!identity.owner) return forbidden(res);
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const hasInterval = typeof body.interval_seconds === 'number';
+    const hasLimit = typeof body.poll_limit_per_minute === 'number';
+    if (!hasInterval && !hasLimit) return bad(res, 'invalid_settings');
+    if (hasInterval && clampPollingSeconds(body.interval_seconds) !== Math.round(body.interval_seconds as number)) {
+      return bad(res, 'invalid_interval');
+    }
+    if (hasLimit && clampPollLimit(body.poll_limit_per_minute) !== Math.round(body.poll_limit_per_minute as number)) {
+      return bad(res, 'invalid_limit');
+    }
+    const previous = await store.get('settings', 'polling');
+    const document = {
+      interval_seconds: hasInterval
+        ? clampPollingSeconds(body.interval_seconds)
+        : clampPollingSeconds(previous?.interval_seconds),
+      poll_limit_per_minute: hasLimit
+        ? clampPollLimit(body.poll_limit_per_minute)
+        : clampPollLimit(previous?.poll_limit_per_minute),
+      updated_at: new Date().toISOString(),
+    };
+    await store.put('settings', 'polling', document);
+    // The limiter enforces the new ceiling on the very next request (no restart, no wait)
+    runtime.pollRequestsPerMinute = document.poll_limit_per_minute;
+    return res.json({
+      ok: true,
+      interval_seconds: document.interval_seconds,
+      poll_requests_per_minute: document.poll_limit_per_minute,
+    });
+  });
 
   router.get('/api/settings/:doc', async (req, res) => {
     if (!store) return unavailable(res);

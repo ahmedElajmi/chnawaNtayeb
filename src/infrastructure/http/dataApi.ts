@@ -100,3 +100,14 @@ export async function isEmptyCollection(name: string): Promise<boolean> {
     return false;
   }
 }
+
+/** The polling interval injected into the served page (see server/appConfig.ts): read
+ *  synchronously at startup, zero request. null when the page carries no configuration. */
+export function readInjectedPollingSeconds(): number | null {
+  try {
+    const injected = (window as unknown as { __APP_CONFIG__?: { pollingSeconds?: number } }).__APP_CONFIG__;
+    return typeof injected?.pollingSeconds === 'number' ? injected.pollingSeconds : null;
+  } catch {
+    return null;
+  }
+}
