@@ -272,6 +272,26 @@ interface CoreTexts {
   clientsGuest: string;
   clientsNoEmail: string;
   clientsShowMore: string;
+  securityTitle: string;
+  securityHint: string;
+  secAlgorithm: string;
+  secMemory: string;
+  secIterations: string;
+  secParallelism: string;
+  secMinLength: string;
+  secDigit: string;
+  secUpper: string;
+  secSpecial: string;
+  secMigration: string;
+  secMigrationAuto: string;
+  secMigrationForce: string;
+  secLockAttempts: string;
+  secLockMinutes: string;
+  secLockAuto: string;
+  securitySaveFailed: string;
+  securityNote: string;
+  clientsUnlock: string;
+  clientsUnlocked: string;
 
   // Next action, completeness, reset
   event_reset: string;
@@ -662,6 +682,28 @@ const fr: CoreTexts = {
   countriesImport: 'Importer la liste complète',
   countriesImported: 'Liste complète importée : active les pays que tu veux.',
   countriesAlreadyThere: 'Pays déjà présents : {list}',
+  securityTitle: 'Sécurité',
+  securityHint:
+    'Politique de mot de passe du site (clients et employés) : algorithme de hachage, critères de force et verrouillage des comptes.',
+  secAlgorithm: 'Algorithme de hachage',
+  secMemory: 'Mémoire (Ko)',
+  secIterations: 'Itérations',
+  secParallelism: 'Parallélisme',
+  secMinLength: 'Longueur minimale',
+  secDigit: 'Au moins un chiffre',
+  secUpper: 'Au moins une majuscule',
+  secSpecial: 'Au moins un caractère spécial',
+  secMigration: 'Changement d’algorithme',
+  secMigrationAuto: 'Re-hachage automatique à la connexion',
+  secMigrationForce: 'Demander un nouveau mot de passe à la connexion',
+  secLockAttempts: 'Tentatives avant verrouillage',
+  secLockMinutes: 'Minutes de verrouillage',
+  secLockAuto: 'Déverrouillage automatique après le délai',
+  securitySaveFailed: 'Enregistrement impossible.',
+  securityNote:
+    'La modification s’applique aux nouveaux mots de passe ; les anciens sont re-hachés à la prochaine connexion de chacun.',
+  clientsUnlock: 'Déverrouiller',
+  clientsUnlocked: 'Compte déverrouillé.',
   countriesTitle: 'Pays',
   teamTitle: 'Équipe',
   clientsTitle: 'Clients',
@@ -1059,6 +1101,26 @@ const derja: CoreTexts = {
   countriesImport: 'Jib el lista el kamla',
   countriesImported: 'El lista el kamlajet : fa33el elli t7eb.',
   countriesAlreadyThere: 'Blad mawjoudin : {list}',
+  securityTitle: 'Sécurité',
+  securityHint: 'Politique el mot de passe mte3 el site (clients w khedma) : algorithme, critères w verrouillage.',
+  secAlgorithm: 'Algorithme',
+  secMemory: 'Mémoire (Ko)',
+  secIterations: 'Itérations',
+  secParallelism: 'Parallélisme',
+  secMinLength: 'Toul el a9al',
+  secDigit: 'Chifra wa7da 3al a9al',
+  secUpper: '7arf kbir 3al a9al',
+  secSpecial: '7arf spécial 3al a9al',
+  secMigration: 'Tabdil el algorithme',
+  secMigrationAuto: 'Re-hash automatique fel connexion',
+  secMigrationForce: 'Metloub mot de passe jdid fel connexion',
+  secLockAttempts: 'M7awlet 9bal verrouillage',
+  secLockMinutes: 'D9a9i9 verrouillage',
+  secLockAuto: 'Deverrouillage automatique ba3d el wa9t',
+  securitySaveFailed: 'Masajelch.',
+  securityNote: 'El tabdil ye5dem 3al el mot de passe el jdid ; el 9dam yet3awdou fel connexion el jaya.',
+  clientsUnlock: 'Deverrouilli',
+  clientsUnlocked: 'Compte deverrouilli.',
   countriesTitle: 'Blad',
   teamTitle: 'Khedma',
   clientsTitle: 'Clients',
@@ -1454,6 +1516,26 @@ const ar: CoreTexts = {
   countriesImport: 'استيراد القائمة الكاملة',
   countriesImported: 'استُوردت القائمة الكاملة: فعّل ما تريد.',
   countriesAlreadyThere: 'بلدان موجودة: {list}',
+  securityTitle: 'الأمان',
+  securityHint: 'سياسة كلمة المرور للموقع (العملاء والموظفون): خوارزمية التشفير، معايير القوة وقفل الحسابات.',
+  secAlgorithm: 'خوارزمية التشفير',
+  secMemory: 'الذاكرة (كيلوبايت)',
+  secIterations: 'التكرارات',
+  secParallelism: 'التوازي',
+  secMinLength: 'الطول الأدنى',
+  secDigit: 'رقم واحد على الأقل',
+  secUpper: 'حرف كبير على الأقل',
+  secSpecial: 'رمز خاص على الأقل',
+  secMigration: 'تغيير الخوارزمية',
+  secMigrationAuto: 'إعادة التشفير تلقائياً عند الدخول',
+  secMigrationForce: 'كلمة مرور جديدة مطلوبة عند الدخول',
+  secLockAttempts: 'المحاولات قبل القفل',
+  secLockMinutes: 'دقائق القفل',
+  secLockAuto: 'فتح تلقائي بعد المدة',
+  securitySaveFailed: 'تعذّر الحفظ.',
+  securityNote: 'التعديل يطبّق على كلمات المرور الجديدة؛ القديمة تُعاد لتشفيرها عند الدخول القادم.',
+  clientsUnlock: 'فتح الحساب',
+  clientsUnlocked: 'الحساب انفتح.',
   countriesTitle: 'البلدان',
   teamTitle: 'الفريق',
   clientsTitle: 'العملاء',
@@ -1777,6 +1859,26 @@ const derjaArabic: CoreTexts = {
   countriesImport: 'جيب الليستة الكاملة',
   countriesImported: 'الليستة الكاملة جات : فعّل اللي تحب.',
   countriesAlreadyThere: 'بلاد موجودين : {list}',
+  securityTitle: 'الأمان',
+  securityHint: 'سياسة الموت دو باص متاع الموقع (كليان وخدامة) : الخوارزمية، المعايير والقفل.',
+  secAlgorithm: 'الخوارزمية',
+  secMemory: 'الذاكرة (كيلوبايت)',
+  secIterations: 'التكرارات',
+  secParallelism: 'التوازي',
+  secMinLength: 'الطول الأدنى',
+  secDigit: 'رقم على الأقل',
+  secUpper: 'حرف كبير على الأقل',
+  secSpecial: 'رمز خاص على الأقل',
+  secMigration: 'تبديل الخوارزمية',
+  secMigrationAuto: 'إعادة تشفير تلقائية عند الدخول',
+  secMigrationForce: 'موت دو باص جديد مطلوب عند الدخول',
+  secLockAttempts: 'محاولات قبل القفل',
+  secLockMinutes: 'دقائق القفل',
+  secLockAuto: 'فتح تلقائي بعد المدة',
+  securitySaveFailed: 'ما تسجّلش.',
+  securityNote: 'التبديل يخدم على الكلمات الجديدة؛ القديمة تُعاد عند الدخول الجاي.',
+  clientsUnlock: 'فتح الحساب',
+  clientsUnlocked: 'الحساب تحل.',
   countriesTitle: 'البلاد',
   teamTitle: 'الخدامة',
   clientsTitle: 'الكليان',

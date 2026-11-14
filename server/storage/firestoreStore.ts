@@ -25,6 +25,18 @@ export function createFirestoreStore(db: Firestore): DataStore {
       return { items, removedIds, revision };
     },
 
+    async get(name, id): Promise<Record<string, unknown> | null> {
+      const d = await table(name).doc(id).get();
+      return d.exists ? { ...(d.data() as DocumentData), id: d.id, revision: millis(d.get('revision')) ?? 0 } : null;
+    },
+
+    async findFirst(name, field, value): Promise<Record<string, unknown> | null> {
+      const snap = await table(name).where(field, '==', value).limit(1).get();
+      return snap.empty
+        ? null
+        : { ...snap.docs[0].data(), id: snap.docs[0].id, revision: millis(snap.docs[0].get('revision')) ?? 0 };
+    },
+
     async maxRevision(name): Promise<number> {
       const snap = await table(name).orderBy('revision', 'desc').limit(1).get();
       return snap.empty ? 0 : (millis(snap.docs[0].get('revision')) ?? 0);

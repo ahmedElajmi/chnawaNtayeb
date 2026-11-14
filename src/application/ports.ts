@@ -1,5 +1,7 @@
 import type { DayPlan } from '@/core/planning';
-import type { AccountSummary, RegistrationInput, UserProfile } from '@/core/accounts';
+import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
+
+export type { PasswordPolicy };
 import type { GroceryItem } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
@@ -246,6 +248,14 @@ export interface AccountDirectoryPage {
 
 export interface AccountDirectoryRepository {
   list(query: AccountDirectoryQuery): Promise<AccountDirectoryPage>;
+  /** Clears the lockout of an account (super-admin or manager session on the server). */
+  unlock(uid: string): Promise<boolean>;
+}
+
+/** Password policy of the site: read and saved by the super admin in the backoffice. */
+export interface PasswordPolicyGateway {
+  read(): Promise<PasswordPolicy>;
+  save(policy: PasswordPolicy): Promise<void>;
 }
 
 /** Creates staff accounts on the server (super-admin session required): the client never mints a right. */

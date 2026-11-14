@@ -29,5 +29,9 @@ export function createMemoryAccountDirectory(initial: unknown[]): AccountDirecto
       }));
       return { items, total: all.length, nextCursor: start + limit < all.length ? all[start + limit - 1].uid : null };
     },
+
+    async unlock(): Promise<boolean> {
+      return true;
+    },
   };
 }

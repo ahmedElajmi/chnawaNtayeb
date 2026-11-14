@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Mail, Search } from 'lucide-react';
+import { Loader2, Mail, Search, Unlock } from 'lucide-react';
 import { useAccountDirectory, useContainer } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -113,6 +113,18 @@ export function ClientsPage() {
                 {user.type === 'employee' ? b.employeesOnly : user.isAnonymous ? b.clientsGuest : b.clientsOnly}
               </span>
               <span className="text-ink-muted min-w-24">{lastLoginText(user.lastLogin, language)}</span>
+              {!user.isAnonymous && user.type === 'client' && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await directory.unlock(user.uid);
+                    notify(ok ? b.clientsUnlocked : b.securitySaveFailed, !ok);
+                  }}
+                  className="text-[11px] font-bold text-accent-text inline-flex items-center gap-1 hover:underline"
+                >
+                  <Unlock className="w-3 h-3" /> {b.clientsUnlock}
+                </button>
+              )}
             </li>
           ))}
         </ul>

@@ -45,6 +45,19 @@ export function createMemoryDataStore(): DataStore {
       return { items, removedIds, revision };
     },
 
+    async get(name, id): Promise<Record<string, unknown> | null> {
+      const d = table(name).get(id);
+      return d ? { ...d.doc, id: d.id, revision: d.revision } : null;
+    },
+
+    async findFirst(name, field, value): Promise<Record<string, unknown> | null> {
+      const t = table(name);
+      for (const d of t.values()) {
+        if ((d.doc as Record<string, unknown>)[field] === value) return { ...d.doc, id: d.id, revision: d.revision };
+      }
+      return null;
+    },
+
     async maxRevision(name): Promise<number> {
       const t = table(name);
       let max = 0;

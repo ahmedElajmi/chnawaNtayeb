@@ -1,6 +1,7 @@
 import type express from 'express';
 import { readBearerToken, verifySessionToken, type BackofficeAuthConfig } from '../backofficeAuth';
-import { verifyEmployeeToken } from '../firebaseAdmin';
+import { verifyEmployeeRights, verifyEmployeeToken } from '../firebaseAdmin';
+import { verifyUserSessionToken } from '../auth/sessions';
 
 /**
  * What a caller of the data endpoints may do. The super-admin session grants everything; an
@@ -26,8 +27,17 @@ export async function resolveIdentity(
     if (session) return { owner: true, canPublish: true, canManage: true };
   }
   if (token) {
-    const employee = await verifyEmployeeToken(token);
-    if (employee) return { owner: false, canPublish: employee.canPublish, canManage: employee.canManage };
+    // Employee accounts created through the storage contract carry a server session
+    const userSession = verifyUserSessionToken(token, backofficeAuthConfig.ok ? backofficeAuthConfig.secret : '');
+    if (userSession?.kind === 'employee') {
+      const rights = await verifyEmployeeRights(userSession.sub);
+      if (!rights) return VISITOR;
+      return { owner: false, canPublish: rights.can_publish === true, canManage: rights.can_manage === true };
+    }
+    if (userSession) return VISITOR; // clients and guests write nothing through /api/data
+    const firebaseEmployee = await verifyEmployeeToken(token);
+    if (firebaseEmployee)
+      return { owner: false, canPublish: firebaseEmployee.canPublish, canManage: firebaseEmployee.canManage };
   }
   return VISITOR;
 }

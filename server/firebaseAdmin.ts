@@ -67,6 +67,19 @@ export interface EmployeeRights {
 }
 
 /**
+ * Reads the team rights of an account (admins/{uid}): used by the data endpoints to
+ * authorize an employee carrying a server session instead of a Firebase token.
+ */
+export async function verifyEmployeeRights(
+  uid: string
+): Promise<{ can_publish?: unknown; can_manage?: unknown } | null> {
+  const adminApp = getAdminApp();
+  if (!adminApp) return null;
+  const member = await getFirestore(adminApp).collection('admins').doc(uid).get();
+  return member.exists ? (member.data() as Record<string, unknown>) : null;
+}
+
+/**
  * Verifies an employee's Firebase identity token (the browser still signs in with Firebase
  * Auth during the transition) and reads their rights from the team record.
  * Null when the token is invalid, not an employee, or when Firebase is not configured.

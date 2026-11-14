@@ -62,4 +62,19 @@ export const firestoreAccountDirectory: AccountDirectoryRepository = {
       return { items: [], total: 0, nextCursor: null };
     }
   },
+
+  /** Clears the lockout of an account: server endpoint (super-admin or manager session). */
+  async unlock(uid): Promise<boolean> {
+    try {
+      const { getBackofficeToken } = await import('@/infrastructure/http/backofficeAuth');
+      const token = getBackofficeToken();
+      const res = await fetch(`/admin/api/accounts/${encodeURIComponent(uid)}/unlock`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
 };
