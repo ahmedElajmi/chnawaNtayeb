@@ -31,7 +31,6 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.7.3",
-    "firebase": "^13.2.0",
     "firebase-admin": "^14.5.0",
     "libphonenumber-js": "^1.13.16",
     "lucide-react": "^0.546.0",

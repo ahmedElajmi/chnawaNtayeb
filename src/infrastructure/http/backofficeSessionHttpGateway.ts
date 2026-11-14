@@ -1,17 +1,16 @@
 import type { BackofficeSessionGateway } from '@/application';
 import {
-  ensureBackofficeCloudSession,
   getBackofficeToken,
   loginBackoffice,
   logoutBackoffice,
   verifyBackofficeSession,
 } from '@/infrastructure/http/backofficeAuth';
 
-/** Admin session checked by our server (/api/auth/*), with Firebase access for cloud edits. */
+/** Admin session checked by our server: every data write carries this session. */
 export const backofficeSessionHttpGateway: BackofficeSessionGateway = {
   login: loginBackoffice,
   hasStoredSession: () => Boolean(getBackofficeToken()),
   verifySession: () => verifyBackofficeSession(),
-  connectCloud: () => ensureBackofficeCloudSession(),
+  connectCloud: async () => ((await verifyBackofficeSession()) ? 'connected' : 'local-only'),
   logout: () => logoutBackoffice(),
 };

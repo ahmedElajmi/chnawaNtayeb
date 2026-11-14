@@ -10,6 +10,7 @@ import type { BackofficeAuthConfig } from './backofficeAuth';
 import type { VisionProvider } from './vision/visionProvider';
 import { accountRoutes } from './routes/accountRoutes';
 import { authRoutes } from './auth/routes';
+import { adminDataRoutes } from './routes/adminDataRoutes';
 import { dataRoutes } from './routes/dataRoutes';
 import { backofficeAuthRoutes } from './routes/backofficeAuthRoutes';
 import { seoRoutes } from './routes/seoRoutes';
@@ -40,9 +41,14 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
     return res.redirect(301, target + query);
   });
 
-  // Small JSON bodies everywhere, except the photo upload which has its own limit
+  // Small JSON bodies everywhere, except the photo upload and the data batches (catalog
+  // import / replace) which carry many documents and have their own limits
   const smallJson = express.json({ limit: '100kb' });
-  app.use((req, res, next) => (req.path === VISION_PATH ? next() : smallJson(req, res, next)));
+  const bigJson = express.json({ limit: '5mb' });
+  app.use((req, res, next) => {
+    if (req.path === VISION_PATH || req.path.startsWith('/api/data/')) return bigJson(req, res, next);
+    return smallJson(req, res, next);
+  });
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
@@ -72,6 +78,7 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.use(backofficeAuthRoutes(backofficeAuthConfig));
   app.use(accountRoutes(backofficeAuthConfig, dataStore));
   app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider));
+  app.use(adminDataRoutes(backofficeAuthConfig, dataStore));
   app.use(dataRoutes(backofficeAuthConfig, dataStore));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());

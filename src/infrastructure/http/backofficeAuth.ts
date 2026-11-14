@@ -1,18 +1,15 @@
-import { signInWithCustomToken, signOut } from 'firebase/auth';
-import { auth } from '@/infrastructure/firebase/client';
+import type { BackofficeLoginError, BackofficeLoginResult } from '@/application';
 
 /**
  * super-admin (admin) session on the client.
  *
- * The browser never decides who is admin: it only stores the signed token
- * returned by the server and asks the server to verify it. A token that was
- * invented or edited by hand is rejected by /admin/api/verify.
+ * The browser never decides who is admin: it only stores the signed token returned by
+ * the server and asks the server to verify it. A token that was invented or edited by
+ * hand is rejected by /admin/api/verify. With this session, every write goes through the
+ * data endpoints — no cloud identity is involved anywhere.
  */
 
 const TOKEN_KEY = 'super_admin_session_token';
-const SUPER_ADMIN_FIREBASE_UID = 'super-admin';
-
-import type { CloudStatus, BackofficeLoginError, BackofficeLoginResult } from '@/application';
 
 export function getBackofficeToken(): string | null {
   try {
@@ -33,17 +30,6 @@ export function clearBackofficeToken() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem('patron_username'); // legacy key
   } catch {}
-}
-
-async function connectFirebase(firebaseToken: string | null | undefined): Promise<CloudStatus> {
-  if (!firebaseToken) return 'local-only';
-  try {
-    await signInWithCustomToken(auth, firebaseToken);
-    return 'connected';
-  } catch (err) {
-    console.warn('[super-admin] Connexion Firebase impossible :', err);
-    return 'local-only';
-  }
 }
 
 /** Server answer → domain code (the server's own message is never shown: the interface translates). */
@@ -72,7 +58,8 @@ export async function loginBackoffice(username: string, password: string): Promi
   }
 
   setBackofficeToken(data.token);
-  return { ok: true, cloud: await connectFirebase(data.firebaseToken) };
+  // The session itself is the write authority now: the server checks it on every request
+  return { ok: true, cloud: 'connected' };
 }
 
 /** Asks the server whether the stored token is still valid. Clears it when it is not. */
@@ -89,31 +76,6 @@ export async function verifyBackofficeSession(): Promise<boolean> {
   }
 }
 
-/** Makes sure the Firebase identity has the super-admin claim (needed after a page reload). */
-export async function ensureBackofficeCloudSession(): Promise<CloudStatus> {
-  const current = auth.currentUser;
-  if (current?.uid === SUPER_ADMIN_FIREBASE_UID) {
-    const result = await current.getIdTokenResult().catch(() => null);
-    if (result?.claims.superAdmin === true) return 'connected';
-  }
-  const token = getBackofficeToken();
-  if (!token) return 'local-only';
-  try {
-    const res = await fetch('/admin/api/firebase-token', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return 'local-only';
-    const data = await res.json();
-    return connectFirebase(data.firebaseToken);
-  } catch {
-    return 'local-only';
-  }
-}
-
 export async function logoutBackoffice(): Promise<void> {
   clearBackofficeToken();
-  if (auth.currentUser?.uid === SUPER_ADMIN_FIREBASE_UID) {
-    await signOut(auth).catch(() => {});
-  }
 }

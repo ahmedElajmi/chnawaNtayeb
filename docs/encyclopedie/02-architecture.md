@@ -71,8 +71,7 @@ src/
     local/                   localStorage (données personnelles, préférences)
     indexeddb/               copie hors ligne des collections partagées (gros volumes)
     memory/  contracts/      implémentations de référence + tests de contrat des ports
-    firebase/                Firestore, Firebase Auth
-    http/                    API de notre serveur
+    http/                    API de notre serveur (sessions, données, admin, thèmes)
   app/                       App, container, routes, layout/, providers/, navigation (voir 06)
   features/                  Un dossier par écran (voir 06 et 07)
   shared/                    paths, i18n/, hooks/, ui/

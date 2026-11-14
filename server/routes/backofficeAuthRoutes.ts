@@ -7,9 +7,9 @@ import {
   verifySessionToken,
   type BackofficeAuthConfig,
 } from '../backofficeAuth';
-import { createSuperAdminFirebaseToken } from '../firebaseAdmin';
 
-/** super-admin (admin) authentication: login, session check, Firebase token for cloud edits. */
+/** super-admin (admin) authentication: login and session check. The data writes go through
+ * the data endpoints with this session — no Firebase identity is involved anywhere. */
 export function backofficeAuthRoutes(backofficeAuthConfig: BackofficeAuthConfig): express.Router {
   const router = express.Router();
 
@@ -27,15 +27,6 @@ export function backofficeAuthRoutes(backofficeAuthConfig: BackofficeAuthConfig)
     if (!backofficeAuthConfig.ok) return null;
     const payload = verifySessionToken(readBearerToken(req.headers.authorization), backofficeAuthConfig.secret);
     return payload ? { username: payload.sub, expiresAt: payload.exp } : null;
-  };
-
-  const safeCreateFirebaseToken = async (): Promise<string | null> => {
-    try {
-      return await createSuperAdminFirebaseToken();
-    } catch (err) {
-      console.error('[super-admin] Impossible de créer le jeton Firebase :', err);
-      return null;
-    }
   };
 
   // One-release aliases: cached PWA clients still call the older /api/auth paths
@@ -67,7 +58,6 @@ export function backofficeAuthRoutes(backofficeAuthConfig: BackofficeAuthConfig)
         token,
         expiresAt: payload.exp,
         user: { username: backofficeAuthConfig.username, role: 'admin' },
-        firebaseToken: await safeCreateFirebaseToken(),
       });
     }
   );
@@ -77,17 +67,6 @@ export function backofficeAuthRoutes(backofficeAuthConfig: BackofficeAuthConfig)
     if (!session) return res.status(401).json({ valid: false });
     return res.json({ valid: true, user: { username: session.username, role: 'admin' }, expiresAt: session.expiresAt });
   });
-
-  // Re-issues a Firebase custom token for an existing super-admin session (e.g. after a page reload)
-  router.post(
-    ['/admin/api/firebase-token', '/api/auth/admin-firebase-token', '/api/auth/superAdmin-firebase-token'],
-    async (req, res) => {
-      if (!requireSession(req)) return res.status(401).json({ error: 'Session superAdmin invalide.' });
-      const firebaseToken = await safeCreateFirebaseToken();
-      if (!firebaseToken) return res.status(503).json({ error: 'Synchronisation cloud non configurée.' });
-      return res.json({ firebaseToken });
-    }
-  );
 
   return router;
 }
