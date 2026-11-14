@@ -28,27 +28,32 @@ Hooks d'accès : `useReview(kind)`, `useCategories(kind)`, `useTeam()`, `useRevi
 
 | Port                         | Rôle                                                | Adapter actuel                                      |
 | ---------------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| `SharedCollectionSource`     | Collection partagée suivie en direct                | `infrastructure/firebase/firestoreSharedCollection` |
-| `SharedCollectionWriter<T>`  | Écritures du super admin (versionnées, sans fusion) | `infrastructure/firebase/firestoreSharedCollection` |
+| `SharedCollectionSource`     | Collection partagée suivie (delta incrémental)      | `infrastructure/http/sharedCollectionHttp`          |
+| `SharedCollectionWriter<T>`  | Écritures (versionnées par le serveur, sans fusion) | `infrastructure/http/sharedCollectionHttp`          |
 | `LocalCollectionCache<T>`    | Copie hors ligne d'une collection partagée          | `infrastructure/indexeddb/indexedDbCollectionCache` |
 | `KitchenRepository`          | Frigo, placard, favoris, menu, courses              | `infrastructure/local/localRepositories`            |
 | `PreferencesRepository`      | Langue, thème, mode, placard                        | `infrastructure/local/localPreferences`             |
-| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition        | `infrastructure/firebase/themes`                    |
-| `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/firebase/firestoreMatchingSettings` |
+| `ThemeRepository`            | Thèmes publiés (+ copie hors ligne), édition        | `infrastructure/http/themesHttp`                    |
+| `MatchingSettingsRepository` | Réglages du moteur et leur historique               | `infrastructure/http/settingsRepositories`          |
 | `MatchingSettingsCache`      | Copie hors ligne des réglages                       | `infrastructure/local/localMatchingSettingsCache`   |
-| `UserAuthGateway`            | Comptes visiteurs (invité, e-mail)                  | `infrastructure/firebase/userAuth`                  |
-| `BackofficeSessionGateway`   | Connexion et session super admin                    | `infrastructure/http/adminHttpGateway`              |
+| `UserAuthGateway`            | Sessions du site (invité, client, employé)          | `infrastructure/http/userAuthHttpGateway`           |
+| `BackofficeSessionGateway`   | Connexion et session super admin                    | `infrastructure/http/backofficeSessionHttpGateway`  |
+| `PollingSettingsGateway`     | Intervalle de polling configuré dans le backoffice  | `infrastructure/http/pollingSettingsGateway`        |
 | `VisionGateway`              | Scan photo du frigo                                 | `infrastructure/http/visionHttpGateway`             |
 | `RecipeDraftRepository`      | Brouillons de recettes non enregistrés              | `infrastructure/local/localRecipeDrafts`            |
 | `SearchEngine`               | Recherche texte (recettes, ingrédients)             | `infrastructure/minisearch/miniSearchEngine`        |
-| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication            | `infrastructure/firebase/firestoreReviewWorkspace`  |
-| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions               | `infrastructure/firebase/firestoreReviewSettings`   |
-| `TeamRepository`             | Membres de l'équipe (`admins`)                      | `infrastructure/firebase/firestoreTeam`             |
+| `ReviewWorkspaceWriter<K>`   | Atelier : copies de travail, publication atomique   | `infrastructure/http/reviewWorkspaceHttp`           |
+| `ReviewSettingsRepository`   | Workflows et rôles, et leurs versions               | `infrastructure/http/settingsRepositories`          |
+| `TeamRepository`             | Membres de l'équipe (`admins`)                      | `infrastructure/http/scenariosAndTeamHttp`          |
+| `AccountDirectoryRepository` | Annuaire des comptes (paginé) + déverrouillage      | `infrastructure/http/accountDirectoryHttp`          |
+| `AccountProfileRepository`   | Profil du compte connecté                           | `infrastructure/http/accountProfileHttpGateway`     |
+| `PasswordPolicyGateway`      | Politique des mots de passe (page Sécurité)         | `infrastructure/http/passwordPolicyGateway`         |
+| `AccountCreationGateway`     | Création d'un compte employé                        | `infrastructure/http/accountHttpGateway`            |
 
 Références et tests de contrat : `infrastructure/memory/memorySharedCollection` et `memoryCollectionCache`,
 `infrastructure/contracts/sharedCollection.contract.ts` et `localCollectionCache.contract.ts` (passé aussi par
 l'adapter IndexedDB, testé avec `fake-indexeddb`) ; atelier : `memoryReviewWorkspace` et
-`reviewWorkspace.contract.ts`, réglages : `memoryReviewSettings`.
+`reviewWorkspace.contract.ts`, réglages : `memoryReviewSettings`, comptes : `memoryAccount*`.
 
 Les écritures renvoient `WriteResult` : `{ ok: true }` ou `{ ok: false, error }` (message lisible).
 Les adapters sont reliés aux ports dans `src/app/container.ts`, et nulle part ailleurs.
@@ -182,3 +187,20 @@ Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
   contenu intégré de secours (`builtIn` vide) et une collection qui ne contient que des marques de
   suppression est vide (et non « base vide » : `SyncedCollectionStore.receive`). Le serveur (SEO) ne
   montre lui aussi que les recettes de la base.
+
+### Bascule SQL (préparée dans PR E, pas encore branchée)
+
+Le stockage reste Firestore ; l'implémentation SQL du contrat existe et passe **la même suite de
+contrat** sur SQLite ( knex + `better-sqlite3` en local) :
+
+- `server/storage/sqlStore.ts` : `createSqlStore(knex)` — une **table par collection du registre**
+  (`id` clé primaire · `data` JSON : le document sans son id · `revision` ms · `updated_at` · `deleted`),
+  documents stockés tels quels (les parseurs du core ne changent pas). Les requêtes par champ JSON
+  gèrent les dialectes ciblés (Postgres `->>`, MySQL `json_extract`, SQL Server `JSON_VALUE`,
+  SQLite `json_extract`). Non branché : `server/app.ts` garde Firestore jusqu'à la bascule.
+- `ensureSchema(knex)` : crée les tables (idempotent).
+- `scripts/sql/import-json.ts` : importe un fichier `{ "collection": [ { "id", ...document } ] }`
+  dans les tables — c'est le format que produira l'export (différé).
+- Bascule prévue : créer l'instance Knex (`DATA_STORE`/`SQL_CONNECTION`), `ensureSchema()`, remplacer
+  `createFirestoreStore` par `createSqlStore` dans `server/app.ts`, importer le dump. Les hachés
+  argon2 de `auth` suivent avec les comptes : aucun client ne perd son mot de passe.
