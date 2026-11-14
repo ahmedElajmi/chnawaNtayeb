@@ -26,6 +26,10 @@ export interface StoredKitchenDoc {
   pantry: string[];
   weeklyPlan: DayPlan[];
   groceryList: GroceryItem[];
+  /** Note attached to the current shopping list */
+  groceryNote: string;
+  /** Amount actually spent, entered when the list was completed (null = not entered) */
+  grocerySpent: number | null;
   /** Last local change per section, in ms since epoch (drives the newest-write-wins merge) */
   sections: Record<string, number>;
   /** Sections changed locally and not confirmed by the server yet */
@@ -205,6 +209,9 @@ class StorageService {
           ? doc.weeklyPlan.map((day) => migrateDayPlan(day, initialRecipes))
           : DEFAULT_WEEKLY_PLAN,
         groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : [],
+        groceryNote: typeof doc.groceryNote === 'string' ? doc.groceryNote : '',
+        grocerySpent:
+          typeof doc.grocerySpent === 'number' && Number.isFinite(doc.grocerySpent) ? doc.grocerySpent : null,
         sections: doc.sections && typeof doc.sections === 'object' ? { ...doc.sections } : {},
         pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
@@ -221,7 +228,13 @@ class StorageService {
   }
 
   /** Kitchen data written by earlier versions (unscoped keys): read once, then only the scoped doc is used. */
-  readLegacyKitchen(): Omit<StoredKitchenDoc, 'sections' | 'pending' | 'preferencesSyncedAt'> | null {
+  readLegacyKitchen(): {
+    favorites: string[];
+    fridge: string[];
+    pantry: string[];
+    weeklyPlan: DayPlan[];
+    groceryList: GroceryItem[];
+  } | null {
     const favorites = this.getFavorites();
     const fridge = this.getFridgeSelected();
     const weeklyPlan = this.getWeeklyPlan();

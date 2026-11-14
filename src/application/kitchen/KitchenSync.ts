@@ -182,6 +182,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
     take('pantry', state.pantry);
     take('weeklyPlan', state.weeklyPlan);
     take('groceryList', state.groceryList);
+    take('groceryMeta', { note: state.groceryNote, spent_tnd: state.grocerySpent });
     if (preferencesPending) {
       // The pantry has its own section: it never travels inside the preferences
       const { pantryStaples: _pantry, ...preferences } = this.deps.preferences.load();
@@ -224,11 +225,14 @@ export class KitchenSync extends Store<KitchenSyncState> {
       if (doc.pantry && newer('pantry')) this.deps.kitchen.mergePantry(doc.pantry.value);
       if (doc.weeklyPlan && newer('weeklyPlan')) this.deps.kitchen.setWeeklyPlan(doc.weeklyPlan.value);
       if (doc.groceryList && newer('groceryList')) this.deps.kitchen.setGroceryList(doc.groceryList.value);
+      if (doc.groceryMeta && newer('groceryMeta')) {
+        this.deps.kitchen.setGroceryMeta(doc.groceryMeta.value.note ?? '', doc.groceryMeta.value.spent_tnd ?? null);
+      }
       if (doc.preferences && newer('preferences')) {
         const { pantryStaples: _pantry, ...preferences } = doc.preferences.value;
         this.deps.preferences.save(preferences as Partial<UserPreferences>, doc.preferences.updatedAt);
       }
-      for (const name of [...SET_SECTIONS, 'weeklyPlan', 'groceryList', 'preferences'] as const) {
+      for (const name of [...SET_SECTIONS, 'weeklyPlan', 'groceryList', 'groceryMeta', 'preferences'] as const) {
         if (doc[name]) this.deps.ledger.setSectionTime(name, doc[name]!.updatedAt);
       }
     } finally {

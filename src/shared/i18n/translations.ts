@@ -337,6 +337,42 @@ export interface TranslationDictionary {
   maxTimeLabel: string;
   budgetAny: string;
   timeAny: string;
+  // Grocery list: aisles, note, budget, lifecycle and print
+  groceryAisles: string;
+  groceryNote: string;
+  groceryQuantity: string;
+  groceryDeleteItem: string;
+  groceryPrint: string;
+  groceryPlanned: string;
+  groceryReal: string;
+  grocerySpentPlaceholder: string;
+  groceryListDone: string;
+  groceryCloseWeek: string;
+  groceryContinueEditing: string;
+  groceryWeekClosed: string;
+  groceryArchive: string;
+  groceryArchiveConfirm: string;
+  groceryArchived: string;
+  groceryArchiveError: string;
+  groceryDeleteAll: string;
+  groceryDeleteAllConfirm: string;
+  grocerySignInHint: string;
+  // Grocery history panel
+  groceryHistoryTitle: string;
+  groceryHistoryEmpty: string;
+  groceryHistoryCount: string;
+  groceryHistoryDeleteConfirm: string;
+  groceryHistoryLoadError: string;
+  groceryExportExcel: string;
+  groceryXlsxDate: string;
+  groceryXlsxComment: string;
+  groceryXlsxItems: string;
+  groceryXlsxPlanned: string;
+  groceryXlsxActual: string;
+  groceryXlsxGap: string;
+  groceryXlsxTotal: string;
+  // Weekly planner: planned budget of the week
+  planBudgetLabel: string;
 }
 
 /**
@@ -673,6 +709,39 @@ export const translations = {
     maxTimeLabel: 'Akther waqt',
     budgetAny: 'Budget : el kol',
     timeAny: 'Waqt : el kol',
+    groceryAisles: 'Rayons el 7anout',
+    groceryNote: 'Note lel liste (qadhya Carrefour sebt...)',
+    groceryQuantity: '9addésh',
+    groceryDeleteItem: 'Na7i mel liste',
+    groceryPrint: 'Imprimi',
+    groceryPlanned: 'Prévu',
+    groceryReal: 'Elli khlast',
+    grocerySpentPlaceholder: '9addésh khlast ? (DT)',
+    groceryListDone: 'El liste kammlet ✓',
+    groceryCloseWeek: 'Sakker el jom3a',
+    groceryContinueEditing: 'Nkemmel el liste',
+    groceryWeekClosed: 'El jom3a tesakret ! A3mel liste jdid mel menu.',
+    groceryArchive: 'Arkhevi',
+    groceryArchiveConfirm: 'Tarkhevi el liste fi el historique mta3 el qadhya ?',
+    groceryArchived: 'El liste tarkhevet fel historique !',
+    groceryArchiveError: 'Ma najjamnech narkhevi el liste. 3awed.',
+    groceryDeleteAll: 'Fasakh el liste el kol',
+    groceryDeleteAllConfirm: 'Tfasakh el {n} articles ? Définitif — mouch arkhevi.',
+    grocerySignInHint: 'Odkhel (walla a3mel compte) bech tarkhevi el qadhya w tal9a el historique.',
+    groceryHistoryTitle: 'Historique el qadhya',
+    groceryHistoryEmpty: 'Mafamech chnowa tarkhef tawa. Sakker jom3a bech tal9aha hné.',
+    groceryHistoryCount: '{n} articles',
+    groceryHistoryDeleteConfirm: 'Tfasakh el qadhya hedhi mel historique ?',
+    groceryHistoryLoadError: 'Ma najjamnech njib el historique. 3awed ba3d chwaya.',
+    groceryExportExcel: 'Exporti Excel',
+    groceryXlsxDate: 'Date',
+    groceryXlsxComment: 'Note',
+    groceryXlsxItems: 'Articles',
+    groceryXlsxPlanned: 'Prévu',
+    groceryXlsxActual: 'Elli khlast',
+    groceryXlsxGap: 'Far9',
+    groceryXlsxTotal: 'Total',
+    planBudgetLabel: 'Budget el jom3a el prévu : {n}',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -1005,6 +1074,39 @@ export const translations = {
     maxTimeLabel: 'Temps maximum',
     budgetAny: 'Budget : tous',
     timeAny: 'Temps : tous',
+    groceryAisles: 'Rayons',
+    groceryNote: 'Une note pour la liste (courses Carrefour samedi...)',
+    groceryQuantity: 'Quantité',
+    groceryDeleteItem: "Supprimer l'article",
+    groceryPrint: 'Imprimer',
+    groceryPlanned: 'Prévu',
+    groceryReal: 'Réel',
+    grocerySpentPlaceholder: 'Montant dépensé (DT)...',
+    groceryListDone: 'Liste terminée ✓',
+    groceryCloseWeek: 'Clôturer la semaine',
+    groceryContinueEditing: 'Continuer à modifier',
+    groceryWeekClosed: 'Semaine clôturée ! Génère ta prochaine liste depuis le menu.',
+    groceryArchive: 'Archiver',
+    groceryArchiveConfirm: 'Archiver cette liste dans l’historique des courses ?',
+    groceryArchived: 'Liste archivée dans l’historique !',
+    groceryArchiveError: 'Impossible d’archiver la liste. Réessaie.',
+    groceryDeleteAll: 'Supprimer toute la liste',
+    groceryDeleteAllConfirm: 'Supprimer les {n} articles ? Définitif — non archivé.',
+    grocerySignInHint: 'Connecte-toi (ou crée un compte) pour archiver tes courses et retrouver l’historique.',
+    groceryHistoryTitle: 'Historique des courses',
+    groceryHistoryEmpty: 'Pas encore de liste archivée. Clôture une semaine pour la retrouver ici.',
+    groceryHistoryCount: '{n} articles',
+    groceryHistoryDeleteConfirm: 'Supprimer cette course de l’historique ?',
+    groceryHistoryLoadError: 'Impossible de charger l’historique. Réessaie plus tard.',
+    groceryExportExcel: 'Exporter Excel',
+    groceryXlsxDate: 'Date',
+    groceryXlsxComment: 'Note',
+    groceryXlsxItems: 'Articles',
+    groceryXlsxPlanned: 'Prévu',
+    groceryXlsxActual: 'Réel',
+    groceryXlsxGap: 'Écart',
+    groceryXlsxTotal: 'Total',
+    planBudgetLabel: 'Budget prévu de la semaine : {n}',
   },
   ar: {
     appName: 'Chnowa Ntayeb',
@@ -1329,6 +1431,39 @@ export const translations = {
     maxTimeLabel: 'أقصى وقت',
     budgetAny: 'الميزانية: الكل',
     timeAny: 'الوقت: الكل',
+    groceryAisles: 'أقسام المتجر',
+    groceryNote: 'ملاحظة للقائمة (مشتريات السبت...)',
+    groceryQuantity: 'الكمية',
+    groceryDeleteItem: 'حذف المنتج',
+    groceryPrint: 'طباعة',
+    groceryPlanned: 'المتوقّع',
+    groceryReal: 'الفعلي',
+    grocerySpentPlaceholder: 'المبلغ المدفوع (د.ت)...',
+    groceryListDone: 'اكتملت القائمة ✓',
+    groceryCloseWeek: 'إغلاق الأسبوع',
+    groceryContinueEditing: 'متابعة التعديل',
+    groceryWeekClosed: 'أُغلق الأسبوع! أنشئ قائمتك القادمة من القائمة.',
+    groceryArchive: 'أرشفة',
+    groceryArchiveConfirm: 'أرشفة هذه القائمة في سجل المشتريات؟',
+    groceryArchived: 'أُرشفت القائمة في السجل!',
+    groceryArchiveError: 'تعذّرت أرشفة القائمة. أعد المحاولة.',
+    groceryDeleteAll: 'حذف القائمة كلها',
+    groceryDeleteAllConfirm: 'حذف {n} منتجات؟ نهائي — بدون أرشفة.',
+    grocerySignInHint: 'سجّل الدخول (أو أنشئ حسابًا) لأرشفة مشترياتك والاطلاع على السجل.',
+    groceryHistoryTitle: 'سجل المشتريات',
+    groceryHistoryEmpty: 'لا توجد قائمة مؤرشفة بعد. أغلق أسبوعًا لتجدها هنا.',
+    groceryHistoryCount: '{n} منتجات',
+    groceryHistoryDeleteConfirm: 'حذف هذه المشتريات من السجل؟',
+    groceryHistoryLoadError: 'تعذّر تحميل السجل. أعد المحاولة لاحقًا.',
+    groceryExportExcel: 'تصدير إلى Excel',
+    groceryXlsxDate: 'التاريخ',
+    groceryXlsxComment: 'الملاحظة',
+    groceryXlsxItems: 'المنتجات',
+    groceryXlsxPlanned: 'المتوقّع',
+    groceryXlsxActual: 'الفعلي',
+    groceryXlsxGap: 'الفرق',
+    groceryXlsxTotal: 'المجموع',
+    planBudgetLabel: 'الميزانية المتوقعة للأسبوع: {n}',
   },
   derja_ar: DERJA_ARABIC,
 } satisfies Record<Language, TranslationDictionary>;

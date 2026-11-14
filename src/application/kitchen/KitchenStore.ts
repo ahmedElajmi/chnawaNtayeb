@@ -6,7 +6,9 @@ import {
   addGroceryItems,
   buildGroceryListFromPlan,
   clearCheckedGroceryItems,
+  removeGroceryItem,
   toggleGroceryItem,
+  updateGroceryItemQuantity,
 } from '@/core/grocery';
 import { toggleInList } from '@/core/shared';
 import type { KitchenRepository } from '../ports';
@@ -18,6 +20,10 @@ export interface KitchenState {
   favorites: string[];
   weeklyPlan: DayPlan[];
   groceryList: GroceryItem[];
+  /** Note attached to the current shopping list (synced as the groceryMeta section) */
+  groceryNote: string;
+  /** Amount actually spent, entered by the user (null = not entered yet) */
+  grocerySpent: number | null;
 }
 
 /** The user's kitchen: fridge, pantry, favorites, weekly menu and shopping list. Every change is saved. */
@@ -33,6 +39,8 @@ export class KitchenStore extends Store<KitchenState> {
       favorites: repo.loadFavorites(),
       weeklyPlan: repo.loadWeeklyPlan(),
       groceryList: repo.loadGroceryList(),
+      groceryNote: repo.loadGroceryMeta().note,
+      grocerySpent: repo.loadGroceryMeta().spent,
     };
   }
 
@@ -99,8 +107,19 @@ export class KitchenStore extends Store<KitchenState> {
   }
 
   // --- Shopping list ---
-  generateGroceryListFromPlan(recipes: Recipe[], ingredients: Ingredient[]): void {
-    this.updateGroceryList(buildGroceryListFromPlan(this.getState().weeklyPlan, recipes, ingredients));
+  /** Builds the list from the menu, scaled to the household size; items already checked on
+   *  this device (same ingredient) stay checked — regenerating must not forget the shopping. */
+  generateGroceryListFromPlan(recipes: Recipe[], ingredients: Ingredient[], servings?: number): void {
+    const fresh = buildGroceryListFromPlan(this.getState().weeklyPlan, recipes, ingredients, undefined, { servings });
+    const wasChecked = (item: GroceryItem): boolean =>
+      this.getState().groceryList.some(
+        (old) =>
+          old.is_checked &&
+          (old.ingredient_id !== undefined && old.ingredient_id !== ''
+            ? old.ingredient_id === item.ingredient_id
+            : old.name === item.name)
+      );
+    this.updateGroceryList(fresh.map((item) => (wasChecked(item) ? { ...item, is_checked: true } : item)));
   }
 
   addGroceryItems(items: NewGroceryItem[]): void {
@@ -111,8 +130,38 @@ export class KitchenStore extends Store<KitchenState> {
     this.updateGroceryList(toggleGroceryItem(this.getState().groceryList, id));
   }
 
+  /** Removes one item from the list (distinct from checking it off as bought). */
+  removeGroceryItem(id: string): void {
+    this.updateGroceryList(removeGroceryItem(this.getState().groceryList, id));
+  }
+
+  /** Edits the quantity of one item (garbage values leave the list untouched). */
+  setGroceryItemQuantity(id: string, quantity: number): void {
+    this.updateGroceryList(updateGroceryItemQuantity(this.getState().groceryList, id, quantity));
+  }
+
   clearCheckedGroceryItems(): void {
     this.updateGroceryList(clearCheckedGroceryItems(this.getState().groceryList));
+  }
+
+  // --- List note and actual spend (the groceryMeta sync section) ---
+  setGroceryNote(note: string): void {
+    this.setGroceryMeta(note, this.getState().grocerySpent);
+  }
+
+  setGrocerySpent(spent: number | null): void {
+    this.setGroceryMeta(this.getState().groceryNote, spent);
+  }
+
+  setGroceryMeta(note: string, spent: number | null): void {
+    this.repo.saveGroceryMeta(note, spent);
+    this.setState({ groceryNote: note, grocerySpent: spent });
+  }
+
+  /** Empties the whole list, note and spend included (deletion: never goes to the history). */
+  clearGroceryList(): void {
+    this.setGroceryMeta('', null);
+    this.updateGroceryList([]);
   }
 
   private updateFridge(fridge: string[]): void {

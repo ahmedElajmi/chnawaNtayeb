@@ -29,6 +29,7 @@ import { localMatchingSettingsCache } from '@/infrastructure/local/localMatching
 import { localPreferences } from '@/infrastructure/local/localPreferences';
 import { createLocalKitchenRepository } from '@/infrastructure/local/localRepositories';
 import { kitchenSyncHttpGateway } from '@/infrastructure/http/kitchenSyncHttpGateway';
+import { groceryHistoryHttpGateway } from '@/infrastructure/http/groceryHistoryHttpGateway';
 import { readUserSession } from '@/infrastructure/http/userSession';
 import { localRecipeDrafts } from '@/infrastructure/local/localRecipeDrafts';
 import { storage } from '@/infrastructure/local/storage';
@@ -239,6 +240,7 @@ export function createContainer() {
     accountCreation: accountHttpGateway,
     backofficePolicy: passwordPolicyGateway,
     pollingSettings: pollingSettingsGateway,
+    groceryHistory: groceryHistoryHttpGateway,
     catalogAdmin,
     // Validation workflow (workspaces, workflows, roles): followed only in the backoffice
     review,

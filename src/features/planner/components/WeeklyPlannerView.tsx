@@ -8,6 +8,7 @@ import {
   countEmptyMeals,
   countMealsWithoutMain,
   generateWeekPlan,
+  planCostRange,
   removeFromSlot,
   SLOT_KEY,
 } from '@/core/planning';
@@ -58,6 +59,9 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
 
   const withoutMain = countMealsWithoutMain(plan);
   const emptyMeals = countEmptyMeals(plan);
+
+  // Planned budget of the week: each unique recipe costed once from the ingredient prices
+  const weeklyBudget = useMemo(() => planCostRange(plan, recipes, allIngredients), [plan, recipes, allIngredients]);
 
   const handleAutoGenerate = () => {
     const { plan: generated, healthyFallback } = generateWeekPlan(recipes, plan, options);
@@ -251,6 +255,10 @@ export const WeeklyPlannerView: React.FC<WeeklyPlannerViewProps> = ({
               </button>
             ))}
           </div>
+          {/* Planned budget of the week, next to the grocery list generation */}
+          <p className="text-[11px] font-semibold text-ink-muted sm:text-right">
+            {t.planBudgetLabel.replace('{n}', formatPriceRange(weeklyBudget, t.currency))}
+          </p>
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={handleAutoGenerate}
