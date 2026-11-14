@@ -7,7 +7,7 @@ import { panelsTexts } from './texts/panels';
 
 /**
  * Labels of the backoffice, in every language and variant (they follow the current language like the
- * rest of the site). Kept apart from the public dictionary: it is only downloaded with /patron.
+ * rest of the site). Kept apart from the public dictionary: it is only downloaded with /admin.
  * Shared labels live here; each area has its own file in ./texts (defineTexts), every language
  * written in full (derja in Arabic letters included).
  */
@@ -241,6 +241,57 @@ interface CoreTexts {
   teamRemove: string;
   teamRemoved: string;
   teamEmpty: string;
+  teamName: string;
+  teamCreate: string;
+  teamCreatedTitle: string;
+  teamCreatedHint: string;
+  teamCreateFailed: string;
+  usersTitle: string;
+  usersHint: string;
+  countriesEnabled: string;
+  countriesDisabled: string;
+  countriesRegions: string;
+  countriesRegionsHint: string;
+  countriesSaveRegions: string;
+  countriesAdd: string;
+  countriesIso: string;
+  countriesDial: string;
+  countriesPostal: string;
+  countriesImport: string;
+  countriesImported: string;
+  countriesAlreadyThere: string;
+  countriesTitle: string;
+  teamTitle: string;
+  clientsTitle: string;
+  clientsHint: string;
+  clientsAll: string;
+  clientsOnly: string;
+  employeesOnly: string;
+  clientsSearch: string;
+  clientsEmpty: string;
+  clientsGuest: string;
+  clientsNoEmail: string;
+  clientsShowMore: string;
+  securityTitle: string;
+  securityHint: string;
+  secAlgorithm: string;
+  secMemory: string;
+  secIterations: string;
+  secParallelism: string;
+  secMinLength: string;
+  secDigit: string;
+  secUpper: string;
+  secSpecial: string;
+  secMigration: string;
+  secMigrationAuto: string;
+  secMigrationForce: string;
+  secLockAttempts: string;
+  secLockMinutes: string;
+  secLockAuto: string;
+  securitySaveFailed: string;
+  securityNote: string;
+  clientsUnlock: string;
+  clientsUnlocked: string;
 
   // Next action, completeness, reset
   event_reset: string;
@@ -603,7 +654,7 @@ const fr: CoreTexts = {
   rolesNewName: 'Nom du nouveau rôle',
   rolesAdd: 'Ajouter un rôle',
   teamHint:
-    'Un membre se connecte sur le site avec son propre compte, puis ouvre /patron : il travaille avec les droits de son rôle. Ajoute-le par l’adresse e-mail de son compte.',
+    'Un membre se connecte sur le site avec son propre compte, puis ouvre /admin : il travaille avec les droits de son rôle. Ajoute-le par l’adresse e-mail de son compte.',
   teamEmail: 'Adresse e-mail du compte',
   teamRole: 'Rôle',
   teamAdd: 'Ajouter',
@@ -611,7 +662,61 @@ const fr: CoreTexts = {
   teamUpdated: 'Rôle modifié.',
   teamRemove: 'Retirer',
   teamRemoved: 'Membre retiré.',
-  teamEmpty: 'Aucun membre pour l’instant : seul le compte patron a accès.',
+  teamName: 'Nom affiché',
+  teamCreate: 'Créer le compte',
+  teamCreatedTitle: 'Compte employé créé.',
+  teamCreatedHint: 'Mot de passe temporaire à donner à l’employé (il le change à sa première connexion) :',
+  teamCreateFailed: 'Création impossible : {reason}.',
+  usersTitle: 'Utilisateurs & pays',
+  usersHint:
+    'Les pays que les clients peuvent choisir (téléphone, adresse) : active celui que tu veux, ajoute ses régions.',
+  countriesEnabled: 'Activé',
+  countriesDisabled: 'Désactivé',
+  countriesRegions: '{count} régions',
+  countriesRegionsHint: 'Une ligne par région : id | nom français | nom arabe',
+  countriesSaveRegions: 'Enregistrer les régions',
+  countriesAdd: 'Ajouter le pays',
+  countriesIso: 'Code ISO (TN)',
+  countriesDial: 'Indicatif (+216)',
+  countriesPostal: 'Chiffres du code postal (4)',
+  countriesImport: 'Importer la liste complète',
+  countriesImported: 'Liste complète importée : active les pays que tu veux.',
+  countriesAlreadyThere: 'Pays déjà présents : {list}',
+  securityTitle: 'Sécurité',
+  securityHint:
+    'Politique de mot de passe du site (clients et employés) : algorithme de hachage, critères de force et verrouillage des comptes.',
+  secAlgorithm: 'Algorithme de hachage',
+  secMemory: 'Mémoire (Ko)',
+  secIterations: 'Itérations',
+  secParallelism: 'Parallélisme',
+  secMinLength: 'Longueur minimale',
+  secDigit: 'Au moins un chiffre',
+  secUpper: 'Au moins une majuscule',
+  secSpecial: 'Au moins un caractère spécial',
+  secMigration: 'Changement d’algorithme',
+  secMigrationAuto: 'Re-hachage automatique à la connexion',
+  secMigrationForce: 'Demander un nouveau mot de passe à la connexion',
+  secLockAttempts: 'Tentatives avant verrouillage',
+  secLockMinutes: 'Minutes de verrouillage',
+  secLockAuto: 'Déverrouillage automatique après le délai',
+  securitySaveFailed: 'Enregistrement impossible.',
+  securityNote:
+    'La modification s’applique aux nouveaux mots de passe ; les anciens sont re-hachés à la prochaine connexion de chacun.',
+  clientsUnlock: 'Déverrouiller',
+  clientsUnlocked: 'Compte déverrouillé.',
+  countriesTitle: 'Pays',
+  teamTitle: 'Équipe',
+  clientsTitle: 'Clients',
+  clientsHint: 'Tous les comptes du site : recherche par e-mail, filtre par type, page par page.',
+  clientsAll: 'Tous',
+  clientsOnly: 'Clients',
+  employeesOnly: 'Employés',
+  clientsSearch: 'Rechercher un e-mail…',
+  clientsEmpty: 'Aucun compte pour ces critères.',
+  clientsGuest: 'Invité',
+  clientsNoEmail: 'Sans e-mail (invité)',
+  clientsShowMore: 'Afficher plus',
+  teamEmpty: 'Aucun membre pour l’instant : seul le compte super admin a accès.',
   event_reset: 'Remis à valider',
   actionValidate: 'Valider ({percent} %)',
   actionValidateChanges: 'Valider les changements',
@@ -969,7 +1074,7 @@ const derja: CoreTexts = {
   rolesNewName: 'Esm el role el jdid',
   rolesAdd: 'Zid role',
   teamHint:
-    'Membre yodkhol lel site b compte mte3ou, ba3d y7ell /patron : yekhdem b 7ou9ou9 el role mte3ou. Zidou bel e-mail mta3 el compte mte3ou.',
+    'Membre yodkhol lel site b compte mte3ou, ba3d y7ell /admin : yekhdem b 7ou9ou9 el role mte3ou. Zidou bel e-mail mta3 el compte mte3ou.',
   teamEmail: 'E-mail mta3 el compte',
   teamRole: 'Role',
   teamAdd: 'Zid',
@@ -977,7 +1082,58 @@ const derja: CoreTexts = {
   teamUpdated: 'Role tbaddel.',
   teamRemove: 'Na77i',
   teamRemoved: 'Membre tna77a.',
-  teamEmpty: 'Ma fammech membre tawa : ken compte patron 3andou accès.',
+  teamName: 'Esm elli yetbeyyen',
+  teamCreate: 'A3mel el compte',
+  teamCreatedTitle: 'Compte mte3 el khedma tsajjel.',
+  teamCreatedHint: 'Mot de passe mou3a9at bech ta3tih l khedma (yetbeddel f awel 3omra) :',
+  teamCreateFailed: 'Matnajemch tsajjel : {reason}.',
+  usersTitle: 'Utilisateurs w blad',
+  usersHint: 'El blad elli el clients ynajjem yekhtarou (telifoun, 3ounwen) : fa33el elli t7eb, zid wilayetha.',
+  countriesEnabled: 'Fa33el',
+  countriesDisabled: 'Tfi',
+  countriesRegions: '{count} wilayat',
+  countriesRegionsHint: 'Star lel wilaya : id | esm b fran9i | esm b 3arbi',
+  countriesSaveRegions: 'Sajjel el wilayat',
+  countriesAdd: 'Zid el bled',
+  countriesIso: 'Code ISO (TN)',
+  countriesDial: 'Indicatif (+216)',
+  countriesPostal: '3adad ar9am el code postal (4)',
+  countriesImport: 'Jib el lista el kamla',
+  countriesImported: 'El lista el kamlajet : fa33el elli t7eb.',
+  countriesAlreadyThere: 'Blad mawjoudin : {list}',
+  securityTitle: 'Sécurité',
+  securityHint: 'Politique el mot de passe mte3 el site (clients w khedma) : algorithme, critères w verrouillage.',
+  secAlgorithm: 'Algorithme',
+  secMemory: 'Mémoire (Ko)',
+  secIterations: 'Itérations',
+  secParallelism: 'Parallélisme',
+  secMinLength: 'Toul el a9al',
+  secDigit: 'Chifra wa7da 3al a9al',
+  secUpper: '7arf kbir 3al a9al',
+  secSpecial: '7arf spécial 3al a9al',
+  secMigration: 'Tabdil el algorithme',
+  secMigrationAuto: 'Re-hash automatique fel connexion',
+  secMigrationForce: 'Metloub mot de passe jdid fel connexion',
+  secLockAttempts: 'M7awlet 9bal verrouillage',
+  secLockMinutes: 'D9a9i9 verrouillage',
+  secLockAuto: 'Deverrouillage automatique ba3d el wa9t',
+  securitySaveFailed: 'Masajelch.',
+  securityNote: 'El tabdil ye5dem 3al el mot de passe el jdid ; el 9dam yet3awdou fel connexion el jaya.',
+  clientsUnlock: 'Deverrouilli',
+  clientsUnlocked: 'Compte deverrouilli.',
+  countriesTitle: 'Blad',
+  teamTitle: 'Khedma',
+  clientsTitle: 'Clients',
+  clientsHint: 'El comptes el kol mte3 el site : lawaj b e-mail, filtre b nawe3, saf7a b saf7a.',
+  clientsAll: 'El kol',
+  clientsOnly: 'Clients',
+  employeesOnly: 'Khedma',
+  clientsSearch: 'Lawajli 3la e-mail…',
+  clientsEmpty: '7ata compte b hedhi el me9ayes.',
+  clientsGuest: 'Dhif',
+  clientsNoEmail: 'Bla e-mail (dhif)',
+  clientsShowMore: 'Warri zyada',
+  teamEmpty: 'Ma fammech membre tawa : ken compte super admin 3andou accès.',
   event_reset: 'Rja3 lel validation',
   actionValidate: 'Validi ({percent} %)',
   actionValidateChanges: 'Validi el tbdil',
@@ -1333,7 +1489,7 @@ const ar: CoreTexts = {
   rolesNewName: 'اسم الدور الجديد',
   rolesAdd: 'إضافة دور',
   teamHint:
-    'يدخل العضو إلى الموقع بحسابه الخاص ثم يفتح /patron: يعمل بصلاحيات دوره. أضفه بعنوان البريد الإلكتروني لحسابه.',
+    'يدخل العضو إلى الموقع بحسابه الخاص ثم يفتح /admin: يعمل بصلاحيات دوره. أضفه بعنوان البريد الإلكتروني لحسابه.',
   teamEmail: 'البريد الإلكتروني للحساب',
   teamRole: 'الدور',
   teamAdd: 'إضافة',
@@ -1341,6 +1497,57 @@ const ar: CoreTexts = {
   teamUpdated: 'عُدّل الدور.',
   teamRemove: 'إزالة',
   teamRemoved: 'أُزيل العضو.',
+  teamName: 'الاسم المعروض',
+  teamCreate: 'إنشاء الحساب',
+  teamCreatedTitle: 'تم إنشاء حساب الموظف.',
+  teamCreatedHint: 'كلمة مرور مؤقتة تعطيها للموظف (يغيّرها في أول دخول):',
+  teamCreateFailed: 'تعذّر الإنشاء: {reason}.',
+  usersTitle: 'المستخدمون والبلدان',
+  usersHint: 'البلدان التي يختارها الزوار (الهاتف، العنوان): فعّل ما تريد وأضف ولاياته.',
+  countriesEnabled: 'مُفعّل',
+  countriesDisabled: 'موقوف',
+  countriesRegions: '{count} ولايات',
+  countriesRegionsHint: 'سطر لكل ولاية: المعرّف | الاسم بالفرنسية | الاسم بالعربية',
+  countriesSaveRegions: 'حفظ الولايات',
+  countriesAdd: 'إضافة البلد',
+  countriesIso: 'رمز ISO (TN)',
+  countriesDial: 'الرمز الدولي (+216)',
+  countriesPostal: 'أرقام الرمز البريدي (4)',
+  countriesImport: 'استيراد القائمة الكاملة',
+  countriesImported: 'استُوردت القائمة الكاملة: فعّل ما تريد.',
+  countriesAlreadyThere: 'بلدان موجودة: {list}',
+  securityTitle: 'الأمان',
+  securityHint: 'سياسة كلمة المرور للموقع (العملاء والموظفون): خوارزمية التشفير، معايير القوة وقفل الحسابات.',
+  secAlgorithm: 'خوارزمية التشفير',
+  secMemory: 'الذاكرة (كيلوبايت)',
+  secIterations: 'التكرارات',
+  secParallelism: 'التوازي',
+  secMinLength: 'الطول الأدنى',
+  secDigit: 'رقم واحد على الأقل',
+  secUpper: 'حرف كبير على الأقل',
+  secSpecial: 'رمز خاص على الأقل',
+  secMigration: 'تغيير الخوارزمية',
+  secMigrationAuto: 'إعادة التشفير تلقائياً عند الدخول',
+  secMigrationForce: 'كلمة مرور جديدة مطلوبة عند الدخول',
+  secLockAttempts: 'المحاولات قبل القفل',
+  secLockMinutes: 'دقائق القفل',
+  secLockAuto: 'فتح تلقائي بعد المدة',
+  securitySaveFailed: 'تعذّر الحفظ.',
+  securityNote: 'التعديل يطبّق على كلمات المرور الجديدة؛ القديمة تُعاد لتشفيرها عند الدخول القادم.',
+  clientsUnlock: 'فتح الحساب',
+  clientsUnlocked: 'الحساب انفتح.',
+  countriesTitle: 'البلدان',
+  teamTitle: 'الفريق',
+  clientsTitle: 'العملاء',
+  clientsHint: 'كل حسابات الموقع: بحث بالبريد، تصفية حسب النوع، صفحة بصفحة.',
+  clientsAll: 'الكل',
+  clientsOnly: 'عملاء',
+  employeesOnly: 'موظفون',
+  clientsSearch: 'ابحث عن بريد…',
+  clientsEmpty: 'لا حساب بهذه المعايير.',
+  clientsGuest: 'ضيف',
+  clientsNoEmail: 'بدون بريد (ضيف)',
+  clientsShowMore: 'عرض المزيد',
   teamEmpty: 'لا أعضاء حاليًا: حساب المسؤول وحده له الوصول.',
   event_reset: 'أُعيد إلى المراجعة',
   actionValidate: 'مراجعة ({percent} %)',
@@ -1626,14 +1833,64 @@ const derjaArabic: CoreTexts = {
   rolesLanguagesHint: 'بلا اختيار: الأقسام الكل. وإلّا كان نصوص اللغات هاذم (مترجم).',
   rolesNewName: 'إسم الدور الجديد',
   rolesAdd: 'زيد دور',
-  teamHint:
-    'العضو يدخل للموقع بالحساب متاعو، وبعد يحلّ /patron: يخدم بصلاحيات الدور متاعو. زيدو بالإيمايل متاع الحساب.',
+  teamHint: 'العضو يدخل للموقع بالحساب متاعو، وبعد يحلّ /admin: يخدم بصلاحيات الدور متاعو. زيدو بالإيمايل متاع الحساب.',
   teamEmail: 'الإيمايل متاع الحساب',
   teamAdd: 'زيد',
   teamAdded: 'العضو تزاد.',
   teamUpdated: 'الدور تبدّل.',
   teamRemove: 'نحّي',
   teamRemoved: 'العضو تنحّى.',
+  teamName: 'الاسم المعروض',
+  teamCreate: 'أعمل الحساب',
+  teamCreatedTitle: 'حساب الخدمة تسجّل.',
+  teamCreatedHint: 'كلمة السر المؤقتة باش تعطيها للخدمة (تبدّلها في أول مرة):',
+  teamCreateFailed: 'ما تنجّمش تسجّل : {reason}.',
+  usersTitle: 'المستخدمين والبلاد',
+  usersHint: 'البلاد اللي الزوار ينجموا يختارو (التيليفون، العنوان) : فعّل اللي تحب، زيد ولاياتها.',
+  countriesEnabled: 'مفعّل',
+  countriesDisabled: 'طفى',
+  countriesRegions: '{count} ولايات',
+  countriesRegionsHint: 'سطر للولاية : id | الاسم بالفرنسية | الاسم بالعربية',
+  countriesSaveRegions: 'سجّل الولايات',
+  countriesAdd: 'زيد البلاد',
+  countriesIso: 'كود ISO (TN)',
+  countriesDial: 'المؤشّر (+216)',
+  countriesPostal: 'عدد أرقام الكود البريدي (4)',
+  countriesImport: 'جيب الليستة الكاملة',
+  countriesImported: 'الليستة الكاملة جات : فعّل اللي تحب.',
+  countriesAlreadyThere: 'بلاد موجودين : {list}',
+  securityTitle: 'الأمان',
+  securityHint: 'سياسة الموت دو باص متاع الموقع (كليان وخدامة) : الخوارزمية، المعايير والقفل.',
+  secAlgorithm: 'الخوارزمية',
+  secMemory: 'الذاكرة (كيلوبايت)',
+  secIterations: 'التكرارات',
+  secParallelism: 'التوازي',
+  secMinLength: 'الطول الأدنى',
+  secDigit: 'رقم على الأقل',
+  secUpper: 'حرف كبير على الأقل',
+  secSpecial: 'رمز خاص على الأقل',
+  secMigration: 'تبديل الخوارزمية',
+  secMigrationAuto: 'إعادة تشفير تلقائية عند الدخول',
+  secMigrationForce: 'موت دو باص جديد مطلوب عند الدخول',
+  secLockAttempts: 'محاولات قبل القفل',
+  secLockMinutes: 'دقائق القفل',
+  secLockAuto: 'فتح تلقائي بعد المدة',
+  securitySaveFailed: 'ما تسجّلش.',
+  securityNote: 'التبديل يخدم على الكلمات الجديدة؛ القديمة تُعاد عند الدخول الجاي.',
+  clientsUnlock: 'فتح الحساب',
+  clientsUnlocked: 'الحساب تحل.',
+  countriesTitle: 'البلاد',
+  teamTitle: 'الخدامة',
+  clientsTitle: 'الكليان',
+  clientsHint: 'الكومبتات الكل متاع الموقع : لوج بالإيميل، تصفية بالنوع، صفحة بصفحة.',
+  clientsAll: 'الكل',
+  clientsOnly: 'كليان',
+  employeesOnly: 'خدامة',
+  clientsSearch: 'لوج على إيميل…',
+  clientsEmpty: 'حتى كومبت بهذي المعايير.',
+  clientsGuest: 'ضيف',
+  clientsNoEmail: 'بلا إيميل (ضيف)',
+  clientsShowMore: 'وري زادة',
   teamEmpty: 'ما فمّاش أعضاء توّا: كان حساب الباترون عندو الدخول.',
   event_reset: 'رجع للمراجعة',
   actionValidate: 'صدّق ({percent} %)',

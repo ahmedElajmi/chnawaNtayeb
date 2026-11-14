@@ -1,14 +1,25 @@
 import type express from 'express';
 
-const DEFAULT_PUBLIC_URL = 'https://chnawantayeb.onrender.com';
+/**
+ * Public address of the site. APP_URL is the only source of truth: SEO URLs
+ * (canonical, sitemap, robots) are never built from request headers, which any
+ * client can forge (host-header poisoning would advertise an attacker host).
+ */
+export function getBaseUrl(_req?: express.Request): string {
+  const appUrl = process.env.APP_URL;
+  if (appUrl) return appUrl.replace(/\/$/, '');
+  // Local development without APP_URL: the rendered SEO pages live on this very host.
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
 
-/** Public address of the site (APP_URL, else the forwarded host, else the production default). */
-export function getBaseUrl(req: express.Request): string {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
-  const forwardedProto = (req.headers['x-forwarded-proto'] as string) || req.protocol;
-  const host = (req.headers['x-forwarded-host'] as string) || req.get('host');
-  if (host && !host.includes('localhost') && !host.includes('127.0.0.1') && !host.includes('0.0.0.0')) {
-    return `${forwardedProto}://${host}`;
-  }
-  return DEFAULT_PUBLIC_URL;
+/**
+ * Production has no safe fallback for the public address: without APP_URL the
+ * canonical, sitemap and robots URLs would be wrong. Returns the reason to
+ * refuse the start, or null when the configuration is fine.
+ */
+export function appUrlStartupError(env: NodeJS.ProcessEnv = process.env): string | null {
+  if (env.NODE_ENV !== 'production') return null;
+  return env.APP_URL
+    ? null
+    : 'APP_URL is required in production: canonical, sitemap and robots URLs are built from it.';
 }

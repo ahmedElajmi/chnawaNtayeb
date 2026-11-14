@@ -115,6 +115,11 @@ export interface TranslationDictionary {
   scannerErrorKey: string;
   pwaOfflineTitle: string;
   pwaOfflineText: string;
+  // Kitchen sync invitation
+  syncInviteTitle: string;
+  syncInviteText: string;
+  syncInviteAction: string;
+  syncInviteDismiss: string;
   pwaIosTitle: string;
   pwaIosStep1: string;
   pwaIosStep2: string;
@@ -212,7 +217,7 @@ export interface TranslationDictionary {
   catalogEmptyTitle: string;
   catalogEmptyDesc: string;
   resetFiltersLabel: string;
-  // Public screens: home, header, account, patron access, recipe and list labels
+  // Public screens: home, header, account, super admin access, recipe and list labels
   minutesValue: string;
   servingsShort: string;
   homeBadge: string;
@@ -228,12 +233,11 @@ export interface TranslationDictionary {
   homeSeeAll: string;
   homeReadyEmpty: string;
   homeFillFridge: string;
-  logoPatronHint: string;
-  patronBadge: string;
-  patronOpenBackoffice: string;
-  patronLogout: string;
-  patronQuit: string;
-  patronExitMode: string;
+  backofficeBadge: string;
+  backofficeOpen: string;
+  backofficeLogout: string;
+  backofficeQuit: string;
+  backofficeExitMode: string;
   themePreviewNote: string;
   languageSelectLabel: string;
   networkStatusLabel: string;
@@ -245,7 +249,7 @@ export interface TranslationDictionary {
   accountStatus: string;
   accountConnected: string;
   accountIdentifier: string;
-  accountPatronSession: string;
+  accountBackofficeSession: string;
   accountGuestName: string;
   accountGuest: string;
   accountRole: string;
@@ -262,22 +266,58 @@ export interface TranslationDictionary {
   accountPasswordMin: string;
   accountOr: string;
   accountGuestContinue: string;
-  accountPatronAccess: string;
+  accountName: string;
+  accountNamePlaceholder: string;
+  accountPhone: string;
+  accountPhoneOptional: string;
+  accountAddressAdd: string;
+  accountAddressTitle: string;
+  accountAddressLine: string;
+  accountAddressRegion: string;
+  accountAddressCity: string;
+  accountAddressPostal: string;
+  accountPreferredLanguage: string;
+  accountProfileTitle: string;
+  accountEditProfile: string;
+  accountSaved: string;
+  accountChangePassword: string;
+  accountCurrentPassword: string;
+  accountNewPassword: string;
+  accountPasswordChanged: string;
+  accountPasswordConfirm: string;
+  accountPasswordMismatch: string;
+  accountPasswordShow: string;
+  accountPasswordHide: string;
+  accountPasswordRuleDigit: string;
+  accountPasswordRuleUpper: string;
+  accountPasswordRuleSpecial: string;
+  passwordStrengthWeak: string;
+  passwordStrengthFair: string;
+  passwordStrengthGood: string;
+  passwordStrengthStrong: string;
+  accountGuestBanner: string;
+  accountRoleEmployee: string;
+  accountFieldRequired: string;
+  accountFieldPhone: string;
+  accountFieldAddress: string;
+  accountFieldLanguage: string;
+  accountProfileUnavailable: string;
   authErrorInvalidCredentials: string;
   authErrorEmailInUse: string;
   authErrorWeakPassword: string;
   authErrorInvalidEmail: string;
   authErrorDisabled: string;
+  authErrorLocked: string;
   authErrorUnknown: string;
   errorNetwork: string;
   errorTooManyAttempts: string;
-  patronLoginTitle: string;
-  patronLoginSubtitle: string;
-  patronLoginUsername: string;
-  patronLoginSubmit: string;
-  patronErrorUnreachable: string;
-  patronErrorInvalid: string;
-  patronErrorUnavailable: string;
+  backofficeLoginTitle: string;
+  backofficeLoginSubtitle: string;
+  backofficeLoginUsername: string;
+  backofficeLoginSubmit: string;
+  backofficeErrorUnreachable: string;
+  backofficeErrorInvalid: string;
+  backofficeErrorUnavailable: string;
   readyBadge: string;
   missingCountBadge: string;
   mealIdea: string;
@@ -297,6 +337,42 @@ export interface TranslationDictionary {
   maxTimeLabel: string;
   budgetAny: string;
   timeAny: string;
+  // Grocery list: aisles, note, budget, lifecycle and print
+  groceryAisles: string;
+  groceryNote: string;
+  groceryQuantity: string;
+  groceryDeleteItem: string;
+  groceryPrint: string;
+  groceryPlanned: string;
+  groceryReal: string;
+  grocerySpentPlaceholder: string;
+  groceryListDone: string;
+  groceryCloseWeek: string;
+  groceryContinueEditing: string;
+  groceryWeekClosed: string;
+  groceryArchive: string;
+  groceryArchiveConfirm: string;
+  groceryArchived: string;
+  groceryArchiveError: string;
+  groceryDeleteAll: string;
+  groceryDeleteAllConfirm: string;
+  grocerySignInHint: string;
+  // Grocery history panel
+  groceryHistoryTitle: string;
+  groceryHistoryEmpty: string;
+  groceryHistoryCount: string;
+  groceryHistoryDeleteConfirm: string;
+  groceryHistoryLoadError: string;
+  groceryExportExcel: string;
+  groceryXlsxDate: string;
+  groceryXlsxComment: string;
+  groceryXlsxItems: string;
+  groceryXlsxPlanned: string;
+  groceryXlsxActual: string;
+  groceryXlsxGap: string;
+  groceryXlsxTotal: string;
+  // Weekly planner: planned budget of the week
+  planBudgetLabel: string;
 }
 
 /**
@@ -409,6 +485,11 @@ export const translations = {
     scannerErrorKey: 'Lezem t7ott clé Gemini fel secrets bech tekhdem el caméra AI.',
     pwaOfflineTitle: 'Yekhdem bla internet w yet7al fisa3',
     pwaOfflineText: 'El application ta7fadh el recettes w lista mta3 el 9adhya bech tekhdem 7atta bla 4G walla Wi-Fi.',
+    syncInviteTitle: 'El makla mte3ek ma3ak fel 4all',
+    syncInviteText:
+      'A3mel compte bech tal9a el favoris, el frigo, el menu w el lista mta3 el qadhya 3ala kol appareil.',
+    syncInviteAction: 'A3mel compte',
+    syncInviteDismiss: 'Ba3d',
     pwaIosTitle: 'Installation 3al iPhone w iPad (Safari) :',
     pwaIosStep1: '1. Enzel 3la **Partager** louta fi Safari (el icône elli fiha flèche tetla3).',
     pwaIosStep2: '2. Habbet fel menu w ekhtar **Sur l’écran d’accueil**.',
@@ -523,12 +604,11 @@ export const translations = {
     homeReadyEmpty:
       'Ekhtar chwaya ingrédients (3dham, tmatem, hrissa...) bech tchouf el maklet elli tnejjem ttayebhom tawa !',
     homeFillFridge: '3abbi el frigo mte3i',
-    logoPatronHint: '3 clics : dokhoul el patron',
-    patronBadge: 'Patron',
-    patronOpenBackoffice: 'Odkhel lel backoffice',
-    patronLogout: 'Okhrej mel compte patron',
-    patronQuit: 'Okhrej',
-    patronExitMode: 'Okhrej mel mode patron',
+    backofficeBadge: 'Super admin',
+    backofficeOpen: 'Odkhel lel backoffice',
+    backofficeLogout: 'Okhrej mel compte super admin',
+    backofficeQuit: 'Okhrej',
+    backofficeExitMode: 'Okhrej mel mode super admin',
     themePreviewNote: 'Thème fi west el aperçu (backoffice).',
     languageSelectLabel: 'Ekhtar el lougha',
     networkStatusLabel: '7alet el réseau',
@@ -540,7 +620,7 @@ export const translations = {
     accountStatus: 'El 7ala :',
     accountConnected: 'Connecté',
     accountIdentifier: 'El identifiant :',
-    accountPatronSession: 'Session patron',
+    accountBackofficeSession: 'Session super admin',
     accountGuestName: 'Dhif y7eb el makla',
     accountGuest: 'Dhif',
     accountRole: 'Dawr :',
@@ -558,22 +638,58 @@ export const translations = {
     accountPasswordMin: '{n} 7orouf 3al a9al.',
     accountOr: 'Walla',
     accountGuestContinue: 'Kammel b clic wa7ed (dhif)',
-    accountPatronAccess: 'Dokhoul el idara (/patron)',
+    accountName: 'Esmek',
+    accountNamePlaceholder: 'Esmek el kamel',
+    accountPhone: 'Telifoun',
+    accountPhoneOptional: '(fakultatif)',
+    accountAddressAdd: 'Zid 3ounwen',
+    accountAddressTitle: '3ounwen',
+    accountAddressLine: 'Zenka, 3imara…',
+    accountAddressRegion: 'Wilaya',
+    accountAddressCity: 'Bled',
+    accountAddressPostal: 'Code postal',
+    accountPreferredLanguage: 'Loughet l affichage',
+    accountProfileTitle: 'Profil mte3i',
+    accountEditProfile: 'Beddel profil',
+    accountSaved: 'Tsajjel !',
+    accountChangePassword: 'Beddel mot de passe',
+    accountCurrentPassword: 'Mot de passe el 9dim',
+    accountNewPassword: 'Mot de passe el jdid',
+    accountPasswordChanged: 'Mot de passe etbeddel !',
+    accountPasswordConfirm: '3awed el mot de passe',
+    accountPasswordMismatch: 'El mot de passe mouch kif kif.',
+    accountPasswordShow: 'Warri el mot de passe',
+    accountPasswordHide: '5ebbi el mot de passe',
+    accountPasswordRuleDigit: 'Ra9m wa7ed 3ala l9al',
+    accountPasswordRuleUpper: '7arf kabir wa7ed 3ala l9al',
+    accountPasswordRuleSpecial: 'Ramz speciale wa7ed 3ala l9al',
+    passwordStrengthWeak: 'Dh3if',
+    passwordStrengthFair: 'Wesit',
+    passwordStrengthGood: 'Behi',
+    passwordStrengthStrong: 'Barcha 9wi',
+    accountGuestBanner: 'Data mte3ek to93od 3al appareil hedha : a3mel compte bech tal9aha 3la kol écran.',
+    accountRoleEmployee: 'F l équipe',
+    accountFieldRequired: 'Champ lazem',
+    accountFieldPhone: 'Rakm ghalet',
+    accountFieldAddress: '3ounwen ghalet',
+    accountFieldLanguage: 'Lougha ma3roufach',
+    accountProfileUnavailable: 'Profil matnajemch tet9ra tawa',
     authErrorInvalidCredentials: 'Email walla mot de passe ghalet.',
     authErrorEmailInUse: 'Famma deja compte b el email hedha. Odkhel bih khir.',
     authErrorWeakPassword: 'Mot de passe dh3if barcha ({n} 7orouf 3al a9al).',
     authErrorInvalidEmail: 'Email ghalet.',
     authErrorDisabled: 'El tari9a hedhi mta3 el dokhoul msakra tawa.',
+    authErrorLocked: 'El compte tesakkar ba3d barcha mo7awlet. 3awed ba3d chwaya wala ithilna.',
     authErrorUnknown: 'Famma ghalta. 3awed.',
     errorNetwork: 'Ma famech connexion internet.',
     errorTooManyAttempts: 'Barcha mo7awlet. 3awed ba3d chwaya d9aye9.',
-    patronLoginTitle: 'Dokhoul el patron',
-    patronLoginSubtitle: 'Idara m2ammna (/patron)',
-    patronLoginUsername: 'Identifiant super-user',
-    patronLoginSubmit: '7ell el backoffice',
-    patronErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
-    patronErrorInvalid: 'Identifiant walla mot de passe ghalet.',
-    patronErrorUnavailable: 'Dokhoul el patron mouch mawjoud tawa.',
+    backofficeLoginTitle: 'Dokhoul el super admin',
+    backofficeLoginSubtitle: 'Idara m2ammna (/super admin)',
+    backofficeLoginUsername: 'Identifiant super-user',
+    backofficeLoginSubmit: '7ell el backoffice',
+    backofficeErrorUnreachable: 'Ma najjamnech nwasslou lel serveur. Thabbet fel connexion.',
+    backofficeErrorInvalid: 'Identifiant walla mot de passe ghalet.',
+    backofficeErrorUnavailable: 'Dokhoul el super admin mouch mawjoud tawa.',
     readyBadge: '100% 7adher !',
     missingCountBadge: '{n} na9es',
     mealIdea: 'Fekra makla',
@@ -593,6 +709,39 @@ export const translations = {
     maxTimeLabel: 'Akther waqt',
     budgetAny: 'Budget : el kol',
     timeAny: 'Waqt : el kol',
+    groceryAisles: 'Rayons el 7anout',
+    groceryNote: 'Note lel liste (qadhya Carrefour sebt...)',
+    groceryQuantity: '9addésh',
+    groceryDeleteItem: 'Na7i mel liste',
+    groceryPrint: 'Imprimi',
+    groceryPlanned: 'Prévu',
+    groceryReal: 'Elli khlast',
+    grocerySpentPlaceholder: '9addésh khlast ? (DT)',
+    groceryListDone: 'El liste kammlet ✓',
+    groceryCloseWeek: 'Sakker el jom3a',
+    groceryContinueEditing: 'Nkemmel el liste',
+    groceryWeekClosed: 'El jom3a tesakret ! A3mel liste jdid mel menu.',
+    groceryArchive: 'Arkhevi',
+    groceryArchiveConfirm: 'Tarkhevi el liste fi el historique mta3 el qadhya ?',
+    groceryArchived: 'El liste tarkhevet fel historique !',
+    groceryArchiveError: 'Ma najjamnech narkhevi el liste. 3awed.',
+    groceryDeleteAll: 'Fasakh el liste el kol',
+    groceryDeleteAllConfirm: 'Tfasakh el {n} articles ? Définitif — mouch arkhevi.',
+    grocerySignInHint: 'Odkhel (walla a3mel compte) bech tarkhevi el qadhya w tal9a el historique.',
+    groceryHistoryTitle: 'Historique el qadhya',
+    groceryHistoryEmpty: 'Mafamech chnowa tarkhef tawa. Sakker jom3a bech tal9aha hné.',
+    groceryHistoryCount: '{n} articles',
+    groceryHistoryDeleteConfirm: 'Tfasakh el qadhya hedhi mel historique ?',
+    groceryHistoryLoadError: 'Ma najjamnech njib el historique. 3awed ba3d chwaya.',
+    groceryExportExcel: 'Exporti Excel',
+    groceryXlsxDate: 'Date',
+    groceryXlsxComment: 'Note',
+    groceryXlsxItems: 'Articles',
+    groceryXlsxPlanned: 'Prévu',
+    groceryXlsxActual: 'Elli khlast',
+    groceryXlsxGap: 'Far9',
+    groceryXlsxTotal: 'Total',
+    planBudgetLabel: 'Budget el jom3a el prévu : {n}',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -698,6 +847,11 @@ export const translations = {
     scannerErrorKey: 'Clé API Gemini requise pour la reconnaissance visuelle.',
     pwaOfflineTitle: 'Mode hors ligne et accès instantané',
     pwaOfflineText: 'L’application garde vos recettes et listes de courses pour fonctionner même sans 4G ni Wi-Fi.',
+    syncInviteTitle: 'Vos données vous suivent partout',
+    syncInviteText:
+      'Créez un compte pour retrouver vos favoris, votre frigo, votre menu et votre liste de courses sur tous vos appareils.',
+    syncInviteAction: 'Créer un compte',
+    syncInviteDismiss: 'Plus tard',
     pwaIosTitle: 'Installation sur iPhone et iPad (Safari) :',
     pwaIosStep1: '1. Appuyez sur **Partager** en bas de Safari (l’icône avec la flèche vers le haut).',
     pwaIosStep2: '2. Faites défiler le menu et choisissez **Sur l’écran d’accueil**.',
@@ -814,12 +968,11 @@ export const translations = {
     homeReadyEmpty:
       'Cochez quelques ingrédients de base (œufs, tomates, harissa...) pour découvrir vos recettes prêtes à cuisiner !',
     homeFillFridge: 'Remplir mon frigo',
-    logoPatronHint: '3 clics : accès patron',
-    patronBadge: 'Patron',
-    patronOpenBackoffice: 'Accéder au backoffice patron',
-    patronLogout: 'Déconnexion patron',
-    patronQuit: 'Quitter',
-    patronExitMode: 'Quitter le mode patron',
+    backofficeBadge: 'Super admin',
+    backofficeOpen: 'Accéder au backoffice super admin',
+    backofficeLogout: 'Déconnexion super admin',
+    backofficeQuit: 'Quitter',
+    backofficeExitMode: 'Quitter le mode super admin',
     themePreviewNote: 'Aperçu d’un thème en cours (backoffice).',
     languageSelectLabel: 'Choisir la langue',
     networkStatusLabel: 'Statut réseau',
@@ -831,7 +984,7 @@ export const translations = {
     accountStatus: 'Statut :',
     accountConnected: 'Connecté',
     accountIdentifier: 'Identifiant :',
-    accountPatronSession: 'Session patron',
+    accountBackofficeSession: 'Session super admin',
     accountGuestName: 'Invité gourmand',
     accountGuest: 'Invité',
     accountRole: 'Rôle :',
@@ -849,22 +1002,59 @@ export const translations = {
     accountPasswordMin: '{n} caractères minimum.',
     accountOr: 'Ou',
     accountGuestContinue: 'Continuer en 1 clic (invité)',
-    accountPatronAccess: 'Accès sécurisé gérance (/patron)',
+    accountName: 'Nom affiché',
+    accountNamePlaceholder: 'Votre nom complet',
+    accountPhone: 'Téléphone',
+    accountPhoneOptional: '(facultatif)',
+    accountAddressAdd: 'Ajouter une adresse',
+    accountAddressTitle: 'Adresse',
+    accountAddressLine: 'Rue, immeuble, appartement…',
+    accountAddressRegion: 'Gouvernorat',
+    accountAddressCity: 'Ville',
+    accountAddressPostal: 'Code postal',
+    accountPreferredLanguage: 'Langue préférée',
+    accountProfileTitle: 'Mon profil',
+    accountEditProfile: 'Modifier mon profil',
+    accountSaved: 'Enregistré !',
+    accountChangePassword: 'Changer le mot de passe',
+    accountCurrentPassword: 'Mot de passe actuel',
+    accountNewPassword: 'Nouveau mot de passe',
+    accountPasswordChanged: 'Mot de passe modifié !',
+    accountPasswordConfirm: 'Confirmer le mot de passe',
+    accountPasswordMismatch: 'Les deux mots de passe ne correspondent pas.',
+    accountPasswordShow: 'Afficher le mot de passe',
+    accountPasswordHide: 'Masquer le mot de passe',
+    accountPasswordRuleDigit: 'Au moins un chiffre',
+    accountPasswordRuleUpper: 'Au moins une majuscule',
+    accountPasswordRuleSpecial: 'Au moins un caractère spécial',
+    passwordStrengthWeak: 'Faible',
+    passwordStrengthFair: 'Moyen',
+    passwordStrengthGood: 'Bon',
+    passwordStrengthStrong: 'Très fort',
+    accountGuestBanner:
+      'Tes données restent sur cet appareil : crée ton compte pour les retrouver sur tous tes écrans.',
+    accountRoleEmployee: 'Équipe',
+    accountFieldRequired: 'Champ requis',
+    accountFieldPhone: 'Numéro invalide',
+    accountFieldAddress: 'Adresse invalide',
+    accountFieldLanguage: 'Langue inconnue',
+    accountProfileUnavailable: 'Profil illisible pour le moment',
     authErrorInvalidCredentials: 'E-mail ou mot de passe incorrect.',
     authErrorEmailInUse: 'Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.',
     authErrorWeakPassword: 'Mot de passe trop faible ({n} caractères minimum).',
     authErrorInvalidEmail: 'Adresse e-mail invalide.',
     authErrorDisabled: 'Ce mode de connexion est désactivé pour le moment.',
+    authErrorLocked: 'Compte bloqué après trop d’essais. Réessaie plus tard ou contacte-nous.',
     authErrorUnknown: 'Une erreur est survenue. Réessaie.',
     errorNetwork: 'Connexion internet indisponible.',
     errorTooManyAttempts: 'Trop de tentatives. Réessaie dans quelques minutes.',
-    patronLoginTitle: 'Accès patron',
-    patronLoginSubtitle: 'Administration sécurisée (/patron)',
-    patronLoginUsername: 'Identifiant super-user',
-    patronLoginSubmit: 'Déverrouiller le backoffice',
-    patronErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
-    patronErrorInvalid: 'Identifiant ou mot de passe incorrect.',
-    patronErrorUnavailable: 'Accès patron indisponible pour le moment.',
+    backofficeLoginTitle: 'Accès super admin',
+    backofficeLoginSubtitle: 'Administration sécurisée (/super admin)',
+    backofficeLoginUsername: 'Identifiant super-user',
+    backofficeLoginSubmit: 'Déverrouiller le backoffice',
+    backofficeErrorUnreachable: 'Serveur injoignable. Vérifiez votre connexion.',
+    backofficeErrorInvalid: 'Identifiant ou mot de passe incorrect.',
+    backofficeErrorUnavailable: 'Accès super admin indisponible pour le moment.',
     readyBadge: '100 % prêt !',
     missingCountBadge: '{n} manquant(s)',
     mealIdea: 'Idée repas',
@@ -884,6 +1074,39 @@ export const translations = {
     maxTimeLabel: 'Temps maximum',
     budgetAny: 'Budget : tous',
     timeAny: 'Temps : tous',
+    groceryAisles: 'Rayons',
+    groceryNote: 'Une note pour la liste (courses Carrefour samedi...)',
+    groceryQuantity: 'Quantité',
+    groceryDeleteItem: "Supprimer l'article",
+    groceryPrint: 'Imprimer',
+    groceryPlanned: 'Prévu',
+    groceryReal: 'Réel',
+    grocerySpentPlaceholder: 'Montant dépensé (DT)...',
+    groceryListDone: 'Liste terminée ✓',
+    groceryCloseWeek: 'Clôturer la semaine',
+    groceryContinueEditing: 'Continuer à modifier',
+    groceryWeekClosed: 'Semaine clôturée ! Génère ta prochaine liste depuis le menu.',
+    groceryArchive: 'Archiver',
+    groceryArchiveConfirm: 'Archiver cette liste dans l’historique des courses ?',
+    groceryArchived: 'Liste archivée dans l’historique !',
+    groceryArchiveError: 'Impossible d’archiver la liste. Réessaie.',
+    groceryDeleteAll: 'Supprimer toute la liste',
+    groceryDeleteAllConfirm: 'Supprimer les {n} articles ? Définitif — non archivé.',
+    grocerySignInHint: 'Connecte-toi (ou crée un compte) pour archiver tes courses et retrouver l’historique.',
+    groceryHistoryTitle: 'Historique des courses',
+    groceryHistoryEmpty: 'Pas encore de liste archivée. Clôture une semaine pour la retrouver ici.',
+    groceryHistoryCount: '{n} articles',
+    groceryHistoryDeleteConfirm: 'Supprimer cette course de l’historique ?',
+    groceryHistoryLoadError: 'Impossible de charger l’historique. Réessaie plus tard.',
+    groceryExportExcel: 'Exporter Excel',
+    groceryXlsxDate: 'Date',
+    groceryXlsxComment: 'Note',
+    groceryXlsxItems: 'Articles',
+    groceryXlsxPlanned: 'Prévu',
+    groceryXlsxActual: 'Réel',
+    groceryXlsxGap: 'Écart',
+    groceryXlsxTotal: 'Total',
+    planBudgetLabel: 'Budget prévu de la semaine : {n}',
   },
   ar: {
     appName: 'Chnowa Ntayeb',
@@ -988,6 +1211,10 @@ export const translations = {
     scannerErrorKey: 'مفتاح Gemini API مطلوب لتشغيل ميزة الكاميرا.',
     pwaOfflineTitle: 'يعمل دون إنترنت ويفتح فوراً',
     pwaOfflineText: 'يحتفظ التطبيق بوصفاتك وقوائم مشترياتك ليعمل حتى دون 4G أو Wi-Fi.',
+    syncInviteTitle: 'بياناتك ترافقك في كل مكان',
+    syncInviteText: 'أنشئ حسابًا لتجد مفضّلاتك وثلاجتك وقائمتك الأسبوعية وقائمة مشترياتك على كل أجهزتك.',
+    syncInviteAction: 'أنشئ حسابًا',
+    syncInviteDismiss: 'لاحقًا',
     pwaIosTitle: 'التثبيت على iPhone وiPad (Safari):',
     pwaIosStep1: '1. اضغط على **مشاركة** أسفل Safari (الأيقونة ذات السهم المتجه للأعلى).',
     pwaIosStep2: '2. مرّر القائمة واختر **إضافة إلى الشاشة الرئيسية**.',
@@ -1100,12 +1327,11 @@ export const translations = {
     homeSeeAll: 'عرض الكل ({n})',
     homeReadyEmpty: 'اختر بعض المكوّنات الأساسية (بيض، طماطم، هريسة...) لتكتشف الوصفات الجاهزة للطهي!',
     homeFillFridge: 'املأ ثلاجتي',
-    logoPatronHint: '3 نقرات: دخول المدير',
-    patronBadge: 'المدير',
-    patronOpenBackoffice: 'الدخول إلى لوحة الإدارة',
-    patronLogout: 'تسجيل خروج المدير',
-    patronQuit: 'خروج',
-    patronExitMode: 'الخروج من وضع المدير',
+    backofficeBadge: 'المدير',
+    backofficeOpen: 'الدخول إلى لوحة الإدارة',
+    backofficeLogout: 'تسجيل خروج المدير',
+    backofficeQuit: 'خروج',
+    backofficeExitMode: 'الخروج من وضع المدير',
     themePreviewNote: 'معاينة سمة جارية من لوحة الإدارة.',
     languageSelectLabel: 'اختر اللغة',
     networkStatusLabel: 'حالة الشبكة',
@@ -1117,7 +1343,7 @@ export const translations = {
     accountStatus: 'الحالة:',
     accountConnected: 'متصل',
     accountIdentifier: 'المعرّف:',
-    accountPatronSession: 'جلسة المدير',
+    accountBackofficeSession: 'جلسة المدير',
     accountGuestName: 'ضيف ذوّاق',
     accountGuest: 'ضيف',
     accountRole: 'الدور:',
@@ -1134,22 +1360,58 @@ export const translations = {
     accountPasswordMin: '{n} أحرف على الأقل.',
     accountOr: 'أو',
     accountGuestContinue: 'المتابعة بنقرة واحدة (ضيف)',
-    accountPatronAccess: 'دخول الإدارة الآمن (/patron)',
+    accountName: 'الاسم المعروض',
+    accountNamePlaceholder: 'اسمك الكامل',
+    accountPhone: 'الهاتف',
+    accountPhoneOptional: '(اختياري)',
+    accountAddressAdd: 'إضافة عنوان',
+    accountAddressTitle: 'العنوان',
+    accountAddressLine: 'الشارع، العمارة، الشقة…',
+    accountAddressRegion: 'الولاية',
+    accountAddressCity: 'المدينة',
+    accountAddressPostal: 'الرمز البريدي',
+    accountPreferredLanguage: 'لغة العرض المفضلة',
+    accountProfileTitle: 'ملفي الشخصي',
+    accountEditProfile: 'تعديل ملفي',
+    accountSaved: 'تم الحفظ!',
+    accountChangePassword: 'تغيير كلمة المرور',
+    accountCurrentPassword: 'كلمة المرور الحالية',
+    accountNewPassword: 'كلمة المرور الجديدة',
+    accountPasswordChanged: 'تم تغيير كلمة المرور!',
+    accountPasswordConfirm: 'تأكيد كلمة المرور',
+    accountPasswordMismatch: 'كلمتا المرور غير متطابقتين.',
+    accountPasswordShow: 'إظهار كلمة المرور',
+    accountPasswordHide: 'إخفاء كلمة المرور',
+    accountPasswordRuleDigit: 'رقم واحد على الأقل',
+    accountPasswordRuleUpper: 'حرف كبير واحد على الأقل',
+    accountPasswordRuleSpecial: 'رمز خاص واحد على الأقل',
+    passwordStrengthWeak: 'ضعيفة',
+    passwordStrengthFair: 'متوسطة',
+    passwordStrengthGood: 'جيدة',
+    passwordStrengthStrong: 'قوية جدًا',
+    accountGuestBanner: 'بياناتك تبقى على هذا الجهاز : أنشئ حسابك لتجدها على كل شاشاتك.',
+    accountRoleEmployee: 'الفريق',
+    accountFieldRequired: 'حقل مطلوب',
+    accountFieldPhone: 'رقم غير صالح',
+    accountFieldAddress: 'عنوان غير صالح',
+    accountFieldLanguage: 'لغة غير معروفة',
+    accountProfileUnavailable: 'تعذّرت قراءة الملف الآن',
     authErrorInvalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
     authErrorEmailInUse: 'يوجد حساب بهذا البريد الإلكتروني. سجّل الدخول بدلًا من ذلك.',
     authErrorWeakPassword: 'كلمة المرور ضعيفة جدًا ({n} أحرف على الأقل).',
     authErrorInvalidEmail: 'عنوان البريد الإلكتروني غير صالح.',
     authErrorDisabled: 'طريقة تسجيل الدخول هذه معطّلة حاليًا.',
+    authErrorLocked: 'تم قفل الحساب بعد محاولات كثيرة. أعد المحاولة لاحقًا أو تواصل معنا.',
     authErrorUnknown: 'حدث خطأ. أعد المحاولة.',
     errorNetwork: 'الاتصال بالإنترنت غير متوفر.',
     errorTooManyAttempts: 'محاولات كثيرة جدًا. أعد المحاولة بعد بضع دقائق.',
-    patronLoginTitle: 'دخول المدير',
-    patronLoginSubtitle: 'إدارة آمنة (/patron)',
-    patronLoginUsername: 'اسم المستخدم المسؤول',
-    patronLoginSubmit: 'فتح لوحة الإدارة',
-    patronErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
-    patronErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
-    patronErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
+    backofficeLoginTitle: 'دخول المدير',
+    backofficeLoginSubtitle: 'إدارة آمنة (/super admin)',
+    backofficeLoginUsername: 'اسم المستخدم المسؤول',
+    backofficeLoginSubmit: 'فتح لوحة الإدارة',
+    backofficeErrorUnreachable: 'تعذّر الوصول إلى الخادم. تحقّق من اتصالك.',
+    backofficeErrorInvalid: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+    backofficeErrorUnavailable: 'دخول المدير غير متاح حاليًا.',
     readyBadge: 'جاهز 100%!',
     missingCountBadge: 'ينقص {n}',
     mealIdea: 'فكرة وجبة',
@@ -1169,6 +1431,39 @@ export const translations = {
     maxTimeLabel: 'أقصى وقت',
     budgetAny: 'الميزانية: الكل',
     timeAny: 'الوقت: الكل',
+    groceryAisles: 'أقسام المتجر',
+    groceryNote: 'ملاحظة للقائمة (مشتريات السبت...)',
+    groceryQuantity: 'الكمية',
+    groceryDeleteItem: 'حذف المنتج',
+    groceryPrint: 'طباعة',
+    groceryPlanned: 'المتوقّع',
+    groceryReal: 'الفعلي',
+    grocerySpentPlaceholder: 'المبلغ المدفوع (د.ت)...',
+    groceryListDone: 'اكتملت القائمة ✓',
+    groceryCloseWeek: 'إغلاق الأسبوع',
+    groceryContinueEditing: 'متابعة التعديل',
+    groceryWeekClosed: 'أُغلق الأسبوع! أنشئ قائمتك القادمة من القائمة.',
+    groceryArchive: 'أرشفة',
+    groceryArchiveConfirm: 'أرشفة هذه القائمة في سجل المشتريات؟',
+    groceryArchived: 'أُرشفت القائمة في السجل!',
+    groceryArchiveError: 'تعذّرت أرشفة القائمة. أعد المحاولة.',
+    groceryDeleteAll: 'حذف القائمة كلها',
+    groceryDeleteAllConfirm: 'حذف {n} منتجات؟ نهائي — بدون أرشفة.',
+    grocerySignInHint: 'سجّل الدخول (أو أنشئ حسابًا) لأرشفة مشترياتك والاطلاع على السجل.',
+    groceryHistoryTitle: 'سجل المشتريات',
+    groceryHistoryEmpty: 'لا توجد قائمة مؤرشفة بعد. أغلق أسبوعًا لتجدها هنا.',
+    groceryHistoryCount: '{n} منتجات',
+    groceryHistoryDeleteConfirm: 'حذف هذه المشتريات من السجل؟',
+    groceryHistoryLoadError: 'تعذّر تحميل السجل. أعد المحاولة لاحقًا.',
+    groceryExportExcel: 'تصدير إلى Excel',
+    groceryXlsxDate: 'التاريخ',
+    groceryXlsxComment: 'الملاحظة',
+    groceryXlsxItems: 'المنتجات',
+    groceryXlsxPlanned: 'المتوقّع',
+    groceryXlsxActual: 'الفعلي',
+    groceryXlsxGap: 'الفرق',
+    groceryXlsxTotal: 'المجموع',
+    planBudgetLabel: 'الميزانية المتوقعة للأسبوع: {n}',
   },
   derja_ar: DERJA_ARABIC,
 } satisfies Record<Language, TranslationDictionary>;

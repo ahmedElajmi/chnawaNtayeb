@@ -15,12 +15,16 @@
 
 ## Tests (Vitest)
 
-Les tests sont à côté du code (`*.test.ts`).
+Les tests sont à côté du code (`*.test.ts`). La configuration Vitest vit dans le bloc
+`test` de `vite.config.ts` : les worktrees Git créés sous `.claude/` (par des sessions d'agent)
+sont exclus de la découverte (`exclude`) et l'isolation par worker est désactivée
+(`isolate: false`, la suite ne teste que de la logique pure, ~6 s gagnées). Un worktree périmé
+ne peut donc plus faire échouer `npm test`.
 
 | Type                     | Exemples                                                                                            |
 | ------------------------ | --------------------------------------------------------------------------------------------------- |
 | Règles métier            | `core/matching/engine.test.ts`, `core/planning/planner.test.ts`, `core/grocery/groceryList.test.ts` |
-| Scénarios du chef        | `core/matching/scenarios.test.ts`, `scenarioSchema.test.ts` (données en base, rejouées en /patron)  |
+| Scénarios du chef        | `core/matching/scenarios.test.ts`, `scenarioSchema.test.ts` (données en base, rejouées en /admin)   |
 | Réglages du moteur       | `core/matching/config.test.ts` (validation, mises en avant datées, effets)                          |
 | Catalogue intégré        | `core/catalog/seed/catalog.test.ts` (cohérence des recettes et ingrédients)                         |
 | Stores                   | `application/matching/MatchingSettingsStore.test.ts`, `MatchingScenariosStore.test.ts`              |

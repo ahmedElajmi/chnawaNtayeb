@@ -32,11 +32,11 @@ avec contexte :
   les tomates fraîches d'une salade, mais oui dans une sauce).
 
 Les substitutions propres à une recette (`RecipeIngredient.substitutes`) passent avant les règles
-générales. Les règles par défaut sont dans `DEFAULT_SUBSTITUTION_RULES` ; le patron peut les
+générales. Les règles par défaut sont dans `DEFAULT_SUBSTITUTION_RULES` ; le super admin peut les
 modifier (voir [04](04-moteur-matching.md)).
 
 **Validation** (`catalog/validation.ts`, testé) : règles appliquées avant d'enregistrer ce que le
-patron a saisi.
+super admin a saisi.
 
 - `validateRecipe` : nom français obligatoire, au moins un ingrédient, au moins une étape écrite en
   français. Les étapes vides sont retirées, les autres renumérotées de 1 à n (`normalizeSteps`), les
@@ -76,7 +76,7 @@ mais vide dans une autre langue ou variante).
   et leurs ingrédients. Un test (`seed/catalog.test.ts`) vérifie sa cohérence.
 - Le catalogue intégré n'est affiché que tant que la base n'a pas répondu (ou si elle est vide) : la base
   est la source de vérité. Pour publier une recette ajoutée au catalogue intégré : « Envoyer vers le
-  cloud » dans /patron. (`SEED_VERSION` / `mergeMissingById` ne servent plus à la copie de l'appareil.)
+  cloud » dans /admin. (`SEED_VERSION` / `mergeMissingById` ne servent plus à la copie de l'appareil.)
 - Toute donnée venue de l'extérieur (base, copie de l'appareil, sauvegarde JSON) est relue par
   `parseStoredRecipe(s)` / `parseStoredIngredient(s)` (`catalog/validation.ts`) : forme vérifiée,
   éléments invalides ignorés, puis mise à jour (`migrateRecipes`, `migrateIngredient`).
@@ -84,11 +84,11 @@ mais vide dans une autre langue ou variante).
   fourchette inversée est remise dans l'ordre, une photo vide est retirée. **Prix de marché** : chaque
   ingrédient intégré a une vraie fourchette (environ −15 % / +20 % autour de l'ancien prix unique) ; un
   ingrédient intégré encore à prix unique compris dans cette fourchette la reçoit à la lecture, un prix
-  fixé par le patron hors de la fourchette est gardé. Rien à faire dans la base : la conversion se fait
-  à la lecture, puis le document est réécrit au prochain enregistrement par le patron.
+  fixé par le super admin hors de la fourchette est gardé. Rien à faire dans la base : la conversion se fait
+  à la lecture, puis le document est réécrit au prochain enregistrement par le super admin.
 - **Coût d'une recette** (`catalog/costEstimate.ts`) : `recipeCostRange` = somme des fourchettes de prix
   des ingrédients (quantité convertie dans l'unité d'achat, ingrédients facultatifs exclus) ;
-  l'estimation saisie par le patron (`estimated_cost_tnd`) ne sert que si aucun ingrédient n'est chiffrable.
+  l'estimation saisie par le super admin (`estimated_cost_tnd`) ne sert que si aucun ingrédient n'est chiffrable.
   Affiché partout avec `formatPriceRange` (carte, fiche, partage, menu, backoffice) ; calculé une fois par
   version de recette et de liste d'ingrédients (`getRecipeCost`, `src/app/ContainerContext.tsx`).
 

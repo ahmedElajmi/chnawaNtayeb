@@ -1,5 +1,8 @@
 import type { DayPlan } from '@/core/planning';
-import type { GroceryItem } from '@/core/grocery';
+import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
+
+export type { PasswordPolicy };
+import type { GroceryItem, GroceryHistoryEntry } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
@@ -102,6 +105,80 @@ export interface KitchenRepository {
   saveWeeklyPlan(plan: DayPlan[]): void;
   loadGroceryList(): GroceryItem[];
   saveGroceryList(items: GroceryItem[]): void;
+  /** Note and actual spend attached to the current shopping list. */
+  loadGroceryMeta(): { note: string; spent: number | null };
+  saveGroceryMeta(note: string, spent: number | null): void;
+}
+
+// ---------------------------------------------------------------------------
+// Kitchen sync: the personal data of a signed-in account (fridge, favorites, menu,
+// shopping list, preferences) kept on the server, one document per account, and the
+// bookkeeping of what this device changed since its last confirmed push.
+// ---------------------------------------------------------------------------
+
+/** One section of the account's kitchen as the server keeps it (newest-write-wins). */
+export interface RemoteKitchenSection<T> {
+  value: T;
+  /** Client time in ms, carried with the section; the newest one wins between devices */
+  updatedAt: number;
+}
+
+export interface RemoteKitchenDocument {
+  favorites?: RemoteKitchenSection<string[]>;
+  fridge?: RemoteKitchenSection<string[]>;
+  pantry?: RemoteKitchenSection<string[]>;
+  weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
+  groceryList?: RemoteKitchenSection<GroceryItem[]>;
+  groceryMeta?: RemoteKitchenSection<{ note?: string; spent_tnd?: number | null }>;
+  preferences?: RemoteKitchenSection<UserPreferences>;
+}
+
+export type RemoteKitchenSections = Partial<RemoteKitchenDocument>;
+
+/** The signed-in account's kitchen kept on the server (never reachable for guests). */
+export interface KitchenSyncGateway {
+  /** The stored document; null when the account has none yet. Throws when unreachable. */
+  pull(): Promise<RemoteKitchenDocument | null>;
+  /**
+   * Sends the changed sections; the server keeps a section only when it is newer than the
+   * stored one and answers with the document after the merge. Throws when unreachable.
+   */
+  push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument>;
+}
+
+/** Archived shopping lists of the account, kept on the server (newest first). */
+export interface GroceryHistoryGateway {
+  /** The archived lists of the signed-in account. Throws when unreachable. */
+  list(): Promise<GroceryHistoryEntry[]>;
+  /** Archives one entry (overwrites when the same id is sent again). Throws when refused. */
+  save(entry: GroceryHistoryEntry): Promise<void>;
+  /** Removes one archived list. Throws when refused. */
+  remove(entryId: string): Promise<void>;
+}
+
+/** Sync bookkeeping of the kitchen data on this device (what changed here, and when). */
+export interface KitchenSyncLedger {
+  /** True when this device holds kitchen data (favorites, fridge, pantry or list). */
+  hasData(): boolean;
+  /** Sections changed locally and not confirmed by the server yet. */
+  pending(): string[];
+  /** Last local change per section, in ms (a missing key = never changed here). */
+  sectionTimes(): Record<string, number>;
+  /** When the preferences were last changed on this device (null = never). */
+  preferencesChangedAt(): number | null;
+  /** When the preferences were last confirmed by the server (null = never). */
+  preferencesSyncedAt(): number | null;
+  /** Confirms sections as pushed (leaves the pending list). */
+  confirm(sections: string[]): void;
+  /** Confirms the preferences mirror as pushed. */
+  confirmPreferences(at: number): void;
+  /** Records the time of a section adopted from the server (so it is not adopted again). */
+  setSectionTime(section: string, at: number): void;
+  /**
+   * Saves applied from another device must not be marked as pending: suspended during a
+   * merge; the returned function resumes the normal bookkeeping.
+   */
+  suspend(): () => void;
 }
 
 export type WriteResult = { ok: true } | { ok: false; error: string };
@@ -147,10 +224,11 @@ export interface MatchingScenarioRepository {
   replaceAll(scenarios: MatchingScenario[]): Promise<WriteResult>;
 }
 
-/** User preferences kept on the device (language, theme, pantry...). */
+/** User preferences kept on the device (language, theme, pantry...). `at` records the
+ *  change time for the sync (a value adopted from the server carries its own time). */
 export interface PreferencesRepository {
   load(): UserPreferences;
-  save(patch: Partial<UserPreferences>): void;
+  save(patch: Partial<UserPreferences>, at?: number): void;
 }
 
 /** Resolved CSS of the active theme, read before the app starts (avoids a flash of the wrong colors). */
@@ -189,25 +267,103 @@ export type UserAuthError =
   | 'weak-password'
   | 'invalid-email'
   | 'too-many-attempts'
+  | 'locked'
   | 'network'
   | 'disabled'
   | 'unknown';
 
+/** Password rules of the site, shown live in the registration and change forms. */
+export interface PasswordCriteria {
+  minLength: number;
+  digit: boolean;
+  uppercase: boolean;
+  special: boolean;
+}
+
 export interface UserAuthGateway {
   /** Minimum password length accepted when creating an account */
   readonly minPasswordLength: number;
+  /** The live password rules of the site (the backoffice configures them); defaults when unreachable */
+  passwordCriteria(): Promise<PasswordCriteria>;
   /** Calls `listener` now and on every sign-in / sign-out; returns the unsubscribe function */
   subscribe(listener: (user: AppUser | null) => void): () => void;
   loginAsGuest(): Promise<void>;
   loginWithEmail(email: string, password: string): Promise<void>;
-  register(email: string, password: string): Promise<void>;
+  /** Creates the account and its profile (name, phone, address, preferred language) */
+  register(input: RegistrationInput): Promise<void>;
   logout(): Promise<void>;
   /** Why a sign-in failed, as a code the interface translates */
   errorCode(error: unknown): UserAuthError;
-  /** Owner account that also has admin rights */
-  isOwner(user: AppUser): boolean;
-  /** Technical account of a patron session (signed in through the server) */
-  isPatronAccount(user: AppUser): boolean;
+  /** Technical account of a super-admin session (signed in through the server) */
+  isSuperAdminAccount(user: AppUser): boolean;
+  /** Changes the password, re-checking the current one */
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
+}
+
+/** Profile of any signed-in account (clients and employees alike), read and edited by its owner. */
+export interface AccountProfileRepository {
+  /** The stored profile of one account, null when it has none yet. */
+  read(uid: string): Promise<UserProfile | null>;
+  /** Writes the whole profile back (complete document, no merge). */
+  write(profile: UserProfile): Promise<boolean>;
+}
+
+/**
+ * Backoffice directory of every account (clients and employees): paged by uid, searched by
+ * e-mail prefix. Never exposes the favorites or the fridge of anyone.
+ */
+export type AccountTypeFilter = 'all' | 'client' | 'employee';
+
+export interface AccountDirectoryQuery {
+  /** Show one kind of account, or every one */
+  type: AccountTypeFilter;
+  /** E-mail prefix (empty: no search) */
+  search?: string;
+  limit: number;
+  /** First uid of the next page (startAfter), null from the beginning */
+  cursor?: string | null;
+}
+
+export interface AccountDirectoryPage {
+  items: AccountSummary[];
+  /** Whole filtered set (never the page length) */
+  total: number;
+  /** uid to pass back as `cursor`, null when there is no more */
+  nextCursor: string | null;
+}
+
+export interface AccountDirectoryRepository {
+  list(query: AccountDirectoryQuery): Promise<AccountDirectoryPage>;
+  /** Clears the lockout of an account (super-admin or manager session on the server). */
+  unlock(uid: string): Promise<boolean>;
+}
+
+/** Password policy of the site: read and saved by the super admin in the backoffice. */
+export interface PasswordPolicyGateway {
+  read(): Promise<PasswordPolicy>;
+  save(policy: PasswordPolicy): Promise<void>;
+}
+
+/** How often the devices poll the change feed (seconds), configured in the backoffice. */
+export interface PollingSettings {
+  intervalSeconds: number;
+}
+
+export interface PollingSettingsGateway {
+  read(): Promise<PollingSettings>;
+  save(intervalSeconds: number): Promise<void>;
+}
+
+/** Creates staff accounts on the server (super-admin session required): the client never mints a right. */
+export interface AccountCreationGateway {
+  /** Returns the temporary password exactly once, to hand to the employee. */
+  createEmployee(input: {
+    email: string;
+    displayName: string;
+  }): Promise<
+    | { ok: true; uid: string; temporaryPassword: string }
+    | { ok: false; error: 'email-in-use' | 'invalid-email' | 'server' }
+  >;
 }
 
 export interface CatalogInitStats {
@@ -237,16 +393,16 @@ export type BackupImportResult = { ok: true; recipes: number; ingredients: numbe
 export type CloudStatus = 'connected' | 'local-only';
 
 /**
- * Why a patron sign-in failed (the interface turns it into a text in the current language):
+ * Why a super-admin sign-in failed (the interface turns it into a text in the current language):
  * server out of reach, wrong credentials, too many attempts, or access not available on the server.
  */
-export type PatronLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
+export type BackofficeLoginError = 'unreachable' | 'invalid' | 'too-many-attempts' | 'unavailable';
 
-export type PatronLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: PatronLoginError };
+export type BackofficeLoginResult = { ok: true; cloud: CloudStatus } | { ok: false; error: BackofficeLoginError };
 
-/** Admin (patron) session. Only the server decides who is admin. */
-export interface PatronGateway {
-  login(username: string, password: string): Promise<PatronLoginResult>;
+/** Admin (super-admin) session. Only the server decides who is admin. */
+export interface BackofficeSessionGateway {
+  login(username: string, password: string): Promise<BackofficeLoginResult>;
   hasStoredSession(): boolean;
   verifySession(): Promise<boolean>;
   connectCloud(): Promise<CloudStatus>;

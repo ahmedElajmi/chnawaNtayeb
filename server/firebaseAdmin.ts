@@ -1,20 +1,16 @@
 import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 /**
- * Bridges the /patron login with Firebase:
- * after a successful patron login, the server mints a Firebase custom token
- * carrying the `patron: true` claim. The browser signs in with it, and the
- * Firestore rules (isAdmin) accept writes from that identity.
+ * Server-side Firebase access: the Admin SDK reads and writes Firestore behind the
+ * storage contract. No Firebase Auth is involved anywhere — accounts live in the
+ * `users` + `auth` collections, sessions are signed by this server.
  *
  * Needs FIREBASE_SERVICE_ACCOUNT: the service-account JSON downloaded from
  * Firebase console → Project settings → Service accounts. It can be given as
  * raw JSON or base64-encoded JSON. Never commit this value.
  */
-
-export const PATRON_FIREBASE_UID = 'patron-admin';
 
 let app: App | null | undefined;
 
@@ -45,7 +41,7 @@ function getAdminApp(): App | null {
 /** Firestore with admin rights, or null when the service account is not configured. */
 export function getAdminFirestore(): Firestore | null {
   const adminApp = getAdminApp();
-  // Same database as the web client (firebase-applet-config.json), whether it is "(default)" or a named one
+  // Same database as the old web client (firebase-applet-config.json), whether it is "(default)" or a named one
   return adminApp ? getFirestore(adminApp, firebaseConfig.firestoreDatabaseId || '(default)') : null;
 }
 
@@ -53,9 +49,15 @@ export function isFirebaseAdminConfigured(): boolean {
   return getAdminApp() !== null;
 }
 
-/** Returns a Firebase custom token for the patron, or null when the service account is not configured. */
-export async function createPatronFirebaseToken(): Promise<string | null> {
+/**
+ * Reads the team rights of an account (admins/{uid}): used by the data endpoints to
+ * authorize an employee carrying a server session.
+ */
+export async function verifyEmployeeRights(
+  uid: string
+): Promise<{ can_publish?: unknown; can_manage?: unknown } | null> {
   const adminApp = getAdminApp();
   if (!adminApp) return null;
-  return getAuth(adminApp).createCustomToken(PATRON_FIREBASE_UID, { patron: true });
+  const member = await getFirestore(adminApp).collection('admins').doc(uid).get();
+  return member.exists ? (member.data() as Record<string, unknown>) : null;
 }

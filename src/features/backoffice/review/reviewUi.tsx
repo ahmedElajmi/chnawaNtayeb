@@ -14,7 +14,7 @@ import {
 } from '@/core/review';
 import { EDITING_ORDER, languageInfo, pickLocalized } from '@/core/shared';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { patronPath, PATRON_PAGES } from '@/shared/paths';
+import { backofficePath, BACKOFFICE_PAGES } from '@/shared/paths';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 
@@ -336,7 +336,7 @@ export function NextActionLink({
   if (!label) return null;
   return (
     <Link
-      to={patronPath(kind === 'recipe' ? PATRON_PAGES.recipes : PATRON_PAGES.ingredients, id)}
+      to={backofficePath(kind === 'recipe' ? BACKOFFICE_PAGES.recipes : BACKOFFICE_PAGES.ingredients, id)}
       title={b.actionHint}
       className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition ${
         ACTION_STYLE[status] ?? 'bg-brand text-on-brand hover:bg-brand-strong'

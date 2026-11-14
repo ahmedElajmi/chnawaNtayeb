@@ -13,7 +13,7 @@ import {
 import { languageInfo, pickLocalized } from '@/core/shared';
 import { useReview } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
-import { patronPath } from '@/shared/paths';
+import { backofficePath } from '@/shared/paths';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useNotify } from '../shell/NotifyContext';
@@ -36,7 +36,7 @@ const GROUPINGS: { id: QueueGrouping; label: (b: BackofficeTexts) => string }[] 
 const GROUPING_PARAM = 'groupe';
 
 /**
- * /patron/a-valider — every cell waiting for the reviewer, grouped as chosen (item, step, part,
+ * /admin/review — every cell waiting for the reviewer, grouped as chosen (item, step, part,
  * language, kind, author) with the counts of the whole queue. A group is reviewed in series: its
  * cells follow one another, across items, with the keyboard (V, C, →) or large buttons on a phone.
  */
@@ -168,7 +168,7 @@ export function QueuePage() {
           </button>
         )}
         <Link
-          to={patronPath(views[current.kind].listPage, current.entry)}
+          to={backofficePath(views[current.kind].listPage, current.entry)}
           className="inline-block text-xs font-semibold text-ink-muted hover:text-ink underline"
         >
           {b.queueOpenItem}
@@ -252,7 +252,7 @@ export function QueuePage() {
                   )}
                   {grouping === 'item' && (
                     <Link
-                      to={patronPath(views[kindOfGroup].listPage, group.key.slice(group.key.indexOf(':') + 1))}
+                      to={backofficePath(views[kindOfGroup].listPage, group.key.slice(group.key.indexOf(':') + 1))}
                       className={SECONDARY}
                     >
                       {b.queueOpenItem}

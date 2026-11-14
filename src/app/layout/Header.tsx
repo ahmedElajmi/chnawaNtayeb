@@ -11,16 +11,16 @@ import { useGoHome } from '@/app/homeNavigation';
 interface HeaderProps {
   currentUser: AppUser | null;
   onOpenUserModal: () => void;
-  isPatronAuthenticated: boolean;
-  onPatronLogout: () => void;
+  isBackofficeAuthenticated: boolean;
+  onBackofficeLogout: () => void;
   onOpenSettings: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onOpenUserModal,
-  isPatronAuthenticated,
-  onPatronLogout,
+  isBackofficeAuthenticated,
+  onBackofficeLogout,
   onOpenSettings,
 }) => {
   const { language, setLanguage, t } = useLanguage();
@@ -38,8 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
     const next = logoClicks + 1;
     setLogoClicks(next);
     if (next >= 3) {
+      // Discreet staff channel: three clicks on the brand open the backoffice (never advertised)
       setLogoClicks(0);
-      navigate(PATHS.patron);
+      navigate(PATHS.backoffice);
     } else {
       goHome();
       setTimeout(() => setLogoClicks(0), 3000);
@@ -49,12 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full bg-surface/90 backdrop-blur-md border-b border-line transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-8">
-        {/* Zone 1: Brand Wordmark (with discrete 3-clicks patron trigger) */}
-        <button
-          onClick={handleLogoClick}
-          title={`Chnowa Ntayeb (${t.logoPatronHint})`}
-          className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0"
-        >
+        {/* Zone 1: Brand Wordmark (3-click staff trigger, never advertised to clients) */}
+        <button onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0">
           <img
             src="/mark.png"
             alt=""
@@ -100,11 +97,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Zone 3: Actions & Controls */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Patron badge and logout (from sm up; on phones they live in Settings so the brand stays readable) */}
-          {isPatronAuthenticated && (
+          {/* SuperAdmin badge and logout (from sm up; on phones they live in Settings so the brand stays readable) */}
+          {isBackofficeAuthenticated && (
             <div className="hidden sm:flex items-center gap-1.5">
               <NavLink
-                to={PATHS.patron}
+                to={PATHS.backoffice}
                 className={({ isActive }) =>
                   `inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg transition shadow-xs ${
                     isActive
@@ -112,17 +109,17 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'bg-accent/10 text-accent-text dark:bg-accent/20 hover:bg-accent hover:text-on-accent'
                   }`
                 }
-                title={t.patronOpenBackoffice}
+                title={t.backofficeOpen}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{t.patronBadge}</span>
+                <span>{t.backofficeBadge}</span>
               </NavLink>
               <button
-                onClick={onPatronLogout}
+                onClick={onBackofficeLogout}
                 className="text-[11px] text-slate-400 hover:text-rose-500 font-semibold px-1"
-                title={t.patronLogout}
+                title={t.backofficeLogout}
               >
-                {t.patronQuit}
+                {t.backofficeQuit}
               </button>
             </div>
           )}
@@ -164,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
             </select>
           </div>
 
-          {/* Settings (display, language, app install, patron) */}
+          {/* Settings (display, language, app install, superAdmin) */}
           <button
             onClick={onOpenSettings}
             aria-label={t.settingsTitle}

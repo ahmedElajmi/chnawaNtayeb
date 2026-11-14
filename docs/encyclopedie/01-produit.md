@@ -11,28 +11,28 @@ sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
 
 ## Les utilisateurs
 
-| Qui                     | Ce qu'il fait                                                                                                                             |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Visiteur                | Coche les ingrédients de son frigo, voit ses suggestions et tout le catalogue, prépare menu et courses (ne crée ni ingrédient ni recette) |
-| Visiteur avec un compte | Idem, compte Firebase (invité ou e-mail)                                                                                                  |
-| Patron (administrateur) | Seul à gérer recettes, ingrédients, prix, thèmes et réglages du moteur, dans `/patron`                                                    |
+| Qui                          | Ce qu'il fait                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Visiteur                     | Coche les ingrédients de son frigo, voit ses suggestions et tout le catalogue, prépare menu et courses (ne crée ni ingrédient ni recette) |
+| Visiteur avec un compte      | Idem, compte Firebase (invité ou e-mail)                                                                                                  |
+| Super admin (administrateur) | Seul à gérer recettes, ingrédients, prix, thèmes et réglages du moteur, dans `/admin`                                                     |
 
 ## Les écrans
 
-| Adresse          | Écran         | Rôle                                                                                                             |
-| ---------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `/`              | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                  |
-| `/frigo`         | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), placard, scan photo (IA) ; ajout d'ingrédients réservé au patron |
-| `/recettes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                    |
-| `/suggestions`   | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                    |
-| `/recette/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, ajout aux courses                              |
-| `/semaine`       | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                             |
-| `/courses`       | Qadhya        | Liste de courses (générée depuis le menu ou manuelle), partage WhatsApp                                          |
-| `/patron`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                          |
+| Adresse         | Écran         | Rôle                                                                                                                  |
+| --------------- | ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                       |
+| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
+| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                         |
+| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                         |
+| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, ajout aux courses                                   |
+| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                  |
+| `/grocery`      | Qadhya        | Liste de courses (générée depuis le menu ou manuelle), partage WhatsApp                                               |
+| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                               |
 
 ## Catalogue et suggestions : deux écrans
 
-- **`/recettes` (Toutes les recettes)** : toutes les recettes publiées, quel que soit le frigo. Les
+- **`/recipes` (Toutes les recettes)** : toutes les recettes publiées, quel que soit le frigo. Les
   recettes faisables passent en premier (prêtes → presque prêtes → idées → les autres).
 - **`/suggestions` (Mes suggestions)** : uniquement les recettes liées au frigo, par niveau. C'est là
   que mène le bouton « Trouver mes recettes ! » du frigo. Frigo vide : invitation à le remplir.
@@ -65,7 +65,7 @@ a ses trois noms (`name_fr`, `name_derja`, `name_ar`).
 | Substitution             | Ingrédient qui en remplace un autre (agneau au lieu de bœuf)                                    |
 | Catégorie (course)       | Entrée, plat principal ou dessert                                                               |
 | Express                  | Recette de 20 minutes ou moins (calculé, pas saisi)                                             |
-| Healthy                  | Plat équilibré, marqué par le patron                                                            |
-| Patron                   | Administrateur, connecté par le serveur                                                         |
+| Healthy                  | Plat équilibré, marqué par le super admin                                                       |
+| Super admin              | Administrateur, connecté par le serveur                                                         |
 | Scénario du chef         | Règle de qualité « avec ce frigo, on doit voir ces plats »                                      |
 | DT                       | Dinar tunisien                                                                                  |

@@ -4,12 +4,12 @@
 > « À valider » regroupée avec relecture en série, accueil « À faire », éditeur de workflows et de
 > rôles, équipe avec droits vérifiés par la base. Restent en dehors du workflow case par case : les
 > thèmes et les réglages du moteur (publication propre avec brouillon et historique), et les
-> textes du CMS. Les **catégories** existent (arbres de recettes et d'ingrédients, `/patron/categories`) :
+> textes du CMS. Les **catégories** existent (arbres de recettes et d'ingrédients, `/admin/categories`) :
 > elles se publient directement par un compte qui peut publier, l'affectation d'une recette passe par
 > l'atelier. Le
 > fonctionnement est décrit dans [07-backoffice.md](07-backoffice.md).
 
-## Partie A — Refonte de `/patron`
+## Partie A — Refonte de `/admin`
 
 ### Constat
 
@@ -34,10 +34,10 @@
   - sur téléphone, une barre compacte « ☰ Section ● » qui ouvre le menu ;
   - une pastille d'état à la place du bandeau.
 - **Une adresse par page**, déclarée dans `src/shared/paths.ts` et `src/app/AppRoutes.tsx` :
-  - `/patron/recettes` et `/patron/ingredients` ;
-  - `/patron/moteur/{simulateur,scenarios,mises-en-avant,remplacements,reglages,historique}` ;
-  - `/patron/apparence` et `/patron/donnees` ;
-  - `/patron/a-valider` (voir partie B).
+  - `/admin/recettes` et `/admin/ingredients` ;
+  - `/admin/moteur/{simulateur,scenarios,mises-en-avant,remplacements,reglages,historique}` ;
+  - `/admin/apparence` et `/admin/donnees` ;
+  - `/admin/a-valider` (voir partie B).
 - **Registre des sections** : une nouvelle page = une entrée. Il est prêt pour les catégories (tags) et les
   textes du CMS.
 - **Kit d'interface partagé** :
@@ -54,7 +54,7 @@
   synchronisation.
 - **Libellés** :
   - tous traduits dans toutes les langues et variantes, en suivant la langue courante ;
-  - un dictionnaire propre au backoffice, chargé avec le morceau `/patron`.
+  - un dictionnaire propre au backoffice, chargé avec le morceau `/admin`.
 
 ### Sans régression
 
@@ -74,7 +74,7 @@ Aujourd'hui, une recette n'a qu'un booléen `is_published` :
 - un brouillon reste lisible par tous (`firestore.rules`, `recipes` : `allow read: if true`) et chaque appareil
   le télécharge ;
 - aucun contrôle de qualité n'est fait avant la mise en ligne ;
-- il n'y a qu'un seul compte patron.
+- il n'y a qu'un seul compte super admin.
 
 Objectifs :
 

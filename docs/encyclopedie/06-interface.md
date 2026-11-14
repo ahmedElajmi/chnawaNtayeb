@@ -28,11 +28,11 @@ Toutes les adresses sont définies dans `src/shared/paths.ts` (aussi utilisé pa
 | `/recette/:slug` | `features/recipes/RecipeDetailRoute.tsx`   |
 | `/semaine`       | `features/planner/PlannerPage.tsx`         |
 | `/courses`       | `features/grocery/GroceryPage.tsx`         |
-| `/patron/*`      | `features/backoffice/BackofficePage.tsx`   |
+| `/admin/*`       | `features/backoffice/BackofficePage.tsx`   |
 
-Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#patron` renvoie à `/patron`. Les pages du
-backoffice (`/patron/recettes`, `/patron/moteur/scenarios`…) sont déclarées par son registre des sections
-(voir [07](07-backoffice.md)) ; une adresse inconnue sous `/patron` renvoie à `/patron`.
+Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#super admin` renvoie à `/admin`. Les pages du
+backoffice (`/admin/recettes`, `/admin/moteur/scenarios`…) sont déclarées par son registre des sections
+(voir [07](07-backoffice.md)) ; une adresse inconnue sous `/admin` renvoie à `/admin`.
 
 ## Comportements de navigation
 
@@ -47,7 +47,7 @@ backoffice (`/patron/recettes`, `/patron/moteur/scenarios`…) sont déclarées 
   son propre filtre (`filterMemory.ts`). Le bouton du frigo et « Voir tout » de l'accueil mènent
   aux suggestions, les autres liens au catalogue.
 - **Récapitulatif du frigo** : en haut de `/frigo`, les ingrédients choisis (retrait d'un clic,
-  « Tout effacer », repli au-delà de 12 avec « Tout voir »). Pas d'ajout d'ingrédient : réservé au patron.
+  « Tout effacer », repli au-delà de 12 avec « Tout voir »). Pas d'ajout d'ingrédient : réservé au super admin.
 - **Fiche recette par-dessus l'écran d'origine** : ouvrir une recette garde l'écran derrière ;
   retour la ferme. Une adresse ouverte directement s'affiche par-dessus la liste.
 - **Accueil en bas de l'historique** : aller à l'accueil revient au début de l'historique ; une
@@ -99,8 +99,8 @@ lettres arabes (`derjaArabic.ts`) est de la derja tunisienne, jamais empruntée 
 l'arabe (`ar`) est de l'arabe littéraire sans aucun mot de derja (باش، شنوة، فريجيدار…). Vérifié par
 `translations.test.ts` : toutes les clés du français présentes et non vides dans chaque langue, mêmes
 `{marques}`, aucun mot de derja dans `ar`. Aucun texte affiché en dur dans les écrans publics (accueil,
-en-tête, compte, accès patron, Réglages) : tout passe par `t`. Les erreurs de connexion (visiteur et patron)
-arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `PatronLoginError` dans
+en-tête, compte, accès super admin, Réglages) : tout passe par `t`. Les erreurs de connexion (visiteur et super admin)
+arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `BackofficeLoginError` dans
 `src/application/ports.ts`) que l'écran traduit. Sélecteurs (en-tête,
 Réglages › Langue) : Derja, دارجة, Français, العربية الفصحى (`SELECTOR_ORDER`). `useLanguage()` fournit `t` (les textes),
 `language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
@@ -116,7 +116,7 @@ en double). L'arabe et la دارجة passent la page de droite à gauche (`dir` 
 
 ## Thèmes (`app/providers/ThemeContext.tsx`)
 
-Thèmes intégrés + thèmes publiés par le patron, mode clair / sombre / système. Le thème actif est
+Thèmes intégrés + thèmes publiés par le super admin, mode clair / sombre / système. Le thème actif est
 appliqué en variables CSS sur `<html>` ; une copie est enregistrée pour que `index.html` l'applique
 avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèmes et les réglages.
 
@@ -129,7 +129,7 @@ avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèm
 - **Installation** : tant que l'application n'est pas installée, trois points d'entrée, tous basés sur
   `useInstallApp()` (`shared/ui/PWAInstallButton.tsx`) : la proposition d'installation du navigateur
   quand il en offre une, sinon le guide pas à pas (`InstallGuideModal`, iOS et autres navigateurs).
-  - **Bandeau** (`shared/ui/InstallBanner.tsx`, sous l'en-tête, pas dans `/patron`) : affiché dès la
+  - **Bandeau** (`shared/ui/InstallBanner.tsx`, sous l'en-tête, pas dans `/admin`) : affiché dès la
     première page d'une visite si le navigateur sait installer l'application (proposition disponible, ou
     iPhone / iPad). Il reste d'une page à l'autre jusqu'à ce que le visiteur le ferme (✕) ; fermé, il ne
     revient qu'à la visite suivante (rien n'est enregistré).
@@ -146,11 +146,11 @@ avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèm
 Ouverts par la roue dentée de l'en-tête. Trois onglets courts, pour que chacun tienne sur un écran de
 téléphone :
 
-| Onglet      | Contenu                                                                                       |
-| ----------- | --------------------------------------------------------------------------------------------- |
-| Affichage   | Mode clair / sombre / automatique, choix du thème                                             |
-| Langue      | Derja, Français, العربية                                                                      |
-| Application | Installer l'application (si pas installée) ; section Patron (backoffice, quitter) si connecté |
+| Onglet      | Contenu                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| Affichage   | Mode clair / sombre / automatique, choix du thème                                                  |
+| Langue      | Derja, Français, العربية                                                                           |
+| Application | Installer l'application (si pas installée) ; section Super admin (backoffice, quitter) si connecté |
 
 L'onglet Application n'existe que s'il a quelque chose à proposer.
 
@@ -158,8 +158,8 @@ L'onglet Application n'existe que s'il a quelque chose à proposer.
 
 - Barre d'onglets en bas sur téléphone, liens dans l'en-tête sur ordinateur.
 - **Aucun élément ne doit élargir la page** : l'en-tête se resserre (logo et titre plus petits ; plus
-  de bouton d'installation dans l'en-tête, remplacé par le bandeau) ; en mode patron, le badge
-  « Patron » et « Quitter » ne sont dans l'en-tête qu'à partir de 640 px : sur téléphone ils sont dans
+  de bouton d'installation dans l'en-tête, remplacé par le bandeau) ; en mode super admin, le badge
+  « Super admin » et « Quitter » ne sont dans l'en-tête qu'à partir de 640 px : sur téléphone ils sont dans
   Réglages › Application, pour que « Chnowa Ntayeb / by Chef Souhed » reste lisible ; les rangées de filtres défilent dans leur propre
   conteneur ; filet de sécurité `overflow-x: clip` sur `html` et `body` (`src/index.css`).
 - Vérifier à 375 px et 320 px de large avant de livrer un écran.

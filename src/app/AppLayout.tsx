@@ -1,33 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Header } from '@/app/layout/Header';
 import { BottomNav } from '@/app/layout/BottomNav';
 import { SettingsModal } from '@/features/settings/SettingsModal';
 import { UserAccountModal } from '@/features/account/UserAccountModal';
 import { UpdatePrompt } from '@/shared/ui/UpdatePrompt';
 import { InstallBanner } from '@/shared/ui/InstallBanner';
+import { SyncInviteBanner } from '@/shared/ui/SyncInviteBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
 import { ScrollToTopButton } from '@/shared/ui/ScrollToTopButton';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
-import { isPatronPath, PATHS } from '@/shared/paths';
+import { isBackofficePath, PATHS } from '@/shared/paths';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import type { AppUser } from '@/application';
-import { useContainer, useKitchen, usePatron } from './ContainerContext';
+import { useContainer, useKitchen, useBackofficeSession } from './ContainerContext';
 import { useGoHome, useHomeExitGuard } from './homeNavigation';
 
 /** Frame shared by every screen: header, page content, footer, mobile tab bar and global dialogs. */
 export function AppLayout() {
-  const navigate = useNavigate();
   const goHome = useGoHome();
   const { t } = useLanguage();
   const { pathname } = useLocation();
   const { fridge } = useKitchen();
-  const { status: patronStatus, patron } = usePatron();
-  const { userAuth } = useContainer();
+  const { status: backofficeSessionStatus, backofficeSessionStore } = useBackofficeSession();
+  const { userAuth, accountProfile, team, kitchenSync } = useContainer();
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const isBackoffice = isPatronPath(pathname);
+  const isBackoffice = isBackofficePath(pathname);
   const [showExitHint, setShowExitHint] = useState(false);
   const [year] = useState(() => new Date().getFullYear());
   const exitHintTimer = useRef<number | undefined>(undefined);
@@ -38,16 +38,26 @@ export function AppLayout() {
     exitHintTimer.current = window.setTimeout(() => setShowExitHint(false), 2000);
   }, pathname);
 
-  useEffect(() => userAuth.subscribe(setCurrentUser), [userAuth]);
+  // The profile and the team record of the signed-in account follow every sign-in / sign-out
+  useEffect(
+    () =>
+      userAuth.subscribe((user) => {
+        setCurrentUser(user);
+        const uid = user && !user.isAnonymous ? user.uid : null;
+        void accountProfile.identify(uid);
+        void team.identify(uid);
+      }),
+    [userAuth, accountProfile, team]
+  );
 
   // Each new screen starts at the top
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [pathname]);
 
-  const isPatron = patronStatus === 'signed-in';
-  const patronLogout = () => {
-    patron.logout();
+  const isSuperAdmin = backofficeSessionStatus === 'signed-in';
+  const backofficeLogout = () => {
+    backofficeSessionStore.logout();
     if (isBackoffice) goHome();
   };
 
@@ -59,13 +69,21 @@ export function AppLayout() {
       <Header
         currentUser={currentUser}
         onOpenUserModal={() => setIsUserModalOpen(true)}
-        isPatronAuthenticated={isPatron}
-        onPatronLogout={patronLogout}
+        isBackofficeAuthenticated={isSuperAdmin}
+        onBackofficeLogout={backofficeLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Install invitation (not in the backoffice); also available in Settings › Application */}
       {!isBackoffice && <InstallBanner />}
+      {/* Account invitation once the device holds kitchen data (the sync is the value of an account) */}
+      {!isBackoffice && (
+        <SyncInviteBanner
+          signedIn={currentUser !== null && !currentUser.isAnonymous}
+          hasLocalData={kitchenSync.hasLocalData()}
+          onOpenAccount={() => setIsUserModalOpen(true)}
+        />
+      )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
         <Outlet />
@@ -88,20 +106,12 @@ export function AppLayout() {
         </footer>
       )}
 
-      <UserAccountModal
-        isOpen={isUserModalOpen}
-        onClose={() => setIsUserModalOpen(false)}
-        currentUser={currentUser}
-        onOpenPatronLogin={() => {
-          setIsUserModalOpen(false);
-          navigate(PATHS.patron);
-        }}
-      />
+      <UserAccountModal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} currentUser={currentUser} />
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        isPatronAuthenticated={isPatron}
-        onPatronLogout={patronLogout}
+        isBackofficeAuthenticated={isSuperAdmin}
+        onBackofficeLogout={backofficeLogout}
       />
       {/* "Press back again to exit" hint */}
       {showExitHint && (

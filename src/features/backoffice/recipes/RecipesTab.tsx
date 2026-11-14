@@ -8,7 +8,7 @@ import { useLanguage } from '@/app/providers/LanguageContext';
 import { getRecipeCost, useCatalog } from '@/app/ContainerContext';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { usePagedList } from '@/shared/hooks/usePagedList';
-import { LIST_FILTER_PARAM, patronPath, PATRON_PAGES } from '@/shared/paths';
+import { LIST_FILTER_PARAM, backofficePath, BACKOFFICE_PAGES } from '@/shared/paths';
 import { ShowMore } from '@/shared/ui/ShowMore';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
@@ -141,7 +141,7 @@ export function RecipesTab({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2">
             <Link
-              to={patronPath(PATRON_PAGES.recipes, r.id)}
+              to={backofficePath(BACKOFFICE_PAGES.recipes, r.id)}
               className="text-sm font-bold text-ink hover:text-brand-text hover:underline"
             >
               {getRecipeName(r)}

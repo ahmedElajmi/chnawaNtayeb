@@ -20,6 +20,7 @@ import {
 } from '@/core/review';
 import { EDITING_ORDER, languageInfo, pickLocalized, slugify, type Language } from '@/core/shared';
 import { useReview, useReviewSettings, useTeam } from '@/app/ContainerContext';
+import { useContainer } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -199,7 +200,7 @@ const LEVEL_LABEL: Record<RuleLevel, (b: BackofficeTexts) => string> = {
   off: (b) => b.workflowsRuleOff,
 };
 
-/** /patron/workflows/etapes — steps, cells, required parts, checks and options of each workflow. */
+/** /super-admin/workflows/etapes — steps, cells, required parts, checks and options of each workflow. */
 export function WorkflowStepsPage() {
   const b = useBackofficeText();
   const { language } = useLanguage();
@@ -456,7 +457,7 @@ const PERMISSION_LABEL: Record<Permission, (b: BackofficeTexts) => string> = {
   manage_roles: (b) => b.permManageRoles,
 };
 
-/** /patron/workflows/roles — what each role may do (the admin keeps every right). */
+/** /super-admin/workflows/roles — what each role may do (the admin keeps every right). */
 export function RolesEditorPage() {
   const b = useBackofficeText();
   const { language } = useLanguage();
@@ -573,7 +574,7 @@ export function RolesEditorPage() {
   );
 }
 
-/** /patron/workflows/equipe — accounts of the team and their roles. */
+/** /super-admin/workflows/equipe — accounts of the team and their roles. */
 export function TeamPage() {
   const b = useBackofficeText();
   const notify = useNotify();
@@ -581,23 +582,47 @@ export function TeamPage() {
   const { members, team } = useTeam();
   const { settings } = useReviewSettings();
   const roles = settings.roles.filter((r) => r.id !== ADMIN_ROLE_ID);
+  const { accountCreation } = useContainer();
   const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState(roles[0]?.id ?? '');
   const [busy, setBusy] = useState(false);
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   useEffect(() => team.start(), [team]);
 
   const report = (result: { ok: boolean; error?: string }, success: string) =>
     notify(result.ok ? success : (result.error ?? ''), !result.ok);
 
+  // Employee without an account yet: the server creates it (temporary password, shown once)
+  const createEmployee = async () => {
+    setBusy(true);
+    setTemporaryPassword(null);
+    try {
+      const created = await accountCreation.createEmployee({
+        email: email.trim(),
+        displayName: displayName.trim() || email.trim(),
+      });
+      if (!created.ok) {
+        notify(format(b.teamCreateFailed, { reason: created.error }), true);
+        return;
+      }
+      setTemporaryPassword(created.temporaryPassword);
+      const added = await team.add(email.trim(), role, 'superAdmin');
+      report(added, b.teamAdded);
+      if (added.ok) setEmail('');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-3">
-      <p className="text-xs text-ink-muted">{b.teamHint}</p>
       <form
         className={`${CARD} flex flex-wrap items-end gap-2 space-y-0`}
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
-          const result = await team.add(email, role, 'patron');
+          const result = await team.add(email, role, 'superAdmin');
           setBusy(false);
           report(result, b.teamAdded);
           if (result.ok) setEmail('');
@@ -613,6 +638,16 @@ export function TeamPage() {
             required
           />
         </label>
+        <label className="flex-1 min-w-48 text-[11px] font-semibold text-ink-muted">
+          {b.teamName}
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={60}
+            className={`${INPUT} mt-1`}
+          />
+        </label>
         <label className="text-[11px] font-semibold text-ink-muted">
           {b.teamRole}
           <select value={role} onChange={(e) => setRole(e.target.value)} className={`${INPUT} mt-1`}>
@@ -626,7 +661,20 @@ export function TeamPage() {
         <button type="submit" className={PRIMARY} disabled={busy || !email.trim()}>
           <UserPlus className="w-3.5 h-3.5" /> {b.teamAdd}
         </button>
+        <button type="button" onClick={createEmployee} className={SECONDARY} disabled={busy || !email.trim()}>
+          <UserPlus className="w-3.5 h-3.5" /> {b.teamCreate}
+        </button>
       </form>
+
+      {temporaryPassword && (
+        <div className="rounded-2xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-xs space-y-1">
+          <p className="font-bold text-emerald-800 dark:text-emerald-300">{b.teamCreatedTitle}</p>
+          <p className="text-emerald-900 dark:text-emerald-200">{b.teamCreatedHint}</p>
+          <p className="font-mono text-base font-bold text-emerald-900 dark:text-emerald-100" dir="ltr">
+            {temporaryPassword}
+          </p>
+        </div>
+      )}
 
       {members.length === 0 ? (
         <p className="text-xs text-ink-muted">{b.teamEmpty}</p>

@@ -9,17 +9,18 @@ export function seoRoutes(): express.Router {
   // Home, recipe list, fridge and every published recipe (server/seo.ts)
   router.get('/sitemap.xml', async (req, res) => {
     res.header('Content-Type', 'application/xml');
-    res.send(sitemapXml(getBaseUrl(req), await getCatalog()));
+    res.send(sitemapXml(getBaseUrl(), await getCatalog()));
   });
 
   router.get('/robots.txt', (req, res) => {
     res.header('Content-Type', 'text/plain');
     res.send(`User-agent: *
 Allow: /
-Disallow: /patron
+Disallow: /admin
+Disallow: /superAdmin
 Disallow: /api/
 
-Sitemap: ${getBaseUrl(req)}/sitemap.xml
+Sitemap: ${getBaseUrl()}/sitemap.xml
 `);
   });
 
@@ -35,7 +36,7 @@ export function seoPages(getTemplate: (url: string) => Promise<string>): express
   return async (req, res, next) => {
     if ((req.method !== 'GET' && req.method !== 'HEAD') || !isSeoPath(req.path)) return next();
     try {
-      const page = resolvePage(req.path, getBaseUrl(req), await getCatalog(), parsePageNumber(req.query.page));
+      const page = resolvePage(req.path, getBaseUrl(), await getCatalog(), parsePageNumber(req.query.page));
       if (!page) return next();
       const html = renderHtml(await getTemplate(req.originalUrl), page);
       res.status(page.status).set('Content-Type', 'text/html; charset=utf-8').send(html);

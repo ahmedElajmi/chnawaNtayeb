@@ -1,42 +1,42 @@
-# 07 · Backoffice patron (`/patron`)
+# 07 · Backoffice super admin (`/admin`)
 
 > Refonte en cours (nouvelle navigation : faite ; workflow de validation et workflows configurables : à
 > venir) : [14-refonte-backoffice.md](14-refonte-backoffice.md).
 
 ## Accès
 
-- Adresse `/patron`, ou trois clics sur le logo, ou depuis la fenêtre « Compte ».
-- Une fois connecté : badge « Patron » et « Quitter » dans l'en-tête (ordinateur et tablette) ;
-  sur téléphone, Réglages › Application, section « Patron » (accès au backoffice, quitter le mode patron).
+- Adresse `/admin`, ou trois clics sur le logo, ou depuis la fenêtre « Compte ».
+- Une fois connecté : badge « Super admin » et « Quitter » dans l'en-tête (ordinateur et tablette) ;
+  sur téléphone, Réglages › Application, section « Super admin » (accès au backoffice, quitter le mode super admin).
 - Connexion vérifiée **uniquement par le serveur** (`ADMIN_USERNAME`, `ADMIN_PASSWORD`) :
   5 tentatives ratées par quart d'heure et par adresse IP, session de 8 heures.
 - Si le serveur dispose de `FIREBASE_SERVICE_ACCOUNT`, la session donne aussi le droit d'écrire
   dans Firestore (statut « Connecté ») ; sinon le backoffice fonctionne en **mode local** :
   les modifications restent sur l'appareil.
-- Le code du backoffice n'est téléchargé que par le patron (chargement à la demande).
+- Le code du backoffice n'est téléchargé que par le super admin (chargement à la demande).
 - **Membres de l'équipe** : un compte du site (connexion par e-mail) ajouté dans Workflows › Équipe
-  ouvre `/patron` sans le mot de passe patron, avec les droits de son rôle. Le menu et les adresses ne
+  ouvre `/admin` sans le mot de passe super admin, avec les droits de son rôle. Le menu et les adresses ne
   montrent que les pages permises (`requires` dans le registre : Moteur, Apparence et Données
   demandent « publier », Workflows « gérer les workflows ») ; les règles de la base vérifient de
   nouveau chaque écriture. « Se déconnecter » ferme alors la session du compte.
 
 ## Navigation et pages (`src/features/backoffice/`)
 
-**Une adresse par page** (`PATRON_PAGES`, `ENGINE_PAGES`, `patronPath()` dans `src/shared/paths.ts`) : le
-retour et le rechargement gardent la page. `AppRoutes` envoie `/patron/*` au backoffice, qui déclare ses
+**Une adresse par page** (`BACKOFFICE_PAGES`, `ENGINE_PAGES`, `backofficePath()` dans `src/shared/paths.ts`) : le
+retour et le rechargement gardent la page. `AppRoutes` envoie `/admin/*` au backoffice, qui déclare ses
 routes à partir du **registre des sections** (`shell/sections.tsx`).
 
-| Page        | Adresse                | Fichier                                             | Fonctions                                                        |
-| ----------- | ---------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| Accueil     | `/patron`              | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
-| À valider   | `/patron/a-valider`    | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
-| Recettes    | `/patron/recettes`     | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
-| Ingrédients | `/patron/ingredients`  | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
-| Catégories  | `/patron/categories/…` | `categories/CategoriesPage.tsx`                     | Arbres des catégories (recettes, ingrédients), affectation       |
-| Moteur      | `/patron/moteur/…`     | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
-| Apparence   | `/patron/apparence`    | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
-| Workflows   | `/patron/workflows/…`  | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
-| Données     | `/patron/donnees`      | `data/DataTab.tsx`                                  | Tout remettre à valider, sauvegarde JSON, synchronisation        |
+| Page        | Adresse               | Fichier                                             | Fonctions                                                        |
+| ----------- | --------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| Accueil     | `/admin`              | `review/TodoList.tsx`, `dashboard/DashboardTab.tsx` | « À faire », chiffres clés, actions rapides                      |
+| À valider   | `/admin/a-valider`    | `review/QueuePage.tsx`                              | File regroupée, relecture en série, validation groupée           |
+| Recettes    | `/admin/recettes`     | `recipes/RecipesTab.tsx`, `RecipeEditorModal.tsx`   | Liste (statuts, filtres), créer, modifier, dupliquer, supprimer  |
+| Ingrédients | `/admin/ingredients`  | `ingredients/IngredientsTab.tsx`                    | Liste (statuts), ajouter, modifier, prix min–max (via l'atelier) |
+| Catégories  | `/admin/categories/…` | `categories/CategoriesPage.tsx`                     | Arbres des catégories (recettes, ingrédients), affectation       |
+| Moteur      | `/admin/moteur/…`     | `matching/`                                         | Six sous-pages (voir ci-dessous)                                 |
+| Apparence   | `/admin/apparence`    | `themes/ThemeEditor.tsx`                            | Créer, prévisualiser, publier des thèmes (contraste vérifié)     |
+| Workflows   | `/admin/workflows/…`  | `workflows/WorkflowPages.tsx`                       | Étapes et cases, rôles, équipe (voir ci-dessous)                 |
+| Données     | `/admin/donnees`      | `data/DataTab.tsx`                                  | Tout remettre à valider, sauvegarde JSON, synchronisation        |
 
 **Cadre** (`shell/BackofficeLayout.tsx`) :
 
@@ -50,7 +50,7 @@ routes à partir du **registre des sections** (`shell/sections.tsx`).
 - titre et description de la page, puis la page.
 
 **Ajouter une page** = une entrée dans `BACKOFFICE_SECTIONS` (icône, libellés, page ou sous-pages, nombre
-affiché, cadre partagé des sous-pages) + son adresse dans `PATRON_PAGES` + ses libellés : menu, menu
+affiché, cadre partagé des sous-pages) + son adresse dans `BACKOFFICE_PAGES` + ses libellés : menu, menu
 mobile, adresse et titre suivent.
 
 **Partagé par toutes les pages** (`shell/`) :
@@ -64,7 +64,7 @@ mobile, adresse et titre suivent.
   réécrits.
 
 **Libellés traduits** : `i18n/backofficeTexts.ts` (toutes les langues et variantes, la دارجة ne liste que
-ce qui diffère de l'arabe ; chargé seulement avec `/patron`), lus par `useBackofficeText()`. Le cadre, le
+ce qui diffère de l'arabe ; chargé seulement avec `/admin`), lus par `useBackofficeText()`. Le cadre, le
 menu, les titres des pages et la barre de publication du moteur sont traduits ; le contenu des autres
 panneaux reste en français jusqu'à leur passage dans ce dictionnaire. Un test vérifie que chaque libellé
 existe dans chaque langue, avec les mêmes `{repères}`.
@@ -73,7 +73,7 @@ Les actions sur le catalogue passent par `useCatalogAdmin` (service `CatalogAdmi
 chaque action s'affiche tout de suite sur cet appareil, est écrite dans la base (document complet,
 versionné), puis arrive **en direct** sur tous les autres appareils ouverts. Le résultat (succès ou
 erreur lisible) est affiché. Une suppression publie une marque de suppression. « Récupérer depuis le
-cloud » relit tout le catalogue. À la première connexion du patron, une base vide reçoit le catalogue
+cloud » relit tout le catalogue. À la première connexion du super admin, une base vide reçoit le catalogue
 intégré (`seedIfEmpty`, une seule lecture).
 
 **Langue** : les noms (recettes, ingrédients, thèmes, catégories) suivent la langue du site, et
@@ -153,7 +153,7 @@ d'ingrédients affichés est indiqué.
 nombre de recettes et d'ingrédients restaurés et les éléments illisibles ignorés, et rappelle
 d'« Envoyer vers le cloud » pour publier.
 
-## Validation des recettes (`/patron/recettes/<id>`)
+## Validation des recettes (`/admin/recettes/<id>`)
 
 Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), données :
 [05](05-application-donnees.md), plan : [14](14-refonte-backoffice.md)).
@@ -201,7 +201,7 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
   ouvre sa case.
 - **Ingrédients** : même chemin que les recettes. L'éditeur d'ingrédient et « Enregistrer les prix »
   écrivent dans l'atelier (`IngredientEditorProvider`, `shell/`) ; chaque ingrédient a sa page de
-  validation (`/patron/ingredients/<id>` : nom par langue, catégorie et unité, prix, photo). Une recette
+  validation (`/admin/ingredients/<id>` : nom par langue, catégorie et unité, prix, photo). Une recette
   ne peut être publiée qu'avec des ingrédients en ligne (contrôle « Ingrédients en ligne »).
 - La page de validation (`review/ReviewPage.tsx`) est la même pour tous les types de contenu : ce qui
   change (nom, liste, éditeur, contenu d'une case, aperçu) est décrit par une « vue » par type
@@ -211,7 +211,7 @@ Rien n'est en ligne sans validation (règles : [03 › review](03-domaine.md), d
 - Les thèmes et les réglages du moteur gardent leur propre publication (brouillon, scénarios du chef,
   historique des versions) : ils n'ont pas de textes par langue à valider case par case.
 
-## Catégories (`/patron/categories/{recettes,ingredients}`)
+## Catégories (`/admin/categories/{recettes,ingredients}`)
 
 Deux arbres gérés à part (`@/core/categories`, collections `recipe_categories` et
 `ingredient_categories`, synchronisées comme le catalogue) :
@@ -239,7 +239,7 @@ Deux arbres gérés à part (`@/core/categories`, collections `recipe_categories
   niveau (`?groupe=categorie&niveau=2`, `ui/CategoryGroups.tsx`) : une section repliable par catégorie,
   avec son nombre, paginée ; « Sans catégorie » en dernier.
 
-## Page « À valider » (`/patron/a-valider`)
+## Page « À valider » (`/admin/a-valider`)
 
 - Comptes sur toute la file : parties à valider, éléments concernés, à corriger, prêts à publier ;
   le nombre de parties en attente s'affiche aussi dans le menu.
@@ -260,7 +260,7 @@ incomplètes, à traduire, sans photo ; ingrédients à l'unité ou au prix dout
 recette), compté sur les recettes de l'équipe (copies de l'atelier comprises). Chaque ligne ouvre la
 liste filtrée (`?filtre=` : les listes de recettes et d'ingrédients lisent leur filtre dans l'adresse).
 
-## Workflows (`/patron/workflows/…`)
+## Workflows (`/admin/workflows/…`)
 
 Trois sous-pages qui partagent un brouillon (`ReviewSettingsDraftProvider`) et une barre
 d'enregistrement (version en vigueur, avertissements de lecture, problèmes qui empêchent
@@ -279,7 +279,7 @@ d'enregistrer, note, historique des versions avec « Ouvrir dans le brouillon »
   sur le site), changer son rôle, le retirer. À chaque enregistrement des rôles, les droits recopiés
   sur les membres sont remis à jour (`TeamStore.refreshRights`).
 
-## Moteur (`/patron/moteur`)
+## Moteur (`/admin/moteur`)
 
 Permet de régler le moteur « Warini chnowa ntayeb » sans toucher au code
 (fonctionnement du moteur : [04](04-moteur-matching.md)).
@@ -296,7 +296,7 @@ abandonne le brouillon, comme avant.
    du brouillon ; ce qui change est en couleur.
 3. **Scénarios du chef** (enregistrés en base, `matching_scenarios`) : rejoués avec le brouillon ;
    un scénario cassé par le brouillon est signalé, et la publication est bloquée tant que « publier
-   malgré tout » n'est pas coché. Le patron peut **ajouter**, **modifier** (formulaire guidé : frigo,
+   malgré tout » n'est pas coché. Le super admin peut **ajouter**, **modifier** (formulaire guidé : frigo,
    placard, filtres, vérifications par type, résultat en direct), **tester** (suggestions du scénario
    avec le brouillon), **supprimer**, **lancer les tests** (relecture de la base et nouveau passage),
    **exporter / importer** (JSON de sauvegarde ; un import remplace la liste en base). Fichier de
