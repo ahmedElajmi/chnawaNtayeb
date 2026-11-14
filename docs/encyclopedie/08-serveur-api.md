@@ -101,6 +101,9 @@ l'adresse canonique, les cartes de partage, les données schema.org et une **cop
   un client peut les forger (empoisonnement de canonical/sitemap). En production, le serveur
   refuse de démarrer sans `APP_URL` ; en développement il retombe sur `http://localhost:PORT`.
 - **Nouvelle adresse publique** : ajouter son constructeur dans `SCREENS` (sinon les robots la voient vide).
+- **Adresses historiques** : les anciennes adresses (`/patron`, `/recette/:slug`… — constantes
+  `LEGACY_PATHS` / `LEGACY_RECIPE_PREFIX` de `src/shared/paths.ts`) répondent en **301** (slug et
+  requête conservés) pour transférer le référencement.
 - Le catalogue utilisé est celui de Firestore si le serveur y a accès (seulement les changements, au plus
   une fois par minute et seulement quand une page est demandée), sinon le catalogue intégré. Il est lu
   dès le démarrage du serveur (`server.ts`) pour que le premier robot après un réveil n'attende pas la base.

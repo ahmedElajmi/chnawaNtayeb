@@ -14,14 +14,16 @@ Règles d'or :
 
 - **Le champ `type` d'un profil vaut `client` ou `employee`** — il décrit la structure, jamais des variantes de clients (celles-là sont des données : `segment`, `tags`, futurs abonnements). Une variante de client ne doit jamais devenir une valeur de `type`.
 - **Les fonctions client sont universelles** : un employé consulte le frigo, les suggestions et les courses avec son propre compte, exactement comme un client ; ses droits ne s'activent que dans `/admin`.
-- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le super admin passe par sa session, un employé par son rôle.
+- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le super admin passe par sa session, un employé par son rôle. `isOwner` dans les règles = le jeton super admin du serveur.
 
 ## Le profil (`users/{uid}`)
 
 Champs : `uid`, `type`, `email`, `displayName`, `phone` (**E.164**, ex. `+21620123456` — l'indicatif fait partie du
 nombre, jamais un champ séparé), `address` (bloc facultatif : `line`, `region`, `city`, `postalCode`, `country`),
-`preferredLanguage`, `isAnonymous`, `favorites`, `savedFridge`, `lastLogin`. Un profil sans `type` est un client
-(lecture tolérante, comme les anciens documents).
+`preferredLanguage`, `isAnonymous`, `favorites`, `savedFridge`, `lastLogin`. Le profil est lu via
+`resolveUserProfile` (tolérant : `type` absent = client, comme les anciens documents) et écrit
+**en entier** par le port `AccountProfileRepository` (+ contrat `accountProfile.contract.ts`),
+store `AccountProfileStore`.
 
 - Validations : `src/core/accounts` (`validateRegistration`, `validateProfileUpdate`, `normalizePhone` — via
   `libphonenumber-js`, la seule dépendance ajoutée). Le téléphone est facultatif et **non vérifié** pour l'instant :

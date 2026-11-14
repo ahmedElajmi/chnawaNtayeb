@@ -49,9 +49,21 @@ Le détail des règles est dans [04 Moteur de matching](04-moteur-matching.md).
 
 ## Langues
 
-Trois langues d'interface et de contenu : **derja** (tunisien en alphabet latin, par défaut),
-**français** et **arabe** (affichage de droite à gauche). Chaque recette, ingrédient et thème
-a ses trois noms (`name_fr`, `name_derja`, `name_ar`).
+Une seule liste, `LANGUAGES` (`@/core/shared/language.ts`) : **derja** en lettres latines
+(chiffres arabizi 3, 7, 9 — langue par défaut), **français** (langue de référence), **arabe
+littéraire** et **derja en lettres arabes** (`derja_ar`, `src/shared/i18n/derjaArabic.ts`) ; la
+derja est une variante de la famille arabe (affichage de droite à gauche pour les écritures
+arabes). Chaque entrée donne le sens d'écriture, `lang`, le tri et l'**ordre de repli** (une langue
+vide affiche sa liste de repli, le français en dernier).
+
+Une variante est écrite en entier, jamais empruntée à sa famille : la derja en lettres arabes
+n'est pas de l'arabe littéraire, et l'arabe littéraire ne contient aucun mot de derja (vérifié par
+les tests des dictionnaires, voir [06](06-interface.md)).
+
+Chaque contenu (recette, ingrédient, thème, catégorie) porte ses champs `<champ>_<langue>`
+(`name_fr`, `name_derja`, `name_derja_ar`…) ; les variantes récentes sont facultatives (vides =
+absentes). Le backoffice suit la langue courante, comme le reste du site. Règles de lecture et
+d'affichage : [03 § shared](03-domaine.md) et [06 § Langues](06-interface.md).
 
 ## Vocabulaire
 
