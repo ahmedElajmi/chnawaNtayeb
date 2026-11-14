@@ -1,22 +1,12 @@
 import React, { useState } from 'react';
-import {
-  X,
-  Clock,
-  Coins,
-  Users,
-  Heart,
-  Share2,
-  CheckCircle2,
-  Circle,
-  Lightbulb,
-  ShoppingBag,
-  ChefHat,
-} from 'lucide-react';
+import { X, Clock, Coins, Users, Heart, Share2, CheckCircle2, Lightbulb, ShoppingBag, ChefHat } from 'lucide-react';
 import { Recipe, Ingredient } from '@/core/catalog';
+import type { NewGroceryItem } from '@/core/grocery';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { scaleIngredients, analyzeRecipe, type MatchingConfig } from '@/core/matching';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
+import { MissingIngredientsPicker } from '@/features/recipes/components/MissingIngredientsPicker';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
@@ -31,7 +21,7 @@ interface RecipeDetailModalProps {
   allIngredients: Ingredient[];
   selectedFridgeIds: string[];
   pantryIds: string[];
-  onAddMissingToGrocery: (missingIngs: { name: string; quantity: number; unit: string }[]) => void;
+  onAddMissingToGrocery: (missingIngs: (NewGroceryItem & { category?: string })[]) => void;
   /** Engine settings, so the recipe screen agrees with the suggestions */
   matchingConfig?: MatchingConfig;
 }
@@ -51,6 +41,15 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const { t, language, getRecipeName, getRecipeDesc, getIngredientName, getStepText, getChefTip } = useLanguage();
   const [servings, setServings] = useState<number>(recipe?.base_servings || 4);
   const [addedGroceryToast, setAddedGroceryToast] = useState(false);
+  // Missing-ingredient rows the user unticked (every row is selected by default), scoped to the
+  // open recipe: opening another recipe — or reopening this one — starts all-ticked again.
+  const [selection, setSelection] = useState<{ key: string; deselected: Set<string> }>({
+    key: '',
+    deselected: new Set(),
+  });
+  const selectionKey = `${isOpen ? (recipe?.id ?? '') : ''}`;
+  const deselectedIds = selection.key === selectionKey ? selection.deselected : new Set<string>();
+  const updateDeselectedIds = (next: Set<string>) => setSelection({ key: selectionKey, deselected: next });
 
   if (!isOpen || !recipe) return null;
 
@@ -76,6 +75,8 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const matchedSet = new Set(analysis.matched);
 
   type Row = {
+    /** Selection key: the ingredient id of the recipe line */
+    id: string;
     ing: Ingredient | undefined;
     quantity: number;
     unit: string;
@@ -91,6 +92,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
     const ing = allIngredients.find((i) => i.id === item.ingredient_id);
     const subId = substituteOf.get(item.ingredient_id);
     const row: Row = {
+      id: item.ingredient_id,
       ing,
       quantity: item.quantity,
       unit: item.unit,
@@ -102,6 +104,22 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
     else if (missingStapleSet.has(item.ingredient_id)) stapleItems.push(row);
     else if (!item.is_optional) missingItems.push(row);
   });
+
+  const missingRows = missingItems.map((item) => ({
+    id: item.id,
+    ing: item.ing,
+    name: item.ing ? getIngredientName(item.ing) : t.ingredientFallback,
+    quantity: item.quantity,
+    unit: item.unit,
+    isKey: item.isKey,
+  }));
+  const selectedCount = missingItems.filter((item) => !deselectedIds.has(item.id)).length;
+  const toggleMissingRow = (id: string) => {
+    const next = new Set(deselectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    updateDeselectedIds(next);
+  };
 
   const handleShareWhatsApp = () => {
     const ingList = scaledList
@@ -122,11 +140,15 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   };
 
   const handleAddMissing = () => {
-    const toAdd = missingItems.map((item) => ({
-      name: item.ing ? getIngredientName(item.ing) : t.ingredientFallback,
-      quantity: item.quantity,
-      unit: item.unit,
-    }));
+    const toAdd = missingItems
+      .filter((item) => !deselectedIds.has(item.id))
+      .map((item) => ({
+        name: item.ing ? getIngredientName(item.ing) : t.ingredientFallback,
+        quantity: item.quantity,
+        unit: item.unit,
+        // Catalog linkage: the grocery list merges by ingredient and shows it in its aisle
+        ...(item.ing ? { ingredient_id: item.ing.id, category: item.ing.category } : {}),
+      }));
     onAddMissingToGrocery(toAdd);
     setAddedGroceryToast(true);
     setTimeout(() => setAddedGroceryToast(false), 3000);
@@ -233,17 +255,18 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
 
           {/* Ingredients Section */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-sm font-bold uppercase tracking-wider text-ink">
                 {t.ingredientsTitle} ({scaledList.length})
               </h3>
               {missingItems.length > 0 && (
                 <button
                   onClick={handleAddMissing}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-text hover:underline"
+                  disabled={selectedCount === 0}
+                  className="inline-flex items-center gap-1.5 min-h-[40px] px-2 rounded-lg text-xs font-bold text-brand-text hover:bg-brand/10 disabled:opacity-40 disabled:pointer-events-none transition"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>{t.addMissingToGrocery}</span>
+                  <span>{t.recipeAddMissingSelected.replace('{n}', String(selectedCount))}</span>
                 </button>
               )}
             </div>
@@ -290,44 +313,22 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               </div>
             )}
 
-            {/* Missing Ingredients */}
+            {/* Missing Ingredients (each one selectable before adding to the grocery list) */}
             {missingItems.length > 0 && (
-              <div className="space-y-1.5 pt-2">
-                <p className="text-xs font-semibold text-accent-text flex items-center gap-1.5">
-                  <Circle className="w-3.5 h-3.5" />
-                  <span>
-                    {t.missingIngredients} ({missingItems.length})
-                  </span>
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {missingItems.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between gap-2 p-1.5 pe-2.5 rounded-xl bg-accent/10 border border-accent/20 text-xs"
-                    >
-                      <span className="flex items-center gap-2 min-w-0">
-                        {item.ing && <IngredientThumb ingredient={item.ing} size="sm" />}
-                        <span className="font-medium text-slate-800 dark:text-slate-200 min-w-0">
-                          {item.ing ? getIngredientName(item.ing) : ''}
-                          {item.isKey && (
-                            <span className="ms-1.5 px-1.5 py-0.5 rounded bg-accent text-on-accent text-[9px] font-bold uppercase">
-                              {t.keyIngredientBadge}
-                            </span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="font-bold text-accent-text shrink-0">
-                        {item.quantity} {item.unit}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <>
+                <MissingIngredientsPicker
+                  items={missingRows}
+                  deselectedIds={deselectedIds}
+                  onToggle={toggleMissingRow}
+                  onSelectAll={() => updateDeselectedIds(new Set())}
+                  onSelectNone={() => updateDeselectedIds(new Set(missingItems.map((item) => item.id)))}
+                />
                 {analysis.missingCost.max > 0 && (
                   <p className="text-[11px] text-ink-muted">
                     {t.groceryCost.replace('{n}', formatPriceRange(analysis.missingCost, t.currency))}
                   </p>
                 )}
-              </div>
+              </>
             )}
 
             {/* Pantry reminders (never block the recipe) */}

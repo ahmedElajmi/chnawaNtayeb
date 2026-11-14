@@ -65,6 +65,14 @@ export const useKitchen = () => {
   return { ...useStore(kitchen), kitchen };
 };
 
+/** Description configured in the backoffice for a unit label ('' when none), in the current language. */
+export const useUnitDescription = (unit: string): string => {
+  const { catalog } = useContainer();
+  useStore(catalog); // follows the shared `units` collection live
+  const { language } = useLanguage();
+  return catalog.unitDescriptionOf(unit, language) ?? '';
+};
+
 export const useMatchingSettings = () => {
   const { matchingSettings } = useContainer();
   return { ...useStore(matchingSettings), matchingSettings };

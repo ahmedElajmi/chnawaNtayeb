@@ -52,11 +52,11 @@ super admin a saisi.
 
 **Coût suggéré** (`catalog/costEstimate.ts`, testé) : `suggestRecipeCost` additionne, pour chaque
 ingrédient non facultatif, (quantité convertie en unités d'achat) × (fourchette de prix). Les unités
-sont lues par `parseMeasure` : masses (g, kg, « 100 g », « paquet (500g) »), volumes (ml, cl, L,
-« boîte (400 ml) ») et unités comptées (pièce = pièces, botte…) ; une parenthèse sans quantité est un
-commentaire (« pièces (durs) »). Une quantité dans une autre sorte d'unité (cuillères d'un ingrédient
-vendu au kg) n'est pas comptée et listée dans `unpriced` : la suggestion dit combien d'ingrédients
-sont chiffrés.
+sont lues par `parseMeasure` (désormais dans `@/core/units`, réexporté ici) : masses (g, kg, « 100 g »,
+« paquet (500g) »), volumes (ml, cl, L, « boîte (400 ml) ») et unités comptées (pièce = pièces,
+botte…) ; une parenthèse sans quantité est un commentaire (« pièces (durs) »). Une quantité dans une
+autre sorte d'unité (cuillères d'un ingrédient vendu au kg) n'est pas comptée et listée dans
+`unpriced` : la suggestion dit combien d'ingrédients sont chiffrés.
 
 **Utilisation** (`catalog/usage.ts`, testé) : `countIngredientUsage` (nombre de recettes par
 ingrédient, remplaçants compris) et `findDuplicateIngredient` (même nom français, casse et accents
@@ -197,10 +197,39 @@ Voir la page dédiée [04 Moteur de matching](04-moteur-matching.md).
 - `migrateDayPlan` : convertit l'ancien format (une recette par repas).
 - `DEFAULT_WEEKLY_PLAN` : menu proposé à un nouvel utilisateur.
 
+## `units` : unités et leurs descriptions
+
+- **Unités comparables** (`units/units.ts`, testé) : `parseMeasure` lit une unité (masse g / kg / gr,
+  volume ml / cl / dl / l / litre(s), quantité entre parenthèses « paquet (500g) », chose comptée
+  « pièce », « botte », « c.à.s »…). `getUnitFamily` donne la famille (masse, volume, comptée) ;
+  `getCompatibleUnits` les alias de la même famille (les choses comptées restent seules : pièce ≠
+  botte) ; `areUnitsCompatible` dit si deux quantités peuvent s'additionner (casse, espaces et
+  pluriels français ignorés ; une unité incomparable ne vaut qu'elle-même, écrite pareil) ;
+  `convertQuantity` convertit une quantité (1500 g → 1,5 kg, arrondi à 3 décimales) ou rend `null`.
+- **Descriptions** (`units/info.ts`, testé) : `UnitInfo` (`label`, `description_fr` obligatoire,
+  `description_derja` / `description_ar` toujours stockées, `description_derja_ar` facultative,
+  `revision`). L'id est le **libellé slugifié** (`unitIdFromLabel` : « c.à.s » → `c-a-s`,
+  `UNIT_ID_PATTERN`), la clé de recherche ignore casse et espaces (`unitLookupKey`).
+  `parseStoredUnitInfo(s)` relit ce qui vient de l'extérieur (id, libellé et description française
+  obligatoires, marques de suppression écartées), `validateUnitInfo` vérifie une saisie du
+  backoffice (libellé unique, description française requise), `unitDescriptionIndex` indexe par
+  libellé et id. **Aucune description par défaut dans le code** : une unité absente de la base
+  reste affichée nue.
+
 ## `grocery` : liste de courses
 
 - `buildGroceryListFromPlan` : tous les ingrédients des plats du menu, quantités additionnées par ingrédient.
-- `addGroceryItems`, `toggleGroceryItem`, `clearCheckedGroceryItems` : fonctions pures (ids injectables).
+- `addGroceryItems` : un article qui retrouve une ligne existante — **même ingrédient**
+  (`ingredient_id`) ou même nom pour un article libre — dans une **unité compatible** (g avec kg,
+  ml avec l…) y est **fusionné** : la quantité est convertie dans l'unité de la ligne, additionnée,
+  et la ligne est **décochée** (quelque chose à acheter vient d'être ajouté). La ligne garde son id,
+  son nom, son unité, sa catégorie et son drapeau « article libre ». Unités incompatibles (500 g et
+  2 pièces) ou deux choses comptées différentes (tête et gousse d'ail) : **deux lignes**. Un article
+  du catalogue porte `ingredient_id` et `category` (bon rayon, plus `is_custom`) ; un article libre
+  reste `is_custom`.
+- `changeGroceryItemUnit` : passe un article à une autre unité compatible (g → kg, ml → l), quantité
+  convertie ; `null` — liste intacte — si l'article n'existe pas ou si l'unité est incompatible.
+- `toggleGroceryItem`, `clearCheckedGroceryItems` : fonctions pures (ids injectables).
 
 ## `preferences`
 

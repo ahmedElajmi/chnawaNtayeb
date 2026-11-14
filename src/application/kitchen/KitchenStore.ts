@@ -5,6 +5,7 @@ import {
   type NewGroceryItem,
   addGroceryItems,
   buildGroceryListFromPlan,
+  changeGroceryItemUnit,
   clearCheckedGroceryItems,
   removeGroceryItem,
   toggleGroceryItem,
@@ -138,6 +139,13 @@ export class KitchenStore extends Store<KitchenState> {
   /** Edits the quantity of one item (garbage values leave the list untouched). */
   setGroceryItemQuantity(id: string, quantity: number): void {
     this.updateGroceryList(updateGroceryItemQuantity(this.getState().groceryList, id, quantity));
+  }
+
+  /** Switches one item to a compatible unit (g -> kg, ml -> l...), converting its quantity;
+   *  an incompatible unit or an unknown item leaves the list untouched. */
+  setGroceryItemUnit(id: string, newUnit: string): void {
+    const next = changeGroceryItemUnit(this.getState().groceryList, id, newUnit);
+    if (next) this.updateGroceryList(next);
   }
 
   clearCheckedGroceryItems(): void {

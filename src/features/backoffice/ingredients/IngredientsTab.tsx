@@ -22,6 +22,7 @@ import { CompletenessMeter, NextActionLink, StatusBadge } from '../review/review
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 import { useIngredientEditor } from '../shell/IngredientEditorContext';
+import { UnitsSection } from './UnitsSection';
 
 const PRICE_INPUT =
   'w-16 px-2 py-1 text-xs font-bold text-right rounded-lg bg-surface border border-slate-200 dark:border-slate-700';
@@ -265,6 +266,8 @@ function IngredientList({ ingredients, recipes, infoOf }: IngredientListProps) {
           />
         </>
       )}
+
+      <UnitsSection />
     </div>
   );
 }

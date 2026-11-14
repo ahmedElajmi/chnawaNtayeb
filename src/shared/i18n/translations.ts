@@ -326,6 +326,9 @@ export interface TranslationDictionary {
   ingredientFallback: string;
   addMissingToGrocery: string;
   missingAddedToast: string;
+  recipeAddMissingSelected: string;
+  missingSelectAll: string;
+  missingSelectNone: string;
   shareRecipeHeading: string;
   shareMoreIdeas: string;
   shareSentFrom: string;
@@ -357,6 +360,13 @@ export interface TranslationDictionary {
   groceryDeleteAll: string;
   groceryDeleteAllConfirm: string;
   grocerySignInHint: string;
+  // Grocery add form: catalog ingredient picker and free-text fallback
+  groceryPickerSearchLabel: string;
+  groceryPickerSearchPlaceholder: string;
+  groceryPickerNoResults: string;
+  groceryPickerAddItem: string;
+  groceryPickerCustomToggle: string;
+  groceryUnitSelectLabel: string;
   // Grocery history panel
   groceryHistoryTitle: string;
   groceryHistoryEmpty: string;
@@ -373,6 +383,12 @@ export interface TranslationDictionary {
   groceryXlsxTotal: string;
   // Weekly planner: planned budget of the week
   planBudgetLabel: string;
+  // Unit description tooltip (shared `units` collection)
+  unitInfoAria: string;
+  // Adding an ingredient to the shopping list from the fridge cards + header chip
+  cartAddLabel: string;
+  cartAddedLabel: string;
+  groceryBadgeLabel: string;
 }
 
 /**
@@ -698,6 +714,9 @@ export const translations = {
     ingredientFallback: 'Ingrédient',
     addMissingToGrocery: 'Zid elli naqsek lel qadhya',
     missingAddedToast: 'El ingrédients elli naqsin tzedou lel liste mta3 el qadhya !',
+    recipeAddMissingSelected: 'Zid elli khtarithom ({n})',
+    missingSelectAll: 'Khtar el kol',
+    missingSelectNone: 'Na7i el khtara 3al kol',
     shareRecipeHeading: 'Makla mel Chnowa Ntayeb',
     shareMoreIdeas: 'Ekteshef afkar okhrin 3la Chnowa Ntayeb !',
     shareSentFrom: 'Teb3ath men',
@@ -728,6 +747,12 @@ export const translations = {
     groceryDeleteAll: 'Fasakh el liste el kol',
     groceryDeleteAllConfirm: 'Tfasakh el {n} articles ? Définitif — mouch arkhevi.',
     grocerySignInHint: 'Odkhel (walla a3mel compte) bech tarkhevi el qadhya w tal9a el historique.',
+    groceryPickerSearchLabel: 'Lawwej 3la ingrédient bech tzidou lel liste',
+    groceryPickerSearchPlaceholder: 'Lawwej 3la ingrédient (tmatem, 3adhher...)...',
+    groceryPickerNoResults: 'Mafamech ingrédient hakka',
+    groceryPickerAddItem: 'Zid {name} lel liste',
+    groceryPickerCustomToggle: 'Walla zid article 7our',
+    groceryUnitSelectLabel: 'Beddel l’unité ta3 {name}',
     groceryHistoryTitle: 'Historique el qadhya',
     groceryHistoryEmpty: 'Mafamech chnowa tarkhef tawa. Sakker jom3a bech tal9aha hné.',
     groceryHistoryCount: '{n} articles',
@@ -742,6 +767,10 @@ export const translations = {
     groceryXlsxGap: 'Far9',
     groceryXlsxTotal: 'Total',
     planBudgetLabel: 'Budget el jom3a el prévu : {n}',
+    unitInfoAria: 'Ma3loumet 3al unité {unit}',
+    cartAddLabel: 'Zid {name} lel liste mta3 courses',
+    cartAddedLabel: 'Tzad lel liste mta3 courses',
+    groceryBadgeLabel: 'Liste mta3 courses ({count})',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -1063,6 +1092,9 @@ export const translations = {
     ingredientFallback: 'Ingrédient',
     addMissingToGrocery: 'Ajouter les manquants aux courses',
     missingAddedToast: 'Les ingrédients manquants ont été ajoutés à votre liste de courses !',
+    recipeAddMissingSelected: 'Ajouter la sélection ({n})',
+    missingSelectAll: 'Tout sélectionner',
+    missingSelectNone: 'Tout désélectionner',
     shareRecipeHeading: 'Recette Chnowa Ntayeb',
     shareMoreIdeas: 'Découvre plus d’idées repas sur Chnowa Ntayeb !',
     shareSentFrom: 'Envoyé depuis',
@@ -1093,6 +1125,12 @@ export const translations = {
     groceryDeleteAll: 'Supprimer toute la liste',
     groceryDeleteAllConfirm: 'Supprimer les {n} articles ? Définitif — non archivé.',
     grocerySignInHint: 'Connecte-toi (ou crée un compte) pour archiver tes courses et retrouver l’historique.',
+    groceryPickerSearchLabel: 'Chercher un ingrédient à ajouter à la liste',
+    groceryPickerSearchPlaceholder: 'Chercher un ingrédient (tomates, menthe)...',
+    groceryPickerNoResults: 'Aucun ingrédient trouvé',
+    groceryPickerAddItem: 'Ajouter {name} à la liste',
+    groceryPickerCustomToggle: 'Ou ajouter un article libre',
+    groceryUnitSelectLabel: 'Changer l’unité de {name}',
     groceryHistoryTitle: 'Historique des courses',
     groceryHistoryEmpty: 'Pas encore de liste archivée. Clôture une semaine pour la retrouver ici.',
     groceryHistoryCount: '{n} articles',
@@ -1107,6 +1145,10 @@ export const translations = {
     groceryXlsxGap: 'Écart',
     groceryXlsxTotal: 'Total',
     planBudgetLabel: 'Budget prévu de la semaine : {n}',
+    unitInfoAria: 'Description de l’unité {unit}',
+    cartAddLabel: 'Ajouter {name} à la liste de courses',
+    cartAddedLabel: 'Ajouté à la liste de courses',
+    groceryBadgeLabel: 'Liste de courses ({count})',
   },
   ar: {
     appName: 'Chnowa Ntayeb',
@@ -1420,6 +1462,9 @@ export const translations = {
     ingredientFallback: 'مكوّن',
     addMissingToGrocery: 'أضف الناقص إلى قائمة المشتريات',
     missingAddedToast: 'أُضيفت المكوّنات الناقصة إلى قائمة مشترياتك!',
+    recipeAddMissingSelected: 'أضف المحدد ({n})',
+    missingSelectAll: 'تحديد الكل',
+    missingSelectNone: 'إلغاء تحديد الكل',
     shareRecipeHeading: 'وصفة من Chnowa Ntayeb',
     shareMoreIdeas: 'اكتشف المزيد من أفكار الوجبات على Chnowa Ntayeb!',
     shareSentFrom: 'أُرسلت من',
@@ -1450,6 +1495,12 @@ export const translations = {
     groceryDeleteAll: 'حذف القائمة كلها',
     groceryDeleteAllConfirm: 'حذف {n} منتجات؟ نهائي — بدون أرشفة.',
     grocerySignInHint: 'سجّل الدخول (أو أنشئ حسابًا) لأرشفة مشترياتك والاطلاع على السجل.',
+    groceryPickerSearchLabel: 'ابحث عن مكوّن لإضافته إلى القائمة',
+    groceryPickerSearchPlaceholder: 'ابحث عن مكوّن (طماطم، نعناع)...',
+    groceryPickerNoResults: 'لا يوجد مكوّن مطابق',
+    groceryPickerAddItem: 'أضف {name} إلى القائمة',
+    groceryPickerCustomToggle: 'أو أضف منتجًا حرًّا',
+    groceryUnitSelectLabel: 'تغيير وحدة {name}',
     groceryHistoryTitle: 'سجل المشتريات',
     groceryHistoryEmpty: 'لا توجد قائمة مؤرشفة بعد. أغلق أسبوعًا لتجدها هنا.',
     groceryHistoryCount: '{n} منتجات',
@@ -1464,6 +1515,10 @@ export const translations = {
     groceryXlsxGap: 'الفرق',
     groceryXlsxTotal: 'المجموع',
     planBudgetLabel: 'الميزانية المتوقعة للأسبوع: {n}',
+    unitInfoAria: 'وصف الوحدة {unit}',
+    cartAddLabel: 'أضف {name} إلى قائمة التسوق',
+    cartAddedLabel: 'تمت الإضافة إلى قائمة التسوق',
+    groceryBadgeLabel: 'قائمة التسوق ({count})',
   },
   derja_ar: DERJA_ARABIC,
 } satisfies Record<Language, TranslationDictionary>;
