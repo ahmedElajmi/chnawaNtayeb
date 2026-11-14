@@ -100,3 +100,15 @@ export async function isEmptyCollection(name: string): Promise<boolean> {
     return false;
   }
 }
+
+/** The polling interval configured in the backoffice (seconds), null when unreachable. */
+export async function fetchPollingInterval(): Promise<number | null> {
+  try {
+    const res = await fetch('/api/settings/polling');
+    if (!res.ok) return null;
+    const data = (await res.json()) as { interval_seconds?: number };
+    return typeof data.interval_seconds === 'number' ? data.interval_seconds : null;
+  } catch {
+    return null;
+  }
+}

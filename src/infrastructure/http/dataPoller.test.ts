@@ -142,3 +142,35 @@ describe('the shared data poller', () => {
     expect(JSON.parse(String(last[1]?.body)).rev).toEqual({ recipes: 5, countries: 2 });
   });
 });
+
+describe('the configurable polling interval', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('applies the interval configured in the backoffice for the next ticks', async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchMock = vi.fn(async () => jsonResponse(200, { ok: true, data: {} }));
+      vi.stubGlobal('fetch', fetchMock);
+      const poller = new DataPoller();
+      poller.follow(
+        'recipes',
+        5,
+        () => undefined,
+        () => undefined
+      );
+      // first immediate tick
+      await vi.advanceTimersByTimeAsync(10);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      // a 20 s interval (backoffice): the second tick comes at 20 s, not 60 s
+      poller.setIntervalMs(20_000);
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      // nonsense values are ignored
+      poller.setIntervalMs(100);
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

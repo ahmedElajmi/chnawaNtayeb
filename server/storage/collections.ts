@@ -46,6 +46,18 @@ const adminsParser: ParseDoc = (raw) => (parseTeamMember(raw) ? (raw as Record<s
 /** Historical snapshots and themes keep their raw shape: the domain reads them back itself. */
 const rawDoc: ParseDoc = (raw) => (raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : null);
 
+/** Personal kitchen document: carries its uid; the sections are validated by /api/kitchen before any write. */
+const kitchenParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return d &&
+    typeof d === 'object' &&
+    typeof d.uid === 'string' &&
+    typeof d.sections === 'object' &&
+    d.sections !== null
+    ? { ...d }
+    : null;
+};
+
 export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   recipes: {
     name: 'recipes',
@@ -144,6 +156,9 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   },
   auth: { name: 'auth', read: 'server', write: 'server', pageLimit: 0, parse: authParser },
   settings: { name: 'settings', read: 'server', write: 'server', pageLimit: 0, parse: null as unknown as ParseDoc },
+  // The personal kitchen data of one account (fridge, favorites, menu, shopping list):
+  // one document per uid, written only by /api/kitchen after a session check.
+  kitchen: { name: 'kitchen', read: 'server', write: 'server', pageLimit: 0, parse: kitchenParser },
 } as const satisfies Record<string, CollectionSpec>;
 
 export function collectionSpec(name: string): CollectionSpec | null {

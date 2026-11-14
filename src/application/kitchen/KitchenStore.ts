@@ -56,6 +56,24 @@ export class KitchenStore extends Store<KitchenState> {
     this.setState({ pantry });
   }
 
+  // --- Merges coming from another device (sync): sets grow, they never lose an entry ---
+  mergeFavorites(ids: string[]): void {
+    const favorites = Array.from(new Set([...this.getState().favorites, ...ids]));
+    this.repo.saveFavorites(favorites);
+    this.setState({ favorites });
+  }
+
+  mergeFridge(ids: string[]): void {
+    const fridge = Array.from(new Set([...this.getState().fridge, ...ids]));
+    this.updateFridge(fridge);
+  }
+
+  mergePantry(ids: string[]): void {
+    const pantry = Array.from(new Set([...this.getState().pantry, ...ids]));
+    this.repo.savePantry(pantry);
+    this.setState({ pantry });
+  }
+
   // --- Favorites ---
   toggleFavorite(recipeId: string): void {
     const favorites = toggleInList(this.getState().favorites, recipeId);

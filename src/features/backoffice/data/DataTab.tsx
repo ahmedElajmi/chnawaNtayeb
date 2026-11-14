@@ -1,6 +1,8 @@
-import { Cloud, CloudOff, Download, RefreshCw, RotateCcw, Upload } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Cloud, CloudOff, Download, RefreshCw, RotateCcw, Save, Upload } from 'lucide-react';
 import { initialRecipes } from '@/core/catalog';
 import type { CloudStatus } from '@/application';
+import { useContainer } from '@/app/ContainerContext';
 import type { CatalogAdminActions } from '../useCatalogAdmin';
 import { format } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
@@ -12,6 +14,37 @@ const TILE =
 export function DataTab({ admin, cloudStatus }: { admin: CatalogAdminActions; cloudStatus: CloudStatus }) {
   const { isSyncing } = admin;
   const b = useBackofficeText();
+  const { pollingSettings } = useContainer();
+  const [interval, setInterval] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    pollingSettings
+      .read()
+      .then((s) => setInterval(s.intervalSeconds))
+      .catch(() => setInterval(null));
+  }, [pollingSettings]);
+
+  // Tiny inline feedback: the note under the field says what happened, then fades away
+  const [savedNote, setSavedNote] = useState<string | null>(null);
+  const showNote = (note: string) => {
+    setSavedNote(note);
+    window.setTimeout(() => setSavedNote(null), 2500);
+  };
+
+  const saveInterval = async () => {
+    if (!interval) return;
+    setBusy(true);
+    try {
+      await pollingSettings.save(interval);
+      showNote(b.panSyncSaved);
+    } catch {
+      showNote(b.panSyncError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="p-5 rounded-2xl bg-card border border-line space-y-4">
@@ -103,6 +136,40 @@ export function DataTab({ admin, cloudStatus }: { admin: CatalogAdminActions; cl
             <span>{b.panResetCloud}</span>
           </button>
         </div>
+      </div>
+
+      {/* How often every device polls the change feed: configured here, applied by the server */}
+      <div className="p-5 rounded-2xl bg-card border border-line space-y-4">
+        <h3 className="text-sm font-bold text-ink uppercase tracking-wider">{b.panSyncTitle}</h3>
+        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">{b.panSyncIntro}</p>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block text-[11px] font-semibold text-slate-500">
+            {b.panSyncLabel}
+            <input
+              type="number"
+              min={15}
+              max={600}
+              dir="ltr"
+              value={interval ?? 60}
+              onChange={(e) => setInterval(parseInt(e.target.value, 10) || null)}
+              className="mt-1 w-32 px-3 py-2 text-xs rounded-xl bg-surface border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={saveInterval}
+            disabled={busy || !interval}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand text-on-brand text-xs font-bold hover:bg-brand-strong transition shadow-xs disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            <span>{b.save}</span>
+          </button>
+        </div>
+        {savedNote && (
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400" role="status">
+            {savedNote}
+          </p>
+        )}
       </div>
     </div>
   );

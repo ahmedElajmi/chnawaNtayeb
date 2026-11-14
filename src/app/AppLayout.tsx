@@ -6,6 +6,7 @@ import { SettingsModal } from '@/features/settings/SettingsModal';
 import { UserAccountModal } from '@/features/account/UserAccountModal';
 import { UpdatePrompt } from '@/shared/ui/UpdatePrompt';
 import { InstallBanner } from '@/shared/ui/InstallBanner';
+import { SyncInviteBanner } from '@/shared/ui/SyncInviteBanner';
 import { OfflineIndicator } from '@/shared/ui/OfflineIndicator';
 import { ScrollToTopButton } from '@/shared/ui/ScrollToTopButton';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
@@ -22,7 +23,7 @@ export function AppLayout() {
   const { pathname } = useLocation();
   const { fridge } = useKitchen();
   const { status: backofficeSessionStatus, backofficeSessionStore } = useBackofficeSession();
-  const { userAuth, accountProfile, team } = useContainer();
+  const { userAuth, accountProfile, team, kitchenSync } = useContainer();
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -75,6 +76,14 @@ export function AppLayout() {
 
       {/* Install invitation (not in the backoffice); also available in Settings › Application */}
       {!isBackoffice && <InstallBanner />}
+      {/* Account invitation once the device holds kitchen data (the sync is the value of an account) */}
+      {!isBackoffice && (
+        <SyncInviteBanner
+          signedIn={currentUser !== null && !currentUser.isAnonymous}
+          hasLocalData={kitchenSync.hasLocalData()}
+          onOpenAccount={() => setIsUserModalOpen(true)}
+        />
+      )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
         <Outlet />

@@ -189,6 +189,19 @@ describe('data endpoints over HTTP', () => {
     expect(((await adminRead.json()) as { items: { id: string }[] }).items).toHaveLength(2);
   });
 
+  it('serves the polling interval publicly and lets only the super admin change it', async () => {
+    const def = await get('/api/settings/polling');
+    expect(((await def.json()) as { interval_seconds: number }).interval_seconds).toBe(60);
+    const refused = await put('/admin/api/settings/polling', { interval_seconds: 30 });
+    expect(refused.status).toBe(403);
+    const bad = await put('/admin/api/settings/polling', { interval_seconds: 3 }, admin());
+    expect(bad.status).toBe(400);
+    const ok = await put('/admin/api/settings/polling', { interval_seconds: 30 }, admin());
+    expect(((await ok.json()) as { interval_seconds: number }).interval_seconds).toBe(30);
+    const updated = await get('/api/settings/polling');
+    expect(((await updated.json()) as { interval_seconds: number }).interval_seconds).toBe(30);
+  });
+
   it('pages the accounts directory for managers only', async () => {
     await post('/api/auth/register', { email: 'amine@b.co', password: 'long-enough-1' });
     await post('/api/auth/register', { email: 'sami@b.co', password: 'long-enough-1' });

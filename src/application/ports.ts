@@ -107,6 +107,66 @@ export interface KitchenRepository {
   saveGroceryList(items: GroceryItem[]): void;
 }
 
+// ---------------------------------------------------------------------------
+// Kitchen sync: the personal data of a signed-in account (fridge, favorites, menu,
+// shopping list, preferences) kept on the server, one document per account, and the
+// bookkeeping of what this device changed since its last confirmed push.
+// ---------------------------------------------------------------------------
+
+/** One section of the account's kitchen as the server keeps it (newest-write-wins). */
+export interface RemoteKitchenSection<T> {
+  value: T;
+  /** Client time in ms, carried with the section; the newest one wins between devices */
+  updatedAt: number;
+}
+
+export interface RemoteKitchenDocument {
+  favorites?: RemoteKitchenSection<string[]>;
+  fridge?: RemoteKitchenSection<string[]>;
+  pantry?: RemoteKitchenSection<string[]>;
+  weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
+  groceryList?: RemoteKitchenSection<GroceryItem[]>;
+  preferences?: RemoteKitchenSection<UserPreferences>;
+}
+
+export type RemoteKitchenSections = Partial<RemoteKitchenDocument>;
+
+/** The signed-in account's kitchen kept on the server (never reachable for guests). */
+export interface KitchenSyncGateway {
+  /** The stored document; null when the account has none yet. Throws when unreachable. */
+  pull(): Promise<RemoteKitchenDocument | null>;
+  /**
+   * Sends the changed sections; the server keeps a section only when it is newer than the
+   * stored one and answers with the document after the merge. Throws when refused.
+   */
+  push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument>;
+}
+
+/** Sync bookkeeping of the kitchen data on this device (what changed here, and when). */
+export interface KitchenSyncLedger {
+  /** True when this device holds kitchen data (favorites, fridge, pantry or list). */
+  hasData(): boolean;
+  /** Sections changed locally and not confirmed by the server yet. */
+  pending(): string[];
+  /** Last local change per section, in ms (a missing key = never changed here). */
+  sectionTimes(): Record<string, number>;
+  /** When the preferences were last changed on this device (null = never). */
+  preferencesChangedAt(): number | null;
+  /** When the preferences were last confirmed by the server (null = never). */
+  preferencesSyncedAt(): number | null;
+  /** Confirms sections as pushed (leaves the pending list). */
+  confirm(sections: string[]): void;
+  /** Confirms the preferences mirror as pushed. */
+  confirmPreferences(at: number): void;
+  /** Records the time of a section adopted from the server (so it is not adopted again). */
+  setSectionTime(section: string, at: number): void;
+  /**
+   * Saves applied from another device must not be marked as pending: suspended during a
+   * merge; the returned function resumes the normal bookkeeping.
+   */
+  suspend(): () => void;
+}
+
 export type WriteResult = { ok: true } | { ok: false; error: string };
 
 /** One published version of the matching engine settings. */
@@ -150,10 +210,11 @@ export interface MatchingScenarioRepository {
   replaceAll(scenarios: MatchingScenario[]): Promise<WriteResult>;
 }
 
-/** User preferences kept on the device (language, theme, pantry...). */
+/** User preferences kept on the device (language, theme, pantry...). `at` records the
+ *  change time for the sync (a value adopted from the server carries its own time). */
 export interface PreferencesRepository {
   load(): UserPreferences;
-  save(patch: Partial<UserPreferences>): void;
+  save(patch: Partial<UserPreferences>, at?: number): void;
 }
 
 /** Resolved CSS of the active theme, read before the app starts (avoids a flash of the wrong colors). */
@@ -267,6 +328,16 @@ export interface AccountDirectoryRepository {
 export interface PasswordPolicyGateway {
   read(): Promise<PasswordPolicy>;
   save(policy: PasswordPolicy): Promise<void>;
+}
+
+/** How often the devices poll the change feed (seconds), configured in the backoffice. */
+export interface PollingSettings {
+  intervalSeconds: number;
+}
+
+export interface PollingSettingsGateway {
+  read(): Promise<PollingSettings>;
+  save(intervalSeconds: number): Promise<void>;
 }
 
 /** Creates staff accounts on the server (super-admin session required): the client never mints a right. */
