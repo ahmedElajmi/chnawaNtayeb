@@ -2,7 +2,7 @@ import type { DayPlan } from '@/core/planning';
 import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
 
 export type { PasswordPolicy };
-import type { GroceryItem } from '@/core/grocery';
+import type { GroceryItem, GroceryHistoryEntry } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
@@ -105,6 +105,9 @@ export interface KitchenRepository {
   saveWeeklyPlan(plan: DayPlan[]): void;
   loadGroceryList(): GroceryItem[];
   saveGroceryList(items: GroceryItem[]): void;
+  /** Note and actual spend attached to the current shopping list. */
+  loadGroceryMeta(): { note: string; spent: number | null };
+  saveGroceryMeta(note: string, spent: number | null): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -126,6 +129,7 @@ export interface RemoteKitchenDocument {
   pantry?: RemoteKitchenSection<string[]>;
   weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
   groceryList?: RemoteKitchenSection<GroceryItem[]>;
+  groceryMeta?: RemoteKitchenSection<{ note?: string; spent_tnd?: number | null }>;
   preferences?: RemoteKitchenSection<UserPreferences>;
 }
 
@@ -137,9 +141,19 @@ export interface KitchenSyncGateway {
   pull(): Promise<RemoteKitchenDocument | null>;
   /**
    * Sends the changed sections; the server keeps a section only when it is newer than the
-   * stored one and answers with the document after the merge. Throws when refused.
+   * stored one and answers with the document after the merge. Throws when unreachable.
    */
   push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument>;
+}
+
+/** Archived shopping lists of the account, kept on the server (newest first). */
+export interface GroceryHistoryGateway {
+  /** The archived lists of the signed-in account. Throws when unreachable. */
+  list(): Promise<GroceryHistoryEntry[]>;
+  /** Archives one entry (overwrites when the same id is sent again). Throws when refused. */
+  save(entry: GroceryHistoryEntry): Promise<void>;
+  /** Removes one archived list. Throws when refused. */
+  remove(entryId: string): Promise<void>;
 }
 
 /** Sync bookkeeping of the kitchen data on this device (what changed here, and when). */

@@ -58,6 +58,12 @@ const kitchenParser: ParseDoc = (raw) => {
     : null;
 };
 
+/** Archived grocery-run snapshot: one per uid + entry id; fields are validated by /api/kitchen/history. */
+const kitchenHistoryParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return d && typeof d === 'object' && typeof d.uid === 'string' && typeof d.entry_id === 'string' ? { ...d } : null;
+};
+
 export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   recipes: {
     name: 'recipes',
@@ -159,6 +165,15 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   // The personal kitchen data of one account (fridge, favorites, menu, shopping list):
   // one document per uid, written only by /api/kitchen after a session check.
   kitchen: { name: 'kitchen', read: 'server', write: 'server', pageLimit: 0, parse: kitchenParser },
+  // Archived grocery-run snapshots of one account: written only by /api/kitchen/history
+  // after a session check, one document per uid + entry id, capped per uid by the route.
+  kitchen_history: {
+    name: 'kitchen_history',
+    read: 'server',
+    write: 'server',
+    pageLimit: 0,
+    parse: kitchenHistoryParser,
+  },
 } as const satisfies Record<string, CollectionSpec>;
 
 export function collectionSpec(name: string): CollectionSpec | null {

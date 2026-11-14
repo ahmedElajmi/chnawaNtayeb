@@ -105,6 +105,8 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         ledgerData.times.groceryList = time.value;
       }
     },
+    loadGroceryMeta: () => ({ note: '', spent: null }),
+    saveGroceryMeta: () => undefined,
   };
   const kitchen = new KitchenStore(repo);
 

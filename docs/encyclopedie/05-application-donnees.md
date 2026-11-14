@@ -170,7 +170,7 @@ reste le cache hors ligne), la synchronisation est un fond de carte invisible.
   sont envoyées **au démarrage suivant** — un crash, une coupure réseau ou un onglet tué ne
   perdent rien ; un push en échec reste en attente et repart au déclencheur suivant seulement.
 
-**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union**
+**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union** (le commentaire et le montant dépensé de la liste voyagent dans la section `groceryMeta`, dernier écrit gagnant)
 (les ensembles grossissent, jamais de perte) ; menu, liste et préférences prennent **le dernier
 écrit gagnant** (horodatage client porté par chaque section). Le serveur applique la même règle
 (`server/routes/kitchenRoutes.ts`), donc deux appareils peuvent pousser dans n'importe quel ordre

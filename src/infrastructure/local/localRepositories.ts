@@ -15,6 +15,8 @@ const EMPTY_DOC: StoredKitchenDoc = {
   pantry: [],
   weeklyPlan: [],
   groceryList: [],
+  groceryNote: '',
+  grocerySpent: null,
   sections: {},
   pending: [],
   preferencesSyncedAt: null,
@@ -36,6 +38,8 @@ function migrateLegacyKitchen(): StoredKitchenDoc {
   return {
     ...legacy,
     weeklyPlan: legacy.weeklyPlan.length ? legacy.weeklyPlan : storage.getWeeklyPlan(),
+    groceryNote: '',
+    grocerySpent: null,
     sections,
     pending: changed,
     preferencesSyncedAt: null,
@@ -70,6 +74,9 @@ export function createLocalKitchenRepository(scope: () => string): KitchenReposi
     saveWeeklyPlan: (plan: DayPlan[]) => withDoc((d) => changed({ ...d, weeklyPlan: plan }, 'weeklyPlan')),
     loadGroceryList: () => doc().groceryList,
     saveGroceryList: (items: GroceryItem[]) => withDoc((d) => changed({ ...d, groceryList: items }, 'groceryList')),
+    loadGroceryMeta: () => ({ note: doc().groceryNote, spent: doc().grocerySpent }),
+    saveGroceryMeta: (note: string, spent: number | null) =>
+      withDoc((d) => changed({ ...d, groceryNote: note, grocerySpent: spent }, 'groceryMeta')),
   };
 
   /** Sync bookkeeping over the same document (exported as its own port). */
