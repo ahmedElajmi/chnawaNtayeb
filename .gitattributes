@@ -1,0 +1,8 @@
+# Line endings: every text file is stored and checked out with LF, whatever the platform.
+# Without this, a Windows tool writing CRLF turned a one-line edit into a whole-file diff.
+* text=auto eol=lf
+
+# Explicit binaries: never converted, never diffed as text (git also auto-detects, this is the safety net).
+*.png binary
+*.jpg binary
+*.ico binary
