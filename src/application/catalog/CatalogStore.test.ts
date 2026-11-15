@@ -12,6 +12,7 @@ const settle = () => new Promise((r) => setTimeout(r, 0));
 const unit = (patch: Partial<UnitInfo>): UnitInfo => ({
   id: 'c-a-s',
   label: 'c.à.s',
+  kind: 'count',
   description_fr: 'Cuillère à soupe (environ 15 ml)',
   description_derja: 'Ma3l9a kbira',
   description_ar: '',
@@ -72,5 +73,41 @@ describe('CatalogStore unit descriptions', () => {
     await sharedUnits.writer.remove('kg');
     await settle();
     expect(store.unitDescriptionOf('kg', 'fr')).toBeUndefined();
+  });
+});
+
+describe('CatalogStore unit options', () => {
+  it('offers the common built-in units while the registry is empty', () => {
+    const { store } = setup();
+    expect(store.unitOptions()).toEqual([
+      { label: 'g', kind: 'mass' },
+      { label: 'kg', kind: 'mass' },
+      { label: 'cl', kind: 'volume' },
+      { label: 'L', kind: 'volume' },
+      { label: 'ml', kind: 'volume' },
+      { label: 'boîte', kind: 'count' },
+      { label: 'botte', kind: 'count' },
+      { label: 'c.à.c', kind: 'count' },
+      { label: 'c.à.s', kind: 'count' },
+      { label: 'feuilles', kind: 'count' },
+      { label: 'gousses', kind: 'count' },
+      { label: 'paquet', kind: 'count' },
+      { label: 'pièce', kind: 'count' },
+      { label: 'pincée', kind: 'count' },
+      { label: 'sachet', kind: 'count' },
+      { label: 'tranche', kind: 'count' },
+      { label: 'verre', kind: 'count' },
+    ]);
+  });
+
+  it('offers the registry instead once the backoffice described units, sorted by kind', async () => {
+    const { store, sharedUnits } = setup();
+    await sharedUnits.writer.put(unit({}));
+    await sharedUnits.writer.put(unit({ id: 'kg', label: 'kg', kind: 'mass', description_fr: 'Kilogramme' }));
+    await settle();
+    expect(store.unitOptions()).toEqual([
+      { label: 'kg', kind: 'mass' },
+      { label: 'c.à.s', kind: 'count' },
+    ]);
   });
 });

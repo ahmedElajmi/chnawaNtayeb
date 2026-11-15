@@ -8,6 +8,7 @@ import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { RecipeVideo } from '@/features/recipes/components/RecipeVideo';
 import { MissingIngredientsPicker } from '@/features/recipes/components/MissingIngredientsPicker';
 import { ModalShell } from '@/shared/ui/ModalShell';
+import { GroceryListChooserModal, type GroceryListChoice } from '@/shared/ui/GroceryListChooserModal';
 import { IngredientThumb } from '@/shared/ui/IngredientThumb';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
 import { getRecipeCost } from '@/app/ContainerContext';
@@ -21,7 +22,16 @@ interface RecipeDetailModalProps {
   allIngredients: Ingredient[];
   selectedFridgeIds: string[];
   pantryIds: string[];
-  onAddMissingToGrocery: (missingIngs: (NewGroceryItem & { category?: string })[]) => void;
+  onAddMissingToGrocery: (
+    missingIngs: (NewGroceryItem & { category?: string })[],
+    listId?: string,
+    newListName?: string
+  ) => void;
+  /**
+   * Named shopping lists to offer when the user keeps several (remaining counts included).
+   * Empty or absent: the add goes straight to the active list, without asking.
+   */
+  groceryLists?: GroceryListChoice[];
   /** Engine settings, so the recipe screen agrees with the suggestions */
   matchingConfig?: MatchingConfig;
 }
@@ -36,11 +46,16 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   selectedFridgeIds,
   pantryIds,
   onAddMissingToGrocery,
+  groceryLists,
   matchingConfig,
 }) => {
   const { t, language, getRecipeName, getRecipeDesc, getIngredientName, getStepText, getChefTip } = useLanguage();
   const [servings, setServings] = useState<number>(recipe?.base_servings || 4);
   const [addedGroceryToast, setAddedGroceryToast] = useState(false);
+  // With several shopping lists, the target one is asked before the add; the chosen items
+  // wait here while the chooser is open (single list: the add goes straight through).
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [pendingItems, setPendingItems] = useState<(NewGroceryItem & { category?: string })[] | null>(null);
   // Missing-ingredient rows the user unticked (every row is selected by default), scoped to the
   // open recipe: opening another recipe — or reopening this one — starts all-ticked again.
   const [selection, setSelection] = useState<{ key: string; deselected: Set<string> }>({
@@ -139,8 +154,8 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
   };
 
-  const handleAddMissing = () => {
-    const toAdd = missingItems
+  const buildMissingItems = () =>
+    missingItems
       .filter((item) => !deselectedIds.has(item.id))
       .map((item) => ({
         name: item.ing ? getIngredientName(item.ing) : t.ingredientFallback,
@@ -149,9 +164,31 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
         // Catalog linkage: the grocery list merges by ingredient and shows it in its aisle
         ...(item.ing ? { ingredient_id: item.ing.id, category: item.ing.category } : {}),
       }));
-    onAddMissingToGrocery(toAdd);
+
+  const showAddedToast = () => {
     setAddedGroceryToast(true);
     setTimeout(() => setAddedGroceryToast(false), 3000);
+  };
+
+  const handleAddMissing = () => {
+    const toAdd = buildMissingItems();
+    // One list (or none known): same behavior as before, straight into the active list.
+    if ((groceryLists?.length ?? 0) <= 1) {
+      onAddMissingToGrocery(toAdd);
+      showAddedToast();
+    } else {
+      setPendingItems(toAdd);
+      setChooserOpen(true);
+    }
+  };
+
+  const handleChooseList = (listId: string | null, newListName: string | null) => {
+    setChooserOpen(false);
+    const toAdd = pendingItems;
+    setPendingItems(null);
+    if (!toAdd || (!listId && !newListName)) return;
+    onAddMissingToGrocery(toAdd, listId ?? undefined, newListName ?? undefined);
+    showAddedToast();
   };
 
   return (
@@ -398,6 +435,18 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Target shopping list, asked only when the user keeps several */}
+      <GroceryListChooserModal
+        open={chooserOpen}
+        onClose={() => {
+          setChooserOpen(false);
+          setPendingItems(null);
+        }}
+        lists={groceryLists ?? []}
+        onChoose={handleChooseList}
+        title={t.chooseListTitle}
+      />
     </ModalShell>
   );
 };

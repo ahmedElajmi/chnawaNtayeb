@@ -19,16 +19,16 @@ sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
 
 ## Les écrans
 
-| Adresse         | Écran         | Rôle                                                                                                                                                                                     |
-| --------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                                                                                          |
-| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), bouton panier par ingrédient (ajout direct à la liste de courses), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
-| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                                                                                            |
-| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                                                                                            |
-| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, manquants sélectionnables ajoutés aux courses                                                                          |
-| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                                                                                     |
-| `/grocery`      | Qadhya        | Liste de courses (générée depuis le menu, ajout d'ingrédients du catalogue ou manuel), unités changeables, partage WhatsApp                                                              |
-| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                                                                                                  |
+| Adresse         | Écran         | Rôle                                                                                                                                                                                                                                      |
+| --------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                                                                                                                                           |
+| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), bouton panier par ingrédient (ajout à la liste de courses ; la liste cible est demandée quand il y en a plusieurs), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
+| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                                                                                                                                             |
+| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                                                                                                                                             |
+| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, manquants sélectionnables ajoutés aux courses                                                                                                                           |
+| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                                                                                                                                      |
+| `/grocery`      | Qadhya        | Listes de courses nommées (créer, renommer, dupliquer, supprimer ; générée depuis le menu, ajout d'ingrédients du catalogue ou manuel avec unité), unités changeables, partage WhatsApp                                                   |
+| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                                                                                                                                                   |
 
 ## Catalogue et suggestions : deux écrans
 
