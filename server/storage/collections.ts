@@ -72,6 +72,19 @@ const kitchenHistoryParser: ParseDoc = (raw) => {
   return d && typeof d === 'object' && typeof d.uid === 'string' && typeof d.entry_id === 'string' ? { ...d } : null;
 };
 
+/** Per-account index of the archived snapshots (seq + the entry ids and dates): written only
+ * by /api/kitchen/history, which re-validates its shape at every read. */
+const kitchenHistoryIndexParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return d &&
+    typeof d === 'object' &&
+    typeof d.uid === 'string' &&
+    typeof d.seq === 'number' &&
+    Array.isArray(d.entries)
+    ? { ...d }
+    : null;
+};
+
 export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
   recipes: {
     name: 'recipes',
@@ -194,6 +207,15 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
     write: 'server',
     pageLimit: 0,
     parse: kitchenHistoryParser,
+  },
+  // The index of the snapshots above: one tiny document per uid (seq + entry ids and dates),
+  // kept in the same commit as the entry writes so the cap is exact and the eviction atomic.
+  kitchen_history_index: {
+    name: 'kitchen_history_index',
+    read: 'server',
+    write: 'server',
+    pageLimit: 0,
+    parse: kitchenHistoryIndexParser,
   },
 } as const satisfies Record<string, CollectionSpec>;
 
