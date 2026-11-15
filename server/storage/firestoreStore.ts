@@ -6,6 +6,7 @@ import type {
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  TransactOutcome,
   WriteGuard,
   WriteOp,
 } from './types';
@@ -20,6 +21,14 @@ export function createFirestoreStore(db: Firestore): DataStore {
   const table = (name: CollectionName) => dbx.collection(name);
 
   const stamped = (doc: Record<string, unknown>) => ({ ...doc, revision: FieldValue.serverTimestamp() });
+
+  /** The storage layer owns `id` and `revision`: they never persist inside the document. */
+  const withoutOwnFields = (doc: Record<string, unknown>): Record<string, unknown> => {
+    const clean = { ...doc };
+    delete clean.id;
+    delete clean.revision;
+    return clean;
+  };
 
   const guardValue = async (tx: Transaction, guard: WriteGuard): Promise<number | null> => {
     const d = await tx.get(table(guard.name).doc(guard.id));
@@ -148,6 +157,29 @@ export function createFirestoreStore(db: Firestore): DataStore {
       if (revision === 0) return { ok: false, conflict: true };
       const newest = await maxStamp(table, ops);
       return { ok: true, revision: newest };
+    },
+
+    async transact<T>(
+      name: CollectionName,
+      id: string,
+      operation: (current: Record<string, unknown> | null) => TransactOutcome<T>
+    ): Promise<T> {
+      // Firestore re-runs the callback on contention: `operation` must be pure, the contract
+      // states it. The read (tx.get) and the write are atomic — the callback either applies
+      // over the state it read or is re-run over the fresh one.
+      const ref = table(name).doc(id);
+      return dbx.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        const current =
+          snap.exists && snap.get('deleted') !== true
+            ? { ...(snap.data() as Record<string, unknown>), id: snap.id, revision: millis(snap.get('revision')) ?? 0 }
+            : null;
+        const outcome: TransactOutcome<T> = operation(current);
+        if (outcome.next && outcome.next !== current) {
+          tx.set(ref, stamped(withoutOwnFields(outcome.next)));
+        }
+        return outcome.result;
+      });
     },
   };
 }

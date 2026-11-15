@@ -7,6 +7,7 @@ import type {
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  TransactOutcome,
   WriteGuard,
   WriteOp,
 } from './types';
@@ -45,6 +46,32 @@ function jsonField(knex: Knex, column: string, field: string): string {
 
 /** A guarded batch whose guard no longer holds: a clean lost race, not a storage failure. */
 class GuardConflict extends Error {}
+
+/** The row changed since the transaction read it: the attempt is retried over the fresh state. */
+class TransactConflict extends Error {}
+
+/** A write lock lost to a concurrent transaction (a deferred BEGIN upgraded too late, or an
+ * engine serialisation failure): the whole read-merge-write is retried, the operation is pure. */
+const isWriteConflict = (error: unknown): boolean => {
+  const e = error as { code?: string; message?: string } | undefined;
+  if (typeof e?.code === 'string') return /BUSY|LOCK|40001|40P01|1205/.test(e.code);
+  return /SQLITE_BUSY|database is locked|could not serialize|deadlock detected/i.test(e?.message ?? '');
+};
+
+/** A plain insert that lost the race for a row that did not exist yet (primary key). */
+const isUniqueViolation = (error: unknown): boolean => {
+  const e = error as { code?: string; message?: string } | undefined;
+  if (typeof e?.code === 'string') return e.code.startsWith('SQLITE_CONSTRAINT') || /23505|2601|2627/.test(e.code);
+  return /unique constraint|duplicate entry|cannot be duplicate/i.test(e?.message ?? '');
+};
+
+/** The storage layer owns `id` and `revision`: they never persist inside the document. */
+const withoutOwnFields = (doc: Record<string, unknown>): Record<string, unknown> => {
+  const clean = { ...doc };
+  delete clean.id;
+  delete clean.revision;
+  return clean;
+};
 
 export function createSqlStore(knex: Knex): DataStore {
   const table = (name: CollectionName) => knex(name);
@@ -222,6 +249,55 @@ export function createSqlStore(knex: Knex): DataStore {
         // no longer holds, the failure is a conflict, not a storage error; otherwise it rethrows.
         if (guard && (await guardValue(guard)) !== guard.expected) return { ok: false, conflict: true };
         throw error;
+      }
+    },
+
+    async transact<T>(
+      name: CollectionName,
+      id: string,
+      operation: (current: Record<string, unknown> | null) => TransactOutcome<T>
+    ): Promise<T> {
+      // One attempt = read, run the pure operation, claim the write — inside one transaction.
+      // The claim is a compare-and-swap on the revision (the write only lands when the row is
+      // still exactly what was read), so a contended attempt retries over the fresh state and
+      // a read-merge-write can never overwrite a change it did not see. Same guarantee as the
+      // automatic re-runs of a Firestore transaction; the operation being pure makes retries safe.
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await knex.transaction(async (trx) => {
+            const row = await trx(name).where('id', id).first('id', 'data', 'revision', 'deleted');
+            const current = row && !row.deleted ? materialize(row.id, row.data, Number(row.revision)) : null;
+            const outcome: TransactOutcome<T> = operation(current);
+            if (outcome.next && outcome.next !== current) {
+              const doc = withoutOwnFields(outcome.next);
+              const revision = await stamp(trx, name);
+              if (!row) {
+                // The row must still be absent: a plain insert (the primary key rejects a
+                // concurrent claimant that took the row in between).
+                await writeOne(trx, { name, id, doc }, revision, true);
+              } else {
+                const updated = await trx(name)
+                  .where({ id, revision: Number(row.revision) })
+                  .update({
+                    data: JSON.stringify(doc),
+                    revision,
+                    updated_at: new Date().toISOString(),
+                    deleted: 0,
+                  });
+                if (updated === 0) throw new TransactConflict();
+              }
+            }
+            return outcome.result;
+          });
+        } catch (error) {
+          if (
+            attempt < 10 &&
+            (error instanceof TransactConflict || isWriteConflict(error) || isUniqueViolation(error))
+          ) {
+            continue;
+          }
+          throw error;
+        }
       }
     },
   };

@@ -12,6 +12,7 @@ import {
   updateGroceryItemQuantity,
 } from '@/core/grocery';
 import { toggleInList } from '@/core/shared';
+import type { ElementSet, SetSectionName } from '@/core/kitchen';
 import type { KitchenRepository } from '../ports';
 import { Store } from '../store';
 
@@ -65,22 +66,30 @@ export class KitchenStore extends Store<KitchenState> {
     this.setState({ pantry });
   }
 
-  // --- Merges coming from another device (sync): sets grow, they never lose an entry ---
-  mergeFavorites(ids: string[]): void {
-    const favorites = Array.from(new Set([...this.getState().favorites, ...ids]));
-    this.repo.saveFavorites(favorites);
-    this.setState({ favorites });
+  // --- Merges coming from another device (sync): the element sets carry the deletions too ---
+  /** The element-set state of one set section (what this push will send to the server). */
+  elementSet(section: SetSectionName): ElementSet {
+    return this.repo.elementSet(section);
   }
 
-  mergeFridge(ids: string[]): void {
-    const fridge = Array.from(new Set([...this.getState().fridge, ...ids]));
-    this.updateFridge(fridge);
+  /** Merges a set section adopted from the server: version maps unioned, the visible list
+   * recomputed — a deletion travels through its tombstone instead of being resurrected. */
+  mergeElementSet(section: SetSectionName, remote: ElementSet): void {
+    this.repo.mergeElementSet(section, remote);
+    const list =
+      section === 'favorites'
+        ? this.repo.loadFavorites()
+        : section === 'fridge'
+          ? this.repo.loadFridge()
+          : this.repo.loadPantry();
+    this.setState({ [section]: list } as Partial<KitchenState>);
   }
 
-  mergePantry(ids: string[]): void {
-    const pantry = Array.from(new Set([...this.getState().pantry, ...ids]));
-    this.repo.savePantry(pantry);
-    this.setState({ pantry });
+  /** Clears the whole kitchen data (a device that has not synced within the tombstone
+   * retention re-adopts the server document instead of resurrecting an element). */
+  resetLocal(): void {
+    this.repo.resetLocal();
+    this.reload();
   }
 
   // --- Favorites ---

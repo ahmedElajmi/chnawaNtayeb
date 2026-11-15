@@ -3,6 +3,7 @@ import { type DayPlan, DEFAULT_WEEKLY_PLAN, migrateDayPlan } from '@/core/planni
 import type { GroceryItem } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
 import { type AppTheme, isValidTheme } from '@/core/theme';
+import { type DeviceClock, type ElementSet, parseElementSet } from '@/core/kitchen';
 
 const KEYS = {
   RECIPES: 'chnowa_recipes_v1',
@@ -36,6 +37,12 @@ export interface StoredKitchenDoc {
   pending: string[];
   /** When the preferences mirror was last confirmed by the server (null = never) */
   preferencesSyncedAt: number | null;
+  /** Element-set state of the three set sections (added/removed versions per id, @/core/kitchen) */
+  elements: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet };
+  /** This device's hybrid logical clock, per scope (never goes backwards); null = no event yet */
+  deviceClock: DeviceClock | null;
+  /** Last successful exchange with the server for this scope (null = never synced) */
+  lastSyncedAt: number | null;
 }
 
 class StorageService {
@@ -215,6 +222,9 @@ class StorageService {
         sections: doc.sections && typeof doc.sections === 'object' ? { ...doc.sections } : {},
         pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
+        elements: readElementSets(doc.elements),
+        deviceClock: readDeviceClock(doc.deviceClock),
+        lastSyncedAt: typeof doc.lastSyncedAt === 'number' ? doc.lastSyncedAt : null,
       };
     } catch {
       return null;
@@ -225,6 +235,22 @@ class StorageService {
     try {
       localStorage.setItem(this.kitchenKey(scope), JSON.stringify(doc));
     } catch {}
+  }
+
+  /** Stable id of this installation (departs devices that issue equal hybrid clock versions). */
+  deviceId(): string {
+    const KEY = 'chnawa_device_id_v1';
+    let id = localStorage.getItem(KEY);
+    if (!id || id.length > 64) {
+      id = (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`).slice(
+        0,
+        64
+      );
+      try {
+        localStorage.setItem(KEY, id);
+      } catch {}
+    }
+    return id;
   }
 
   /** Kitchen data written by earlier versions (unscoped keys): read once, then only the scoped doc is used. */
@@ -243,6 +269,31 @@ class StorageService {
     if (!favorites.length && !fridge.length && !groceryList.length && !pantry.length) return null;
     return { favorites, fridge, pantry, weeklyPlan, groceryList };
   }
+}
+
+/** The element-set state of the three set sections, read through the core parser (unknown/malformed dropped). */
+function readElementSets(raw: unknown): { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } {
+  const out: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  const shape = raw as Record<string, unknown>;
+  for (const name of ['favorites', 'fridge', 'pantry'] as const) {
+    const parsed = parseElementSet(shape[name]);
+    if (parsed) out[name] = parsed;
+  }
+  return out;
+}
+
+/** The device's hybrid logical clock, shape-checked (absent or malformed = no event yet). */
+function readDeviceClock(raw: unknown): DeviceClock | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const shape = raw as Record<string, unknown>;
+  const physical = shape.physical;
+  const counter = shape.counter;
+  const device = shape.device;
+  if (typeof physical !== 'number' || !Number.isFinite(physical) || physical < 0) return null;
+  if (typeof counter !== 'number' || !Number.isInteger(counter) || counter < 0) return null;
+  if (typeof device !== 'string' || device.length === 0 || device.length > 64) return null;
+  return { physical, counter, device };
 }
 
 export const storage = new StorageService();

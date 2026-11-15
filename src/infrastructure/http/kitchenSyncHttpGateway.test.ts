@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { kitchenSyncHttpGateway } from './kitchenSyncHttpGateway';
+import type { ElementSet } from '@/core/kitchen';
 
 function jsonResponse(status: number, body: unknown): Response {
   return { ok: status < 400, status, json: async () => body } as unknown as Response;
 }
+
+/** A remote set section as the server keeps it (added/removed versions per id). */
+const elementSet = (added: string[], removed: string[] = [], at: number): ElementSet => ({
+  added: Object.fromEntries(added.map((id) => [id, { physical: at, counter: 0, device: 'remote' }])),
+  removed: Object.fromEntries(removed.map((id) => [id, { physical: at, counter: 0, device: 'remote' }])),
+});
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -21,7 +28,7 @@ describe('the kitchen sync HTTP gateway', () => {
         doc: {
           uid: 'u1',
           sections: {
-            favorites: { value: ['r1'], updated_at: 100 },
+            favorites: { value: elementSet(['r1'], [], 100), updated_at: 100 },
             groceryList: { value: [{ id: 'g1' }], updated_at: 200 },
             unknown_section: { value: 'x', updated_at: 300 },
           },
@@ -31,7 +38,7 @@ describe('the kitchen sync HTTP gateway', () => {
     vi.stubGlobal('fetch', fetchMock);
     const doc = await kitchenSyncHttpGateway.pull();
     expect(doc).toEqual({
-      favorites: { value: ['r1'], updatedAt: 100 },
+      favorites: { value: elementSet(['r1'], [], 100), updatedAt: 100 },
       groceryList: { value: [{ id: 'g1' }], updatedAt: 200 },
     });
   });
@@ -48,16 +55,18 @@ describe('the kitchen sync HTTP gateway', () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       expect(init?.method).toBe('PUT');
       expect(JSON.parse(String(init?.body))).toEqual({
-        sections: { favorites: { value: ['r1', 'r2'], updated_at: 500 } },
+        sections: { favorites: { value: elementSet(['r1', 'r2'], [], 500), updated_at: 500 } },
       });
       return jsonResponse(200, {
         ok: true,
-        doc: { sections: { favorites: { value: ['r1', 'r2'], updated_at: 500 } } },
+        doc: { sections: { favorites: { value: elementSet(['r1', 'r2'], [], 500), updated_at: 500 } } },
       });
     });
     vi.stubGlobal('fetch', fetchMock);
-    const doc = await kitchenSyncHttpGateway.push({ favorites: { value: ['r1', 'r2'], updatedAt: 500 } });
-    expect(doc.favorites).toEqual({ value: ['r1', 'r2'], updatedAt: 500 });
+    const doc = await kitchenSyncHttpGateway.push({
+      favorites: { value: elementSet(['r1', 'r2'], [], 500), updatedAt: 500 },
+    });
+    expect(doc.favorites).toEqual({ value: elementSet(['r1', 'r2'], [], 500), updatedAt: 500 });
   });
 
   it('throws when the server refuses the push', async () => {

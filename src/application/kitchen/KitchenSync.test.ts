@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { KitchenStore } from './KitchenStore';
 import { KitchenSync } from './KitchenSync';
+import {
+  EMPTY_ELEMENT_SET,
+  STALE_DEVICE_MS,
+  mergeElementSets,
+  presentIds,
+  wrapLegacyList,
+  type ElementSet,
+} from '@/core/kitchen';
 import type { DayId } from '@/core/planning';
 import type {
   KitchenRepository,
@@ -16,6 +24,12 @@ import type {
  */
 
 type SectionName = 'favorites' | 'fridge' | 'pantry' | 'weeklyPlan' | 'groceryList';
+
+/** A remote set section as the server would keep it (added/removed versions per id). */
+const elementSet = (added: string[] = [], removed: string[] = [], at = 500, device = 'remote'): ElementSet => ({
+  added: Object.fromEntries(added.map((id) => [id, { physical: at, counter: 0, device }])),
+  removed: Object.fromEntries(removed.map((id) => [id, { physical: at, counter: 0, device }])),
+});
 
 const DAY = (id: DayId, plat = 'p1') => ({
   day_id: id,
@@ -66,33 +80,44 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     pending: new Set<string>(),
     times: {} as Record<string, number>,
     prefs: { changed: null as number | null, synced: null as number | null },
+    lastSynced: null as number | null,
+  };
+  /** Element-set state mirrored from the list saves (like the real repository keeps it). */
+  const elements: Record<string, ElementSet> = {};
+  let deviceClock = { physical: 0, counter: 0, device: 'test' };
+  // Pre-existing lists (written before element sets existed) wrap once, like the real migration
+  for (const section of ['favorites', 'fridge', 'pantry'] as const) {
+    const list = initial?.[section];
+    if (Array.isArray(list) && list.length) {
+      elements[section] = wrapLegacyList(list as string[], 100)!;
+    }
+  }
+
+  /** A local list save: the diff becomes versions, like the real repository records them. */
+  const saveList = (section: 'favorites' | 'fridge' | 'pantry', ids: string[]): void => {
+    const before = (data[section] as string[]) ?? [];
+    data[section] = ids;
+    const set = elements[section] ?? EMPTY_ELEMENT_SET;
+    const physical = Math.max(deviceClock.physical + 1, time.value);
+    deviceClock = { physical, counter: 0, device: 'test' };
+    const added = { ...set.added };
+    const removed = { ...set.removed };
+    for (const id of ids) if (!before.includes(id)) added[id] = { ...deviceClock };
+    for (const id of before) if (!ids.includes(id)) removed[id] = { ...deviceClock };
+    elements[section] = { added, removed };
+    if (!syncState.suspended) {
+      ledgerData.pending.add(section);
+      ledgerData.times[section] = time.value;
+    }
   };
 
   const repo: KitchenRepository = {
     loadFridge: () => data.fridge as string[],
-    saveFridge: (ids) => {
-      data.fridge = ids;
-      if (!syncState.suspended) {
-        ledgerData.pending.add('fridge');
-        ledgerData.times.fridge = time.value;
-      }
-    },
+    saveFridge: (ids) => saveList('fridge', ids),
     loadPantry: () => data.pantry as string[],
-    savePantry: (ids) => {
-      data.pantry = ids;
-      if (!syncState.suspended) {
-        ledgerData.pending.add('pantry');
-        ledgerData.times.pantry = time.value;
-      }
-    },
+    savePantry: (ids) => saveList('pantry', ids),
     loadFavorites: () => data.favorites as string[],
-    saveFavorites: (ids) => {
-      data.favorites = ids;
-      if (!syncState.suspended) {
-        ledgerData.pending.add('favorites');
-        ledgerData.times.favorites = time.value;
-      }
-    },
+    saveFavorites: (ids) => saveList('favorites', ids),
     loadWeeklyPlan: () => data.weeklyPlan as never,
     saveWeeklyPlan: (plan) => {
       data.weeklyPlan = plan;
@@ -111,6 +136,20 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     },
     loadGroceryMeta: () => ({ note: '', spent: null }),
     saveGroceryMeta: () => undefined,
+    elementSet: (section) => elements[section] ?? EMPTY_ELEMENT_SET,
+    mergeElementSet: (section, remote) => {
+      const merged = mergeElementSets(elements[section] ?? EMPTY_ELEMENT_SET, remote);
+      elements[section] = merged;
+      data[section] = presentIds(merged);
+    },
+    resetLocal: () => {
+      for (const section of ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryList'] as const) {
+        data[section] = [];
+      }
+      for (const section of ['favorites', 'fridge', 'pantry'] as const) delete elements[section];
+      ledgerData.pending.clear();
+      for (const key of Object.keys(ledgerData.times)) delete ledgerData.times[key];
+    },
   };
   const kitchen = new KitchenStore(repo);
 
@@ -139,6 +178,10 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     },
     setSectionTime: (section: string, at: number) => {
       ledgerData.times[section] = at;
+    },
+    lastSyncedAt: () => ledgerData.lastSynced,
+    recordSynced: (at: number) => {
+      ledgerData.lastSynced = at;
     },
     suspend: () => {
       syncState.suspended = true;
@@ -239,8 +282,8 @@ describe('the kitchen sync engine', () => {
     h.kitchen.toggleFridgeItem('ing1');
     await vi.advanceTimersByTimeAsync(2000);
     expect(h.gateway.pushes).toHaveLength(1);
-    expect(h.gateway.pushes[0].favorites?.value).toEqual(['r0', 'r1', 'r2']);
-    expect(h.gateway.pushes[0].fridge?.value).toEqual(['ing1']);
+    expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['r0', 'r1', 'r2']);
+    expect(presentIds(h.gateway.pushes[0].fridge!.value)).toEqual(['ing1']);
     expect(h.sync.getState().pending).toBe(0);
   });
 
@@ -257,7 +300,7 @@ describe('the kitchen sync engine', () => {
     h.kitchen.toggleFavorite('r1'); // removed again: the newer value wins on the server
     await vi.advanceTimersByTimeAsync(2000);
     expect(h.gateway.pushes).toHaveLength(2);
-    expect(h.gateway.pushes[1].favorites?.value).toEqual([]);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual([]); // a tombstone, an empty list
   });
 
   it('adopts a newer remote document: unions for sets, newest write for the rest', async () => {
@@ -272,8 +315,8 @@ describe('the kitchen sync engine', () => {
     h.ledger.times.weeklyPlan = 100;
     h.ledger.times.groceryList = 100;
     h.gateway.remote = {
-      favorites: { value: ['r1', 'r2'], updatedAt: 500 },
-      fridge: { value: ['ing2'], updatedAt: 500 },
+      favorites: { value: elementSet(['r1', 'r2'], [], 500), updatedAt: 500 },
+      fridge: { value: elementSet(['ing2'], [], 500), updatedAt: 500 },
       weeklyPlan: { value: [DAY('mon', 'remote1')], updatedAt: 500 },
       groceryList: {
         value: [{ id: 'g2', name: 'Lait', quantity: 1, unit: 'l', category: 'other', is_checked: false }],
@@ -295,7 +338,7 @@ describe('the kitchen sync engine', () => {
   it('ignores an older remote section', async () => {
     const h = makeHarness({ favorites: ['local1'] });
     h.ledger.times.favorites = 100;
-    h.gateway.remote = { favorites: { value: ['old1'], updatedAt: 50 } };
+    h.gateway.remote = { favorites: { value: elementSet(['old1'], [], 50), updatedAt: 50 } };
     h.sync.start();
     await vi.runAllTimersAsync();
     expect(h.kitchen.getState().favorites).toEqual(['local1']);
@@ -328,7 +371,7 @@ describe('the kitchen sync engine', () => {
     (document as { visibilityState: string }).visibilityState = 'hidden';
     h.documentListeners.get('visibilitychange')!();
     expect(h.gateway.pushes).toHaveLength(1);
-    expect(h.gateway.pushes[0].favorites?.value).toEqual(['r1']);
+    expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['r1']);
     (document as { visibilityState: string }).visibilityState = 'visible';
   });
 
@@ -350,7 +393,7 @@ describe('the kitchen sync engine', () => {
     h.sync.start();
     await vi.runAllTimersAsync();
     expect(h.gateway.pushes).toHaveLength(1);
-    expect(h.gateway.pushes[0].favorites?.value).toEqual(['kept']);
+    expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['kept']);
     expect(h.gateway.pushes[0].favorites?.updatedAt).toBe(900);
     expect(h.gateway.pulls).toBe(1);
   });
@@ -387,7 +430,7 @@ describe('the kitchen sync engine', () => {
     h.kitchen.toggleFavorite('r2'); // next trigger: a new push carries the two changes
     await vi.advanceTimersByTimeAsync(2000);
     expect(h.gateway.pushes).toHaveLength(2);
-    expect(h.gateway.pushes[1].favorites?.value).toEqual(['r1', 'r2']);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r1', 'r2']);
     expect(h.sync.getState().pending).toBe(0);
     expect(h.sync.getState().failed).toBe(false);
   });
@@ -399,7 +442,7 @@ describe('the kitchen sync engine', () => {
     const pullsAfterStart = h.gateway.pulls;
 
     h.owner.uid = 'u2';
-    h.gateway.remote = { favorites: { value: ['from-u2'], updatedAt: 9000 } };
+    h.gateway.remote = { favorites: { value: elementSet(['from-u2'], [], 9000), updatedAt: 9000 } };
     h.sync.onAccountChanged();
     await vi.runAllTimersAsync();
     expect(h.gateway.pulls).toBe(pullsAfterStart + 1);
@@ -413,12 +456,12 @@ describe('the kitchen sync engine', () => {
 
     // u1's pull is in flight when u2 signs in, whose own pull is held too: the two
     // responses arrive in the order they were sent (u1's stale one first)
-    h.gateway.remote = { favorites: { value: ['stale-u1'], updatedAt: 9000 } };
+    h.gateway.remote = { favorites: { value: elementSet(['stale-u1'], [], 9000), updatedAt: 9000 } };
     h.gateway.holdPulls = 2;
     h.time.value += 61_000;
     h.documentListeners.get('visibilitychange')!(); // u1's pull, held
     h.owner.uid = 'u2';
-    h.gateway.remote = { favorites: { value: ['from-u2'], updatedAt: 9000 } };
+    h.gateway.remote = { favorites: { value: elementSet(['from-u2'], [], 9000), updatedAt: 9000 } };
     h.sync.onAccountChanged(); // u2's pull, held
 
     h.gateway.release(); // u1's stale response arrives after the switch
@@ -469,7 +512,67 @@ describe('the kitchen sync engine', () => {
     h.sync.start();
     await vi.runAllTimersAsync();
     expect(h.gateway.pushes).toHaveLength(2);
-    expect(h.gateway.pushes[1].favorites?.value).toEqual(['r1', 'r2']);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r1', 'r2']);
     expect(h.ledger.pendingSet.has('favorites')).toBe(false);
+  });
+
+  it('applies a remote deletion: the element is gone, not resurrected by the union', async () => {
+    const h = makeHarness({ favorites: ['r1'] });
+    h.ledger.times.favorites = 100;
+    // Another device removed r1 (tombstone at 600) and added r2: both travel in the maps
+    h.gateway.remote = {
+      favorites: {
+        value: {
+          added: {
+            r1: { physical: 100, counter: 0, device: 'other' },
+            r2: { physical: 500, counter: 0, device: 'other' },
+          },
+          removed: { r1: { physical: 600, counter: 0, device: 'other' } },
+        },
+        updatedAt: 600,
+      },
+    };
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().favorites).toEqual(['r2']); // r1 stays deleted
+    // A later local save keeps the tombstone: the element cannot come back on a push
+    h.kitchen.toggleFavorite('r3');
+    await vi.advanceTimersByTimeAsync(2000);
+    const pushed = h.gateway.pushes[0].favorites!.value;
+    expect(presentIds(pushed)).toEqual(['r2', 'r3']);
+    expect(pushed.removed['r1']).toBeDefined();
+  });
+
+  it('resets a device that has not synced within the retention and re-adopts the server', async () => {
+    const h = makeHarness({ favorites: ['stale-local'], weeklyPlan: [DAY('mon', 'stale-plan')] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1;
+    h.gateway.remote = {
+      favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 },
+      weeklyPlan: { value: [DAY('mon', 'server-plan')], updatedAt: 9000 },
+    };
+    h.documentListeners.get('visibilitychange')!();
+    h.time.value += 61_000; // past the pull guard
+    h.documentListeners.get('visibilitychange')!();
+    await vi.runAllTimersAsync();
+    // The stale local data is wiped and the server document is adopted as it is
+    expect(h.kitchen.getState().favorites).toEqual(['from-server']);
+    expect(h.kitchen.getState().weeklyPlan[0].lunch.plat_id).toBe('server-plan');
+    expect(h.sync.getState().lastPullAt).not.toBeNull();
+  });
+
+  it('wipes nothing when the pull fails, even for a stale device', async () => {
+    const h = makeHarness({ favorites: ['kept'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1;
+    h.gateway.fail = 'pull';
+    h.documentListeners.get('visibilitychange')!();
+    h.time.value += 61_000;
+    h.documentListeners.get('visibilitychange')!();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().failed).toBe(true);
+    expect(h.kitchen.getState().favorites).toEqual(['kept']); // the local data is untouched
   });
 });
