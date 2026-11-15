@@ -169,6 +169,14 @@ export interface TranslationDictionary {
   groceryCost: string;
   updateAvailable: string;
   updateReload: string;
+  /** "Current build X -> new build Y", shown only when both are readable. */
+  updateBuilds: string;
+  /** Shown while the accepted worker activates (spinner on the button). */
+  updateActivating: string;
+  /** Activation failed (no automatic reload): the previous version stays usable. */
+  updateFailed: string;
+  /** Retry the activation. */
+  updateRetry: string;
   courseAll: string;
   courseEntree: string;
   courseMain: string;
@@ -587,6 +595,10 @@ export const translations = {
     groceryCost: '≈ {n} 9adhya',
     updateAvailable: 'Version jdida mawjouda',
     updateReload: 'Rechargi',
+    updateBuilds: 'Version elli tawa {from} → jdid {to}',
+    updateActivating: 'Mezelt tetsabni…',
+    updateFailed: "Masarchet-ch. L'application to9fed khedma 3adi.",
+    updateRetry: '3awed jarreb',
     courseAll: 'Kol chay',
     courseEntree: 'Entrée',
     courseMain: 'Plat principal',
@@ -990,6 +1002,10 @@ export const translations = {
     groceryCost: '≈ {n} de courses',
     updateAvailable: 'Nouvelle version disponible',
     updateReload: 'Recharger',
+    updateBuilds: 'Version actuelle {from} → nouvelle {to}',
+    updateActivating: 'Mise à jour en cours…',
+    updateFailed: "L'activation n'a pas abouti. L'application continue de fonctionner.",
+    updateRetry: 'Réessayer',
     courseAll: 'Tous',
     courseEntree: 'Entrée',
     courseMain: 'Plat principal',
@@ -1389,6 +1405,10 @@ export const translations = {
     groceryCost: '≈ {n} مشتريات',
     updateAvailable: 'يتوفر إصدار جديد',
     updateReload: 'تحديث',
+    updateBuilds: 'الإصدار الحالي {from} ← الإصدار الجديد {to}',
+    updateActivating: 'جارٍ التحديث…',
+    updateFailed: 'لم يكتمل التحديث. يبقى التطبيق يعمل.',
+    updateRetry: 'إعادة المحاولة',
     courseAll: 'الكل',
     courseEntree: 'مقبلات',
     courseMain: 'طبق رئيسي',

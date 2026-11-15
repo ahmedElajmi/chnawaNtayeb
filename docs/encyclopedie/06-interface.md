@@ -169,6 +169,17 @@ avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèm
 - `public/sw.js` : pages en réseau d'abord (copie hors ligne sinon), fichiers en cache mis à jour
   en arrière-plan, un cache par version déployée.
 - `shared/ui/UpdatePrompt.tsx` : bandeau « nouvelle version » qui active le nouveau service worker.
+  - **Détection** (`main.tsx`, planificateur unique) : à l'ouverture, au retour au premier plan, au
+    retour du réseau, et en rythme adaptatif pendant que la page est visible — 5 min tant que des
+    versions se succèdent, puis 15, 30 et 60 min (`@/core/update`, testé) ; jamais en arrière-plan.
+  - **Bannière** : suit toujours le worker en attente **le plus récent** (plusieurs déploiements
+    rapprochés = une seule bannière, mise à jour à la dernière version) et affiche le build actuel
+    et le nouveau. Le clic envoie `SKIP_WAITING` puis la page ne se recharge **que** sur
+    `controllerchange` (le nouveau worker contrôle réellement la page) — une activation bloquée
+    affiche « Réessayer », jamais un rechargement à l'aveugle. Le build accepté n'est plus annoncé
+    après le rechargement (`sessionStorage`) ; une version postérieure l'est normalement.
+  - **Aucun rechargement sans acceptation** : l'ancienne version reste utilisable indéfiniment ; les
+    données sont déjà persistées à chaque geste, le rechargement ne peut rien perdre.
 - **Installation** : tant que l'application n'est pas installée, trois points d'entrée, tous basés sur
   `useInstallApp()` (`shared/ui/PWAInstallButton.tsx`) : la proposition d'installation du navigateur
   quand il en offre une, sinon le guide pas à pas (`InstallGuideModal`, iOS et autres navigateurs).
