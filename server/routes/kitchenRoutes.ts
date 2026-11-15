@@ -1,5 +1,17 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import {
+  ELEMENT_SET_LIMITS,
+  EMPTY_ELEMENT_SET,
+  mergeElementSets,
+  parseElementSet,
+  parseTombstoneRetentionMs,
+  purgeTombstones,
+  SET_SECTIONS,
+  TOMBSTONE_RETENTION_MS,
+  wrapLegacyList,
+  type ElementSet,
+} from '../../src/core/kitchen';
 import type { DataStore } from '../storage/types';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
 import { verifyUserSessionToken } from '../auth/sessions';
@@ -9,9 +21,15 @@ import { verifyUserSessionToken } from '../auth/sessions';
  * list, food preferences): one document per uid in the server-only `kitchen` collection.
  *
  * Guests never sync (their uid is ephemeral); clients and employees authenticate with
- * their session token. The write keeps a section only when it is newer than the stored
- * one (newest-write-wins per section): two devices can push in any order without losing
- * the other's changes. One push = one read + one write, nothing more.
+ * their session token. The write happens inside one transaction (`DataStore.transact`):
+ * the merge runs over the stored state as it is at commit time, so two devices pushing at
+ * once can never overwrite what they did not see. The three set sections (favorites, fridge,
+ * pantry) merge element by element (@/core/kitchen): adds and deletions both travel through
+ * per-element versions, and a deleted element never comes back from a device that still held
+ * it. The tombstones (the `removed` entries) are dropped once older than the retention
+ * window (`KITCHEN_TOMBSTONE_RETENTION_MS`, default 90 days, 0 = never purge) — a device
+ * that has not synced within that window resets itself, so the purge stays safe.
+ * The other sections keep newest-write-wins. One push = one read + one write, nothing more.
  *
  * The same session rules guard the archived grocery-run snapshots (`kitchen_history`
  * collection, one document per uid + entry id, capped per uid).
@@ -20,8 +38,9 @@ import { verifyUserSessionToken } from '../auth/sessions';
 const KITCHEN = 'kitchen';
 const KITCHEN_HISTORY = 'kitchen_history';
 
-/** Sections are capped so no account can grow an unbounded document. */
-const MAX = { sets: 300, pantry: 100, grocery: 500, planDays: 14 } as const;
+/** Sections are capped so no account can grow an unbounded document. The set-section caps
+ * come from the shared core limits (`added` is the visible list cap). */
+const MAX = { sets: ELEMENT_SET_LIMITS.added, grocery: 500, planDays: 14 } as const;
 
 /**
  * Archived grocery-run snapshots: capped per account so no one can grow an unbounded
@@ -34,11 +53,6 @@ export interface KitchenSectionPayload {
   value: unknown;
   updated_at: number;
 }
-
-const asStringList = (raw: unknown, max: number): string[] | null => {
-  if (!Array.isArray(raw) || raw.length > max) return null;
-  return raw.every((v) => typeof v === 'string' && v.length <= 200) ? (raw as string[]) : null;
-};
 
 const asPlan = (raw: unknown): unknown[] | null =>
   Array.isArray(raw) && raw.length <= MAX.planDays && raw.every((d) => d && typeof d === 'object') ? raw : null;
@@ -77,13 +91,11 @@ function readSection(name: string, raw: unknown): KitchenSectionPayload | null {
   let validated: unknown;
   switch (name) {
     case 'favorites':
-      validated = asStringList(value, MAX.sets);
-      break;
     case 'fridge':
-      validated = asStringList(value, MAX.sets);
-      break;
     case 'pantry':
-      validated = asStringList(value, MAX.pantry);
+      // The set sections travel as element sets (added/removed versions per id); the plain
+      // id lists written before that shape existed are wrapped on the fly (migration).
+      validated = Array.isArray(value) ? wrapLegacyList(value, updatedAt) : parseElementSet(value);
       break;
     case 'weeklyPlan':
       validated = asPlan(value);
@@ -104,17 +116,35 @@ function readSection(name: string, raw: unknown): KitchenSectionPayload | null {
   return { value: validated, updated_at: updatedAt };
 }
 
-/** Per-section newest-write-wins merge: the stored section survives when it is newer (ties included). */
+/** Per-section merge inside the transaction: element by element for the set sections (adds and
+ * deletions both travel; tombstones beyond the retention are dropped), newest-write-wins for
+ * the rest. Order-independent: two pushes in any order converge to the same document. */
 function mergeSections(
   stored: Record<string, KitchenSectionPayload> | undefined,
-  incoming: Record<string, KitchenSectionPayload>
+  incoming: Record<string, KitchenSectionPayload>,
+  retentionMs: number,
+  now: number
 ): Record<string, KitchenSectionPayload> {
   const merged: Record<string, KitchenSectionPayload> = { ...stored };
   for (const [name, section] of Object.entries(incoming)) {
     const current = merged[name];
-    if (!current || section.updated_at > (current.updated_at ?? 0)) merged[name] = section;
+    if ((SET_SECTIONS as readonly string[]).includes(name)) {
+      const storedSet = current ? readStoredSet(current.value, current.updated_at) : EMPTY_ELEMENT_SET;
+      merged[name] = {
+        value: purgeTombstones(mergeElementSets(storedSet, section.value as ElementSet), retentionMs, now),
+        updated_at: Math.max(current?.updated_at ?? 0, section.updated_at),
+      };
+    } else if (!current || section.updated_at > (current.updated_at ?? 0)) {
+      merged[name] = section;
+    }
   }
   return merged;
+}
+
+/** A stored set section read back: element set through the core parser, legacy list wrapped. */
+function readStoredSet(value: unknown, updatedAt: number): ElementSet {
+  const parsed = Array.isArray(value) ? wrapLegacyList(value, updatedAt) : parseElementSet(value);
+  return parsed ?? EMPTY_ELEMENT_SET;
 }
 
 /** ISO 8601 shapes the client actually sends (date + time, optional fraction and zone). */
@@ -182,6 +212,15 @@ export function kitchenRoutes(
     legacyHeaders: false,
   });
 
+  /** Tombstone retention (ms), from the environment or the 90-day default; 0 = never purge. */
+  const parsedRetention = parseTombstoneRetentionMs(process.env.KITCHEN_TOMBSTONE_RETENTION_MS);
+  if (process.env.KITCHEN_TOMBSTONE_RETENTION_MS && parsedRetention === null) {
+    console.warn(
+      `Ignoring invalid KITCHEN_TOMBSTONE_RETENTION_MS (${process.env.KITCHEN_TOMBSTONE_RETENTION_MS}); using the 90-day default`
+    );
+  }
+  const retentionMs = parsedRetention ?? TOMBSTONE_RETENTION_MS;
+
   const sessionOf = (req: express.Request) => {
     const header = req.headers.authorization;
     const token = typeof header === 'string' && header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -216,11 +255,13 @@ export function kitchenRoutes(
     }
     // The read-merge-write is one transaction: a concurrent push can never be overwritten by
     // a merge computed from a state it had not seen (the operation is pure, a contended
-    // backend re-runs it over the fresh state). `stored` and `incoming` come from outside.
+    // backend re-runs it over the fresh state). `now` is computed once: the re-runs of the
+    // operation (a contended backend) must stay reproducible.
+    const now = Date.now();
     const updatedAt = new Date().toISOString();
     const sections = await store.transact(KITCHEN, session.sub, (current) => {
       const storedSections = current ? (current.sections as Record<string, KitchenSectionPayload>) : undefined;
-      const merged = mergeSections(storedSections, incoming);
+      const merged = mergeSections(storedSections, incoming, retentionMs, now);
       return {
         next: { uid: session.sub, sections: merged, updated_at: updatedAt },
         result: merged,

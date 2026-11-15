@@ -227,12 +227,12 @@ export function describeDataStore(name: string, create: () => DataStore): void {
       const store = create();
       // The same shape two devices pushing different sections at once produce: each transact
       // merges its own section over whatever the previous one wrote
-      const pushes = ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryList', 'groceryMeta'].map((name, i) =>
+      const pushes = ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryList', 'groceryMeta'].map((section, i) =>
         store.transact('kitchen', 'u1', (current) => {
           const sections = (current?.sections as Record<string, unknown> | undefined) ?? {};
           return {
-            next: { ...current, sections: { ...sections, [name]: { updated_at: 100 + i, value: [name] } } },
-            result: name,
+            next: { ...current, sections: { ...sections, [section]: { updated_at: 100 + i, value: [section] } } },
+            result: section,
           };
         })
       );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { KitchenStore } from './KitchenStore';
+import { EMPTY_ELEMENT_SET } from '@/core/kitchen';
 import type { GroceryItem } from '@/core/grocery';
 import type { KitchenRepository } from '../ports';
 
@@ -29,6 +30,9 @@ function makeStore(initial: GroceryItem[]): { store: KitchenStore; saved: Grocer
     saveGroceryList: (items) => saved.push(items),
     loadGroceryMeta: () => ({ note: '', spent: null }),
     saveGroceryMeta: () => undefined,
+    elementSet: () => EMPTY_ELEMENT_SET,
+    mergeElementSet: () => undefined,
+    resetLocal: () => undefined,
   };
   return { store: new KitchenStore(repo), saved };
 }

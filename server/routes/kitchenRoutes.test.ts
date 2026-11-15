@@ -1,12 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import express from 'express';
 import type { AddressInfo } from 'node:net';
+import { presentIds, type ElementSet, type ElementVersion } from '../../src/core/kitchen';
 import { kitchenRoutes } from './kitchenRoutes';
 import { authRoutes } from '../auth/routes';
 import { dataRoutes } from './dataRoutes';
 import { createMemoryDataStore } from '../storage/memoryDataStore';
 import { resetWatermarks } from '../storage/watermark';
 import type { DataStore } from '../storage/types';
+
+const v = (at: number): ElementVersion => ({ physical: at, counter: 0, device: 'test' });
 
 const COUNTRIES = [
   {
@@ -116,29 +119,97 @@ describe('kitchen routes over HTTP', () => {
       { Authorization: `Bearer ${token}` }
     );
     expect(res.status).toBe(200);
-    const putData = (await res.json()) as { ok: boolean; doc: { sections: Record<string, unknown> } };
+    const putData = (await res.json()) as {
+      ok: boolean;
+      doc: { sections: Record<string, { value: unknown; updated_at: number }> };
+    };
     expect(putData.ok).toBe(true);
-    expect(putData.doc.sections.favorites).toEqual({ value: ['r1', 'r2'], updated_at: 1000 });
+    // A plain id list (the legacy client shape) is wrapped into an element set on the fly
+    expect(putData.doc.sections.favorites?.updated_at).toBe(1000);
+    expect(presentIds(putData.doc.sections.favorites?.value as ElementSet)).toEqual(['r1', 'r2']);
 
     const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
     const readData = (await read.json()) as {
       doc: { sections: Record<string, { value: unknown; updated_at: number } | undefined> };
     };
-    expect(readData.doc.sections.favorites).toEqual({ value: ['r1', 'r2'], updated_at: 1000 });
+    expect(presentIds(readData.doc.sections.favorites?.value as ElementSet)).toEqual(['r1', 'r2']);
+    expect(readData.doc.sections.favorites?.updated_at).toBe(1000);
     expect(readData.doc.sections.groceryList?.value).toHaveLength(1);
   });
 
-  it('keeps the stored section when the pushed one is older (newest write wins)', async () => {
+  it('merges an older set-section push element by element: the adds travel, the section time is kept', async () => {
     const res = await put(
       '/api/kitchen',
       { sections: { favorites: section(['r3'], 500) } },
       { Authorization: `Bearer ${token}` }
     );
     const data = (await res.json()) as {
-      doc: { sections: Record<string, { value: string[]; updated_at: number } | undefined> };
+      doc: { sections: Record<string, { value: unknown; updated_at: number } | undefined> };
     };
-    expect(data.doc.sections.favorites?.value).toEqual(['r1', 'r2']);
+    // The set sections merge by element: an older push still brings its own adds
+    expect(presentIds(data.doc.sections.favorites?.value as ElementSet)).toEqual(['r1', 'r2', 'r3']);
     expect(data.doc.sections.favorites?.updated_at).toBe(1000);
+  });
+
+  it('propagates a deletion: a tombstone in a later push takes the element out', async () => {
+    // Another device removed r1 and kept r2: the tombstone travels in the maps
+    const now = Date.now();
+    const res = await put(
+      '/api/kitchen',
+      {
+        sections: {
+          favorites: section({ added: { r2: v(now) }, removed: { r1: v(now), r3: v(now) } }, now),
+        },
+      },
+      { Authorization: `Bearer ${token}` }
+    );
+    const data = (await res.json()) as {
+      doc: { sections: Record<string, { value: unknown; updated_at: number } | undefined> };
+    };
+    // r1 and r3 are removed (the tombstones beat the stored adds), r2 stays, r3 is not resurrected
+    expect(presentIds(data.doc.sections.favorites?.value as ElementSet)).toEqual(['r2']);
+    expect(data.doc.sections.favorites?.updated_at).toBe(now);
+  });
+
+  it('drops the tombstones older than the retention during the merge', async () => {
+    const retention = 90 * 24 * 60 * 60 * 1000;
+    const stale = Date.now() - retention - 1;
+    const res = await put(
+      '/api/kitchen',
+      {
+        sections: {
+          favorites: section({ added: { r5: v(stale + 1) }, removed: { r9: v(stale) } }, stale + 1),
+        },
+      },
+      { Authorization: `Bearer ${token}` }
+    );
+    const data = (await res.json()) as {
+      doc: { sections: Record<string, { value: ElementSet } | undefined> };
+    };
+    // The stale tombstone never lands: the merge purges it (a device offline longer than
+    // the retention may resurrect the element — the documented compromise, paired with the
+    // device reset). The fresh add is kept.
+    expect(data.doc.sections.favorites?.value.removed['r9']).toBeUndefined();
+    expect(data.doc.sections.favorites?.value.added['r5']).toBeDefined();
+  });
+
+  it('keeps a stored non-set section when the pushed one is older (newest write wins)', async () => {
+    const newer = await put(
+      '/api/kitchen',
+      { sections: { groceryMeta: section({ note: 'latest', spent_tnd: 5 }, 5000) } },
+      { Authorization: `Bearer ${token}` }
+    );
+    expect(newer.status).toBe(200);
+    const res = await put(
+      '/api/kitchen',
+      { sections: { groceryMeta: section({ note: 'stale', spent_tnd: null }, 400) } },
+      { Authorization: `Bearer ${token}` }
+    );
+    const data = (await res.json()) as {
+      doc: { sections: Record<string, { value: { note?: string }; updated_at: number } | undefined> };
+    };
+    expect(data.doc.sections.groceryMeta?.value.note).toBe('latest');
+    expect(data.doc.sections.groceryMeta?.updated_at).toBe(5000);
   });
 
   it('replaces a section when the pushed one is newer', async () => {
@@ -176,10 +247,16 @@ describe('kitchen routes over HTTP', () => {
       { Authorization: `Bearer ${token}` }
     );
     expect(badValue.status).toBe(400);
-    // Nothing was written by the refused calls
+    // Nothing was written by the refused calls (the groceryMeta section comes from an earlier test)
     const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
     const data = (await read.json()) as { doc: { sections: Record<string, unknown> } };
-    expect(Object.keys(data.doc.sections).sort()).toEqual(['favorites', 'fridge', 'groceryList', 'weeklyPlan']);
+    expect(Object.keys(data.doc.sections).sort()).toEqual([
+      'favorites',
+      'fridge',
+      'groceryList',
+      'groceryMeta',
+      'weeklyPlan',
+    ]);
   });
 
   it('keeps the kitchen out of the public data endpoints', async () => {

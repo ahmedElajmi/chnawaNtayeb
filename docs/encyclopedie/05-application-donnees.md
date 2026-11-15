@@ -150,10 +150,10 @@ déplacée une fois dans IndexedDB puis effacée. Une table par collection parta
 catégories, `countries`, `units` — version 5 de la base) ; les magasins sont créés à la mise à jour,
 les existants sont gardés.
 
-| Clé `localStorage`                                                                                    | Contenu                                                                                                                                                                        |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `chnowa_kitchen_<scope>_v1`                                                                           | **Document de cuisine scopé** (frigo, placard, favoris, menu, liste + horodatages et sections en attente) — `<scope>` = uid du compte, ou `local` pour un appareil sans compte |
-| `chnowa_fridge_selected_v1`, `chnowa_favorites_v1`, `chnowa_weekly_plan_v1`, `chnowa_grocery_list_v1` | **Clés historiques** : lues une seule fois à la première ouverture d'un scope (migration en lecture, rien n'est supprimé), puis remplacées par le document scopé               |
+| Clé `localStorage`                                                                                    | Contenu                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `chnowa_kitchen_<scope>_v1`                                                                           | **Document de cuisine scopé** (frigo, placard, favoris, menu, liste + horodatages, sections en attente, versions par élément, horloge de l'appareil, dernière sync réussie) — `<scope>` = uid du compte, ou `local` pour un appareil sans compte |
+| `chnowa_fridge_selected_v1`, `chnowa_favorites_v1`, `chnowa_weekly_plan_v1`, `chnowa_grocery_list_v1` | **Clés historiques** : lues une seule fois à la première ouverture d'un scope (migration en lecture, rien n'est supprimé), puis remplacées par le document scopé                                                                                 |
 
 ### Synchronisation personnelle de la cuisine (comptes clients)
 
@@ -175,12 +175,24 @@ reste le cache hors ligne), la synchronisation est un fond de carte invisible.
   sont envoyées **au démarrage suivant** — un crash, une coupure réseau ou un onglet tué ne
   perdent rien ; un push en échec reste en attente et repart au déclencheur suivant seulement.
 
-**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent en **union** (le commentaire et le montant dépensé de la liste voyagent dans la section `groceryMeta`, dernier écrit gagnant)
-(les ensembles grossissent, jamais de perte) ; menu, liste et préférences prennent **le dernier
-écrit gagnant** (horodatage client porté par chaque section). Le serveur applique la même règle
-(`server/routes/kitchenRoutes.ts`), donc deux appareils peuvent pousser dans n'importe quel ordre
-et convergent. La sync des préférences exclut le placard (qui a sa propre section) et inversement
-le push des préférences n'embarque pas `pantryStaples`.
+**Conflits entre appareils, par section** : favoris, frigo et placard fusionnent **par élément**
+(`@/core/kitchen/elementSets` : chaque élément porte sa version d'ajout et de suppression sur une
+horloge hybride logique — présent ⇔ `added` bat `removed`) : un ajout **et une suppression**
+se propagent aux autres appareils, un élément supprimé ne ressuscite plus depuis un appareil qui
+le détenait encore ; le commentaire et le montant dépensé de la liste voyagent dans la section
+`groceryMeta`, dernier écrit gagnant, comme le menu, la liste et les préférences (horodatage client
+porté par chaque section). Le serveur applique la même règle **dans une transaction**
+(`DataStore.transact` : deux pushes simultanés sont sérialisés, le second voit l'écriture du
+premier — aucun écrasement de section qu'il n'avait pas vue). Les **tombstones** (les versions de
+suppression) restent côté serveur pendant la fenêtre de rétention —
+`KITCHEN_TOMBSTONE_RETENTION_MS`, 90 jours par défaut, `0` = jamais purger — puis sont jetées à la
+fusion ; en face, un appareil qui **n'a pas synchronisé depuis plus longtemps que la rétention**
+(marge de 7 jours d'horloge) **s'efface et réadopte le document serveur** au pull réussi suivant :
+la paire purge/péremption rend le nettoyage sûr. Compromis documenté : les modifications non
+synchronisées d'un appareil au-delà de ce délai sont perdues ; et un élément supprimé **avant** la
+migration vers les versions par élément peut réapparaître une fois par appareil (l'utilisateur le
+re-supprime, la tombstone repart). La sync des préférences exclut le placard (qui a sa propre
+section) et inversement le push des préférences n'embarque pas `pantryStaples`.
 
 **Scopage par uid** : la clé locale porte l'uid (`chnowa_kitchen_<uid>_v1`) ; à la connexion d'un
 compte différent, l'appareil recharge les données de ce compte. **Migration montante** : à la
@@ -191,6 +203,7 @@ propose la création de compte quand l'appareil détient des données de cuisine
 | `chnowa_preferences_v1` | Langue, mode, thème, placard |
 | `chnowa_themes_v1` | Copie des thèmes publiés |
 | `chnowa_active_theme_vars_v1` | Couleurs du thème actif, lues par `index.html` avant le démarrage (pas de flash) |
+| `chnowa_device_id_v1` | **Id d'installation** stable : départage les appareils qui émettent la même version d'horloge hybride |
 | `chnowa_matching_settings_cache_v1` | Copie des réglages du moteur |
 | `chnowa_recipe_draft_v1:<id>` / `:new` | Brouillon de l'éditeur de recette (personnel à l'appareil, jamais partagé) |
 

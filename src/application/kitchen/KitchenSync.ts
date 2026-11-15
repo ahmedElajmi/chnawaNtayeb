@@ -1,4 +1,5 @@
 import type { UserPreferences } from '@/core/preferences';
+import { SET_SECTIONS, STALE_DEVICE_MS } from '@/core/kitchen';
 import type {
   KitchenSyncGateway,
   KitchenSyncLedger,
@@ -22,9 +23,11 @@ import type { KitchenStore } from './KitchenStore';
  *  - a push that failed stays pending and is retried on the next trigger only — no retry
  *    loop, and nothing is lost (the local copy always holds the data).
  *
- * Conflicts are resolved per section: favorites, fridge and pantry merge as unions
- * (nothing is ever lost between two devices); menu, list and preferences take the
- * newest write. The server enforces the same rule, so any push order converges.
+ * Conflicts are resolved per section: favorites, fridge and pantry merge as element sets
+ * (adds and deletions both propagate, through per-element versions — @/core/kitchen); menu,
+ * list and preferences take the newest write. The server enforces the same rule, so any push
+ * order converges. A device that has not synced within the tombstone retention resets itself
+ * and re-adopts the server document (its stale pushes could resurrect purged deletions).
  */
 
 export interface KitchenSyncState {
@@ -40,9 +43,6 @@ export interface KitchenSyncState {
 
 const PUSH_DEBOUNCE_MS = 2000;
 const PULL_MIN_INTERVAL_MS = 60_000;
-
-/** Sections merged as sets on adoption (a newer remote adds, it never removes). */
-const SET_SECTIONS = ['favorites', 'fridge', 'pantry'] as const;
 
 export interface KitchenSyncDeps {
   gateway: KitchenSyncGateway;
@@ -168,6 +168,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
       this.deps.ledger.confirm(pending);
       if (preferencesPending) this.deps.ledger.confirmPreferences(this.deps.now());
       this.applyRemote(doc, uid);
+      this.deps.ledger.recordSynced(this.deps.now());
       this.setState({ syncing: false, failed: false });
     } catch {
       if (this.deps.owner() !== uid) return;
@@ -185,9 +186,11 @@ export class KitchenSync extends Store<KitchenSyncState> {
     const take = (name: keyof RemoteKitchenDocument, value: unknown) => {
       if (pending.includes(name)) sections[name] = { value, updatedAt: times[name] ?? now } as never;
     };
-    take('favorites', state.favorites);
-    take('fridge', state.fridge);
-    take('pantry', state.pantry);
+    // The set sections travel as element sets (added/removed versions): the deletion of one
+    // element propagates to the other devices instead of coming back from them
+    if (pending.includes('favorites')) take('favorites', this.deps.kitchen.elementSet('favorites'));
+    if (pending.includes('fridge')) take('fridge', this.deps.kitchen.elementSet('fridge'));
+    if (pending.includes('pantry')) take('pantry', this.deps.kitchen.elementSet('pantry'));
     take('weeklyPlan', state.weeklyPlan);
     take('groceryList', state.groceryList);
     take('groceryMeta', { note: state.groceryNote, spent_tnd: state.grocerySpent });
@@ -210,7 +213,14 @@ export class KitchenSync extends Store<KitchenSyncState> {
       // The account may have changed while the request was in flight: this response belongs
       // to the old account and must not be written into the new account's local document
       if (this.deps.owner() !== uid) return;
+      // A device that has not synced for longer than the tombstone retention resets itself:
+      // its stale pushes could resurrect elements whose tombstone the server already purged.
+      // The reset happens only once the fresh document is here (a failed pull wipes nothing)
+      // and the merge below adopts it over the emptied state.
+      const lastSync = this.deps.ledger.lastSyncedAt();
+      if (lastSync !== null && this.deps.now() - lastSync > STALE_DEVICE_MS) this.deps.kitchen.resetLocal();
       if (doc) this.applyRemote(doc, uid);
+      this.deps.ledger.recordSynced(this.deps.now());
       this.setState({ syncing: false, failed: false, lastPullAt: this.lastPull });
     } catch {
       if (this.deps.owner() !== uid) return;
@@ -224,7 +234,8 @@ export class KitchenSync extends Store<KitchenSyncState> {
     await this.pullNow();
   }
 
-  /** Applies a document coming from the server: unions for sets, newest write for the rest. */
+  /** Applies a document coming from the server: element sets for the set sections (adds and
+   * deletions both travel), newest write for the rest. */
   private applyRemote(doc: RemoteKitchenDocument, uid: string): void {
     // Defense in depth: a caller that kept a stale response must not write into the
     // local document of whatever account is signed in now
@@ -236,9 +247,9 @@ export class KitchenSync extends Store<KitchenSyncState> {
     try {
       const times = this.deps.ledger.sectionTimes();
       const newer = (name: keyof RemoteKitchenDocument) => (doc[name]?.updatedAt ?? 0) > (times[name] ?? 0);
-      if (doc.favorites && newer('favorites')) this.deps.kitchen.mergeFavorites(doc.favorites.value);
-      if (doc.fridge && newer('fridge')) this.deps.kitchen.mergeFridge(doc.fridge.value);
-      if (doc.pantry && newer('pantry')) this.deps.kitchen.mergePantry(doc.pantry.value);
+      if (doc.favorites && newer('favorites')) this.deps.kitchen.mergeElementSet('favorites', doc.favorites.value);
+      if (doc.fridge && newer('fridge')) this.deps.kitchen.mergeElementSet('fridge', doc.fridge.value);
+      if (doc.pantry && newer('pantry')) this.deps.kitchen.mergeElementSet('pantry', doc.pantry.value);
       if (doc.weeklyPlan && newer('weeklyPlan')) this.deps.kitchen.setWeeklyPlan(doc.weeklyPlan.value);
       if (doc.groceryList && newer('groceryList')) this.deps.kitchen.setGroceryList(doc.groceryList.value);
       if (doc.groceryMeta && newer('groceryMeta')) {
