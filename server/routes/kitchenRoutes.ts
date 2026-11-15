@@ -214,12 +214,18 @@ export function kitchenRoutes(
       if (!section) return res.status(400).json({ ok: false, error: 'invalid-input' });
       incoming[name] = section;
     }
-    const stored = await store.get(KITCHEN, session.sub);
-    const storedSections =
-      stored && stored.deleted !== true ? (stored.sections as Record<string, KitchenSectionPayload>) : undefined;
-    const sections = mergeSections(storedSections, incoming);
-    const document = { uid: session.sub, sections, updated_at: new Date().toISOString() };
-    await store.put(KITCHEN, session.sub, document);
+    // The read-merge-write is one transaction: a concurrent push can never be overwritten by
+    // a merge computed from a state it had not seen (the operation is pure, a contended
+    // backend re-runs it over the fresh state). `stored` and `incoming` come from outside.
+    const updatedAt = new Date().toISOString();
+    const sections = await store.transact(KITCHEN, session.sub, (current) => {
+      const storedSections = current ? (current.sections as Record<string, KitchenSectionPayload>) : undefined;
+      const merged = mergeSections(storedSections, incoming);
+      return {
+        next: { uid: session.sub, sections: merged, updated_at: updatedAt },
+        result: merged,
+      };
+    });
     return res.json({ ok: true, doc: { uid: session.sub, sections } });
   });
 

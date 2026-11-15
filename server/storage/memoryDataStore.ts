@@ -5,6 +5,7 @@ import type {
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  TransactOutcome,
   WriteGuard,
 } from './types';
 
@@ -145,6 +146,26 @@ export function createMemoryDataStore(): DataStore {
         revision = writeOne(op.name, op.id, op.doc);
       }
       return { ok: true, revision };
+    },
+
+    async transact<T>(
+      name: CollectionName,
+      id: string,
+      operation: (current: Record<string, unknown> | null) => TransactOutcome<T>
+    ): Promise<T> {
+      // A single synchronous pass: Node runs it without interleaving, so the read and the
+      // write are atomic by construction (the blueprint every real backend must reproduce).
+      const stored = table(name).get(id);
+      const current =
+        stored && stored.doc.deleted !== true ? { ...stored.doc, id: stored.id, revision: stored.revision } : null;
+      const outcome: TransactOutcome<T> = operation(current);
+      if (outcome.next && outcome.next !== current) {
+        const doc = { ...outcome.next };
+        delete doc.id;
+        delete doc.revision;
+        writeOne(name, id, doc);
+      }
+      return outcome.result;
     },
   };
 }
