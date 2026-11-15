@@ -41,13 +41,13 @@ async function postJson(url: string, body: unknown): Promise<{ status: number; d
   return { status: res.status, data };
 }
 
-const guestUser = (uid: string): AppUser => ({ uid, email: null, emailVerified: false, isAnonymous: true });
+const guestUser = (uid: string): AppUser => ({ uid, email: null, isAnonymous: true });
 
 /** The signed-in account of a server profile (guests never have one). */
 function appUserOf(raw: unknown): AppUser | null {
   const profile = resolveUserProfile(raw);
   if (!profile || profile.isAnonymous) return null;
-  return { uid: profile.uid, email: profile.email ?? null, emailVerified: true, isAnonymous: false };
+  return { uid: profile.uid, email: profile.email ?? null, isAnonymous: false };
 }
 
 let listeners = new Set<(user: AppUser | null) => void>();

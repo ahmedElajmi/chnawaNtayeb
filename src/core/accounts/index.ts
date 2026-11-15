@@ -19,6 +19,7 @@ export {
   regionName,
 } from './countries';
 export {
+  isValidEmail,
   normalizePhone,
   resolveUserProfile,
   validateAddress,

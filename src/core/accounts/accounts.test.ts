@@ -4,6 +4,7 @@ import {
   countryById,
   countryName,
   enabledCountries,
+  isValidEmail,
   normalizePhone,
   parseStoredCountries,
   parseStoredCountry,
@@ -111,6 +112,14 @@ describe('validateRegistration', () => {
     phone: '+21620123456',
     preferredLanguage: 'derja',
   };
+
+  it('validates the e-mail shape through the same rule the server re-reads', () => {
+    expect(isValidEmail('amine@example.com')).toBe(true);
+    expect(isValidEmail('no-at-sign')).toBe(false);
+    expect(isValidEmail('a@b')).toBe(false);
+    expect(isValidEmail('a b@c.co')).toBe(false);
+    expect(isValidEmail('amine@domain.co')).toBe(true);
+  });
 
   it('accepts a complete valid form', () => {
     expect(validateRegistration(input, initialCountries, 8)).toEqual([]);

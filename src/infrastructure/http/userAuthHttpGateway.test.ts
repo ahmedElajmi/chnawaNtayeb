@@ -65,7 +65,7 @@ describe('site sessions against the server', () => {
     userAuthHttpGateway.subscribe((user) => seen.push(user));
     await tick();
     await userAuthHttpGateway.loginWithEmail('amine@b.co', 'pw');
-    expect(seen.at(-1)).toMatchObject({ uid: 'u1', email: 'amine@b.co', isAnonymous: false, emailVerified: true });
+    expect(seen.at(-1)).toMatchObject({ uid: 'u1', email: 'amine@b.co', isAnonymous: false });
     await userAuthHttpGateway.logout();
     expect(seen.at(-1)).toBeNull();
   });
