@@ -152,5 +152,101 @@ export function describeDataStore(name: string, create: () => DataStore): void {
       });
       expect(fresh.ok).toBe(true);
     });
+
+    it('claims an absent guarded document exactly once: the second claimer conflicts and writes nothing', async () => {
+      const store = create();
+      // The same shape the account creation uses: profile + credentials + e-mail reservation
+      const guard = { name: 'email_index', id: 'a@b.co', field: 'taken', expected: null };
+      const first = await store.commit(
+        [
+          { name: 'users', id: 'u1', doc: { email: 'a@b.co' } },
+          { name: 'email_index', id: 'a@b.co', doc: { uid: 'u1', taken: 1 } },
+        ],
+        guard
+      );
+      expect(first.ok).toBe(true);
+      // A second registration of the same address: the reservation is taken, nothing is written
+      const second = await store.commit(
+        [
+          { name: 'users', id: 'u2', doc: { email: 'a@b.co' } },
+          { name: 'email_index', id: 'a@b.co', doc: { uid: 'u2', taken: 1 } },
+        ],
+        guard
+      );
+      expect(second).toEqual({ ok: false, conflict: true });
+      expect(await store.get('users', 'u2')).toBeNull();
+      expect(await store.get('email_index', 'a@b.co')).toMatchObject({ uid: 'u1' });
+      // A deleted reservation frees the address
+      await store.remove('email_index', 'a@b.co');
+      const freed = await store.commit([{ name: 'email_index', id: 'a@b.co', doc: { uid: 'u2', taken: 1 } }], guard);
+      expect(freed.ok).toBe(true);
+    });
+
+    it('transacts a read-merge-write: the operation sees the stored document and the write is atomic', async () => {
+      const store = create();
+      // First transact on an absent document: current is null
+      const created = await store.transact('kitchen', 'u1', (current) => {
+        expect(current).toBeNull();
+        return { next: { sections: { favorites: { updated_at: 10, value: ['r1'] } } }, result: 'created' };
+      });
+      expect(created).toBe('created');
+      const stored = await store.get('kitchen', 'u1');
+      expect(stored).toMatchObject({ sections: { favorites: { updated_at: 10, value: ['r1'] } } });
+      // `id` and `revision` are owned by the storage layer: never inside the document
+      expect(stored && 'revision' in (stored.sections as Record<string, unknown>)).toBe(false);
+
+      // Second transact: the operation receives the stored document as it is
+      await store.transact('kitchen', 'u1', (current) => {
+        const doc = current as Record<string, unknown>;
+        const sections = doc.sections as Record<string, unknown>;
+        return {
+          next: { ...doc, sections: { ...sections, pantry: { updated_at: 20, value: ['i1'] } } },
+          result: null,
+        };
+      });
+      expect(await store.get('kitchen', 'u1')).toMatchObject({
+        sections: { favorites: { updated_at: 10, value: ['r1'] }, pantry: { updated_at: 20, value: ['i1'] } },
+      });
+
+      // Returning the current reference writes nothing (no revision bump)
+      const before = (await store.get('kitchen', 'u1'))!.revision as number;
+      await store.transact('kitchen', 'u1', (current) => ({ next: current, result: 'untouched' }));
+      expect((await store.get('kitchen', 'u1'))!.revision as number).toBe(before);
+
+      // A deleted document counts as an absent one: the next transact recreates it
+      await store.remove('kitchen', 'u1');
+      const recreated = await store.transact('kitchen', 'u1', (current) => ({
+        next: current === null ? { sections: {} } : current,
+        result: current,
+      }));
+      expect(recreated).toBeNull();
+      expect(await store.get('kitchen', 'u1')).toMatchObject({ sections: {} });
+    });
+
+    it('serialises concurrent transacts on the same document: no read-merge-write loses a section', async () => {
+      const store = create();
+      // The same shape two devices pushing different sections at once produce: each transact
+      // merges its own section over whatever the previous one wrote
+      const pushes = ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryList', 'groceryMeta'].map((section, i) =>
+        store.transact('kitchen', 'u1', (current) => {
+          const sections = (current?.sections as Record<string, unknown> | undefined) ?? {};
+          return {
+            next: { ...current, sections: { ...sections, [section]: { updated_at: 100 + i, value: [section] } } },
+            result: section,
+          };
+        })
+      );
+      const results = await Promise.all(pushes);
+      expect(results).toHaveLength(6);
+      const merged = (await store.get('kitchen', 'u1'))!.sections as Record<string, unknown>;
+      expect(Object.keys(merged).sort()).toEqual([
+        'favorites',
+        'fridge',
+        'groceryList',
+        'groceryMeta',
+        'pantry',
+        'weeklyPlan',
+      ]);
+    });
   });
 }

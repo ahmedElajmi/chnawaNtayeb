@@ -365,7 +365,6 @@ export interface TranslationDictionary {
   groceryPickerSearchPlaceholder: string;
   groceryPickerNoResults: string;
   groceryPickerAddItem: string;
-  groceryPickerCustomToggle: string;
   groceryUnitSelectLabel: string;
   // Grocery history panel
   groceryHistoryTitle: string;
@@ -389,6 +388,38 @@ export interface TranslationDictionary {
   cartAddLabel: string;
   cartAddedLabel: string;
   groceryBadgeLabel: string;
+  // Choosing the target shopping list before an add (modal shown when several lists exist)
+  chooseListTitle: string;
+  chooseListRemaining: string;
+  chooseListNewList: string;
+  chooseListNamePlaceholder: string;
+  chooseListCreate: string;
+  // Named shopping lists: switcher, actions on the active list, duplicate from history
+  listsSwitchLabel: string;
+  listsRemaining: string;
+  listsRename: string;
+  listsNew: string;
+  listsDuplicate: string;
+  listsDelete: string;
+  listsDeleteConfirm: string;
+  listsFromHistory: string;
+  listsFromHistoryName: string;
+  listsFromHistoryToast: string;
+  // Named shopping lists: inline create / rename editor
+  listEditorNameLabel: string;
+  listEditorNewPlaceholder: string;
+  listEditorCreate: string;
+  listEditorSave: string;
+  listEditorCancel: string;
+  // Grocery suggestions: item already present in the active list
+  suggInList: string;
+  // Grocery custom article: unit choice for anything outside the catalog
+  customUnitTitle: string;
+  customUnitAddAsArticle: string;
+  customUnitRow: string;
+  customUnitUnitLabel: string;
+  customUnitOther: string;
+  customUnitOtherPlaceholder: string;
 }
 
 /**
@@ -751,7 +782,6 @@ export const translations = {
     groceryPickerSearchPlaceholder: 'Lawwej 3la ingrédient (tmatem, 3adhher...)...',
     groceryPickerNoResults: 'Mafamech ingrédient hakka',
     groceryPickerAddItem: 'Zid {name} lel liste',
-    groceryPickerCustomToggle: 'Walla zid article 7our',
     groceryUnitSelectLabel: 'Beddel l’unité ta3 {name}',
     groceryHistoryTitle: 'Historique el qadhya',
     groceryHistoryEmpty: 'Mafamech chnowa tarkhef tawa. Sakker jom3a bech tal9aha hné.',
@@ -771,6 +801,33 @@ export const translations = {
     cartAddLabel: 'Zid {name} lel liste mta3 courses',
     cartAddedLabel: 'Tzad lel liste mta3 courses',
     groceryBadgeLabel: 'Liste mta3 courses ({count})',
+    chooseListTitle: 'Ekhtar el liste mta3 el qadhya',
+    chooseListRemaining: 'Ba9i {n}',
+    chooseListNewList: 'Liste jdida',
+    chooseListNamePlaceholder: 'Sma mta3 el liste jdida',
+    chooseListCreate: 'A3mel',
+    listsSwitchLabel: 'Beddel el liste mta3 qadhya',
+    listsRemaining: '{n} ba9yin',
+    listsRename: 'Beddel isem el liste',
+    listsNew: 'Liste jdida',
+    listsDuplicate: 'Na9el el liste (copie)',
+    listsDelete: 'Fasakh el liste',
+    listsDeleteConfirm: 'Tfasakh el liste « {name} » ? Définitif.',
+    listsFromHistory: '3awed a3mel el liste hedhi',
+    listsFromHistoryName: 'Liste el qadhya',
+    listsFromHistoryToast: 'Liste jdida tsné3et mel historique !',
+    listEditorNameLabel: 'Isem el liste',
+    listEditorNewPlaceholder: 'Isem el liste el jdida',
+    listEditorCreate: 'Snou3',
+    listEditorSave: 'Enregistri',
+    listEditorCancel: 'Batel',
+    suggInList: 'déjà fel liste',
+    customUnitTitle: '« {query} » mouch fel catalogue',
+    customUnitAddAsArticle: 'Zidou article',
+    customUnitRow: 'Zid « {query} » article',
+    customUnitUnitLabel: 'Unité mta3 l’article',
+    customUnitOther: 'okhra…',
+    customUnitOtherPlaceholder: 'Unité 7orra (boccal, filet...)',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -1129,7 +1186,6 @@ export const translations = {
     groceryPickerSearchPlaceholder: 'Chercher un ingrédient (tomates, menthe)...',
     groceryPickerNoResults: 'Aucun ingrédient trouvé',
     groceryPickerAddItem: 'Ajouter {name} à la liste',
-    groceryPickerCustomToggle: 'Ou ajouter un article libre',
     groceryUnitSelectLabel: 'Changer l’unité de {name}',
     groceryHistoryTitle: 'Historique des courses',
     groceryHistoryEmpty: 'Pas encore de liste archivée. Clôture une semaine pour la retrouver ici.',
@@ -1149,6 +1205,33 @@ export const translations = {
     cartAddLabel: 'Ajouter {name} à la liste de courses',
     cartAddedLabel: 'Ajouté à la liste de courses',
     groceryBadgeLabel: 'Liste de courses ({count})',
+    chooseListTitle: 'Ajouter à quelle liste de courses ?',
+    chooseListRemaining: '{n} restants',
+    chooseListNewList: 'Nouvelle liste',
+    chooseListNamePlaceholder: 'Nom de la nouvelle liste',
+    chooseListCreate: 'Créer',
+    listsSwitchLabel: 'Changer de liste de courses',
+    listsRemaining: '{n} restants',
+    listsRename: 'Renommer la liste',
+    listsNew: 'Nouvelle liste',
+    listsDuplicate: 'Dupliquer la liste',
+    listsDelete: 'Supprimer la liste',
+    listsDeleteConfirm: 'Supprimer définitivement la liste « {name} » ?',
+    listsFromHistory: 'Recréer cette liste',
+    listsFromHistoryName: 'Mes courses',
+    listsFromHistoryToast: 'Nouvelle liste créée à partir de cette course !',
+    listEditorNameLabel: 'Nom de la liste',
+    listEditorNewPlaceholder: 'Nom de la nouvelle liste',
+    listEditorCreate: 'Créer',
+    listEditorSave: 'Enregistrer',
+    listEditorCancel: 'Annuler',
+    suggInList: 'déjà dans la liste',
+    customUnitTitle: '« {query} » n’est pas dans le catalogue',
+    customUnitAddAsArticle: 'Ajouter comme article',
+    customUnitRow: 'Ajouter « {query} » comme article',
+    customUnitUnitLabel: 'Unité de l’article',
+    customUnitOther: 'autre…',
+    customUnitOtherPlaceholder: 'Unité libre (bocal, filet...)',
   },
   ar: {
     appName: 'Chnowa Ntayeb',
@@ -1499,7 +1582,6 @@ export const translations = {
     groceryPickerSearchPlaceholder: 'ابحث عن مكوّن (طماطم، نعناع)...',
     groceryPickerNoResults: 'لا يوجد مكوّن مطابق',
     groceryPickerAddItem: 'أضف {name} إلى القائمة',
-    groceryPickerCustomToggle: 'أو أضف منتجًا حرًّا',
     groceryUnitSelectLabel: 'تغيير وحدة {name}',
     groceryHistoryTitle: 'سجل المشتريات',
     groceryHistoryEmpty: 'لا توجد قائمة مؤرشفة بعد. أغلق أسبوعًا لتجدها هنا.',
@@ -1519,6 +1601,33 @@ export const translations = {
     cartAddLabel: 'أضف {name} إلى قائمة التسوق',
     cartAddedLabel: 'تمت الإضافة إلى قائمة التسوق',
     groceryBadgeLabel: 'قائمة التسوق ({count})',
+    chooseListTitle: 'إلى أي قائمة مشتريات تريد الإضافة؟',
+    chooseListRemaining: 'بقيت {n}',
+    chooseListNewList: 'قائمة جديدة',
+    chooseListNamePlaceholder: 'اسم القائمة الجديدة',
+    chooseListCreate: 'إنشاء',
+    listsSwitchLabel: 'التبديل بين قوائم التسوق',
+    listsRemaining: '{n} متبقية',
+    listsRename: 'إعادة تسمية القائمة',
+    listsNew: 'قائمة جديدة',
+    listsDuplicate: 'نسخ القائمة',
+    listsDelete: 'حذف القائمة',
+    listsDeleteConfirm: 'حذف قائمة « {name} » نهائيًا؟',
+    listsFromHistory: 'إعادة إنشاء هذه القائمة',
+    listsFromHistoryName: 'قائمة المشتريات',
+    listsFromHistoryToast: 'أُنشئت قائمة جديدة من هذه المشتريات!',
+    listEditorNameLabel: 'اسم القائمة',
+    listEditorNewPlaceholder: 'اسم القائمة الجديدة',
+    listEditorCreate: 'إنشاء',
+    listEditorSave: 'حفظ',
+    listEditorCancel: 'إلغاء',
+    suggInList: 'موجود في القائمة',
+    customUnitTitle: '« {query} » غير موجود في الكتالوج',
+    customUnitAddAsArticle: 'إضافة كمنتج',
+    customUnitRow: 'أضف « {query} » كمنتج',
+    customUnitUnitLabel: 'وحدة المنتج',
+    customUnitOther: 'أخرى…',
+    customUnitOtherPlaceholder: 'وحدة حرّة (علبة، كيس...)',
   },
   derja_ar: DERJA_ARABIC,
 } satisfies Record<Language, TranslationDictionary>;

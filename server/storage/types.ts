@@ -39,6 +39,14 @@ export interface WriteGuard {
 
 export type CommitResult = { ok: true; revision: number } | { ok: false; conflict: boolean };
 
+/** The outcome of one `transact` operation: the next value to store plus the result to return. */
+export interface TransactOutcome<T> {
+  /** The document to store after the operation (same reference as `current` = write nothing) */
+  next: Record<string, unknown> | null;
+  /** The value handed back to the caller once the transaction committed */
+  result: T;
+}
+
 /** A paged, filtered listing (backoffice directory): equality or e-mail-style prefix. */
 export interface DirectoryQuery {
   /** Equality filter on one field, null = no filter */
@@ -87,4 +95,21 @@ export interface DataStore {
    * a publication never lands without its version). A failed guard writes nothing.
    */
   commit(ops: WriteOp[], guard?: WriteGuard): Promise<CommitResult>;
+  /**
+   * Reads one document and rewrites it inside a transaction: `operation` receives the stored
+   * document as it is at commit time (null when absent or deleted) and returns what to store
+   * plus the result to hand back. The read and the write are atomic: two concurrent `transact`
+   * calls on the same document are serialised — the second operation sees the first one's
+   * write, so a read-merge-write can never overwrite a change it did not see.
+   *
+   * `operation` must be pure (no side effects, no randomness): a contended backend re-runs it.
+   * Returning the `current` reference itself as `next` writes nothing (no revision bump).
+   * A deletion or a multi-document write goes through `remove` / `commit` instead.
+   * `id` and `revision` are owned by the storage layer: they are stripped from `next`.
+   */
+  transact<T>(
+    name: CollectionName,
+    id: string,
+    operation: (current: Record<string, unknown> | null) => TransactOutcome<T>
+  ): Promise<T>;
 }

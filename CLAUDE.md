@@ -17,11 +17,10 @@ react-router 7, Express, Firebase). Documentation complète : `docs/encyclopedie
 Valables pour toutes les données et briques (recettes, ingrédients, thèmes, scénarios, réglages, planning,
 courses, textes, comptes), pas seulement les recettes. Chaque plan dit en une ligne comment il respecte chaque point.
 
-1. **Évolutif et performant** : la solution doit tenir avec des milliers d'éléments, puis bien plus. Coût en lectures
-   de la base maîtrisé ; synchronisation incrémentale (`updated_at` + marques de suppression), jamais de relecture
-   complète à chaque ouverture ; IndexedDB pour les gros volumes ; listes affichées par pages avec des **totaux
-   justes** (compteurs calculés sur le résultat complet, jamais sur la page affichée) ; pas de calcul lourd ni de
-   rendu d'une liste entière d'un coup.
+1. **Évolutif et performant** : tient avec des milliers d'éléments puis bien plus ; coût en lectures maîtrisé,
+   synchronisation incrémentale (`updated_at` + marques de suppression), jamais de relecture complète à chaque
+   ouverture ; IndexedDB pour les gros volumes ; listes par pages avec des **totaux justes** (compteurs sur le
+   résultat complet, jamais sur la page affichée) ; pas de calcul lourd ni de rendu d'une liste entière d'un coup.
 2. **Organisé et maintenable** : architecture hexagonale respectée, une responsabilité par module, noms clairs.
 3. **Factorisé, sans duplication** : un mécanisme générique réutilisé par toutes les collections plutôt qu'une
    copie par type de données.
@@ -32,15 +31,10 @@ courses, textes, comptes), pas seulement les recettes. Chaque plan dit en une li
 
 ## Architecture (hexagonale) — règles à respecter
 
-Détails : `docs/encyclopedie/02-architecture.md`. Vérifiées par `src/core/architecture.test.ts`.
-
-- `src/core` : domaine en TypeScript **pur** (aucun React, Firebase, `window`, `localStorage`, `fetch`).
-  Importer un module uniquement par son `index.ts` (`@/core/matching`), jamais un fichier interne.
-- `src/application` : stores observables sans React + ports (`ports.ts`). N'importe que `src/core`.
-- `src/infrastructure` : adapters (localStorage, Firebase, API HTTP). Jamais de React.
-- `src/features`, `src/shared`, `src/app` : interface. **N'importent jamais `src/infrastructure` ni Firebase.**
-- `src/app/container.ts` : le seul endroit qui relie ports et adapters.
-- Serveur : `server/app.ts` reçoit ses dépendances ; l'IA passe par `VisionProvider`.
+`src/core` (TypeScript **pur**, imports uniquement par `index.ts`) → `src/application` (ports + stores) →
+`src/infrastructure` (adapters) → `src/features` / `src/shared` / `src/app` (interface, n'importe jamais
+`src/infrastructure` ni Firebase) ; seuls `src/app/container.ts` et `server/app.ts` relient ports et adapters.
+Détails et exemples : `docs/encyclopedie/02-architecture.md` (vérifiés par `src/core/architecture.test.ts`).
 
 ## Checklist de chaque évolution (obligatoire)
 
@@ -76,10 +70,9 @@ Toute évolution suit ce chemin, couche par couche ; ne pas sauter d'étape ni c
 
 ### Changer de base de données
 
-Aucun nom de base n'apparaît hors de `src/infrastructure` et `src/app/container.ts` (vérifié par
-`src/core/architecture.test.ts`). Changer de base = écrire de nouveaux adapters dans
-`src/infrastructure/<nouvelle-techno>/`, leur faire passer les tests de contrat, puis remplacer les
-adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas.
+Nouveaux adapters dans `src/infrastructure/<nouvelle-techno>/` qui passent les tests de contrat, branchés dans
+`src/app/container.ts` : domaine, stores et écrans ne changent pas. Détails et exemples :
+`docs/encyclopedie/11-guides-pratiques.md` (§ « Changer de base de données »).
 
 ## Conventions
 
@@ -96,105 +89,23 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
   dans `fallback`, masquée aux visiteurs, listes par pages de 100).
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au super admin**
   dans `/admin` : aucun formulaire de création dans l'interface publique.
-- **Langues et variantes** : une seule liste, `LANGUAGES` (`@/core/shared`) : français (référence), arabe
-  littéraire, derja en lettres latines (3, 7, 9), derja en lettres arabes (`derja_ar`) ; la derja est une
-  variante de la famille arabe. Chaque entrée donne sens d'écriture, `lang`, tri et **ordre de repli**.
-  Ajouter une langue ou une variante = une entrée dans `LANGUAGES` + **tous** ses textes d'interface :
-  affichage, éditeurs, sauvegarde et recherche la prennent en compte sans autre changement. Une variante
-  est écrite en entier, jamais empruntée à sa famille : la derja en lettres arabes
-  (`src/shared/i18n/derjaArabic.ts`) n'est pas de l'arabe littéraire, et l'arabe littéraire ne contient
-  aucun mot de derja (vérifié par les tests des dictionnaires).
-- Textes affichés dans toutes les langues (`src/shared/i18n/translations.ts`). **Le backoffice suit la langue
-  courante** comme le reste du site : contenu, onglet de saisie et libellés, lus dans
-  `src/features/backoffice/i18n/backofficeTexts.ts` par `useBackofficeText()` : libellés partagés dans ce
-  fichier, libellés d'une zone dans `i18n/texts/<zone>.ts` (`defineTexts` : les quatre langues écrites en
-  entier, clés préfixées par la zone). **Aucun texte affiché en dur** (JSX, `title`, `aria-label`,
-  `confirm`, messages), backoffice et accès super admin compris ; une erreur venue de l'infrastructure est un
-  code que l'interface traduit.
-- **Contenu multilingue** (noms, descriptions, étapes, astuce du chef, noms d'ingrédients) : champs
-  `<champ>_<langue>` (`name_derja_ar`…), lus et écrits par `localizedField` / `withLocalizedField`
-  (`@/core/shared`), jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ; les variantes récentes sont
-  facultatives (vides = absentes). Modifiable dans /admin dans toutes les langues et variantes avec
-  `LocalizedField` (`src/features/backoffice/ui/`) ; affiché via
-  `pickLocalized` (`@/core/shared`, à travers les aides de `LanguageContext` : `getRecipeName`,
-  `getIngredientName`, `getSecondaryName`, `compareNames`), jamais `name_fr` affiché directement (backoffice
-  compris) ni un ordre de langues codé en dur. Catégories : `useCategoryNames(kind)` (`src/shared/i18n`).
-  L'éditeur de recette s'ouvre sur l'onglet de la langue courante. Le français est la langue de référence
-  (une langue vide → sa liste de repli, le français en dernier).
-- **Workflow de validation** (`@/core/review`, plan : `docs/encyclopedie/14-refonte-backoffice.md`) :
-  un nouveau type de contenu validé = ses parties (`parts.ts`) + ses contrôles (`rules.ts`) + son workflow
-  par défaut ; une case de texte par langue (jamais une empreinte qui mélange les langues) ; tout
-  workflow ou rôle lu de la base passe par `resolveWorkflow` / `resolveRoles`, tout workflow modifié par
-  `validateWorkflow`. Atelier : `ReviewBoard` / `ReviewStore` (`src/application/review/`), collections
-  `<collection>_workspace` et `<collection>_versions` ; une publication écrit version publique, copie de
-  travail et version **dans la même transaction** ; toute écriture de l'atelier passe le `written_at` de
-  la copie dont elle part (jamais d'écrasement silencieux). **Une recette n'est jamais écrite directement
-  dans la collection publique** : l'éditeur enregistre dans l'atelier (`useReview('recipe').store.save`),
-  la publication passe par la page de validation (`/admin/recettes/<id>`). **De même pour les
-  ingrédients** (`useIngredientEditor`, `/admin/ingredients/<id>`). Rôles : une page du backoffice
-  réservée à un droit le déclare (`requires` dans `BACKOFFICE_SECTIONS`) ; toute écriture publique
-  passe par `canPublish()` dans `firestore.rules` (catégories comprises), la gestion (workflows, rôles, équipe) par
-  `canManage()` ; les droits d'un membre sont recopiés sur sa fiche `admins/{uid}`
-  (`TeamStore.refreshRights` après chaque changement de rôle). Libellés de la validation :
-  `backofficeTexts` (`review…`, `part…`, `state…`, `item…`, `filter…`, `rule…`).
-- **Catégories gérées** (`@/core/categories`, /admin › Catégories) : deux arbres en base
-  (`recipe_categories`, `ingredient_categories`), jamais une liste codée en dur hors des catégories
-  d'origine des ingrédients (`BUILT_IN_INGREDIENT_CATEGORIES`, mêmes ids qu'avant, jamais supprimées).
-  Une recette a plusieurs catégories (`category_ids`, ancêtres implicites), un ingrédient une seule
-  (`category`). Le **type de plat** (`MealCategory`) reste un champ fixe à part. Affectation d'une
-  recette = enregistrement dans l'atelier (case « Infos et ingrédients »). Lecture : `useCategories(kind)`
-  (arbre) et `useCategoryNames(kind)` ; regroupement des listes : `groupByCategory` /
-  `ui/CategoryGroups.tsx`.
-- **Public = validé seulement** : aucune recette intégrée au code n'est montrée au public (collection
-  publique sans contenu de secours, serveur SEO compris) ; « Tout remettre à valider » (Données) retire
-  tout du site jusqu'à la publication.
+- **Langues et variantes** : une seule liste `LANGUAGES` (`@/core/shared`) — français (référence), arabe littéraire, derja latine (3, 7, 9), derja arabe (`derja_ar`) — et contenu multilingue en champs `<champ>_<langue>` lus via `pickLocalized` / `localizedField` ; le backoffice suit la langue courante. **Aucun texte affiché en dur** (JSX, `title`, `aria-label`, `confirm`…), backoffice et accès super admin compris ; une erreur d'infrastructure est un code que l'interface traduit. Détails et exemples : `docs/encyclopedie/01-produit.md` (§ Langues), `03-domaine.md` (§ shared), `06-interface.md` (§ Langues), `07-backoffice.md`.
+- **Workflow de validation** (`@/core/review`) : un contenu n'est **jamais écrit directement dans la collection publique** — l'éditeur enregistre dans l'atelier, la publication passe par la page de validation ; toute écriture de l'atelier passe le `written_at` de la copie dont elle part (jamais d'écrasement silencieux). Détails et exemples : `docs/encyclopedie/14-refonte-backoffice.md` et `07-backoffice.md`.
+- **Catégories gérées** (`@/core/categories`, /admin › Catégories) : deux arbres en base, jamais une liste codée en dur hors des catégories d'origine des ingrédients ; une recette a plusieurs catégories, un ingrédient une seule ; le type de plat (`MealCategory`) reste un champ fixe à part. Détails et exemples : `docs/encyclopedie/03-domaine.md` (§ categories) et `07-backoffice.md`.
+- **Public = validé seulement** : aucune recette intégrée au code n'est montrée au public (collection publique sans contenu de secours, serveur SEO compris) ; « Tout remettre à valider » (Données) retire tout du site jusqu'à la publication.
 - Étapes de préparation : modifiables dans l'éditeur de recette (`RecipeStepsEditor`), validées par
   `validateRecipe` (au moins une étape en français, renumérotées à l'enregistrement).
-- **Fenêtres** : toujours via `ModalShell` (`src/shared/ui/ModalShell.tsx`, portail sur `<body>`), avec `onDismiss`
-  **obligatoire** (clic en dehors et Échap ferment ; un éditeur demande avant de perdre une saisie,
-  `useGuardedClose`) ; jamais de
-  `fixed inset-0` directement dans une page (une page animée ou floutée le capture : fenêtre hors écran, écran
-  gris). Une animation ne laisse aucune `transform` une fois finie.
-- **Coût d'une recette = fourchette** calculée (`recipeCostRange`, via `getRecipeCost` / `useRecipeCost` qui
-  la gardent en cache) et affichée avec `formatPriceRange` ; `estimated_cost_tnd` n'est qu'un secours.
-- **Listes longues** : `usePagedList` + `ShowMore` (24 par page, suite au défilement) ; tout compteur utilise
-  la liste complète (`total`), jamais le nombre affiché.
-- **Prix d'ingrédient = fourchette** (`price_min_tnd` ≤ `price_max_tnd`, aides `src/core/catalog/pricing.ts`,
-  coût des courses manquantes = `PriceRange`) ; affichage toujours via `formatPriceRange`
-  (`src/shared/i18n/formatPrice.ts`). Un ancien `default_price_tnd` est converti à la lecture par
-  `migrateIngredients` : ne plus l'utiliser.
-- **Unités** (`@/core/units`) : masses et volumes se convertissent entre alias de la même famille
-  (g ↔ kg, ml ↔ l) ; deux choses comptées différentes (pièce, botte, c.à.s) ne se mélangent jamais
-  (`areUnitsCompatible` / `convertQuantity`). `addGroceryItems` **fusionne** dans une ligne existante
-  (même `ingredient_id` ou même nom) un ajout en unité compatible : quantité convertie et additionnée,
-  ligne décochée ; unités incompatibles = deux lignes. Ajouter un article du catalogue = passer son
-  `ingredient_id` et sa `category` (bon rayon, pas `is_custom`).
-- **Descriptions d'unités** (`UnitInfo`, /admin › Ingrédients › Unités) : collection partagée `units`
-  (mécanisme commun `SyncedCollectionStore` + IndexedDB, DB version 5 ; lecture publique, écriture
-  publication), id = libellé slugifié (`unitIdFromLabel`), libellé unique et description française
-  obligatoires (`validateUnitInfo`). **Aucune description par défaut dans le code** : une unité non
-  configurée reste nue ; affichage toujours via `UnitInfo` (`src/shared/ui/UnitInfo.tsx`, infobulle
-  lue par `useUnitDescription`).
+- **Fenêtres** : toujours via `ModalShell` avec `onDismiss` **obligatoire** (clic en dehors et Échap ferment ; un éditeur demande avant de perdre une saisie) ; jamais de `fixed inset-0` directement dans une page, et une animation ne laisse aucune `transform` une fois finie. Détails et exemples : `docs/encyclopedie/06-interface.md`.
+- **Prix et coûts en fourchette** (`src/core/catalog/pricing.ts`) : coût d'une recette calculé (`recipeCostRange`, via `getRecipeCost` / `useRecipeCost`), prix d'ingrédient `price_min_tnd` ≤ `price_max_tnd`, coût des courses manquantes = `PriceRange`, affichage toujours via `formatPriceRange` ; l'ancien `default_price_tnd` est converti à la lecture par `migrateIngredients` : ne plus l'utiliser. Détails : `docs/encyclopedie/03-domaine.md` (§ catalog).
+- **Listes longues** : `usePagedList` + `ShowMore` (24 par page, suite au défilement) ; tout compteur utilise la liste complète (`total`), jamais le nombre affiché. Détails : `docs/encyclopedie/06-interface.md`.
+- **Unités** (`@/core/units`) : masses et volumes se convertissent entre alias de la même famille (g ↔ kg, ml ↔ l), deux choses comptées différentes (pièce, botte, c.à.s) ne se mélangent jamais ; `addGroceryItems` **fusionne** dans une ligne existante un ajout en unité compatible (unités incompatibles = deux lignes) ; le registre des unités (`UnitInfo` avec `kind` obligatoire, /admin › Ingrédients › Unités) alimente la saisie (`useUnitOptions`, repli `BUILTIN_UNIT_OPTIONS`) et les descriptions — **aucune description par défaut dans le code**, une unité non configurée reste nue. Détails et exemples : `docs/encyclopedie/03-domaine.md` (§ units, § grocery), `05-application-donnees.md` (synchronisation) et `07-backoffice.md`.
+- **Courses** : plusieurs **listes nommées** (`GroceryList`, `@/core/grocery/lists.ts`), l'active affichée partout (getter de compat `kitchen.groceryList`) ; une section de sync unique `groceryLists` (`{ lists, activeId }`, dernier écrit gagnant) remplace les anciennes `groceryList` / `groceryMeta` (acceptées par le serveur, ignorées par le client) ; toute mutation passe par `KitchenStore` (`listId` facultatif) ; les ajouts depuis le frigo, la fiche recette ou le menu demandent la liste cible (`GroceryListChooserModal`) seulement quand l'utilisateur garde plusieurs listes. Détails : `docs/encyclopedie/06-interface.md` et `05-application-donnees.md`.
 - **Photo d'ingrédient** facultative (`image_url`, lien https saisi dans /admin, vérifié par
   `validateIngredient`) : toujours afficher un ingrédient avec `IngredientThumb` (`src/shared/ui/`), qui gère
   le cas sans photo (pastille de catégorie) et le lien cassé.
 - Liens d'images et de vidéos saisis dans /admin : toujours avec un **aperçu en direct** de ce que verra
   le public (`RecipeMediaFields`, aperçu de l'éditeur d'ingrédient).
-- **Formulaires du backoffice** (modèle : éditeur de recette) : choisir un ingrédient avec
-  `IngredientSearch` (jamais une liste déroulante de tout le catalogue) ; nombres avec `NumberField`,
-  unités avec `UnitInput` ; long formulaire = sections avec raccourcis + onglets de langue
-  (`EditorLanguageProvider`) + barre d'enregistrement fixe ; erreurs de validation avec leur `field`,
-  affichées sur le champ ; modifications non enregistrées gardées en brouillon (port
-  `RecipeDraftRepository`) et confirmation avant de les perdre. Tout ce qui vient de l'extérieur est relu par
-  `parseStoredRecipes` / `parseStoredIngredients`. Libellés : `useBackofficeText()`.
-- **Pages du backoffice** : une adresse par page (`BACKOFFICE_PAGES` / `ENGINE_PAGES` + `backofficePath()` dans
-  `src/shared/paths.ts`) ; une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`
-  (`src/features/backoffice/shell/sections.tsx`), jamais un onglet ajouté à la main. Messages avec
-  `useNotify()`, éditeur de recette avec `useRecipeEditor()`, actions du catalogue avec `useAdmin()`.
-  Refonte et workflow de validation : `docs/encyclopedie/14-refonte-backoffice.md`.
-- **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs) ; import toujours
-  relu par `parseBackup` (`@/core/backup`). Tout nouveau champ d'une recette ou d'un ingrédient doit être
-  conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`).
+- **Formulaires du backoffice** (modèle : éditeur de recette) : `IngredientSearch` (jamais une liste déroulante de tout le catalogue), `NumberField`, `UnitInput`, sections + onglets de langue + barre d'enregistrement fixe, erreurs affichées sur leur champ, brouillon gardé (port `RecipeDraftRepository`) avec confirmation avant de le perdre. **Pages du backoffice** : une adresse par page (`BACKOFFICE_PAGES` / `ENGINE_PAGES` + `backofficePath()`), une nouvelle page = une entrée dans `BACKOFFICE_SECTIONS`, jamais un onglet ajouté à la main. **Sauvegarde JSON** : export = objets complets (toutes les langues et tous les champs), import toujours relu par `parseBackup`, tout nouveau champ conservé par `parseStoredRecipe` / `migrateIngredients` (test d'aller-retour dans `backup.test.ts`). Détails et exemples : `docs/encyclopedie/07-backoffice.md`, `03-domaine.md` (§ backup) et `14-refonte-backoffice.md`.
 - Pas de nom affiché deux fois : un sous-titre dans une autre langue n'apparaît que s'il diffère du titre.
 - Installation : toujours via `useInstallApp()` ; bandeau `InstallBanner` sous l'en-tête (dès la première page
   d'une visite, reste jusqu'à fermeture, revient à la visite suivante) + Réglages › Application. Application
@@ -204,28 +115,8 @@ adapters dans `src/app/container.ts`. Domaine, stores et écrans ne changent pas
 - En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode super admin, le badge
   et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
-- **Comptes** : trois niveaux — client (formulaire), employé (créé par le super admin via le serveur, mot de passe
-  temporaire), super admin (session serveur uniquement). Détails : `docs/encyclopedie/13-comptes.md`.
-  - Le champ `type` d'un profil vaut `client` ou `employee` ; les variantes de clients sont des données
-    (segment, tags…), jamais des valeurs de `type` ; les fonctions client sont universelles (un employé use le
-    site comme un client).
-  - Téléphone : **E.164** en un seul champ (`+21620123456`), validé par `normalizePhone` (libphonenumber-js,
-    la seule dépendance ajoutée par cette évolution) ; jamais un indicatif séparé.
-  - Profil lu via `resolveUserProfile` (tolérant : `type` absent = client), écrit **en entier** par
-    `AccountProfileRepository` (port + contrat).
-  - Pays : collection partagée `countries` (mécanisme commun `SyncedCollectionStore` + IndexedDB, graine
-    régénérée par `npm run build:countries`) ; `enabled` par pays contrôlé dans /admin ; les sélecteurs
-    (adresse) ne proposent que les pays activés, les indicatifs du téléphone tous.
-  - UI : `PhoneInput` et `AddressFields` (`src/shared/ui`) sans logique métier ; drapeaux calculés depuis le
-    code ISO, noms de pays via `Intl.DisplayNames`.
-  - Aucun droit ne vient d'un e-mail écrit dans le code ou les règles : `isOwner` = jeton super admin du serveur.
-  - Backoffice : sections dédiées **Équipe** (créer un employé, rôles) et **Clients** (annuaire paginé des
-    comptes + pays) ; le filtre de type de l'annuaire lit le champ stocké (`type` absent = visible sous
-    « tous », retypé `client` à la prochaine connexion).
-- **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) ;
-  normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ;
-  sans réponse du moteur, l'ancien filtre par nom sert de repli. Un nouveau champ texte localisé
-  (`<champ>_<langue>`) est indexé automatiquement. Détails : `docs/encyclopedie/12-recherche.md`.
+- **Comptes** : trois niveaux — client (formulaire), employé (créé par le super admin via le serveur, mot de passe temporaire), super admin (session serveur uniquement) ; téléphone **E.164** en un seul champ (`normalizePhone`) ; le champ `type` d'un profil vaut `client` ou `employee`, les variantes de clients sont des données ; aucun droit ne vient d'un e-mail écrit dans le code. **Création de compte atomique** : hash calculé avant toute écriture, puis `users/{uid}` + `auth/{uid}` + réservation `email_index/{email}` dans un seul `commit` gardé — l'unicité de l'adresse vient de la garde, jamais d'un seul pré-contrôle ; une suppression de compte devra libérer sa réservation. Détails et exemples : `docs/encyclopedie/13-comptes.md`.
+- **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) et la normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ; sans réponse du moteur, l'ancien filtre par nom sert de repli. Détails et exemples : `docs/encyclopedie/12-recherche.md`.
 - Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).
 - Comportements à conserver : filtres de recettes gardés entre les écrans (et entre les deux listes) ;

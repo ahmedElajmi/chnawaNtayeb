@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { localizedField, withLocalizedField } from '@/core/shared';
-import { validateUnitInfo, type UnitInfo } from '@/core/units';
+import {
+  BUILTIN_UNIT_OPTIONS,
+  inferUnitKind,
+  UNIT_KINDS,
+  unitLookupKey,
+  validateUnitInfo,
+  type UnitInfo,
+  type UnitKind,
+} from '@/core/units';
 import { useContainer, useCatalog } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
@@ -16,7 +24,21 @@ const INPUT = 'w-full px-3 py-2 text-xs rounded-lg bg-card border border-slate-2
 const LABEL = 'text-[11px] font-bold text-slate-600 dark:text-slate-300';
 
 /** Starting point of a new unit description (the id is slugified from the label when saved). */
-const NEW_UNIT: Omit<UnitInfo, 'id'> = { label: '', description_fr: '', description_derja: '', description_ar: '' };
+const NEW_UNIT: Omit<UnitInfo, 'id'> = {
+  label: '',
+  kind: 'other',
+  description_fr: '',
+  description_derja: '',
+  description_ar: '',
+};
+
+/** Zone-text key of the label of each unit kind. */
+const KIND_LABEL: Record<UnitKind, keyof BackofficeTexts> = {
+  mass: 'unitKindMass',
+  volume: 'unitKindVolume',
+  count: 'unitKindCount',
+  other: 'unitKindOther',
+};
 
 /** Error of a unit refused by the domain rules, told by the field it is about. */
 function unitErrorMessage(errors: ReturnType<typeof validateUnitInfo>, b: BackofficeTexts): string {
@@ -27,6 +49,8 @@ function unitErrorMessage(errors: ReturnType<typeof validateUnitInfo>, b: Backof
       return b.unitErrorLabel;
     case 'label-taken':
       return b.unitErrorLabelTaken;
+    case 'kind-invalid':
+      return b.unitKindRequired;
     default:
       return b.unitErrorDescription;
   }
@@ -40,16 +64,27 @@ interface UnitEditorModalProps {
   onClose: () => void;
 }
 
-/** Create or edit the description of one unit (label + texts in every language and variant). */
+/** Create or edit the description of one unit (label, kind + texts in every language and variant). */
 function UnitEditorModal({ unit, units, onSave, onClose }: UnitEditorModalProps) {
   const b = useBackofficeText();
   const isNew = !unit.id;
   const [draft, setDraft] = useState<Omit<UnitInfo, 'id'> & { id?: string }>(unit);
   const [error, setError] = useState<string | null>(null);
+  /** True once the super admin chose the kind himself: the label stops suggesting one. */
+  const [kindTouched, setKindTouched] = useState(false);
+  const suggestionsId = useId();
   useCloseOnBack(true, onClose);
   const dirty = JSON.stringify(draft) !== JSON.stringify(unit);
   const dismiss = useGuardedClose(dirty, onClose, b.unitDiscard);
   const set = (patch: Partial<UnitInfo>) => setDraft((d) => ({ ...d, ...patch }));
+  const setKind = (kind: UnitKind) => {
+    setKindTouched(true);
+    set({ kind });
+  };
+
+  // Common unit labels not described yet, offered as suggestions while the label is typed.
+  const described = new Set(units.flatMap((u) => [unitLookupKey(u.label), unitLookupKey(u.id)]));
+  const suggestions = BUILTIN_UNIT_OPTIONS.map((o) => o.label).filter((l) => !described.has(unitLookupKey(l)));
 
   const title = isNew ? b.unitAdd : format(b.unitEditNamed, { name: draft.label || unit.label });
   const submit = (e: React.FormEvent) => {
@@ -58,6 +93,7 @@ function UnitEditorModal({ unit, units, onSave, onClose }: UnitEditorModalProps)
       ...withLocalizedField(draft, 'description', localizedField(draft, 'description'), true),
       id: draft.id ?? '',
       label: draft.label.trim(),
+      kind: draft.kind,
     } as UnitInfo;
     const errors = validateUnitInfo(candidate, units);
     if (errors.length) setError(unitErrorMessage(errors, b));
@@ -93,12 +129,49 @@ function UnitEditorModal({ unit, units, onSave, onClose }: UnitEditorModalProps)
             <input
               type="text"
               value={draft.label}
-              onChange={(e) => set({ label: e.target.value })}
+              list={suggestionsId}
+              onChange={(e) =>
+                setDraft((d) => ({
+                  ...d,
+                  label: e.target.value,
+                  kind: kindTouched ? d.kind : inferUnitKind(e.target.value),
+                }))
+              }
               placeholder="c.à.s"
               className={INPUT}
               required
             />
+            <datalist id={suggestionsId}>
+              {suggestions.map((label) => (
+                <option key={label} value={label} />
+              ))}
+            </datalist>
           </label>
+          <fieldset>
+            <legend className={LABEL}>{b.unitKind}</legend>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {UNIT_KINDS.map((kind) => (
+                <label
+                  key={kind}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-semibold cursor-pointer transition ${
+                    draft.kind === kind
+                      ? 'border-brand bg-brand/10 text-brand-text'
+                      : 'border-line text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="unit-kind"
+                    className="accent-brand"
+                    checked={draft.kind === kind}
+                    onChange={() => setKind(kind)}
+                  />
+                  {b[KIND_LABEL[kind]]}
+                </label>
+              ))}
+            </div>
+            <p className="text-[11px] text-ink-muted mt-1.5">{b.unitKindHint}</p>
+          </fieldset>
           <LocalizedField
             label={b.unitDescription}
             frenchRequired

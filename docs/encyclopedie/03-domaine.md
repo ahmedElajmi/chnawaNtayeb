@@ -90,7 +90,8 @@ mais vide dans une autre langue ou variante).
   des ingrédients (quantité convertie dans l'unité d'achat, ingrédients facultatifs exclus) ;
   l'estimation saisie par le super admin (`estimated_cost_tnd`) ne sert que si aucun ingrédient n'est chiffrable.
   Affiché partout avec `formatPriceRange` (carte, fiche, partage, menu, backoffice) ; calculé une fois par
-  version de recette et de liste d'ingrédients (`getRecipeCost`, `src/app/ContainerContext.tsx`).
+  version de recette et de liste d'ingrédients (`getRecipeCost` / `useRecipeCost`,
+  `src/app/ContainerContext.tsx`, gardé en cache).
 
 ## `sync` : synchronisation des collections partagées
 
@@ -174,6 +175,8 @@ l'atelier (`ReviewBoard`, voir [05](05-application-donnees.md)) ; les écrans vi
   = id d'une catégorie (une valeur illisible devient `other`). `MealCategory` reste le type de plat.
 - Moteur : `FilterOptions.categoryIds` (une catégorie et ses sous-catégories) ; `fridgeSuggestions`
   (aucune suggestion quand le frigo est vide : toutes les listes comptent de la même façon).
+- Côté interface : `useCategories(kind)` (l'arbre) et `useCategoryNames(kind)` (`src/shared/i18n`)
+  pour les noms ; regroupement des listes par `groupByCategory` / `ui/CategoryGroups.tsx`.
 
 ## `search` : recherche texte
 
@@ -206,18 +209,38 @@ Voir la page dédiée [04 Moteur de matching](04-moteur-matching.md).
   botte) ; `areUnitsCompatible` dit si deux quantités peuvent s'additionner (casse, espaces et
   pluriels français ignorés ; une unité incomparable ne vaut qu'elle-même, écrite pareil) ;
   `convertQuantity` convertit une quantité (1500 g → 1,5 kg, arrondi à 3 décimales) ou rend `null`.
-- **Descriptions** (`units/info.ts`, testé) : `UnitInfo` (`label`, `description_fr` obligatoire,
+- **Descriptions** (`units/info.ts`, testé) : `UnitInfo` (`label`, **`kind`** — ce que mesure
+  l'unité : `mass`, `volume`, `count` ou `other` (`UNIT_KINDS`) —, `description_fr` obligatoire,
   `description_derja` / `description_ar` toujours stockées, `description_derja_ar` facultative,
   `revision`). L'id est le **libellé slugifié** (`unitIdFromLabel` : « c.à.s » → `c-a-s`,
   `UNIT_ID_PATTERN`), la clé de recherche ignore casse et espaces (`unitLookupKey`).
   `parseStoredUnitInfo(s)` relit ce qui vient de l'extérieur (id, libellé et description française
-  obligatoires, marques de suppression écartées), `validateUnitInfo` vérifie une saisie du
-  backoffice (libellé unique, description française requise), `unitDescriptionIndex` indexe par
-  libellé et id. **Aucune description par défaut dans le code** : une unité absente de la base
-  reste affichée nue.
+  obligatoires, marques de suppression écartées) : un document ancien sans `kind` est **réparé à la
+  lecture** — `inferUnitKind` le déduit du libellé comme le moteur le lit (« kg » → masse, « ml » →
+  volume, « botte » → comptée, « c.à.s / bol » → `other`). `validateUnitInfo` vérifie une saisie du
+  backoffice (libellé unique, kind valide, description française requise), `unitDescriptionIndex`
+  indexe par libellé et id. **Aucune description par défaut dans le code** : une unité absente de la
+  base reste affichée nue.
+- **Unités proposées à la saisie** : `BUILTIN_UNIT_OPTIONS` — les 17 unités courantes (g, kg, ml, cl,
+  L, pièce, c.à.s, c.à.c, pincée, gousses, botte, boîte, sachet, paquet, tranche, feuilles, verre),
+  chacune avec son kind déduit — et `unitOptionsFromInfos`, qui classe un registre (masse et volume
+  d'abord : elles convertissent, puis libellé). Le registre du backoffice fait foi ; les unités
+  intégrées servent de repli quand il est encore vide (voir
+  [05 Application et données](05-application-donnees.md), `CatalogStore.unitOptions()`).
 
-## `grocery` : liste de courses
+## `grocery` : listes de courses
 
+- **Listes nommées** (`grocery/lists.ts`, testé) : `GroceryList` (`id`, `name`, `items`, `note`
+  libre, `spent_tnd` — montant réellement dépensé, null tant que non saisi). La cuisine peut garder
+  **plusieurs listes de courses**. `createGroceryList` (nom tronqué à 80 caractères ; un nom vide
+  tombe sur `DEFAULT_GROCERY_LIST_NAME` « Mes courses »), `renameGroceryList`, `deleteGroceryList`
+  (jamais la dernière : il reste toujours au moins une liste ; la liste active supprimée cède à la
+  première restante), `duplicateGroceryList` (copie profonde des articles, ids neufs, tout décoché,
+  note gardée, dépense remise à zéro : une liste pour refaire les courses) et `groceryListFromItems`
+  (recrée une liste depuis des articles bruts, sans toucher l'historique : dupliquer une course
+  archivée). L'ordre des listes n'est **jamais retrié** : la nouvelle va à la fin, chaque mutation ne
+  touche que sa liste ; `resolveActiveGroceryListId` ramène à la première liste quand l'id actif
+  n'existe plus (suppression, sync, migration).
 - `buildGroceryListFromPlan` : tous les ingrédients des plats du menu, quantités additionnées par ingrédient.
 - `addGroceryItems` : un article qui retrouve une ligne existante — **même ingrédient**
   (`ingredient_id`) ou même nom pour un article libre — dans une **unité compatible** (g avec kg,
@@ -252,6 +275,9 @@ du domaine : recettes (`parseStoredRecipe` puis `migrateRecipes` : rôles, caté
 langues des noms, descriptions, étapes et astuces conservées**), ingrédients (forme vérifiée puis
 `migrateIngredients` : ancien prix unique → fourchette, photo), menu, favoris, liste de courses. Les
 éléments invalides sont ignorés et comptés (`skipped`) ; `null` si le fichier n'est pas une sauvegarde.
+À l'export, les objets sont complets (toutes les langues et tous les champs). Tout nouveau champ d'une
+recette ou d'un ingrédient doit être conservé par `parseStoredRecipe` / `migrateIngredients` : un test
+d'aller-retour dans `backup.test.ts` le vérifie.
 
 ## `shared`
 
@@ -261,10 +287,12 @@ langues des noms, descriptions, étapes et astuces conservées**), ingrédients 
 - `collections.ts` : `toggleInList`, `upsertById`.
 - `id.ts` : `createId(prefix)`.
 - `language.ts` : `Language` (`fr`, `ar`, `derja`, `derja_ar`) et `LANGUAGES`, la seule liste des
-  langues et variantes (famille, sens d'écriture, `lang`, tri, ordre de repli, langue obligatoire),
+  langues et variantes (famille, sens d'écriture, `lang`, tri, ordre de repli, langue obligatoire ;
+  le français est la langue de référence, dernier dans l'ordre de repli),
   `SELECTOR_ORDER`, `EDITING_ORDER`, `isLanguage`.
 - `localized.ts` : `LocalizedText` (`fr`, `derja`, `ar` + variantes facultatives), `pickLocalized(language,
 text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
-  `<champ>_<langue>` d'un objet), `trimLocalized`, `hasAnyText`. C'est la seule
+  `<champ>_<langue>` d'un objet, ex. `name_derja_ar`), `trimLocalized`, `hasAnyText`. C'est la seule
   règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
-  descriptions, étapes, astuce du chef).
+  descriptions, étapes, astuce du chef). Jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ;
+  les variantes récentes sont facultatives (vides = absentes).

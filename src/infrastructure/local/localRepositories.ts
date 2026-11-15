@@ -1,12 +1,30 @@
 import type { KitchenRepository, KitchenSyncLedger } from '@/application';
 import type { DayPlan } from '@/core/planning';
-import type { GroceryItem } from '@/core/grocery';
-import { type StoredKitchenDoc, storage } from '@/infrastructure/local/storage';
+import { DEFAULT_GROCERY_LIST_NAME, type GroceryList } from '@/core/grocery';
+import { createId } from '@/core/shared';
+import {
+  EMPTY_ELEMENT_SET,
+  mergeElementSets,
+  newestVersion,
+  parseElementSet,
+  presentIds,
+  receiveVersion,
+  SET_SECTIONS,
+  tickClock,
+  wrapLegacyList,
+  type DeviceClock,
+  type ElementSet,
+  type SetSectionName,
+} from '@/core/kitchen';
+import { type StoredGroceryLists, type StoredKitchenDoc, storage } from '@/infrastructure/local/storage';
 
 /**
  * The user's kitchen data on this device, kept in one document per scope (an account uid,
  * or 'local' for a device used without an account). The first read of a scope adopts the
  * data written by earlier versions (unscoped keys) — read-only migration, nothing deleted.
+ * A doc written before the named shopping lists (one `groceryList` + note + spend) is
+ * migrated on its first read: the single list becomes the default-named list, and the
+ * migrated shape is saved back right away so the migration runs only once.
  */
 
 const EMPTY_DOC: StoredKitchenDoc = {
@@ -14,17 +32,33 @@ const EMPTY_DOC: StoredKitchenDoc = {
   fridge: [],
   pantry: [],
   weeklyPlan: [],
-  groceryList: [],
-  groceryNote: '',
-  grocerySpent: null,
+  groceryLists: undefined,
   sections: {},
   pending: [],
   preferencesSyncedAt: null,
+  elements: {},
+  deviceClock: null,
+  lastSyncedAt: null,
 };
+
+/** A fresh single empty list under the default name, active by definition. */
+function freshGroceryLists(): StoredGroceryLists {
+  const id = createId('grocery_list');
+  return {
+    lists: [{ id, name: DEFAULT_GROCERY_LIST_NAME, items: [], note: '', spent_tnd: null }],
+    activeId: id,
+  };
+}
+
+/** Wraps the legacy single list (items + note + spend) as the one default-named list. */
+function wrapLegacyGroceryList(items: GroceryList['items'], note: string, spent: number | null): StoredGroceryLists {
+  const id = createId('grocery_list');
+  return { lists: [{ id, name: DEFAULT_GROCERY_LIST_NAME, items, note, spent_tnd: spent }], activeId: id };
+}
 
 function migrateLegacyKitchen(): StoredKitchenDoc {
   const legacy = storage.readLegacyKitchen();
-  if (!legacy) return { ...EMPTY_DOC, weeklyPlan: storage.getWeeklyPlan() };
+  if (!legacy) return { ...EMPTY_DOC, weeklyPlan: storage.getWeeklyPlan(), groceryLists: freshGroceryLists() };
   // Non-empty legacy sections count as changed now: they are pushed to the cloud once
   // the account syncs (the validated migration: the device sends its data up).
   const now = Date.now();
@@ -32,60 +66,161 @@ function migrateLegacyKitchen(): StoredKitchenDoc {
   if (legacy.favorites.length) changed.push('favorites');
   if (legacy.fridge.length) changed.push('fridge');
   if (legacy.pantry.length) changed.push('pantry');
-  if (legacy.groceryList.length) changed.push('groceryList');
+  if (legacy.groceryList.length) changed.push('groceryLists');
   const sections: Record<string, number> = {};
   for (const name of changed) sections[name] = now;
   return {
-    ...legacy,
+    favorites: legacy.favorites,
+    fridge: legacy.fridge,
+    pantry: legacy.pantry,
     weeklyPlan: legacy.weeklyPlan.length ? legacy.weeklyPlan : storage.getWeeklyPlan(),
-    groceryNote: '',
-    grocerySpent: null,
+    groceryLists: legacy.groceryList.length ? wrapLegacyGroceryList(legacy.groceryList, '', null) : freshGroceryLists(),
     sections,
     pending: changed,
     preferencesSyncedAt: null,
+    elements: {},
+    deviceClock: null,
+    lastSyncedAt: null,
   };
 }
 
-/** Kitchen repository scoped by the current owner (wired in the container). */
-export function createLocalKitchenRepository(scope: () => string): KitchenRepository & { ledger: KitchenSyncLedger } {
+/** Kitchen repository scoped by the current owner (wired in the container). The clock and the
+ * device id are injectable so the tests drive time (domain rule: the clock is never read hidden). */
+export function createLocalKitchenRepository(
+  scope: () => string,
+  options: { now?: () => number; deviceId?: string } = {}
+): KitchenRepository & { ledger: KitchenSyncLedger } {
   let suspended = false;
+  const now = options.now ?? ((): number => Date.now());
+  const clock = (d: StoredKitchenDoc): DeviceClock =>
+    d.deviceClock ?? { physical: 0, counter: 0, device: options.deviceId ?? storage.deviceId() };
+  const key = scope;
   const doc = (): StoredKitchenDoc => {
-    const key = scope();
-    return storage.getKitchenDoc(key) ?? migrateLegacyKitchen();
+    const current = ensureElementState(storage.getKitchenDoc(key()) ?? migrateLegacyKitchen(), now());
+    if (current.groceryLists) return current;
+    // One-time migration of a doc written before the named lists: the legacy single list
+    // (items, note, spend) becomes the default-named list, saved back right away so this
+    // runs only once, and marked pending so the migrated lists reach the other devices.
+    const lists = wrapLegacyGroceryList(
+      current.groceryList ?? [],
+      current.groceryNote ?? '',
+      current.grocerySpent ?? null
+    );
+    const migrated: StoredKitchenDoc = {
+      favorites: current.favorites,
+      fridge: current.fridge,
+      pantry: current.pantry,
+      weeklyPlan: current.weeklyPlan,
+      groceryLists: lists,
+      sections: { ...current.sections, groceryLists: now() },
+      pending: current.pending.includes('groceryLists') ? current.pending : [...current.pending, 'groceryLists'],
+      preferencesSyncedAt: current.preferencesSyncedAt,
+      elements: current.elements,
+      deviceClock: current.deviceClock,
+      lastSyncedAt: current.lastSyncedAt,
+    };
+    storage.saveKitchenDoc(key(), migrated);
+    return migrated;
   };
   const withDoc = (update: (current: StoredKitchenDoc) => StoredKitchenDoc): void => {
-    storage.saveKitchenDoc(scope(), update(doc()));
+    storage.saveKitchenDoc(key(), update(doc()));
   };
   /** Records a local change: time + pending flag, unless the save came from a merge. */
   const changed = (current: StoredKitchenDoc, section: string): StoredKitchenDoc => ({
     ...current,
-    sections: suspended ? current.sections : { ...current.sections, [section]: Date.now() },
+    sections: suspended ? current.sections : { ...current.sections, [section]: now() },
     pending: suspended || current.pending.includes(section) ? current.pending : [...current.pending, section],
   });
 
+  /**
+   * One device upgrade path: a document written before element sets existed holds lists without
+   * version maps. Each list wraps once as its own tombstone-less element set (a pre-migration
+   * deletion may reappear once per device — documented compromise of the migration).
+   */
+  function ensureElementState(d: StoredKitchenDoc, at: number): StoredKitchenDoc {
+    let wrapped = false;
+    const elements = { ...d.elements };
+    for (const section of SET_SECTIONS) {
+      if (elements[section]) continue;
+      const list = d[section];
+      if (list.length) {
+        elements[section] = wrapLegacyList(list, d.sections[section] ?? at)!;
+        wrapped = true;
+      }
+    }
+    return wrapped ? { ...d, elements } : d;
+  }
+
+  /** Applies one local list change to a set section: the diff becomes versions (adds and
+   * tombstones), so the change propagates — including its deletions — to the other devices. */
+  const withListChange = (current: StoredKitchenDoc, section: SetSectionName, after: string[]): StoredKitchenDoc => {
+    const before = current[section];
+    if (before.length === after.length && before.every((id, i) => id === after[i])) return current;
+    const state = ensureElementState(current, now());
+    const set = state.elements[section] ?? EMPTY_ELEMENT_SET;
+    const tick = tickClock(clock(state), now());
+    let added = { ...set.added };
+    let removed = { ...set.removed };
+    for (const id of after) if (!before.includes(id)) added[id] = tick.version;
+    for (const id of before) if (!after.includes(id)) removed[id] = tick.version;
+    return {
+      ...changed(
+        { ...state, deviceClock: tick.clock, elements: { ...state.elements, [section]: { added, removed } } },
+        section
+      ),
+      [section]: after,
+    } as StoredKitchenDoc;
+  };
+
   const repository = {
     loadFridge: () => doc().fridge,
-    saveFridge: (ids: string[]) => withDoc((d) => changed({ ...d, fridge: ids }, 'fridge')),
+    saveFridge: (ids: string[]) => withDoc((d) => withListChange(d, 'fridge', ids)),
     loadPantry: () => doc().pantry,
-    savePantry: (ids: string[]) => withDoc((d) => changed({ ...d, pantry: ids }, 'pantry')),
+    savePantry: (ids: string[]) => withDoc((d) => withListChange(d, 'pantry', ids)),
     loadFavorites: () => doc().favorites,
-    saveFavorites: (ids: string[]) => withDoc((d) => changed({ ...d, favorites: ids }, 'favorites')),
+    saveFavorites: (ids: string[]) => withDoc((d) => withListChange(d, 'favorites', ids)),
     loadWeeklyPlan: () => doc().weeklyPlan,
     saveWeeklyPlan: (plan: DayPlan[]) => withDoc((d) => changed({ ...d, weeklyPlan: plan }, 'weeklyPlan')),
-    loadGroceryList: () => doc().groceryList,
-    saveGroceryList: (items: GroceryItem[]) => withDoc((d) => changed({ ...d, groceryList: items }, 'groceryList')),
-    loadGroceryMeta: () => ({ note: doc().groceryNote, spent: doc().grocerySpent }),
-    saveGroceryMeta: (note: string, spent: number | null) =>
-      withDoc((d) => changed({ ...d, groceryNote: note, grocerySpent: spent }, 'groceryMeta')),
+    loadGroceryLists: () => doc().groceryLists ?? freshGroceryLists(),
+    saveGroceryLists: (state: StoredGroceryLists) =>
+      withDoc((d) => changed({ ...d, groceryLists: state }, 'groceryLists')),
+    elementSet: (section: SetSectionName): ElementSet => doc().elements[section] ?? EMPTY_ELEMENT_SET,
+
+    /** The server's version maps merge into this device's own (newest per entry wins); the
+     * visible list is recomputed from the merged maps — deletions travel with their tombstone. */
+    mergeElementSet: (section: SetSectionName, remote: ElementSet): void =>
+      withDoc((d) => {
+        const parsed = parseElementSet(remote);
+        if (!parsed) return d; // malformed external data: read, refused, nothing stored
+        const state = ensureElementState(d, now());
+        const merged = mergeElementSets(state.elements[section] ?? EMPTY_ELEMENT_SET, parsed);
+        const observed = newestVersion(parsed);
+        const deviceClock = observed ? receiveVersion(clock(state), observed) : state.deviceClock;
+        return {
+          ...state,
+          deviceClock,
+          elements: { ...state.elements, [section]: merged },
+          [section]: presentIds(merged),
+        } as StoredKitchenDoc;
+      }),
+
+    /** Empties the whole kitchen document of this scope (a device that has not synced within
+     * the tombstone retention re-adopts the server document instead of resurrecting an element).
+     * The device clock is kept: this device never issues a version older than one it issued. */
+    resetLocal: (): void =>
+      withDoc((d) => ({
+        ...EMPTY_DOC,
+        deviceClock: d.deviceClock,
+        lastSyncedAt: d.lastSyncedAt,
+      })),
   };
 
   /** Sync bookkeeping over the same document (exported as its own port). */
   const ledger: KitchenSyncLedger = {
     hasData: () => {
       const current = doc();
-      if (current.favorites.length || current.fridge.length || current.pantry.length || current.groceryList.length) {
-        return true;
-      }
+      if (current.favorites.length || current.fridge.length || current.pantry.length) return true;
+      if (current.groceryLists?.lists.some((list) => list.items.length > 0)) return true;
       // The scoped document is written on the first change: fall back to the legacy keys
       return storage.readLegacyKitchen() !== null;
     },
@@ -98,6 +233,8 @@ export function createLocalKitchenRepository(scope: () => string): KitchenReposi
     confirmPreferences: (at: number) => withDoc((d) => ({ ...d, preferencesSyncedAt: at })),
     setSectionTime: (section: string, at: number) =>
       withDoc((d) => ({ ...d, sections: { ...d.sections, [section]: at } })),
+    lastSyncedAt: () => doc().lastSyncedAt,
+    recordSynced: (at: number) => withDoc((d) => ({ ...d, lastSyncedAt: at })),
     suspend: () => {
       const was = suspended;
       suspended = true;

@@ -1,8 +1,9 @@
 import { initialRecipes } from '@/core/catalog';
 import { type DayPlan, DEFAULT_WEEKLY_PLAN, migrateDayPlan } from '@/core/planning';
-import type { GroceryItem } from '@/core/grocery';
+import type { GroceryItem, GroceryList } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
 import { type AppTheme, isValidTheme } from '@/core/theme';
+import { type DeviceClock, type ElementSet, parseElementSet } from '@/core/kitchen';
 
 const KEYS = {
   RECIPES: 'chnowa_recipes_v1',
@@ -19,24 +20,62 @@ const KEYS = {
   ACTIVE_THEME_VARS: 'chnowa_active_theme_vars_v1',
 };
 
+/** The named shopping lists of one scope, with the id of the active one. */
+export interface StoredGroceryLists {
+  lists: GroceryList[];
+  activeId: string;
+}
+
 /** Kitchen data of one scope (an account uid, or 'local' for a device used without one). */
 export interface StoredKitchenDoc {
   favorites: string[];
   fridge: string[];
   pantry: string[];
   weeklyPlan: DayPlan[];
-  groceryList: GroceryItem[];
-  /** Note attached to the current shopping list */
-  groceryNote: string;
-  /** Amount actually spent, entered when the list was completed (null = not entered) */
-  grocerySpent: number | null;
+  /** The named shopping lists; undefined while the doc still holds the legacy single list */
+  groceryLists?: StoredGroceryLists;
+  /** Legacy single-list fields, read once for the migration, never written again */
+  groceryList?: GroceryItem[];
+  groceryNote?: string;
+  grocerySpent?: number | null;
   /** Last local change per section, in ms since epoch (drives the newest-write-wins merge) */
   sections: Record<string, number>;
   /** Sections changed locally and not confirmed by the server yet */
   pending: string[];
   /** When the preferences mirror was last confirmed by the server (null = never) */
   preferencesSyncedAt: number | null;
+  /** Element-set state of the three set sections (added/removed versions per id, @/core/kitchen) */
+  elements: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet };
+  /** This device's hybrid logical clock, per scope (never goes backwards); null = no event yet */
+  deviceClock: DeviceClock | null;
+  /** Last successful exchange with the server for this scope (null = never synced) */
+  lastSyncedAt: number | null;
 }
+
+/**
+ * Reads the stored named lists back: every entry must carry an id, a name, its items, a
+ * note and a spend; anything else (older or malformed shape) is treated as absent, so the
+ * caller migrates the legacy single list instead.
+ */
+function parseStoredGroceryLists(raw: unknown): StoredGroceryLists | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const parsed = raw as { lists?: unknown; activeId?: unknown };
+  if (typeof parsed.activeId !== 'string' || parsed.activeId === '') return undefined;
+  if (!Array.isArray(parsed.lists) || parsed.lists.length === 0) return undefined;
+  const lists = parsed.lists.filter(isStoredGroceryList);
+  if (lists.length === 0) return undefined;
+  return { lists, activeId: parsed.activeId };
+}
+
+const isStoredGroceryList = (raw: unknown): raw is GroceryList =>
+  !!raw &&
+  typeof raw === 'object' &&
+  typeof (raw as GroceryList).id === 'string' &&
+  (raw as GroceryList).id !== '' &&
+  typeof (raw as GroceryList).name === 'string' &&
+  Array.isArray((raw as GroceryList).items) &&
+  typeof (raw as GroceryList).note === 'string' &&
+  ((raw as GroceryList).spent_tnd === null || typeof (raw as GroceryList).spent_tnd === 'number');
 
 class StorageService {
   // --- PREFERENCES ---
@@ -208,13 +247,17 @@ class StorageService {
         weeklyPlan: Array.isArray(doc.weeklyPlan)
           ? doc.weeklyPlan.map((day) => migrateDayPlan(day, initialRecipes))
           : DEFAULT_WEEKLY_PLAN,
-        groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : [],
-        groceryNote: typeof doc.groceryNote === 'string' ? doc.groceryNote : '',
+        groceryLists: parseStoredGroceryLists(doc.groceryLists),
+        groceryList: Array.isArray(doc.groceryList) ? doc.groceryList : undefined,
+        groceryNote: typeof doc.groceryNote === 'string' ? doc.groceryNote : undefined,
         grocerySpent:
-          typeof doc.grocerySpent === 'number' && Number.isFinite(doc.grocerySpent) ? doc.grocerySpent : null,
+          typeof doc.grocerySpent === 'number' && Number.isFinite(doc.grocerySpent) ? doc.grocerySpent : undefined,
         sections: doc.sections && typeof doc.sections === 'object' ? { ...doc.sections } : {},
         pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
+        elements: readElementSets(doc.elements),
+        deviceClock: readDeviceClock(doc.deviceClock),
+        lastSyncedAt: typeof doc.lastSyncedAt === 'number' ? doc.lastSyncedAt : null,
       };
     } catch {
       return null;
@@ -225,6 +268,22 @@ class StorageService {
     try {
       localStorage.setItem(this.kitchenKey(scope), JSON.stringify(doc));
     } catch {}
+  }
+
+  /** Stable id of this installation (departs devices that issue equal hybrid clock versions). */
+  deviceId(): string {
+    const KEY = 'chnawa_device_id_v1';
+    let id = localStorage.getItem(KEY);
+    if (!id || id.length > 64) {
+      id = (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`).slice(
+        0,
+        64
+      );
+      try {
+        localStorage.setItem(KEY, id);
+      } catch {}
+    }
+    return id;
   }
 
   /** Kitchen data written by earlier versions (unscoped keys): read once, then only the scoped doc is used. */
@@ -243,6 +302,31 @@ class StorageService {
     if (!favorites.length && !fridge.length && !groceryList.length && !pantry.length) return null;
     return { favorites, fridge, pantry, weeklyPlan, groceryList };
   }
+}
+
+/** The element-set state of the three set sections, read through the core parser (unknown/malformed dropped). */
+function readElementSets(raw: unknown): { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } {
+  const out: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  const shape = raw as Record<string, unknown>;
+  for (const name of ['favorites', 'fridge', 'pantry'] as const) {
+    const parsed = parseElementSet(shape[name]);
+    if (parsed) out[name] = parsed;
+  }
+  return out;
+}
+
+/** The device's hybrid logical clock, shape-checked (absent or malformed = no event yet). */
+function readDeviceClock(raw: unknown): DeviceClock | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const shape = raw as Record<string, unknown>;
+  const physical = shape.physical;
+  const counter = shape.counter;
+  const device = shape.device;
+  if (typeof physical !== 'number' || !Number.isFinite(physical) || physical < 0) return null;
+  if (typeof counter !== 'number' || !Number.isInteger(counter) || counter < 0) return null;
+  if (typeof device !== 'string' || device.length === 0 || device.length > 64) return null;
+  return { physical, counter, device };
 }
 
 export const storage = new StorageService();

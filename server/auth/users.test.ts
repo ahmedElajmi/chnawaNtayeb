@@ -60,6 +60,55 @@ describe('accounts through the storage contract', () => {
     ).rejects.toMatchObject({ code: 'weak-password' });
   });
 
+  it('refuses a malformed e-mail before anything is written', async () => {
+    const s = await store();
+    const now = 1_700_000_000_000;
+    await expect(
+      createAccount(s, { email: 'not-an-email', password: 'long-enough-1', type: 'client' }, COUNTRIES, now)
+    ).rejects.toMatchObject({ code: 'invalid-input' });
+    await expect(
+      createAccount(s, { email: 'a@b', password: 'long-enough-1', type: 'client' }, COUNTRIES, now)
+    ).rejects.toMatchObject({ code: 'invalid-input' });
+    // Nothing was stored: a bad shape never reaches the reservation or the profile
+    expect(await s.ids('users')).toEqual([]);
+    expect(await s.ids('auth')).toEqual([]);
+    expect(await s.ids('email_index')).toEqual([]);
+  });
+
+  it('creates an account complete or not at all: a hashing failure writes nothing', async () => {
+    const s = await store();
+    const now = 1_700_000_000_000;
+    await expect(
+      createAccount(s, { email: 'a@b.co', password: 'long-enough-1', type: 'client' }, COUNTRIES, now, () =>
+        Promise.reject(new Error('argon2 unavailable'))
+      )
+    ).rejects.toBeTruthy();
+    // No profile, no credentials, no reservation: a retry starts from a clean slate
+    expect(await s.ids('users')).toEqual([]);
+    expect(await s.ids('auth')).toEqual([]);
+    expect(await s.ids('email_index')).toEqual([]);
+  });
+
+  it('keeps two concurrent registrations of the same e-mail to a single account', async () => {
+    const s = await store();
+    const now = 1_700_000_000_000;
+    const results = await Promise.allSettled([
+      createAccount(s, { email: 'a@b.co', password: 'long-enough-1', type: 'client' }, COUNTRIES, now),
+      createAccount(s, { email: 'a@b.co', password: 'long-enough-1', type: 'client' }, COUNTRIES, now),
+    ]);
+    const fulfilled = results.filter((r) => r.status === 'fulfilled');
+    const rejected = results.filter((r) => r.status === 'rejected');
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect((rejected[0] as PromiseRejectedResult).reason).toMatchObject({ code: 'email-in-use' });
+    // One profile, one auth record, the reservation points at it
+    const profiles = await s.findWhere('users', 'email', 'a@b.co', 10);
+    expect(profiles).toHaveLength(1);
+    const uid = profiles[0].uid as string;
+    expect(await s.get('auth', uid)).toMatchObject({ password_phc: expect.stringContaining('$argon2id$') });
+    expect(await s.get('email_index', 'a@b.co')).toMatchObject({ uid, taken: 1 });
+  });
+
   it('answers the same failure for an unknown e-mail and a wrong password', async () => {
     const s = await store();
     const now = 1_700_000_000_000;

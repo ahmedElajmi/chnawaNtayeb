@@ -6,6 +6,7 @@ import type {
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  TransactOutcome,
   WriteGuard,
   WriteOp,
 } from './types';
@@ -21,11 +22,32 @@ export function createFirestoreStore(db: Firestore): DataStore {
 
   const stamped = (doc: Record<string, unknown>) => ({ ...doc, revision: FieldValue.serverTimestamp() });
 
+  /** The storage layer owns `id` and `revision`: they never persist inside the document. */
+  const withoutOwnFields = (doc: Record<string, unknown>): Record<string, unknown> => {
+    const clean = { ...doc };
+    delete clean.id;
+    delete clean.revision;
+    return clean;
+  };
+
   const guardValue = async (tx: Transaction, guard: WriteGuard): Promise<number | null> => {
     const d = await tx.get(table(guard.name).doc(guard.id));
     if (!d.exists || d.get('deleted') === true) return null;
     const value = d.get(guard.field);
     return typeof value === 'number' ? value : null;
+  };
+
+  /** Same read outside a transaction: true when the guard no longer holds (the batch lost a
+   * clean race against a concurrent batch, e.g. two registrations of the same e-mail). */
+  const guardViolated = async (guard: WriteGuard): Promise<boolean> => {
+    const d = await table(guard.name).doc(guard.id).get();
+    const value =
+      !d.exists || d.get('deleted') === true
+        ? null
+        : typeof d.get(guard.field) === 'number'
+          ? (d.get(guard.field) as number)
+          : null;
+    return value !== guard.expected;
   };
 
   return {
@@ -113,21 +135,51 @@ export function createFirestoreStore(db: Firestore): DataStore {
 
     async commit(ops, guard): Promise<CommitResult> {
       let revision = 0;
-      await dbx.runTransaction(async (tx) => {
-        if (guard && (await guardValue(tx, guard)) !== guard.expected) {
-          return; // conflict: nothing is written
-        }
-        for (const op of ops as WriteOp[]) {
-          tx.set(table(op.name).doc(op.id), stamped(op.doc));
-        }
-        // The batch revision is the server clock at commit time
-        revision = Date.now();
-        // A marker read back right after would give the real stamp; the pollers
-        // reconcile through the next delta anyway.
-      });
+      try {
+        await dbx.runTransaction(async (tx) => {
+          if (guard && (await guardValue(tx, guard)) !== guard.expected) {
+            return; // conflict: nothing is written
+          }
+          for (const op of ops as WriteOp[]) {
+            tx.set(table(op.name).doc(op.id), stamped(op.doc));
+          }
+          // The batch revision is the server clock at commit time
+          revision = Date.now();
+          // A marker read back right after would give the real stamp; the pollers
+          // reconcile through the next delta anyway.
+        });
+      } catch (error) {
+        // A concurrent guarded batch aborts this transaction. The guard is read back once more:
+        // when it no longer holds, the batch lost a clean race — a conflict, not a storage failure.
+        if (guard && (await guardViolated(guard))) return { ok: false, conflict: true };
+        throw error;
+      }
       if (revision === 0) return { ok: false, conflict: true };
       const newest = await maxStamp(table, ops);
       return { ok: true, revision: newest };
+    },
+
+    async transact<T>(
+      name: CollectionName,
+      id: string,
+      operation: (current: Record<string, unknown> | null) => TransactOutcome<T>
+    ): Promise<T> {
+      // Firestore re-runs the callback on contention: `operation` must be pure, the contract
+      // states it. The read (tx.get) and the write are atomic — the callback either applies
+      // over the state it read or is re-run over the fresh one.
+      const ref = table(name).doc(id);
+      return dbx.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        const current =
+          snap.exists && snap.get('deleted') !== true
+            ? { ...(snap.data() as Record<string, unknown>), id: snap.id, revision: millis(snap.get('revision')) ?? 0 }
+            : null;
+        const outcome: TransactOutcome<T> = operation(current);
+        if (outcome.next && outcome.next !== current) {
+          tx.set(ref, stamped(withoutOwnFields(outcome.next)));
+        }
+        return outcome.result;
+      });
     },
   };
 }

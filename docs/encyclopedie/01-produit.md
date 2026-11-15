@@ -19,16 +19,16 @@ sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
 
 ## Les écrans
 
-| Adresse         | Écran         | Rôle                                                                                                                                                                                     |
-| --------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                                                                                          |
-| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), bouton panier par ingrédient (ajout direct à la liste de courses), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
-| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                                                                                            |
-| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                                                                                            |
-| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, manquants sélectionnables ajoutés aux courses                                                                          |
-| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                                                                                     |
-| `/grocery`      | Qadhya        | Liste de courses (générée depuis le menu, ajout d'ingrédients du catalogue ou manuel), unités changeables, partage WhatsApp                                                              |
-| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                                                                                                  |
+| Adresse         | Écran         | Rôle                                                                                                                                                                                                                                      |
+| --------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                                                                                                                                           |
+| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), bouton panier par ingrédient (ajout à la liste de courses ; la liste cible est demandée quand il y en a plusieurs), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
+| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                                                                                                                                             |
+| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                                                                                                                                             |
+| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, manquants sélectionnables ajoutés aux courses                                                                                                                           |
+| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                                                                                                                                      |
+| `/grocery`      | Qadhya        | Listes de courses nommées (créer, renommer, dupliquer, supprimer ; générée depuis le menu, ajout d'ingrédients du catalogue ou manuel avec unité), unités changeables, partage WhatsApp                                                   |
+| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](07-backoffice.md))                                                                                                                                                                                   |
 
 ## Catalogue et suggestions : deux écrans
 
@@ -49,9 +49,21 @@ Le détail des règles est dans [04 Moteur de matching](04-moteur-matching.md).
 
 ## Langues
 
-Trois langues d'interface et de contenu : **derja** (tunisien en alphabet latin, par défaut),
-**français** et **arabe** (affichage de droite à gauche). Chaque recette, ingrédient et thème
-a ses trois noms (`name_fr`, `name_derja`, `name_ar`).
+Une seule liste, `LANGUAGES` (`@/core/shared/language.ts`) : **derja** en lettres latines
+(chiffres arabizi 3, 7, 9 — langue par défaut), **français** (langue de référence), **arabe
+littéraire** et **derja en lettres arabes** (`derja_ar`, `src/shared/i18n/derjaArabic.ts`) ; la
+derja est une variante de la famille arabe (affichage de droite à gauche pour les écritures
+arabes). Chaque entrée donne le sens d'écriture, `lang`, le tri et l'**ordre de repli** (une langue
+vide affiche sa liste de repli, le français en dernier).
+
+Une variante est écrite en entier, jamais empruntée à sa famille : la derja en lettres arabes
+n'est pas de l'arabe littéraire, et l'arabe littéraire ne contient aucun mot de derja (vérifié par
+les tests des dictionnaires, voir [06](06-interface.md)).
+
+Chaque contenu (recette, ingrédient, thème, catégorie) porte ses champs `<champ>_<langue>`
+(`name_fr`, `name_derja`, `name_derja_ar`…) ; les variantes récentes sont facultatives (vides =
+absentes). Le backoffice suit la langue courante, comme le reste du site. Règles de lecture et
+d'affichage : [03 § shared](03-domaine.md) et [06 § Langues](06-interface.md).
 
 ## Vocabulaire
 

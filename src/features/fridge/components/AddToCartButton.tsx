@@ -6,13 +6,18 @@ interface AddToCartButtonProps {
   label: string;
   /** Silent announcement (sr-only, live region) once the ingredient has been added */
   addedLabel: string;
-  onAdd: () => void;
+  /**
+   * Starts the add; the target list may be asked through a chooser before the item really
+   * lands somewhere. `onDone` is called once the ingredient has been added (or never, when
+   * the user gave up) — the transient confirmation shows only then.
+   */
+  onAdd: (onDone: () => void) => void;
 }
 
 /**
  * Small trailing action of a fridge ingredient card: adds the ingredient to the shopping
  * list. Fully separate from the fridge toggle (own button, own click handling) and shows a
- * brief confirmation (~1.5 s) instead of opening anything.
+ * brief confirmation (~1.5 s) once the add has actually completed.
  */
 export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ label, addedLabel, onAdd }) => {
   const [added, setAdded] = useState(false);
@@ -20,11 +25,14 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ label, addedLa
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
-  const handleClick = () => {
-    onAdd();
+  const showAdded = () => {
     setAdded(true);
     window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handleClick = () => {
+    onAdd(showAdded);
   };
 
   return (

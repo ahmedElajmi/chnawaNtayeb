@@ -14,14 +14,16 @@ Règles d'or :
 
 - **Le champ `type` d'un profil vaut `client` ou `employee`** — il décrit la structure, jamais des variantes de clients (celles-là sont des données : `segment`, `tags`, futurs abonnements). Une variante de client ne doit jamais devenir une valeur de `type`.
 - **Les fonctions client sont universelles** : un employé consulte le frigo, les suggestions et les courses avec son propre compte, exactement comme un client ; ses droits ne s'activent que dans `/admin`.
-- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le super admin passe par sa session, un employé par son rôle.
+- **Aucun droit ne vient d'une adresse e-mail écrite dans le code ou les règles** : le backdoor e-mail a été supprimé. Le super admin passe par sa session, un employé par son rôle. `isOwner` dans les règles = le jeton super admin du serveur.
 
 ## Le profil (`users/{uid}`)
 
 Champs : `uid`, `type`, `email`, `displayName`, `phone` (**E.164**, ex. `+21620123456` — l'indicatif fait partie du
 nombre, jamais un champ séparé), `address` (bloc facultatif : `line`, `region`, `city`, `postalCode`, `country`),
-`preferredLanguage`, `isAnonymous`, `favorites`, `savedFridge`, `lastLogin`. Un profil sans `type` est un client
-(lecture tolérante, comme les anciens documents).
+`preferredLanguage`, `isAnonymous`, `favorites`, `savedFridge`, `lastLogin`. Le profil est lu via
+`resolveUserProfile` (tolérant : `type` absent = client, comme les anciens documents) et écrit
+**en entier** par le port `AccountProfileRepository` (+ contrat `accountProfile.contract.ts`),
+store `AccountProfileStore`.
 
 - Validations : `src/core/accounts` (`validateRegistration`, `validateProfileUpdate`, `normalizePhone` — via
   `libphonenumber-js`, la seule dépendance ajoutée). Le téléphone est facultatif et **non vérifié** pour l'instant :
@@ -82,6 +84,7 @@ un ancien document sans `type` n'apparaît que sous « tous » (il est retypé `
 
 ## Évolutions prévues (portes déjà ouvertes)
 
+- **Vérification de l'e-mail** : e-mail de confirmation + jeton à durée limitée + confirmation serveur + récupération de compte (réinitialisation de mot de passe par e-mail). Porte déjà ouverte : `isValidEmail` côté serveur, et le retrait du champ trompeur `emailVerified` (il reviendra honnêtement `false` tant que l'adresse n'est pas confirmée).
 - **Vérification du téléphone** (`phone_verified`) : SMS via Firebase Phone Auth ou Twilio, côté serveur.
 - **Abonnements** : collection `subscriptions` écrite par le serveur (paiement/webhook) ; jamais un champ copié
   dans le profil.
@@ -99,8 +102,11 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 - **Registre de hacheurs** (`server/auth/hashers.ts`) : `verify` lit l'algorithme depuis la chaîne PHC — un ancien haché reste vérifiable après un changement d'algorithme ; à chaque connexion réussie, re-hachage avec l'algorithme configuré.
 - **Politique de mot de passe** (`settings/password`, page **Sécurité** de /admin) : algorithme, paramètres argon2 (mémoire/itérations/parallélisme), longueur minimale, classes de caractères exigées, mode de migration (`auto` = re-hachage transparent / `force_change` = nouveau mot de passe demandé à la connexion), verrouillage (tentatives, minutes, déverrouillage automatique) + **déverrouillage manuel** sur la fiche du client dans l'annuaire.
 - **Création des employés** : `/admin/api/employees` écrit `users/{uid}` + `auth/{uid}` via le contrat de stockage (mot de passe temporaire argon2) — plus aucun compte Firebase Auth n'est créé.
+- **Création de compte atomique** (`createAccount`, `server/auth/users.ts`) : le hachage est calculé **avant toute écriture** (un échec d'argon2 ne laisse rien en base), puis `users/{uid}` + `auth/{uid}` + la **réservation d'e-mail** `email_index/{email}` (`{ uid, taken: 1 }`) sont écrits dans **un seul `commit` atomique** du contrat de stockage. L'unicité de l'adresse est décidée par la **garde** du commit (`taken` absent = adresse libre) — jamais par le seul pré-contrôle `findFirst`, qui reste comme raccourci d'erreur conviviale : deux inscriptions simultanées de la même adresse n'en créent qu'un, l'autre reçoit `email-in-use`. Une réservation supprimée (marque `deleted`) libère l'adresse ; une future suppression de compte doit retirer sa réservation.
 - Endpoints : `/api/auth/register|login|guest|me|change-password`, `PUT /api/auth/profile`, `PUT /api/auth/sync-lists` (favoris/frigo), `GET /api/auth/password-criteria` (sous-ensemble public : longueur minimale + classes exigées, jamais l'algorithme ni le verrouillage), `/admin/api/password-policy`, `/admin/api/accounts/:uid/unlock`.
-- **Synchronisation de la cuisine** : `GET/PUT /api/kitchen` — le frigo, le placard, les favoris, le menu, la liste et les préférences d'un compte client/employé (document server-only `kitchen/{uid}`) ; les invités sont refusés. Fusion « nouveau gagne par section » côté serveur (favoris/frigo/placard = union côté client). Détails du budget d'appels et de la migration : [05 Application & données](05-application-donnees.md).
+- **Forme de l'e-mail relue par le serveur** : `isValidEmail` (`@/core/accounts`) est appliquée dans `createAccount` — le formulaire du client n'est jamais une source de vérité, une adresse mal formée est refusée (`invalid-input`) avant toute écriture. La vérification réelle de l'adresse (e-mail de confirmation, jeton à durée limitée, récupération de compte) reste une évolution prévue : en attendant, le champ trompeur `emailVerified` a été retiré du port `AppUser` — il reviendra avec la feature, honnêtement `false` tant que l'adresse n'est pas confirmée.
+- **Synchronisation de la cuisine** : `GET/PUT /api/kitchen` — le frigo, le placard, les favoris, le menu, la liste et les préférences d'un compte client/employé (document server-only `kitchen/{uid}`) ; les invités sont refusés. Fusion **dans une transaction** (`DataStore.transact`), favoris/frigo/placard fusionnés **par élément** (les suppressions se propagent, `@/core/kitchen`), tombstones purgées après rétention, les autres sections en dernier-écrit-gagnant. Détails du budget d'appels, de la purge et de la migration : [05 Application & données](05-application-donnees.md).
+- **Listes de courses archivées** : `GET/POST/DELETE /api/kitchen/history` (server-only `kitchen_history`, 50 par compte) tenues par un **index par compte** (`kitchen_history_index/{uid}` : `seq` + ids + dates) mis à jour **dans le même commit que les écritures d'entrées** (`commit` + garde `seq`, rejeu borné) — plafond exact même en concurrence, éviction déterministe (`archived_at` puis `id`), réarchivage du même id idempotent, migration idempotente des comptes d'avant l'index (les 50 plus récentes conservées, surplus évictés dans le même commit).
 - Port client : `PasswordPolicyGateway` (contrat + jumeau mémoire + adaptateur HTTP).
 
 ### Côté navigateur (sessions du site)
@@ -126,12 +132,12 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 
 ### Comment appliquer un changement touchant Firebase (runbook anti-blocage)
 
-| Changement                                           | Ordre d'application                                                                                                                  | Effet                                                                     |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Renommage du claim (`superAdmin`)                    | Rien à faire : le claim n'est plus lu par personne (les sessions serveur décident)                                                   | —                                                                         |
-| Nouvelles collections (`auth`, `users`, `settings`)  | Rien à faire côté Firebase : créées à l'usage ; `npm run deploy:rules` pour garder le deny-all cohérent                              | Aucune interruption                                                       |
-| Employés                                             | Les créer depuis `/admin` (Équipe) : le compte vit dans `users`+`auth`, plus dans Firebase Auth                                      | Le mot de passe temporaire s'affiche une fois                             |
-| Bascule des données vers `/api/data/*` (PR D, faite) | Rien : le SDK Firebase a quitté le navigateur, `FIREBASE_SERVICE_ACCOUNT` reste requis sur Render (le serveur lit/écrit Firestore)   | Les règles Firestore deviennent un second filet, plus la porte principale |
-| Passage à SQL (plus tard)                            | `DATA_STORE=postgres` + importer le backup JSON dans les tables (id + JSONB + revision) ; les hachés argon2 suivent avec les comptes | Les clients gardent leur mot de passe (les hachés sont chez nous)         |
+| Changement                                                         | Ordre d'application                                                                                                                  | Effet                                                                     |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Renommage du claim (`superAdmin`)                                  | Rien à faire : le claim n'est plus lu par personne (les sessions serveur décident)                                                   | —                                                                         |
+| Nouvelles collections (`auth`, `users`, `email_index`, `settings`) | Rien à faire côté Firebase : créées à l'usage ; `npm run deploy:rules` pour garder le deny-all cohérent                              | Aucune interruption                                                       |
+| Employés                                                           | Les créer depuis `/admin` (Équipe) : le compte vit dans `users`+`auth`, plus dans Firebase Auth                                      | Le mot de passe temporaire s'affiche une fois                             |
+| Bascule des données vers `/api/data/*` (PR D, faite)               | Rien : le SDK Firebase a quitté le navigateur, `FIREBASE_SERVICE_ACCOUNT` reste requis sur Render (le serveur lit/écrit Firestore)   | Les règles Firestore deviennent un second filet, plus la porte principale |
+| Passage à SQL (plus tard)                                          | `DATA_STORE=postgres` + importer le backup JSON dans les tables (id + JSONB + revision) ; les hachés argon2 suivent avec les comptes | Les clients gardent leur mot de passe (les hachés sont chez nous)         |
 
 **Firebase Auth devient inutile** : aucun compte n'y est créé ni vérifié ; la console Firebase ne sert plus qu'au projet Firestore. Rien à supprimer côté console — le vide ne gêne pas.

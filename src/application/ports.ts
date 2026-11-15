@@ -2,7 +2,8 @@ import type { DayPlan } from '@/core/planning';
 import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
 
 export type { PasswordPolicy };
-import type { GroceryItem, GroceryHistoryEntry } from '@/core/grocery';
+import type { ElementSet, SetSectionName } from '@/core/kitchen';
+import type { GroceryHistoryEntry, GroceryList } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
 import type { AppTheme } from '@/core/theme';
@@ -101,13 +102,23 @@ export interface KitchenRepository {
   savePantry(ids: string[]): void;
   loadFavorites(): string[];
   saveFavorites(ids: string[]): void;
+  /** Element-set bookkeeping of one set section (added/removed versions per id, @/core/kitchen). */
+  elementSet(section: SetSectionName): ElementSet;
+  /**
+   * Merges a set section coming from the server: the version maps are unioned (the newest per
+   * entry wins) and the visible list is recomputed — a deletion travels through its tombstone.
+   * A malformed remote value is ignored (the core parser reads every external data).
+   */
+  mergeElementSet(section: SetSectionName, remote: ElementSet): void;
+  /** Clears the whole kitchen document of the current scope: a device that has not synced
+   * within the tombstone retention re-adopts the server document instead of resurrecting. */
+  resetLocal(): void;
   loadWeeklyPlan(): DayPlan[];
   saveWeeklyPlan(plan: DayPlan[]): void;
-  loadGroceryList(): GroceryItem[];
-  saveGroceryList(items: GroceryItem[]): void;
-  /** Note and actual spend attached to the current shopping list. */
-  loadGroceryMeta(): { note: string; spent: number | null };
-  saveGroceryMeta(note: string, spent: number | null): void;
+  /** The named shopping lists of this scope, with the id of the active one. */
+  loadGroceryLists(): { lists: GroceryList[]; activeId: string };
+  /** Replaces the named shopping lists and the active one (complete write, no merge). */
+  saveGroceryLists(state: { lists: GroceryList[]; activeId: string }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +127,8 @@ export interface KitchenRepository {
 // bookkeeping of what this device changed since its last confirmed push.
 // ---------------------------------------------------------------------------
 
-/** One section of the account's kitchen as the server keeps it (newest-write-wins). */
+/** One section of the account's kitchen as the server keeps it (newest-write-wins, element sets
+ * for the three set sections — see @/core/kitchen). */
 export interface RemoteKitchenSection<T> {
   value: T;
   /** Client time in ms, carried with the section; the newest one wins between devices */
@@ -124,12 +136,12 @@ export interface RemoteKitchenSection<T> {
 }
 
 export interface RemoteKitchenDocument {
-  favorites?: RemoteKitchenSection<string[]>;
-  fridge?: RemoteKitchenSection<string[]>;
-  pantry?: RemoteKitchenSection<string[]>;
+  favorites?: RemoteKitchenSection<ElementSet>;
+  fridge?: RemoteKitchenSection<ElementSet>;
+  pantry?: RemoteKitchenSection<ElementSet>;
   weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
-  groceryList?: RemoteKitchenSection<GroceryItem[]>;
-  groceryMeta?: RemoteKitchenSection<{ note?: string; spent_tnd?: number | null }>;
+  /** The named shopping lists and the active one, one newest-write-wins section */
+  groceryLists?: RemoteKitchenSection<{ lists: GroceryList[]; activeId: string }>;
   preferences?: RemoteKitchenSection<UserPreferences>;
 }
 
@@ -174,6 +186,10 @@ export interface KitchenSyncLedger {
   confirmPreferences(at: number): void;
   /** Records the time of a section adopted from the server (so it is not adopted again). */
   setSectionTime(section: string, at: number): void;
+  /** Last successful exchange with the server for this scope (null = never synced). */
+  lastSyncedAt(): number | null;
+  /** Records a successful exchange with the server (a pull or a push). */
+  recordSynced(at: number): void;
   /**
    * Saves applied from another device must not be marked as pending: suspended during a
    * merge; the returned function resumes the normal bookkeeping.
@@ -252,11 +268,11 @@ export interface ThemeRepository {
   saveActiveSnapshot(snapshot: ThemeSnapshot): void;
 }
 
-/** A signed-in visitor (no provider types leak into the UI). */
+/** A signed-in visitor (no provider types leak into the UI). E-mail verification is a future
+ * feature: the field will come back with it, honestly `false` until confirmed. */
 export interface AppUser {
   uid: string;
   email: string | null;
-  emailVerified: boolean;
   isAnonymous: boolean;
 }
 

@@ -44,6 +44,13 @@ const authParser: ParseDoc = (raw) => {
 /** Team members keep their raw shape (uid, e-mail, role, rights the rules read). */
 const adminsParser: ParseDoc = (raw) => (parseTeamMember(raw) ? (raw as Record<string, unknown>) : null);
 
+/** E-mail reservations: id = normalized e-mail, holding the account uid and the numeric `taken`
+ * claim the atomic account creation guards on. */
+const emailClaimParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return typeof d.uid === 'string' && typeof d.taken === 'number' ? { ...d } : null;
+};
+
 /** Historical snapshots and themes keep their raw shape: the domain reads them back itself. */
 const rawDoc: ParseDoc = (raw) => (raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : null);
 
@@ -63,6 +70,19 @@ const kitchenParser: ParseDoc = (raw) => {
 const kitchenHistoryParser: ParseDoc = (raw) => {
   const d = raw as Record<string, unknown>;
   return d && typeof d === 'object' && typeof d.uid === 'string' && typeof d.entry_id === 'string' ? { ...d } : null;
+};
+
+/** Per-account index of the archived snapshots (seq + the entry ids and dates): written only
+ * by /api/kitchen/history, which re-validates its shape at every read. */
+const kitchenHistoryIndexParser: ParseDoc = (raw) => {
+  const d = raw as Record<string, unknown>;
+  return d &&
+    typeof d === 'object' &&
+    typeof d.uid === 'string' &&
+    typeof d.seq === 'number' &&
+    Array.isArray(d.entries)
+    ? { ...d }
+    : null;
 };
 
 export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
@@ -171,6 +191,10 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
         : null,
   },
   auth: { name: 'auth', read: 'server', write: 'server', pageLimit: 0, parse: authParser },
+  // E-mail reservation of an account: written inside the same atomic commit as users/{uid} +
+  // auth/{uid} (the guard on `taken` decides the uniqueness, never a pre-check alone). A deleted
+  // reservation frees the address; a future account deletion must remove it too.
+  email_index: { name: 'email_index', read: 'server', write: 'server', pageLimit: 0, parse: emailClaimParser },
   settings: { name: 'settings', read: 'server', write: 'server', pageLimit: 0, parse: null as unknown as ParseDoc },
   // The personal kitchen data of one account (fridge, favorites, menu, shopping list):
   // one document per uid, written only by /api/kitchen after a session check.
@@ -183,6 +207,15 @@ export const COLLECTIONS: Readonly<Record<string, CollectionSpec>> = {
     write: 'server',
     pageLimit: 0,
     parse: kitchenHistoryParser,
+  },
+  // The index of the snapshots above: one tiny document per uid (seq + entry ids and dates),
+  // kept in the same commit as the entry writes so the cap is exact and the eviction atomic.
+  kitchen_history_index: {
+    name: 'kitchen_history_index',
+    read: 'server',
+    write: 'server',
+    pageLimit: 0,
+    parse: kitchenHistoryIndexParser,
   },
 } as const satisfies Record<string, CollectionSpec>;
 
