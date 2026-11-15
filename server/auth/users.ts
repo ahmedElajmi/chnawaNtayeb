@@ -1,4 +1,5 @@
 import {
+  isValidEmail,
   normalizePhone,
   resolveUserProfile,
   validateAddress,
@@ -93,6 +94,9 @@ export async function createAccount(
   hashPassword?: (plain: string, params: Record<string, number>) => Promise<string>
 ): Promise<{ uid: string; profile: UserProfile }> {
   const email = input.email.trim().toLowerCase();
+  // The e-mail shape is re-read server side: the client form is never trusted (a malformed
+  // address would be stored forever and never verified).
+  if (!isValidEmail(email)) throw new AuthError('invalid-input');
   // Fast path for a friendly error: the definitive uniqueness is decided by the guard of the
   // atomic commit below, which two concurrent registrations of the same address cannot both pass.
   const existing = await store.findFirst(USERS, 'email', email);

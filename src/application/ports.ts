@@ -252,11 +252,11 @@ export interface ThemeRepository {
   saveActiveSnapshot(snapshot: ThemeSnapshot): void;
 }
 
-/** A signed-in visitor (no provider types leak into the UI). */
+/** A signed-in visitor (no provider types leak into the UI). E-mail verification is a future
+ * feature: the field will come back with it, honestly `false` until confirmed. */
 export interface AppUser {
   uid: string;
   email: string | null;
-  emailVerified: boolean;
   isAnonymous: boolean;
 }
 

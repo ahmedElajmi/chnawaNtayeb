@@ -20,8 +20,9 @@ export function normalizePhone(input: string): string | null {
   return parsed && parsed.isValid() ? parsed.number : null;
 }
 
-/** Whether the value looks like an email (same shape the team module accepts). */
-function isEmail(value: string): boolean {
+/** Whether the value looks like an email (same shape the team module accepts). Exported so the
+ * server re-reads the shape it stores: the client form is never trusted. */
+export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
 }
 
@@ -94,7 +95,7 @@ export function validateRegistration(
   minPasswordLength: number
 ): FieldError[] {
   const errors: FieldError[] = [];
-  if (!isEmail(input.email)) errors.push({ field: 'email', message: 'email' });
+  if (!isValidEmail(input.email)) errors.push({ field: 'email', message: 'email' });
   if (typeof input.password !== 'string' || input.password.length < minPasswordLength) {
     errors.push({ field: 'password', message: 'password-length' });
   }

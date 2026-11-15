@@ -60,6 +60,21 @@ describe('accounts through the storage contract', () => {
     ).rejects.toMatchObject({ code: 'weak-password' });
   });
 
+  it('refuses a malformed e-mail before anything is written', async () => {
+    const s = await store();
+    const now = 1_700_000_000_000;
+    await expect(
+      createAccount(s, { email: 'not-an-email', password: 'long-enough-1', type: 'client' }, COUNTRIES, now)
+    ).rejects.toMatchObject({ code: 'invalid-input' });
+    await expect(
+      createAccount(s, { email: 'a@b', password: 'long-enough-1', type: 'client' }, COUNTRIES, now)
+    ).rejects.toMatchObject({ code: 'invalid-input' });
+    // Nothing was stored: a bad shape never reaches the reservation or the profile
+    expect(await s.ids('users')).toEqual([]);
+    expect(await s.ids('auth')).toEqual([]);
+    expect(await s.ids('email_index')).toEqual([]);
+  });
+
   it('creates an account complete or not at all: a hashing failure writes nothing', async () => {
     const s = await store();
     const now = 1_700_000_000_000;
