@@ -10,6 +10,7 @@ import {
   type ElementSet,
 } from '@/core/kitchen';
 import type { DayId } from '@/core/planning';
+import type { GroceryList } from '@/core/grocery';
 import type {
   KitchenRepository,
   KitchenSyncLedger,
@@ -23,7 +24,22 @@ import type {
  * visibility, start-up catch-up) are driven manually, like the server would see them.
  */
 
-type SectionName = 'favorites' | 'fridge' | 'pantry' | 'weeklyPlan' | 'groceryList';
+type SectionName = 'favorites' | 'fridge' | 'pantry' | 'weeklyPlan' | 'groceryLists';
+
+const GROCERY_ITEM = { id: 'g1', name: 'Œufs', quantity: 6, unit: 'pièce', category: 'other', is_checked: false };
+
+const groceryLists = (lists: GroceryList[], activeId?: string): { lists: GroceryList[]; activeId: string } => ({
+  lists,
+  activeId: activeId ?? lists[0]?.id ?? '',
+});
+
+const list = (id: string, items: GroceryList['items'] = [], note = ''): GroceryList => ({
+  id,
+  name: id,
+  items,
+  note,
+  spent_tnd: null,
+});
 
 /** A remote set section as the server would keep it (added/removed versions per id). */
 const elementSet = (added: string[] = [], removed: string[] = [], at = 500, device = 'remote'): ElementSet => ({
@@ -72,7 +88,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     fridge: [],
     pantry: [],
     weeklyPlan: [DAY('mon')],
-    groceryList: [],
+    groceryLists: groceryLists([list('l1')]),
     ...initial,
   };
   const syncState = { suspended: false };
@@ -126,16 +142,14 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         ledgerData.times.weeklyPlan = time.value;
       }
     },
-    loadGroceryList: () => data.groceryList as never,
-    saveGroceryList: (items) => {
-      data.groceryList = items;
+    loadGroceryLists: () => data.groceryLists as never,
+    saveGroceryLists: (state) => {
+      data.groceryLists = state;
       if (!syncState.suspended) {
-        ledgerData.pending.add('groceryList');
-        ledgerData.times.groceryList = time.value;
+        ledgerData.pending.add('groceryLists');
+        ledgerData.times.groceryLists = time.value;
       }
     },
-    loadGroceryMeta: () => ({ note: '', spent: null }),
-    saveGroceryMeta: () => undefined,
     elementSet: (section) => elements[section] ?? EMPTY_ELEMENT_SET,
     mergeElementSet: (section, remote) => {
       const merged = mergeElementSets(elements[section] ?? EMPTY_ELEMENT_SET, remote);
@@ -143,9 +157,12 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       data[section] = presentIds(merged);
     },
     resetLocal: () => {
-      for (const section of ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryList'] as const) {
+      for (const section of ['favorites', 'fridge', 'pantry', 'weeklyPlan'] as const) {
         data[section] = [];
       }
+      // Like the real adapter: the named lists fall back to one fresh empty default list
+      const fresh = list('fresh');
+      data.groceryLists = groceryLists([fresh]);
       for (const section of ['favorites', 'fridge', 'pantry'] as const) delete elements[section];
       ledgerData.pending.clear();
       for (const key of Object.keys(ledgerData.times)) delete ledgerData.times[key];
@@ -308,18 +325,21 @@ describe('the kitchen sync engine', () => {
       favorites: ['r1'],
       fridge: ['ing1'],
       weeklyPlan: [DAY('mon', 'local1')],
-      groceryList: [{ id: 'g1', name: 'Œufs', quantity: 6, unit: 'pièce', category: 'other', is_checked: false }],
+      groceryLists: groceryLists([list('l1', [GROCERY_ITEM])]),
     });
     h.ledger.times.favorites = 100;
     h.ledger.times.fridge = 100;
     h.ledger.times.weeklyPlan = 100;
-    h.ledger.times.groceryList = 100;
+    h.ledger.times.groceryLists = 100;
     h.gateway.remote = {
       favorites: { value: elementSet(['r1', 'r2'], [], 500), updatedAt: 500 },
       fridge: { value: elementSet(['ing2'], [], 500), updatedAt: 500 },
       weeklyPlan: { value: [DAY('mon', 'remote1')], updatedAt: 500 },
-      groceryList: {
-        value: [{ id: 'g2', name: 'Lait', quantity: 1, unit: 'l', category: 'other', is_checked: false }],
+      groceryLists: {
+        value: groceryLists(
+          [list('l1', [GROCERY_ITEM]), list('l2', [{ ...GROCERY_ITEM, id: 'g2', name: 'Lait' }])],
+          'l2'
+        ),
         updatedAt: 500,
       },
     };
@@ -329,10 +349,49 @@ describe('the kitchen sync engine', () => {
     expect(h.kitchen.getState().favorites).toEqual(['r1', 'r2']);
     expect(h.kitchen.getState().fridge).toEqual(['ing1', 'ing2']);
     expect(h.kitchen.getState().weeklyPlan[0].lunch.plat_id).toBe('remote1');
-    expect(h.kitchen.getState().groceryList[0].id).toBe('g2');
+    expect(h.kitchen.getState().groceryLists.map((l) => l.id)).toEqual(['l1', 'l2']);
+    expect(h.kitchen.getState().activeGroceryListId).toBe('l2');
+    expect(h.kitchen.groceryList[0].id).toBe('g2');
     // The adoption marked nothing pending and triggered no push
     expect(h.ledger.pendingSet.size).toBe(0);
     expect(h.gateway.pushes).toHaveLength(0);
+  });
+
+  it('pushes the named lists as one groceryLists section (debounced)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.kitchen.createGroceryList('Ramadan');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1);
+    const section = h.gateway.pushes[0].groceryLists;
+    expect(section?.value.lists).toHaveLength(2);
+    expect(section?.value.lists[1].name).toBe('Ramadan');
+    expect(section?.value.activeId).toBe(section?.value.lists[1].id);
+  });
+
+  it('keeps the local lists when the server document only holds the legacy sections', async () => {
+    const h = makeHarness({ groceryLists: groceryLists([list('l1', [GROCERY_ITEM])]) });
+    // The migration of the legacy doc marked the named lists as changed here
+    h.ledger.pendingSet.add('groceryLists');
+    h.ledger.times.groceryLists = 900;
+    // A document written by the previous app version: legacy groceryList/groceryMeta only
+    h.gateway.remote = {
+      groceryList: {
+        value: [{ id: 'g9', name: 'Lait', quantity: 1, unit: 'l', category: 'other', is_checked: false }],
+        updatedAt: 9000,
+      },
+      groceryMeta: { value: { note: 'legacy note', spent_tnd: 12 }, updatedAt: 9000 },
+    } as unknown as RemoteKitchenDocument;
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    expect(h.kitchen.getState().groceryLists.map((l) => l.id)).toEqual(['l1']);
+    expect(h.kitchen.groceryList[0].id).toBe('g1');
+    // The local lists (newer shape) go up to the server instead
+    expect(h.gateway.pushes).toHaveLength(1);
+    expect(h.gateway.pushes[0].groceryLists?.value.lists.map((l) => l.id)).toEqual(['l1']);
   });
 
   it('ignores an older remote section', async () => {
@@ -481,8 +540,14 @@ describe('the kitchen sync engine', () => {
     h.sync.start();
     await vi.runAllTimersAsync();
 
-    // The server holds a grocery note: if the stale response were applied, it would land on u2
-    h.gateway.remote = { groceryMeta: { value: { note: 'note-from-u1', spent_tnd: null }, updatedAt: 9000 } };
+    // The server holds a named list with a note: if the stale response were applied, it would
+    // land on u2
+    h.gateway.remote = {
+      groceryLists: {
+        value: groceryLists([list('l1', [], 'note-from-u1')]),
+        updatedAt: 9000,
+      },
+    };
     h.kitchen.toggleFavorite('r2'); // favorites pending, debounced push armed
     h.gateway.holdPushes = 1;
     await vi.advanceTimersByTimeAsync(2000); // u1's push, held in flight
@@ -495,12 +560,12 @@ describe('the kitchen sync engine', () => {
 
     // The stale response confirmed nothing and applied nothing on u2's document
     expect(h.ledger.pendingSet.has('favorites')).toBe(true);
-    expect(h.kitchen.getState().groceryNote).toBe('');
+    expect(h.kitchen.getState().groceryLists[0]?.note).toBe('');
     expect(h.sync.getState().syncing).toBe(true); // the flags still belong to u2's pull in flight
 
     h.gateway.release(); // u2's own pull arrives
     await vi.runAllTimersAsync();
-    expect(h.kitchen.getState().groceryNote).toBe('note-from-u1');
+    expect(h.kitchen.getState().groceryLists[0]?.note).toBe('note-from-u1');
     expect(h.sync.getState().syncing).toBe(false);
     expect(h.gateway.pushes).toHaveLength(1);
 

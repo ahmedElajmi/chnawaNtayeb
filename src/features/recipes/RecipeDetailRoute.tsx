@@ -16,7 +16,7 @@ export function RecipeDetailRoute({ slug }: { slug: string }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { catalog, ingredients, remoteChecked } = useCatalog();
-  const { fridge, pantry, favorites, kitchen } = useKitchen();
+  const { fridge, pantry, favorites, groceryLists, kitchen } = useKitchen();
   const { config } = useMatchingSettings();
   const { getRecipeName } = useLanguage();
   const recipe = catalog.findPublishedBySlug(slug);
@@ -48,7 +48,21 @@ export function RecipeDetailRoute({ slug }: { slug: string }) {
       pantryIds={pantry}
       // Items carry ingredient_id and category so the grocery list merges them by ingredient
       // and shows them in their aisle; `category` rides along for the aisle grouping.
-      onAddMissingToGrocery={(items) => kitchen.addGroceryItems(items as NewGroceryItem[])}
+      // A new list is created (and made active) first, then the items go into it.
+      onAddMissingToGrocery={(items, listId, newListName) => {
+        if (newListName) {
+          kitchen.createGroceryList(newListName);
+          kitchen.addGroceryItems(items as NewGroceryItem[], kitchen.getState().activeGroceryListId);
+        } else {
+          kitchen.addGroceryItems(items as NewGroceryItem[], listId);
+        }
+        if (listId) kitchen.setActiveGroceryList(listId);
+      }}
+      groceryLists={groceryLists.map((list) => ({
+        id: list.id,
+        name: list.name,
+        remainingCount: list.items.filter((item) => !item.is_checked).length,
+      }))}
       matchingConfig={config}
     />
   );

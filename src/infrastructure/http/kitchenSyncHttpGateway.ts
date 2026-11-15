@@ -19,15 +19,7 @@ function asDocument(raw: unknown): RemoteKitchenDocument {
   const doc = (raw ?? {}) as { sections?: Record<string, unknown> };
   const sections = doc.sections && typeof doc.sections === 'object' ? doc.sections : {};
   const document: RemoteKitchenDocument = {};
-  for (const name of [
-    'favorites',
-    'fridge',
-    'pantry',
-    'weeklyPlan',
-    'groceryList',
-    'groceryMeta',
-    'preferences',
-  ] as const) {
+  for (const name of ['favorites', 'fridge', 'pantry', 'weeklyPlan', 'groceryLists', 'preferences'] as const) {
     const section = asSection(sections[name]);
     if (section) document[name] = section as never;
   }

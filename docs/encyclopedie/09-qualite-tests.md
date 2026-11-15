@@ -21,17 +21,17 @@ sont exclus de la découverte (`exclude`) et l'isolation par worker est désacti
 (`isolate: false`, la suite ne teste que de la logique pure, ~6 s gagnées). Un worktree périmé
 ne peut donc plus faire échouer `npm test`.
 
-| Type                     | Exemples                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| Règles métier            | `core/matching/engine.test.ts`, `core/planning/planner.test.ts`, `core/grocery/groceryList.test.ts` |
-| Scénarios du chef        | `core/matching/scenarios.test.ts`, `scenarioSchema.test.ts` (données en base, rejouées en /admin)   |
-| Réglages du moteur       | `core/matching/config.test.ts` (validation, mises en avant datées, effets)                          |
-| Catalogue intégré        | `core/catalog/seed/catalog.test.ts` (cohérence des recettes et ingrédients)                         |
-| Stores                   | `application/matching/MatchingSettingsStore.test.ts`, `MatchingScenariosStore.test.ts`              |
-| Interface (logique pure) | `features/recipes/recipeFilters.test.ts`, `features/backoffice/recipes/recipeDraft.test.ts`         |
-| Serveur                  | `server/vision/scanValidation.test.ts`                                                              |
-| Architecture             | `core/architecture.test.ts` (règles d'imports entre couches)                                        |
-| Contrats d'adapters      | `infrastructure/contracts/*.contract.ts`, joués par chaque adapter (ex. `memory/`)                  |
+| Type                     | Exemples                                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Règles métier            | `core/matching/engine.test.ts`, `core/planning/planner.test.ts`, `core/grocery/groceryList.test.ts`, `core/grocery/lists.test.ts` |
+| Scénarios du chef        | `core/matching/scenarios.test.ts`, `scenarioSchema.test.ts` (données en base, rejouées en /admin)                                 |
+| Réglages du moteur       | `core/matching/config.test.ts` (validation, mises en avant datées, effets)                                                        |
+| Catalogue intégré        | `core/catalog/seed/catalog.test.ts` (cohérence des recettes et ingrédients)                                                       |
+| Stores                   | `application/matching/MatchingSettingsStore.test.ts`, `MatchingScenariosStore.test.ts`                                            |
+| Interface (logique pure) | `features/recipes/recipeFilters.test.ts`, `features/backoffice/recipes/recipeDraft.test.ts`                                       |
+| Serveur                  | `server/vision/scanValidation.test.ts`                                                                                            |
+| Architecture             | `core/architecture.test.ts` (règles d'imports entre couches)                                                                      |
+| Contrats d'adapters      | `infrastructure/contracts/*.contract.ts`, joués par chaque adapter (ex. `memory/`)                                                |
 
 Principes :
 
