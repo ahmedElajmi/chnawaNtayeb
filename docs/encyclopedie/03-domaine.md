@@ -271,7 +271,7 @@ d'aller-retour dans `backup.test.ts` le vérifie.
   le français est la langue de référence, dernier dans l'ordre de repli),
   `SELECTOR_ORDER`, `EDITING_ORDER`, `isLanguage`.
 - `localized.ts` : `LocalizedText` (`fr`, `derja`, `ar` + variantes facultatives), `pickLocalized(language,
-  text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
+text)` (langue choisie, sinon sa liste de repli), `localizedField` / `withLocalizedField` (champs
   `<champ>_<langue>` d'un objet, ex. `name_derja_ar`), `trimLocalized`, `hasAnyText`. C'est la seule
   règle de choix de langue : l'interface l'utilise pour tous les textes du catalogue (noms,
   descriptions, étapes, astuce du chef). Jamais un triplet `{ fr: x.name_fr, … }` écrit à la main ;
