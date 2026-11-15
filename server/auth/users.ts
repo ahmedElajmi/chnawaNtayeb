@@ -17,6 +17,8 @@ import { getPolicy, passwordMeetsCriteria } from './policy';
 
 const USERS = 'users';
 const AUTH = 'auth';
+/** Reservation of an e-mail: one document per normalized address (id = e-mail), holding the uid. */
+const EMAIL_INDEX = 'email_index';
 
 export interface AuthRecord {
   password_phc: string;
@@ -86,9 +88,13 @@ export async function createAccount(
     uid?: string;
   },
   countries: readonly CountryRecord[],
-  now: number
+  now: number,
+  /** Injectable for the tests; production hashes with the configured algorithm. */
+  hashPassword?: (plain: string, params: Record<string, number>) => Promise<string>
 ): Promise<{ uid: string; profile: UserProfile }> {
   const email = input.email.trim().toLowerCase();
+  // Fast path for a friendly error: the definitive uniqueness is decided by the guard of the
+  // atomic commit below, which two concurrent registrations of the same address cannot both pass.
   const existing = await store.findFirst(USERS, 'email', email);
   if (existing) throw new AuthError('email-in-use');
   const policy = await getPolicy(store);
@@ -112,14 +118,24 @@ export async function createAccount(
     isAnonymous: false,
     lastLogin: profile.lastLogin,
   };
-  await store.put(USERS, uid, document);
-  const phc = await preferredHasher(policy.algorithm).hash(input.password, policy.params);
-  await writeAuth(
-    store,
-    uid,
-    { password_phc: phc, failed_attempts: 0, locked_until: null, updated_at: new Date(now).toISOString() },
-    now
+  // The hash is computed before any write: a hashing failure leaves the database untouched —
+  // an account is never created without its credentials.
+  const hasher =
+    hashPassword ??
+    ((plain: string, params: Record<string, number>) => preferredHasher(policy.algorithm).hash(plain, params));
+  const phc = await hasher(input.password, policy.params);
+  // One atomic batch: the profile, its credentials and the e-mail reservation. The reservation
+  // (id = e-mail, `taken` absent) makes the uniqueness check atomic: a concurrent registration
+  // of the same address fails the guard and writes nothing.
+  const result = await store.commit(
+    [
+      { name: USERS, id: uid, doc: document },
+      { name: AUTH, id: uid, doc: { password_phc: phc, failed_attempts: 0, locked_until: null, id: uid } },
+      { name: EMAIL_INDEX, id: email, doc: { uid, taken: 1 } },
+    ],
+    { name: EMAIL_INDEX, id: email, field: 'taken', expected: null }
   );
+  if (!result.ok) throw new AuthError('email-in-use');
   void countries; // address fields arrive later, validated with the enabled countries
   return { uid, profile };
 }

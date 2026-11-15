@@ -152,5 +152,34 @@ export function describeDataStore(name: string, create: () => DataStore): void {
       });
       expect(fresh.ok).toBe(true);
     });
+
+    it('claims an absent guarded document exactly once: the second claimer conflicts and writes nothing', async () => {
+      const store = create();
+      // The same shape the account creation uses: profile + credentials + e-mail reservation
+      const guard = { name: 'email_index', id: 'a@b.co', field: 'taken', expected: null };
+      const first = await store.commit(
+        [
+          { name: 'users', id: 'u1', doc: { email: 'a@b.co' } },
+          { name: 'email_index', id: 'a@b.co', doc: { uid: 'u1', taken: 1 } },
+        ],
+        guard
+      );
+      expect(first.ok).toBe(true);
+      // A second registration of the same address: the reservation is taken, nothing is written
+      const second = await store.commit(
+        [
+          { name: 'users', id: 'u2', doc: { email: 'a@b.co' } },
+          { name: 'email_index', id: 'a@b.co', doc: { uid: 'u2', taken: 1 } },
+        ],
+        guard
+      );
+      expect(second).toEqual({ ok: false, conflict: true });
+      expect(await store.get('users', 'u2')).toBeNull();
+      expect(await store.get('email_index', 'a@b.co')).toMatchObject({ uid: 'u1' });
+      // A deleted reservation frees the address
+      await store.remove('email_index', 'a@b.co');
+      const freed = await store.commit([{ name: 'email_index', id: 'a@b.co', doc: { uid: 'u2', taken: 1 } }], guard);
+      expect(freed.ok).toBe(true);
+    });
   });
 }

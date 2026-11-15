@@ -29,13 +29,13 @@ adapter implémente quel port.
 
 ## Règles de dépendances
 
-| Couche                       | Peut importer                                       | Ne doit jamais importer                            |
-| ---------------------------- | --------------------------------------------------- | -------------------------------------------------- |
-| `src/core`                   | `src/core` uniquement                               | React, Firebase, `window`, `localStorage`, `fetch` |
-| `src/application`            | `src/core`                                          | React, Firebase, composants                        |
-| `src/infrastructure`         | `src/core`, `src/application` (ports)               | React, composants                                  |
+| Couche                                                        | Peut importer                                       | Ne doit jamais importer                            |
+| ------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| `src/core`                                                    | `src/core` uniquement                               | React, Firebase, `window`, `localStorage`, `fetch` |
+| `src/application`                                             | `src/core`                                          | React, Firebase, composants                        |
+| `src/infrastructure`                                          | `src/core`, `src/application` (ports)               | React, composants                                  |
 | `src/features`, `src/shared`, `src/app` (hors `container.ts`) | `src/core`, `src/application`, `src/app` (contexte) | `src/infrastructure`, Firebase, SDK d'IA           |
-| `src/app/container.ts`       | tout                                                | —                                                  |
+| `src/app/container.ts`                                        | tout                                                | —                                                  |
 
 Elles sont **vérifiées automatiquement** par `src/core/architecture.test.ts` : un import
 interdit fait échouer `npm test`. Le même test impose qu'on importe un module de `core` par

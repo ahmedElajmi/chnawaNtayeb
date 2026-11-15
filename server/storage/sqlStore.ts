@@ -7,6 +7,7 @@ import type {
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  WriteGuard,
   WriteOp,
 } from './types';
 
@@ -42,6 +43,9 @@ function jsonField(knex: Knex, column: string, field: string): string {
   }
 }
 
+/** A guarded batch whose guard no longer holds: a clean lost race, not a storage failure. */
+class GuardConflict extends Error {}
+
 export function createSqlStore(knex: Knex): DataStore {
   const table = (name: CollectionName) => knex(name);
 
@@ -52,24 +56,28 @@ export function createSqlStore(knex: Knex): DataStore {
     return Math.max(max + 1, Date.now());
   };
 
-  const writeOne = async (trx: Knex.Transaction, op: WriteOp, revision: number): Promise<void> => {
+  const writeOne = async (trx: Knex.Transaction, op: WriteOp, revision: number, insertOnly = false): Promise<void> => {
     const doc = { ...op.doc };
     delete doc.id;
-    await trx(op.name)
-      .insert({
-        id: op.id,
-        data: JSON.stringify(doc),
-        revision,
-        updated_at: new Date().toISOString(),
-        deleted: doc.deleted === true ? 1 : 0,
-      })
-      .onConflict('id')
-      .merge({
-        data: JSON.stringify(doc),
-        revision,
-        updated_at: new Date().toISOString(),
-        deleted: doc.deleted === true ? 1 : 0,
-      });
+    const row = {
+      id: op.id,
+      data: JSON.stringify(doc),
+      revision,
+      updated_at: new Date().toISOString(),
+      deleted: doc.deleted === true ? 1 : 0,
+    };
+    if (insertOnly) {
+      // A plain insert fails on an existing row (primary key): the atomic test-and-set a
+      // reservation claim relies on — a concurrent batch that took the row makes this one fail.
+      await trx(op.name).insert(row);
+      return;
+    }
+    await trx(op.name).insert(row).onConflict('id').merge({
+      data: row.data,
+      revision,
+      updated_at: row.updated_at,
+      deleted: row.deleted,
+    });
   };
 
   const materialize = (id: string, data: string, revision: number): Record<string, unknown> => ({
@@ -77,6 +85,17 @@ export function createSqlStore(knex: Knex): DataStore {
     id,
     revision,
   });
+
+  /** The guarded field of a row (null when absent, deleted, or not a number). */
+  const rowGuardValue = (row: { data: string; deleted: number | boolean } | undefined, guard: WriteGuard) => {
+    if (!row || row.deleted) return null;
+    const data = JSON.parse(row.data) as Record<string, unknown>;
+    return typeof data[guard.field] === 'number' ? (data[guard.field] as number) : null;
+  };
+
+  /** Same read outside a transaction, to classify the failure of an aborted guarded batch. */
+  const guardValue = async (guard: WriteGuard): Promise<number | null> =>
+    rowGuardValue(await table(guard.name).where('id', guard.id).first('data', 'deleted'), guard);
 
   return {
     async changes(name, since, limit): Promise<StorageChanges> {
@@ -174,25 +193,36 @@ export function createSqlStore(knex: Knex): DataStore {
     },
 
     async commit(ops, guard): Promise<CommitResult> {
-      return knex.transaction(async (trx) => {
-        if (guard) {
-          const row = await trx(guard.name).where('id', guard.id).first('data', 'deleted');
-          const value =
-            row && !row.deleted
-              ? (() => {
-                  const data = JSON.parse(row.data) as Record<string, unknown>;
-                  return typeof data[guard.field] === 'number' ? (data[guard.field] as number) : null;
-                })()
-              : null;
-          if (value !== guard.expected) return { ok: false, conflict: true };
-        }
-        let revision = 0;
-        for (const op of ops) {
-          revision = await stamp(trx, op.name);
-          await writeOne(trx, op, revision);
-        }
-        return revision ? { ok: true, revision } : { ok: true, revision: Date.now() };
-      });
+      try {
+        const batchRevision = await knex.transaction(async (trx) => {
+          let claimAbsentRow = false;
+          if (guard) {
+            const row = await trx(guard.name).where('id', guard.id).first('data', 'deleted');
+            const value = rowGuardValue(row, guard);
+            if (value !== guard.expected) throw new GuardConflict();
+            // A reservation claims a row that does not exist at all with a plain insert (a deleted
+            // row still exists: it comes back to life through the merge, last writer wins).
+            claimAbsentRow = !row;
+          }
+          let revision = 0;
+          for (const op of ops) {
+            revision = await stamp(trx, op.name);
+            // The primary key rejects a concurrent batch that claimed the same absent row in
+            // between (a merge would silently overwrite it and break the uniqueness).
+            const insertOnly = claimAbsentRow && op.name === guard?.name && op.id === guard?.id;
+            await writeOne(trx, op, revision, insertOnly);
+          }
+          return revision;
+        });
+        return batchRevision ? { ok: true, revision: batchRevision } : { ok: true, revision: Date.now() };
+      } catch (error) {
+        if (error instanceof GuardConflict) return { ok: false, conflict: true };
+        // The batch failed after the guard was read: it may have lost a clean race (a concurrent
+        // batch claimed the guarded row in between). The guard is read back once more — when it
+        // no longer holds, the failure is a conflict, not a storage error; otherwise it rethrows.
+        if (guard && (await guardValue(guard)) !== guard.expected) return { ok: false, conflict: true };
+        throw error;
+      }
     },
   };
 }
