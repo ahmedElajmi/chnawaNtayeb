@@ -12,7 +12,7 @@ import {
   wrapLegacyList,
   type ElementSet,
 } from '../../src/core/kitchen';
-import type { DataStore } from '../storage/types';
+import type { DataStore, WriteOp } from '../storage/types';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
 import { verifyUserSessionToken } from '../auth/sessions';
 
@@ -37,6 +37,7 @@ import { verifyUserSessionToken } from '../auth/sessions';
 
 const KITCHEN = 'kitchen';
 const KITCHEN_HISTORY = 'kitchen_history';
+const KITCHEN_HISTORY_INDEX = 'kitchen_history_index';
 
 /** Sections are capped so no account can grow an unbounded document. The set-section caps
  * come from the shared core limits (`added` is the visible list cap). */
@@ -150,10 +151,12 @@ function readStoredSet(value: unknown, updatedAt: number): ElementSet {
 /** ISO 8601 shapes the client actually sends (date + time, optional fraction and zone). */
 const ISO_LIKE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
 
-const archivedTimestamp = (doc: Record<string, unknown>): number => {
-  const parsed = Date.parse(String(doc.archived_at ?? ''));
+const timestampOf = (archivedAt: string): number => {
+  const parsed = Date.parse(archivedAt);
   return Number.isNaN(parsed) ? 0 : parsed;
 };
+
+const archivedTimestamp = (doc: Record<string, unknown>): number => timestampOf(String(doc.archived_at ?? ''));
 
 /**
  * Validates one archived grocery-run entry; null when malformed (refused, never stored).
@@ -181,6 +184,45 @@ function readHistoryEntry(raw: unknown): Record<string, unknown> | null {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return null;
   }
   return { ...entry };
+}
+
+/** One entry of the per-account index: the id and the date it was archived (the eviction key). */
+interface HistoryIndexEntry {
+  id: string;
+  archived_at: string;
+}
+
+/** The deterministic eviction order: archived_at first, then the id (an exact tie must not
+ * depend on the arrival order). The index is stored oldest first. */
+const olderFirst = (a: HistoryIndexEntry, b: HistoryIndexEntry): number => {
+  const byDate = timestampOf(a.archived_at) - timestampOf(b.archived_at);
+  if (byDate !== 0) return byDate;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+};
+
+/**
+ * Reads the per-account index written by this route only. Null when absent or unreadable:
+ * the caller rebuilds it from the stored entries instead of trusting a malformed one. The
+ * index carries no authorization — the session check and the entry documents stay the guards.
+ */
+function readHistoryIndex(raw: unknown): { seq: number; entries: HistoryIndexEntry[] } | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const shape = raw as { seq?: unknown; entries?: unknown };
+  if (typeof shape.seq !== 'number' || !Number.isInteger(shape.seq) || shape.seq < 0) return null;
+  if (!Array.isArray(shape.entries) || shape.entries.length > HISTORY.entries) return null;
+  const entries: HistoryIndexEntry[] = [];
+  const seen = new Set<string>();
+  for (const item of shape.entries) {
+    const e = item as { id?: unknown; archived_at?: unknown };
+    if (typeof e.id !== 'string' || e.id.length === 0 || e.id.length > HISTORY.id) return null;
+    if (typeof e.archived_at !== 'string' || !ISO_LIKE.test(e.archived_at) || Number.isNaN(Date.parse(e.archived_at))) {
+      return null;
+    }
+    if (seen.has(e.id)) return null;
+    seen.add(e.id);
+    entries.push({ id: e.id, archived_at: e.archived_at });
+  }
+  return { seq: shape.seq, entries };
 }
 
 /** Drops the wrapper fields the storage layer adds so the client sees its entry back. */
@@ -271,7 +313,32 @@ export function kitchenRoutes(
   });
 
   // Archived grocery-run snapshots: one document per uid + entry id, at most HISTORY.entries
-  // per account (the oldest one, by archived_at, goes first when the cap is reached).
+  // per account. The per-account index (seq + entry ids and dates, oldest first) is updated in
+  // the SAME commit as the entry writes, under the `seq` guard: the read-merge-write is atomic,
+  // the cap is exact, and the eviction of the oldest entry (by archived_at, then id) can never
+  // drift apart from the index. A contended commit (a concurrent archive) is retried from the
+  // fresh index — the operations are rebuilt every attempt, never replayed as-is.
+  const historyAttemptLimit = 4;
+
+  /** Reads the account's index, rebuilding it from the stored entries when absent (a legacy
+   * account) or unreadable: deterministic (archived_at then id), the HISTORY.entries newest kept
+   * and the surplus evicted in the same commit. Guard expectation: null for a fresh index. */
+  const historyIndexFor = async (
+    uid: string
+  ): Promise<{ expected: number | null; seq: number; entries: HistoryIndexEntry[]; surplus: string[] }> => {
+    const index = readHistoryIndex(await store!.get(KITCHEN_HISTORY_INDEX, uid));
+    if (index) return { expected: index.seq, seq: index.seq, entries: index.entries, surplus: [] };
+    const docs = await store!.findWhere(KITCHEN_HISTORY, 'uid', uid, HISTORY.entries * 2);
+    const all = docs
+      .filter((d) => d.deleted !== true && typeof d.entry_id === 'string')
+      .map((d) => ({ id: d.entry_id as string, archived_at: String(d.archived_at ?? '') }))
+      .filter((e) => ISO_LIKE.test(e.archived_at) && !Number.isNaN(Date.parse(e.archived_at)))
+      .map((e) => ({ id: String(e.id), archived_at: e.archived_at }))
+      .sort(olderFirst); // oldest first
+    const surplus = all.slice(0, Math.max(0, all.length - HISTORY.entries)).map((e) => e.id);
+    return { expected: null, seq: 0, entries: all.slice(Math.max(0, all.length - HISTORY.entries)), surplus };
+  };
+
   router.post('/api/kitchen/history', syncLimiter, async (req, res) => {
     const session = sessionOf(req);
     if (!session) return res.status(401).json({ ok: false, error: 'invalid-credentials' });
@@ -279,28 +346,54 @@ export function kitchenRoutes(
     const body = (req.body ?? {}) as Record<string, unknown>;
     const entry = readHistoryEntry(body.entry);
     if (!entry) return res.status(400).json({ ok: false, error: 'invalid-input' });
-    const existing = await store.findWhere(KITCHEN_HISTORY, 'uid', session.sub, HISTORY.entries);
-    if (existing.length >= HISTORY.entries) {
-      const oldest = [...existing].sort((a, b) => archivedTimestamp(a) - archivedTimestamp(b))[0];
-      if (oldest && typeof oldest.entry_id === 'string') {
-        await store.remove(KITCHEN_HISTORY, `${session.sub}:${oldest.entry_id}`);
+    const storageId = `${session.sub}:${entry.id}`;
+    for (let attempt = 0; ; attempt++) {
+      const { expected, seq, entries, surplus } = await historyIndexFor(session.sub);
+      // Re-archiving the same id replaces the entry in place: no duplicate, no eviction
+      // (a retry HTTP or a double click converges to the same state).
+      const sameId = entries.some((e) => e.id === entry.id);
+      const next = [
+        ...entries.filter((e) => e.id !== entry.id),
+        { id: String(entry.id), archived_at: String(entry.archived_at) },
+      ].sort(olderFirst);
+      const ops: WriteOp[] = [
+        { name: KITCHEN_HISTORY, id: storageId, doc: { uid: session.sub, entry_id: entry.id, ...entry } },
+      ];
+      if (!sameId && next.length > HISTORY.entries) {
+        // The oldest entry (deterministic order) leaves: its deletion marker is part of the
+        // same commit as the new entry and the index update — nothing can drift apart.
+        const evicted = next.shift()!;
+        ops.push({ name: KITCHEN_HISTORY, id: `${session.sub}:${evicted.id}`, doc: { deleted: true } });
       }
+      for (const id of surplus) {
+        ops.push({ name: KITCHEN_HISTORY, id: `${session.sub}:${id}`, doc: { deleted: true } });
+      }
+      ops.push({
+        name: KITCHEN_HISTORY_INDEX,
+        id: session.sub,
+        doc: { uid: session.sub, seq: seq + 1, entries: next },
+      });
+      const result = await store.commit(ops, {
+        name: KITCHEN_HISTORY_INDEX,
+        id: session.sub,
+        field: 'seq',
+        expected,
+      });
+      if (result.ok) return res.json({ ok: true });
+      // Another archive committed first: re-read the index and rebuild everything
+      if (attempt + 1 >= historyAttemptLimit) return unavailable(res);
+      await new Promise((resolve) => setTimeout(resolve, 80 * 2 ** attempt + Math.floor(Math.random() * 80)));
     }
-    await store.put(KITCHEN_HISTORY, `${session.sub}:${entry.id}`, {
-      uid: session.sub,
-      entry_id: entry.id,
-      ...entry,
-    });
-    return res.json({ ok: true });
   });
 
   router.get('/api/kitchen/history', syncLimiter, async (req, res) => {
     const session = sessionOf(req);
     if (!session) return res.status(401).json({ ok: false, error: 'invalid-credentials' });
     if (!store) return unavailable(res);
-    const docs = await store.findWhere(KITCHEN_HISTORY, 'uid', session.sub, HISTORY.entries);
+    // The per-account index travels in the same query (no entry_id): one extra slot, filtered
+    const docs = await store.findWhere(KITCHEN_HISTORY, 'uid', session.sub, HISTORY.entries + 1);
     const entries = docs
-      .filter((d) => d.deleted !== true)
+      .filter((d) => d.deleted !== true && typeof d.entry_id === 'string')
       .sort((a, b) => archivedTimestamp(b) - archivedTimestamp(a))
       .map(stripHistoryWrapper);
     return res.json({ ok: true, entries });
@@ -319,8 +412,27 @@ export function kitchenRoutes(
     if (!doc || doc.deleted === true || doc.uid !== session.sub || doc.entry_id !== id) {
       return res.status(404).json({ ok: false, error: 'not-found' });
     }
-    await store.remove(KITCHEN_HISTORY, storageId);
-    return res.json({ ok: true });
+    for (let attempt = 0; ; attempt++) {
+      const { expected, seq, entries, surplus } = await historyIndexFor(session.sub);
+      const ops: WriteOp[] = [{ name: KITCHEN_HISTORY, id: storageId, doc: { deleted: true } }];
+      for (const evicted of surplus) {
+        ops.push({ name: KITCHEN_HISTORY, id: `${session.sub}:${evicted}`, doc: { deleted: true } });
+      }
+      ops.push({
+        name: KITCHEN_HISTORY_INDEX,
+        id: session.sub,
+        doc: { uid: session.sub, seq: seq + 1, entries: entries.filter((e) => e.id !== id) },
+      });
+      const result = await store.commit(ops, {
+        name: KITCHEN_HISTORY_INDEX,
+        id: session.sub,
+        field: 'seq',
+        expected,
+      });
+      if (result.ok) return res.json({ ok: true });
+      if (attempt + 1 >= historyAttemptLimit) return unavailable(res);
+      await new Promise((resolve) => setTimeout(resolve, 80 * 2 ** attempt + Math.floor(Math.random() * 80)));
+    }
   });
 
   return router;

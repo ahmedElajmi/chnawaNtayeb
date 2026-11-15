@@ -28,10 +28,11 @@ const ADMIN_CONFIG = {
 let app: express.Express;
 let server: ReturnType<express.Express['listen']>;
 let base = '';
+let store: DataStore;
 
 beforeAll(async () => {
   resetWatermarks();
-  const store: DataStore = createMemoryDataStore();
+  store = createMemoryDataStore();
   app = express();
   app.use(express.json());
   app.use(authRoutes(ADMIN_CONFIG, store, async () => COUNTRIES));
@@ -86,6 +87,16 @@ const entry = (id: string, archived_at: string, extra: Record<string, unknown> =
 });
 
 const postEntry = async (token: string, e: unknown) => post('/api/kitchen/history', { entry: e }, auth(token));
+
+const listEntries = async (token: string): Promise<Array<{ id: string; archived_at?: string }>> => {
+  const read = await get('/api/kitchen/history', auth(token));
+  return ((await read.json()) as { entries: Array<{ id: string; archived_at?: string }> }).entries;
+};
+
+const uidOf = async (token: string): Promise<string> => {
+  const me = await get('/api/auth/me', auth(token));
+  return ((await me.json()) as { user: { uid: string } | null }).user?.uid ?? '';
+};
 
 describe('kitchen history routes over HTTP', () => {
   let token = '';
@@ -266,5 +277,85 @@ describe('kitchen history routes over HTTP', () => {
     const res = await get('/api/data/kitchen_history/empty', auth(token));
     expect(res.status).toBe(404);
     expect(((await res.json()) as { error?: string }).error).toBe('unknown_collection');
+  });
+
+  it('keeps the cap exact under concurrent archives', async () => {
+    for (let i = 0; i < 49; i++) {
+      await postEntry(token2, entry(`cc-${i}`, `2026-05-01T10:${String(i).padStart(2, '0')}:00Z`));
+    }
+    // Three devices archive at the same time: the index guard serialises them, the loser
+    // re-reads the index and rebuilds its operations (never replayed as-is)
+    const concurrent = await Promise.all([
+      postEntry(token2, entry('cc-a', '2026-05-02T10:00:00Z')),
+      postEntry(token2, entry('cc-b', '2026-05-02T10:01:00Z')),
+      postEntry(token2, entry('cc-c', '2026-05-02T10:02:00Z')),
+    ]);
+    for (const res of concurrent) expect(res.status).toBe(200);
+    const entries = await listEntries(token2);
+    expect(entries).toHaveLength(50);
+    const ids = entries.map((e) => e.id);
+    expect(new Set(ids).size).toBe(50);
+    expect(ids).toEqual(expect.arrayContaining(['cc-a', 'cc-b', 'cc-c']));
+    expect(ids).not.toContain('cc-0'); // the oldest left, exactly one per overflow
+    expect(ids).not.toContain('cc-1');
+  });
+
+  it('re-archiving the same id replaces it in place, without eviction', async () => {
+    const before = await listEntries(token2);
+    const res = await postEntry(token2, entry('cc-a', '2026-06-01T10:00:00Z'));
+    expect(res.status).toBe(200);
+    const after = await listEntries(token2);
+    expect(after).toHaveLength(50); // no duplicate, no eviction
+    expect(after.find((e) => e.id === 'cc-a')?.archived_at).toBe('2026-06-01T10:00:00Z');
+    expect(after.map((e) => e.id).sort()).toEqual(before.map((e) => e.id).sort());
+  });
+
+  it('migrates a legacy account with a surplus: the 50 newest are kept, deterministically', async () => {
+    // A third account, whose archives were written before the index existed (seeded raw)
+    const register = await fetch(base + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'Leila@b.co',
+        password: 'long-enough-1',
+        displayName: 'Leila',
+        address: { line: '12 rue des Oliviers', region: 'tunis', city: 'Tunis', postalCode: '1000', country: 'TN' },
+      }),
+    });
+    const token3 = ((await register.json()) as { token?: string }).token ?? '';
+    const uid = await uidOf(token3);
+    expect(uid).not.toBe('');
+    // 55 legacy entries sharing the same archived_at: the deterministic tie-break is the id
+    for (let i = 0; i < 55; i++) {
+      await store.put('kitchen_history', `${uid}:legacy-${i}`, {
+        uid,
+        entry_id: `legacy-${i}`,
+        archived_at: '2026-07-01T10:00:00Z',
+        items: [{ id: 'g1', name: 'Œufs', quantity: 6, unit: 'pièce' }],
+      });
+    }
+    // The first archive after the deploy builds the index: the 50 newest (by archived_at,
+    // then id) are kept and the surplus evicted in the same commit
+    const res = await postEntry(token3, entry('legacy-new', '2026-07-02T10:00:00Z'));
+    expect(res.status).toBe(200);
+    const entries = await listEntries(token3);
+    expect(entries).toHaveLength(50);
+    const ids = entries.map((e) => e.id);
+    expect(ids).toContain('legacy-new');
+    // Equal dates: the tie-break is the id, lexicographically (ids are opaque strings):
+    // the five smallest leave — legacy-0, legacy-1, legacy-10, legacy-11, legacy-12
+    expect(ids).not.toContain('legacy-0');
+    expect(ids).not.toContain('legacy-1');
+    expect(ids).not.toContain('legacy-10');
+    expect(ids).not.toContain('legacy-11');
+    expect(ids).not.toContain('legacy-12');
+    expect(ids).not.toContain('legacy-13'); // the migration kept it, the POST then evicted it (oldest of the 51)
+    expect(ids).toContain('legacy-14'); // the tie-break boundary
+    expect(ids).toContain('legacy-2'); // lexicographic, not numeric
+    expect(ids).toContain('legacy-54');
+    // The evicted surplus is gone for good
+    expect((await del('/api/kitchen/history/legacy-0', auth(token3))).status).toBe(404);
+    // The index itself is never visible in the list
+    expect(ids.every((id) => !id.startsWith('seq'))).toBe(true);
   });
 });
