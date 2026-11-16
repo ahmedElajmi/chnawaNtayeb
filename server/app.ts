@@ -1,10 +1,14 @@
 import express from 'express';
-import { legacyRedirect } from './seo';
+import knex from 'knex';
+import { legacyRedirect, setCatalogSource } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import { createFirestoreStore } from './storage/firestoreStore';
 import { createMemoryDataStore } from './storage/memoryDataStore';
+import { createSqlStore, ensureSchema } from './storage/sqlStore';
 import { getAdminFirestore } from './firebaseAdmin';
 import type { DataStore } from './storage/types';
+import { contractEmployeeRights, createIdentityResolver, type IdentityResolver } from './storage/identity';
+import { contractPublishedCatalog } from './storage/publishedCatalog';
 import { parseStoredCountries, type CountryRecord } from '../src/core/accounts';
 import type { BackofficeAuthConfig } from './backofficeAuth';
 import type { VisionProvider } from './vision/visionProvider';
@@ -23,8 +27,39 @@ export interface AppDependencies {
   vision: VisionProvider | null;
 }
 
+/**
+ * Selects the provider from DATA_STORE (default `firestore`). An unknown value is a startup
+ * error, never a silent fallback. `memory` is a local-run convenience, refused in production.
+ * `sql` is the local/test run of the generic adapter (better-sqlite3 via SQLITE_PATH): the
+ * production switch stays the one global migration, never this setting.
+ */
+async function createDataStore(): Promise<DataStore | null> {
+  const raw = process.env.DATA_STORE ?? 'firestore';
+  if (raw !== 'firestore' && raw !== 'sql' && raw !== 'memory') {
+    throw new Error(`DATA_STORE="${raw}" is unknown: expected firestore | sql | memory`);
+  }
+  switch (raw) {
+    case 'memory':
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('DATA_STORE=memory is refused in production: data would not survive a restart');
+      }
+      return createMemoryDataStore();
+    case 'sql': {
+      const path = process.env.SQLITE_PATH?.trim();
+      if (!path) throw new Error('DATA_STORE=sql needs SQLITE_PATH (a local SQLite file for tests)');
+      const db = knex({ client: 'better-sqlite3', connection: { filename: path }, useNullAsDefault: true });
+      await ensureSchema(db);
+      return createSqlStore(db);
+    }
+    default: {
+      const adminDb = getAdminFirestore();
+      return adminDb ? createFirestoreStore(adminDb) : null;
+    }
+  }
+}
+
 /** API of the app (the web pages are added by server.ts: Vite in dev, dist/ in production). */
-export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies): express.Express {
+export async function createApiApp({ backofficeAuthConfig, vision }: AppDependencies): Promise<express.Express> {
   const app = express();
   // Render (and most hosts) put the app behind one proxy: needed for correct client IPs in rate limiting
   app.set('trust proxy', 1);
@@ -54,20 +89,13 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
-  // The data gateway: Firestore behind the storage contract today, any SQL engine tomorrow.
-  // LOCAL_MEMORY_STORE=1 keeps everything in memory for a local run without Firebase —
-  // refused in production, where nothing would survive a restart.
-  const adminDb = getAdminFirestore();
-  const dataStore: DataStore | null =
-    process.env.LOCAL_MEMORY_STORE === '1'
-      ? ((process.env.NODE_ENV === 'production'
-          ? (() => {
-              throw new Error('LOCAL_MEMORY_STORE=1 is refused in production: data would not survive a restart');
-            })()
-          : createMemoryDataStore()) as DataStore)
-      : adminDb
-        ? createFirestoreStore(adminDb)
-        : null;
+  // The storage contract: the selected provider behind it, anything else changed nowhere else.
+  // No provider configured (no service account): the endpoints degrade, as before.
+  const dataStore = await createDataStore();
+  // The server-side SEO pages read the public catalog through the same contract
+  setCatalogSource(contractPublishedCatalog(dataStore));
+  // Identity of every endpoint call, bound once: employee rights read over the contract
+  const identity: IdentityResolver = createIdentityResolver(backofficeAuthConfig, contractEmployeeRights(dataStore));
   // Enabled countries for the server-side registration validation, read through the store
   let countriesCache: { at: number; list: CountryRecord[] } = { at: 0, list: [] };
   const countriesProvider = async (): Promise<readonly CountryRecord[]> => {
@@ -78,12 +106,12 @@ export function createApiApp({ backofficeAuthConfig, vision }: AppDependencies):
   };
   app.use(backofficeAuthRoutes(backofficeAuthConfig));
   app.use(accountRoutes(backofficeAuthConfig, dataStore));
-  app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider));
+  app.use(authRoutes(backofficeAuthConfig, dataStore, countriesProvider, identity));
   // The personal kitchen data of signed-in accounts (guests keep theirs on the device;
   // the collection is server-only: never served by the data endpoints)
   app.use(kitchenRoutes(backofficeAuthConfig, dataStore));
-  app.use(adminDataRoutes(backofficeAuthConfig, dataStore));
-  app.use(dataRoutes(backofficeAuthConfig, dataStore));
+  app.use(adminDataRoutes(backofficeAuthConfig, dataStore, identity));
+  app.use(dataRoutes(backofficeAuthConfig, dataStore, identity));
   app.use(visionRoutes(vision));
   app.use(seoRoutes());
   return app;

@@ -3,8 +3,10 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 /**
- * Server-side Firebase access: the Admin SDK reads and writes Firestore behind the
- * storage contract. No Firebase Auth is involved anywhere — accounts live in the
+ * Server-side Firebase connection: the Admin SDK is initialized here and the Firestore
+ * handle is passed to the storage adapter (firestoreStore.ts). This file and the adapter
+ * are the only ones allowed to know the SDK — every data access outside them goes through
+ * the storage contract. No Firebase Auth is involved anywhere — accounts live in the
  * `users` + `auth` collections, sessions are signed by this server.
  *
  * Needs FIREBASE_SERVICE_ACCOUNT: the service-account JSON downloaded from
@@ -47,17 +49,4 @@ export function getAdminFirestore(): Firestore | null {
 
 export function isFirebaseAdminConfigured(): boolean {
   return getAdminApp() !== null;
-}
-
-/**
- * Reads the team rights of an account (admins/{uid}): used by the data endpoints to
- * authorize an employee carrying a server session.
- */
-export async function verifyEmployeeRights(
-  uid: string
-): Promise<{ can_publish?: unknown; can_manage?: unknown } | null> {
-  const adminApp = getAdminApp();
-  if (!adminApp) return null;
-  const member = await getFirestore(adminApp).collection('admins').doc(uid).get();
-  return member.exists ? (member.data() as Record<string, unknown>) : null;
 }

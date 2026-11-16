@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import type { DataStore, WriteOp } from '../storage/types';
 import { collectionSpec } from '../storage/collections';
 import { computeChanges } from '../storage/gateway';
-import { resolveIdentity } from '../storage/identity';
+import { contractEmployeeRights, createIdentityResolver, type IdentityResolver } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
 import { DocumentValidationError } from '../storage/validation';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
@@ -18,7 +18,13 @@ interface ChangesBody {
  * the batched change feed, single-document reads, batch writes and a field query.
  * Server-only collections (users, auth, settings, version histories) never pass here.
  */
-export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: DataStore | null): express.Router {
+export function dataRoutes(
+  backofficeAuthConfig: BackofficeAuthConfig,
+  store: DataStore | null,
+  /** Bound identity resolver; the default reads the employee rights over the contract */
+  resolver?: IdentityResolver
+): express.Router {
+  const resolveIdentity = resolver ?? createIdentityResolver(backofficeAuthConfig, contractEmployeeRights(store));
   const router = express.Router();
 
   // Idle polls cost nothing server-side (the watermark shortcut): a generous read limit
@@ -66,7 +72,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
 
   router.post('/api/data/changes', pollLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     const body = (req.body ?? {}) as ChangesBody;
     // Cursor negotiation: a plain number is the legacy shape (strict revision); a structured
     // { revision, id? } object is the composite cursor — the client only sends it after a
@@ -95,7 +101,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
   // Declared before /:name/:id so that "where" is never read as an id.
   router.get('/api/data/:name/where', async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return forbidden(res);
     const spec = collectionSpec(req.params.name ?? '');
     if (!spec || spec.read === 'server') return res.status(404).json({ ok: false, error: 'unknown_collection' });
@@ -114,7 +120,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
     if (!store) return unavailable(res);
     const spec = collectionSpec(req.params.name ?? '');
     if (!spec || spec.read === 'server') return res.status(404).json({ ok: false, error: 'unknown_collection' });
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (spec.read !== 'public' && !identity.canManage) return forbidden(res);
     const delta = await store.changes(spec.name, 0, 1);
     return res.json({ ok: true, empty: delta.items.length === 0 && delta.removedIds.length === 0 });
@@ -126,7 +132,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
     if (!store) return unavailable(res);
     const spec = collectionSpec(req.params.name ?? '');
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     const id = req.params.id ?? '';
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return res.status(400).json({ ok: false, error: 'invalid_id' });
     const ownTeamRecord = spec.name === 'admins' && identity.canPublish;
@@ -139,7 +145,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
 
   router.put('/api/data/:name/:id', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const spec = writable(req.params.name ?? '', identity.canManage);
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
@@ -158,7 +164,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
 
   router.delete('/api/data/:name/:id', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const spec = writable(req.params.name ?? '', identity.canManage);
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
@@ -176,7 +182,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
   // Many documents at once (catalog import): complete writes, chunked by the client
   router.post('/api/data/:name', batchLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const spec = writable(req.params.name ?? '', identity.canManage);
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
@@ -202,7 +208,7 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
   // Makes the collection exactly `docs`: the others become deletion markers (same as before).
   router.post('/api/data/:name/replace', batchLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const spec = writable(req.params.name ?? '', identity.canManage);
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });

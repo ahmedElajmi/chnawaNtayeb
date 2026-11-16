@@ -115,7 +115,7 @@ Depuis la centralisation, **l'authentification ne dépend plus de Firebase Auth*
 - Le jeton de session vit dans **`localStorage`** (clé `user_session`, avec sa date d'expiration) : la session survit au redémarrage de la PWA ; un jeton expiré ou refusé par `/api/auth/me` est effacé silencieusement.
 - Le formulaire d'inscription affiche les **critères en vigueur** (longueur minimale, classes exigées) via `GET /api/auth/password-criteria`, avec confirmation du mot de passe, indicateur de robustesse et œil afficher/masquer (`PasswordInput` partagé).
 - États honnêtes dans le modal compte : **Invité** (bandeau « tes données restent sur cet appareil » + bouton principal « Créer mon compte »), **Client** (fiche profil + changement de mot de passe), **Équipe** (badge dédié). Aucun lien vers le backoffice n'est exposé au public : l'accès passe par l'URL `/admin` (ou le raccourci « Espace admin » du manifeste PWA).
-- Développement local sans Firebase : `LOCAL_MEMORY_STORE=1 npm run dev` garde toutes les données en mémoire (refusé en production).
+- Développement local sans Firebase : `DATA_STORE=memory npm run dev` garde toutes les données en mémoire (refusé en production ; l'ancien `LOCAL_MEMORY_STORE=1` n'a plus d'effet depuis le lot 1.3).
 
 ### Runbook : données de cuisine non synchronisées
 

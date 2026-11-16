@@ -5,7 +5,7 @@ import { parseStoredIngredient, parseStoredRecipe } from '../../src/core/catalog
 import { resolveUserProfile, type AccountSummary } from '../../src/core/accounts';
 import { parsePublishedVersion, parseWorkCopy, type ReviewKind } from '../../src/core/review';
 import type { DataStore, WriteOp } from '../storage/types';
-import { resolveIdentity } from '../storage/identity';
+import { contractEmployeeRights, createIdentityResolver, type IdentityResolver } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
 
@@ -62,7 +62,13 @@ function summarize(raw: Record<string, unknown>): AccountSummary | null {
   };
 }
 
-export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: DataStore | null): express.Router {
+export function adminDataRoutes(
+  backofficeAuthConfig: BackofficeAuthConfig,
+  store: DataStore | null,
+  /** Bound identity resolver; the default reads the employee rights over the contract */
+  resolver?: IdentityResolver
+): express.Router {
+  const resolveIdentity = resolver ?? createIdentityResolver(backofficeAuthConfig, contractEmployeeRights(store));
   const router = express.Router();
 
   const writeLimiter = rateLimit({
@@ -95,7 +101,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
   // ---------------------------------------------------------------- themes (one read, two shapes)
   router.get('/api/themes', async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     const all = await store.changes('themes', 0, 300);
     const items = identity.canManage ? all.items : all.items.filter((d) => d.is_published === true);
     return res.json({ ok: true, items });
@@ -124,7 +130,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.put('/admin/api/settings/polling', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.owner) return forbidden(res);
     const raw = (req.body ?? {}).interval_seconds;
     const seconds = typeof raw === 'number' && Number.isFinite(raw) ? Math.round(raw) : NaN;
@@ -144,7 +150,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
     if (!SETTINGS_DOCS.includes(doc)) return res.status(404).json({ ok: false, error: 'unknown' });
     // matching drives the suggestions of every visitor; review is a backoffice concern
     if (doc === 'review') {
-      const identity = await resolveIdentity(req, backofficeAuthConfig);
+      const identity = await resolveIdentity(req);
       if (!identity.canManage) return forbidden(res);
     }
     const stored = await store.get('settings', doc);
@@ -155,7 +161,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.post('/admin/api/settings/publish', commitLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return forbidden(res);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const doc = body.doc as SettingsDoc;
@@ -188,7 +194,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.post('/admin/api/workspace/save', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const kind = kindOf(body.kind);
@@ -209,7 +215,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.post('/admin/api/workspace/import', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const kind = kindOf(body.kind);
@@ -238,7 +244,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.post('/admin/api/workspace/publish', commitLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const kind = kindOf(body.kind);
@@ -270,7 +276,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
 
   router.post('/admin/api/workspace/unpublish', commitLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canPublish) return forbidden(res);
     const body = (req.body ?? {}) as Record<string, unknown>;
     const kind = kindOf(body.kind);
@@ -295,7 +301,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
   // ------------------------------------------------------------- accounts directory (manager)
   router.get('/admin/api/accounts', async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return forbidden(res);
     const type = String(req.query.type ?? 'all');
     const search = String(req.query.search ?? '')
@@ -321,7 +327,7 @@ export function adminDataRoutes(backofficeAuthConfig: BackofficeAuthConfig, stor
   /** The account behind an e-mail (linking a member to the account they sign in with). */
   router.get('/admin/api/accounts/lookup', async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, backofficeAuthConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return forbidden(res);
     const email = String(req.query.email ?? '')
       .trim()

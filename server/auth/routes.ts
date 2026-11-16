@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import type { CountryRecord } from '../../src/core/accounts';
 import type { DataStore } from '../storage/types';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
-import { resolveIdentity } from '../storage/identity';
+import { contractEmployeeRights, createIdentityResolver, type IdentityResolver } from '../storage/identity';
 import {
   AuthError,
   changePassword,
@@ -42,8 +42,11 @@ function readUserSession(req: express.Request, secret: string) {
 export function authRoutes(
   adminConfig: BackofficeAuthConfig,
   store: DataStore | null,
-  countries: () => Promise<readonly CountryRecord[]>
+  countries: () => Promise<readonly CountryRecord[]>,
+  /** Bound identity resolver; the default reads the employee rights over the contract */
+  resolver?: IdentityResolver
 ): express.Router {
+  const resolveIdentity = resolver ?? createIdentityResolver(adminConfig, contractEmployeeRights(store));
   const router = express.Router();
 
   // Password guessing is expensive by design: strict IP limits on the two sensitive endpoints
@@ -222,14 +225,14 @@ export function authRoutes(
   // Password policy: read by any manager, written by the super admin only
   router.get('/admin/api/password-policy', async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return res.status(403).json({ ok: false, error: 'forbidden' });
     return res.json({ ok: true, policy: await getPolicy(store) });
   });
 
   router.put('/admin/api/password-policy', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.owner) return res.status(403).json({ ok: false, error: 'forbidden' });
     const policy = mergePolicy(((req.body ?? {}).policy ?? {}) as Record<string, unknown>);
     await savePolicy(store, policy, Date.now());
@@ -239,7 +242,7 @@ export function authRoutes(
   // Manual unlock of a locked account (backoffice action on the client row)
   router.post('/admin/api/accounts/:uid/unlock', writeLimiter, async (req, res) => {
     if (!store) return unavailable(res);
-    const identity = await resolveIdentity(req, adminConfig);
+    const identity = await resolveIdentity(req);
     if (!identity.canManage) return res.status(403).json({ ok: false, error: 'forbidden' });
     const uid = req.params.uid ?? '';
     if (!/^[a-zA-Z0-9_:-]{1,128}$/.test(uid)) return res.status(400).json({ ok: false, error: 'invalid_id' });
