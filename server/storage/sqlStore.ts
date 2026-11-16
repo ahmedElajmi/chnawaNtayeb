@@ -1,4 +1,4 @@
-import type { Knex } from 'knex';
+import knex, { type Knex } from 'knex';
 import { COLLECTIONS } from './collections';
 import type {
   ChangeCursor,
@@ -15,6 +15,7 @@ import type {
 } from './types';
 import { normalizeCursor } from './types';
 import { assertCommitEnvelope, assertWritable, stripUndefined } from './validation';
+import { withTransactRetries, type SqlConflictClass } from './conflicts';
 
 /**
  * SQL implementation of the DataStore contract — the portability preparation (PR E).
@@ -24,15 +25,17 @@ import { assertCommitEnvelope, assertWritable, stripUndefined } from './validati
  * The documents keep their exact stored shape: the core parsers are untouched, and a
  * switch from Firestore to SQL (or between SQL engines) changes nothing else.
  *
- * NOT wired yet: `server/app.ts` still uses Firestore. To switch, create the Knex instance
- * (Postgres, MySQL, SQL Server — or better-sqlite3 for a local run), call `ensureSchema()`
- * and pass it to `createSqlStore`. Every engine passes the same contract suite
- * (server/storage/contract.ts); the SQLite run proves it locally.
+ * Wired for a local/test run only: `DATA_STORE=sql` (server/app.ts) builds it over SQLite
+ * with `createSqliteKnex` + `ensureSchema`. The production switch stays the one global
+ * migration (lot 1.5, then the explicit decision). Every engine passes the same contract
+ * suite (server/storage/contract.ts); the SQLite run proves it locally, any other engine
+ * must run it (and the contention suite) before being declared compatible — capability
+ * matrix in docs/encyclopedie/donnees/lot-1.4-matrice-capacites.md.
  */
 
 /** The JSON path dialects of the engines we target (equality queries on one field). */
-function jsonField(knex: Knex, column: string, field: string): string {
-  const client = knex.client.config.client;
+function jsonField(instance: Knex, column: string, field: string): string {
+  const client = instance.client.config.client;
   switch (client) {
     case 'better-sqlite3':
     case 'sqlite3':
@@ -54,19 +57,24 @@ class GuardConflict extends Error {}
 /** The row changed since the transaction read it: the attempt is retried over the fresh state. */
 class TransactConflict extends Error {}
 
-/** A write lock lost to a concurrent transaction (a deferred BEGIN upgraded too late, or an
- * engine serialisation failure): the whole read-merge-write is retried, the operation is pure. */
-const isWriteConflict = (error: unknown): boolean => {
+/**
+ * The named conflict classes (server/storage/conflicts.ts) from this engine's error shapes.
+ * The engine-specific codes and messages stay here — the vocabulary is shared, the matcher
+ * is per engine (lot 1.4).
+ */
+const conflictClass = (error: unknown): SqlConflictClass | null => {
+  if (error instanceof TransactConflict) return 'cas_lost';
   const e = error as { code?: string; message?: string } | undefined;
-  if (typeof e?.code === 'string') return /BUSY|LOCK|40001|40P01|1205/.test(e.code);
-  return /SQLITE_BUSY|database is locked|could not serialize|deadlock detected/i.test(e?.message ?? '');
-};
-
-/** A plain insert that lost the race for a row that did not exist yet (primary key). */
-const isUniqueViolation = (error: unknown): boolean => {
-  const e = error as { code?: string; message?: string } | undefined;
-  if (typeof e?.code === 'string') return e.code.startsWith('SQLITE_CONSTRAINT') || /23505|2601|2627/.test(e.code);
-  return /unique constraint|duplicate entry|cannot be duplicate/i.test(e?.message ?? '');
+  if (typeof e?.code === 'string') {
+    // Lock/serialisation failures first, then primary-key losses (codes never overlap)
+    if (/BUSY|LOCK|40001|40P01|1205/.test(e.code)) return 'lock_lost';
+    if (e.code.startsWith('SQLITE_CONSTRAINT') || /23505|2601|2627/.test(e.code)) return 'unique_lost';
+  }
+  if (/SQLITE_BUSY|database is locked|could not serialize|deadlock detected/i.test(e?.message ?? '')) {
+    return 'lock_lost';
+  }
+  if (/unique constraint|duplicate entry|cannot be duplicate/i.test(e?.message ?? '')) return 'unique_lost';
+  return null;
 };
 
 /** The storage layer owns `id` and `revision`: they never persist inside the document. */
@@ -77,27 +85,34 @@ const withoutOwnFields = (doc: Record<string, unknown>): Record<string, unknown>
   return clean;
 };
 
-export function createSqlStore(knex: Knex): DataStore {
-  const table = (name: CollectionName) => knex(name);
+export function createSqlStore(instance: Knex): DataStore {
+  const table = (name: CollectionName) => instance(name);
 
-  /** Strictly increasing revision per collection: the clock, held back by the newest row. */
-  /** The strictly increasing per-collection sequence: max(stored)+1, computed inside the
-   *  write transaction (SQLite serialises writers; other engines get their own locking
-   *  strategy in lot 1.4). No clock dependence: a revision is a sequence value, not a date. */
-  const stamp = async (trx: Knex.Transaction, name: CollectionName): Promise<number> => {
-    const row = await trx(name).max({ max: 'revision' }).first();
-    const max = typeof row?.max === 'number' ? row.max : Number(row?.max ?? 0);
-    return max + 1;
-  };
+  /** The strictly increasing per-collection sequence. The revision is computed by the INSERT or
+   *  UPDATE statement itself — `MAX(revision)+1` evaluated when the statement takes the row
+   *  lock — so a concurrent writer can never observe a stale maximum (the SQLite shape; any
+   *  other engine gets its own locking strategy in its adapter, see the lot-1.4 capability
+   *  matrix). No clock dependence: a revision is a sequence value, not a date. */
+  const freshRevision = (name: CollectionName) =>
+    instance.raw('(SELECT COALESCE(MAX(revision), 0) + 1 FROM ??)', [name]);
 
-  const writeOne = async (trx: Knex.Transaction, op: WriteOp, revision: number, insertOnly = false): Promise<void> => {
+  /** writeOne marker: the revision is computed by the statement itself, then read back —
+   *  the value is shared with the remaining ops of the same commit (one commit = one tie group). */
+  const FRESH_STAMP = Symbol('fresh revision');
+
+  const writeOne = async (
+    trx: Knex.Transaction,
+    op: WriteOp,
+    revision: number | typeof FRESH_STAMP,
+    insertOnly = false
+  ): Promise<number> => {
     // `undefined` leaves the stored shape: a removed field is absent on every provider
     const doc = stripUndefined(op.doc) as Record<string, unknown>;
     delete doc.id;
-    const row = {
+    const row: Record<string, unknown> = {
       id: op.id,
       data: JSON.stringify(doc),
-      revision,
+      revision: revision === FRESH_STAMP ? freshRevision(op.name) : revision,
       updated_at: new Date().toISOString(),
       deleted: doc.deleted === true ? 1 : 0,
     };
@@ -105,14 +120,21 @@ export function createSqlStore(knex: Knex): DataStore {
       // A plain insert fails on an existing row (primary key): the atomic test-and-set a
       // reservation claim relies on — a concurrent batch that took the row makes this one fail.
       await trx(op.name).insert(row);
-      return;
+    } else {
+      await trx(op.name)
+        .insert(row)
+        .onConflict('id')
+        .merge({
+          data: row.data,
+          revision: revision === FRESH_STAMP ? instance.raw('excluded.revision') : revision,
+          updated_at: row.updated_at,
+          deleted: row.deleted,
+        });
     }
-    await trx(op.name).insert(row).onConflict('id').merge({
-      data: row.data,
-      revision,
-      updated_at: row.updated_at,
-      deleted: row.deleted,
-    });
+    if (revision !== FRESH_STAMP) return revision;
+    // Read the freshly computed revision back: the rest of the batch shares it
+    const back = await trx(op.name).where('id', op.id).first('revision');
+    return Number(back?.revision ?? 0);
   };
 
   const materialize = (id: string, data: string, revision: number): Record<string, unknown> => ({
@@ -207,7 +229,7 @@ export function createSqlStore(knex: Knex): DataStore {
 
     async findFirst(name, field, value) {
       const rows = await table(name)
-        .whereRaw(`${jsonField(knex, 'data', field)} = ?`, value)
+        .whereRaw(`${jsonField(instance, 'data', field)} = ?`, value)
         .andWhere('deleted', 0)
         .limit(1)
         .select('id', 'data', 'revision');
@@ -216,7 +238,7 @@ export function createSqlStore(knex: Knex): DataStore {
 
     async findWhere(name, field, value, limit) {
       const rows = await table(name)
-        .whereRaw(`${jsonField(knex, 'data', field)} = ?`, value)
+        .whereRaw(`${jsonField(instance, 'data', field)} = ?`, value)
         .andWhere('deleted', 0)
         .orderBy('revision', 'asc')
         .limit(Math.max(1, limit))
@@ -228,10 +250,10 @@ export function createSqlStore(knex: Knex): DataStore {
 
     async page(name, query: DirectoryQuery): Promise<DirectoryPage> {
       const withFilters = (q: Knex.QueryBuilder): Knex.QueryBuilder => {
-        if (query.where) q = q.whereRaw(`${jsonField(knex, 'data', query.where.field)} = ?`, query.where.value);
+        if (query.where) q = q.whereRaw(`${jsonField(instance, 'data', query.where.field)} = ?`, query.where.value);
         if (query.prefix) {
-          q = q.whereRaw(`${jsonField(knex, 'data', query.prefix.field)} >= ?`, query.prefix.value);
-          q = q.whereRaw(`${jsonField(knex, 'data', query.prefix.field)} <= ?`, `${query.prefix.value}\uf8ff`);
+          q = q.whereRaw(`${jsonField(instance, 'data', query.prefix.field)} >= ?`, query.prefix.value);
+          q = q.whereRaw(`${jsonField(instance, 'data', query.prefix.field)} <= ?`, `${query.prefix.value}\uf8ff`);
         }
         return q;
       };
@@ -262,61 +284,75 @@ export function createSqlStore(knex: Knex): DataStore {
     },
 
     async put(name, id, doc): Promise<number> {
-      // The validated shape is the sanitized one: `undefined` never reaches the provider
+      // The validated shape is the sanitized one: `undefined` never reaches the provider.
+      // A lost write lock is retried within the shared budget (a single-INSERT transaction
+      // never returns a cas: only lock contention can conflict here).
       const clean = stripUndefined(doc) as Record<string, unknown>;
       assertWritable(name, id, clean);
-      return knex.transaction(async (trx) => {
-        const revision = await stamp(trx, name);
-        await writeOne(trx, { name, id, doc: clean }, revision);
-        return revision;
-      });
+      return withTransactRetries(
+        () => instance.transaction((trx) => writeOne(trx, { name, id, doc: clean }, FRESH_STAMP)),
+        (error) => conflictClass(error) === 'lock_lost'
+      );
     },
 
     async remove(name, id): Promise<number> {
       assertWritable(name, id, { deleted: true });
-      return knex.transaction(async (trx) => {
-        const revision = await stamp(trx, name);
-        await writeOne(trx, { name, id, doc: { deleted: true } }, revision);
-        return revision;
-      });
+      return withTransactRetries(
+        () => instance.transaction((trx) => writeOne(trx, { name, id, doc: { deleted: true } }, FRESH_STAMP)),
+        (error) => conflictClass(error) === 'lock_lost'
+      );
     },
 
     async commit(ops, guard): Promise<CommitResult> {
       assertCommitEnvelope(ops);
-      try {
-        const batchRevision = await knex.transaction(async (trx) => {
-          let claimAbsentRow = false;
-          if (guard) {
-            const row = await trx(guard.name).where('id', guard.id).first('data', 'deleted');
-            const value = rowGuardValue(row, guard);
-            if (value !== guard.expected) throw new GuardConflict();
-            // A reservation claims a row that does not exist at all with a plain insert (a deleted
-            // row still exists: it comes back to life through the merge, last writer wins).
-            claimAbsentRow = !row;
+      // A lost write lock is retried within the shared budget — the guard itself is re-read
+      // at every attempt, so a retry never overrides a change the batch did not see. The
+      // guard and uniqueness conflicts are NOT retried here: they come back as the contract's
+      // `{ ok: false, conflict }` (the caller decides), or a clean storage error past budget.
+      return withTransactRetries(
+        async () => {
+          try {
+            const batchRevision = await instance.transaction(async (trx) => {
+              let claimAbsentRow = false;
+              if (guard) {
+                const row = await trx(guard.name).where('id', guard.id).first('data', 'deleted');
+                const value = rowGuardValue(row, guard);
+                if (value !== guard.expected) throw new GuardConflict();
+                // A reservation claims a row that does not exist at all with a plain insert (a deleted
+                // row still exists: it comes back to life through the merge, last writer wins).
+                claimAbsentRow = !row;
+              }
+              // Every collection touched gets ONE revision shared by all its ops (a commit is one
+              // moment of the collection's history — the tie set a cursor group covers completely).
+              // The primary key rejects a concurrent batch that claimed the same absent guarded row
+              // in between (a merge would silently overwrite it and break the uniqueness).
+              const insertOnly = claimAbsentRow;
+              const revisions = new Map<CollectionName, number>();
+              let revision = 0;
+              for (const op of ops) {
+                if (!revisions.has(op.name)) {
+                  // The collection's first op stamps atomically (the INSERT computes the revision);
+                  // the remaining ops of the batch share it (one commit = one tie group).
+                  revisions.set(op.name, await writeOne(trx, op, FRESH_STAMP, insertOnly));
+                } else {
+                  await writeOne(trx, op, revisions.get(op.name) as number, insertOnly);
+                }
+                revision = Math.max(revision, revisions.get(op.name) as number);
+              }
+              return revision;
+            });
+            return batchRevision ? { ok: true, revision: batchRevision } : { ok: true, revision: 0 };
+          } catch (error) {
+            if (error instanceof GuardConflict) return { ok: false, conflict: true };
+            // The batch failed after the guard was read: it may have lost a clean race (a concurrent
+            // batch claimed the guarded row in between). The guard is read back once more — when it
+            // no longer holds, the failure is a conflict, not a storage error; otherwise it rethrows.
+            if (guard && (await guardValue(guard)) !== guard.expected) return { ok: false, conflict: true };
+            throw error;
           }
-          // Every collection touched gets ONE revision shared by all its ops (a commit is one
-          // moment of the collection's history — the tie set a cursor group covers completely).
-          const revisions = new Map<CollectionName, number>();
-          let revision = 0;
-          for (const op of ops) {
-            if (!revisions.has(op.name)) revisions.set(op.name, await stamp(trx, op.name));
-            revision = Math.max(revision, revisions.get(op.name) as number);
-            // The primary key rejects a concurrent batch that claimed the same absent row in
-            // between (a merge would silently overwrite it and break the uniqueness).
-            const insertOnly = claimAbsentRow && op.name === guard?.name && op.id === guard?.id;
-            await writeOne(trx, op, revisions.get(op.name) as number, insertOnly);
-          }
-          return revision;
-        });
-        return batchRevision ? { ok: true, revision: batchRevision } : { ok: true, revision: 0 };
-      } catch (error) {
-        if (error instanceof GuardConflict) return { ok: false, conflict: true };
-        // The batch failed after the guard was read: it may have lost a clean race (a concurrent
-        // batch claimed the guarded row in between). The guard is read back once more — when it
-        // no longer holds, the failure is a conflict, not a storage error; otherwise it rethrows.
-        if (guard && (await guardValue(guard)) !== guard.expected) return { ok: false, conflict: true };
-        throw error;
-      }
+        },
+        (error) => conflictClass(error) === 'lock_lost'
+      );
     },
 
     async transact<T>(
@@ -328,27 +364,31 @@ export function createSqlStore(knex: Knex): DataStore {
       // The claim is a compare-and-swap on the revision (the write only lands when the row is
       // still exactly what was read), so a contended attempt retries over the fresh state and
       // a read-merge-write can never overwrite a change it did not see. Same guarantee as the
-      // automatic re-runs of a Firestore transaction; the operation being pure makes retries safe.
-      for (let attempt = 0; ; attempt++) {
-        try {
-          return await knex.transaction(async (trx) => {
+      // automatic re-runs of a Firestore transaction; the operation being pure makes retries
+      // safe. The retry budget is the shared one (conflicts.ts): initial attempt + 3 rejeux,
+      // then a clean storage error.
+      return withTransactRetries(
+        () =>
+          instance.transaction(async (trx) => {
             const row = await trx(name).where('id', id).first('id', 'data', 'revision', 'deleted');
             const current = row && !row.deleted ? materialize(row.id, row.data, Number(row.revision)) : null;
             const outcome: TransactOutcome<T> = operation(current);
             if (outcome.next && outcome.next !== current) {
               const doc = withoutOwnFields(stripUndefined(outcome.next) as Record<string, unknown>);
               assertWritable(name, id, doc);
-              const revision = await stamp(trx, name);
               if (!row) {
                 // The row must still be absent: a plain insert (the primary key rejects a
-                // concurrent claimant that took the row in between).
-                await writeOne(trx, { name, id, doc }, revision, true);
+                // concurrent claimant that took the row in between). The revision is computed
+                // by the INSERT itself — fresh after the write lock.
+                await writeOne(trx, { name, id, doc }, FRESH_STAMP, true);
               } else {
+                // The compare-and-swap on the read revision stays the conflict detector; the
+                // new revision is computed by the UPDATE itself, after the write lock.
                 const updated = await trx(name)
                   .where({ id, revision: Number(row.revision) })
                   .update({
                     data: JSON.stringify(doc),
-                    revision,
+                    revision: freshRevision(name),
                     updated_at: new Date().toISOString(),
                     deleted: 0,
                   });
@@ -356,27 +396,19 @@ export function createSqlStore(knex: Knex): DataStore {
               }
             }
             return outcome.result;
-          });
-        } catch (error) {
-          if (
-            attempt < 10 &&
-            (error instanceof TransactConflict || isWriteConflict(error) || isUniqueViolation(error))
-          ) {
-            continue;
-          }
-          throw error;
-        }
-      }
+          }),
+        (error) => conflictClass(error) !== null
+      );
     },
   };
 }
 
 /** Creates one table per collection of the registry (idempotent — safe to call at startup). */
-export async function ensureSchema(knex: Knex): Promise<void> {
+export async function ensureSchema(instance: Knex): Promise<void> {
   for (const spec of Object.values(COLLECTIONS)) {
-    await knex.schema.hasTable(spec.name).then((exists) => {
+    await instance.schema.hasTable(spec.name).then((exists) => {
       if (exists) return undefined;
-      return knex.schema.createTable(spec.name, (t) => {
+      return instance.schema.createTable(spec.name, (t) => {
         t.text('id').primary();
         t.jsonb('data');
         t.bigInteger('revision').index();
@@ -386,4 +418,30 @@ export async function ensureSchema(knex: Knex): Promise<void> {
       });
     });
   }
+}
+
+/** The SQLite configuration used everywhere the adapter runs (DATA_STORE=sql, the tests):
+ *  WAL so readers never block a writer, synchronous=NORMAL (the WAL standard — no fsync per
+ *  commit, documented in the lot-1.4 matrix), and a SHORT busy timeout: better-sqlite3's
+ *  busy wait blocks the whole event loop, so any real wait would freeze the lock holder
+ *  itself — within one process, contention is resolved by the retry budget (conflicts.ts),
+ *  not by waiting. */
+export function createSqliteKnex(filename: string): Knex {
+  return knex({
+    client: 'better-sqlite3',
+    connection: { filename },
+    useNullAsDefault: true,
+    pool: {
+      // Knex types the connection loosely; better-sqlite3 hands its own Database object
+      afterCreate: ((
+        connection: { pragma: (statement: string) => unknown },
+        callback: (error: null, connection: unknown) => void
+      ) => {
+        connection.pragma('busy_timeout = 10');
+        connection.pragma('journal_mode = WAL');
+        connection.pragma('synchronous = NORMAL');
+        callback(null, connection);
+      }) as never,
+    },
+  });
 }

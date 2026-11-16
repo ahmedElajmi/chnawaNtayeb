@@ -154,7 +154,10 @@ export function createMemoryDataStore(): DataStore {
         return true;
       });
       const orderedById = filtered.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-      const start = query.after ? orderedById.findIndex((d) => d.id === query.after) + 1 : 0;
+      // G-DIR (lot 1.4): the cursor is a strict "id > after" — independent of the cursor
+      // document's survival. (A deleted cursor must never restart the pagination.)
+      const start = query.after ? orderedById.findIndex((d) => d.id > query.after!) : 0;
+      if (start === -1) return { items: [], total: filtered.length, nextCursor: null };
       const bounded = orderedById.slice(start, start + Math.max(1, query.limit));
       return {
         items: bounded.map((d) => ({ ...d.doc, id: d.id, revision: d.revision })),
@@ -192,6 +195,9 @@ export function createMemoryDataStore(): DataStore {
     async commit(ops, guard): Promise<CommitResult> {
       assertCommitEnvelope(ops);
       if (guard && guardValue(guard) !== guard.expected) return { ok: false, conflict: true };
+      // Atomic like every backend: every document is validated BEFORE anything is written, so
+      // a rejected shape leaves no partial write and no consumed revision (lot 1.4 rollback).
+      for (const op of ops) assertWritable(op.name, op.id, stripUndefined(op.doc) as Record<string, unknown>);
       // Every collection touched gets ONE revision shared by all its ops (a commit is one
       // moment of the collection's history — the tie set a cursor group covers completely).
       const perCollection = new Map<CollectionName, number>();

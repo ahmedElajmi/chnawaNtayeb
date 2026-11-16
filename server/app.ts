@@ -1,10 +1,9 @@
 import express from 'express';
-import knex from 'knex';
 import { legacyRedirect, setCatalogSource } from './seo';
 import { securityHeadersMiddleware } from './headers';
 import { createFirestoreStore } from './storage/firestoreStore';
 import { createMemoryDataStore } from './storage/memoryDataStore';
-import { createSqlStore, ensureSchema } from './storage/sqlStore';
+import { createSqlStore, createSqliteKnex, ensureSchema } from './storage/sqlStore';
 import { getAdminFirestore } from './firebaseAdmin';
 import type { DataStore } from './storage/types';
 import { contractEmployeeRights, createIdentityResolver, type IdentityResolver } from './storage/identity';
@@ -47,7 +46,7 @@ async function createDataStore(): Promise<DataStore | null> {
     case 'sql': {
       const path = process.env.SQLITE_PATH?.trim();
       if (!path) throw new Error('DATA_STORE=sql needs SQLITE_PATH (a local SQLite file for tests)');
-      const db = knex({ client: 'better-sqlite3', connection: { filename: path }, useNullAsDefault: true });
+      const db = createSqliteKnex(path);
       await ensureSchema(db);
       return createSqlStore(db);
     }
