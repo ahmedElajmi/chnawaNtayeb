@@ -23,6 +23,7 @@ comment chaque partie fonctionne, et comment la faire évoluer.
 | 14  | [Refonte du backoffice](14-refonte-backoffice.md)   | Plan : nouveau /admin, workflow de validation, workflows configurables                                             |
 | 15  | [Plan directeur](15-catalogue-organise.md)          | Document unique V12 : vue globale par domaine, moteur de matching détaillé, budget zéro, méthodologie              |
 | 17  | [Plan de réalisation](17-plan-de-realisation.md)    | Feuille de route consolidée : phases et lots, dépendances, maquettes, portes de validation, capacité budget (§ 24) |
+| 18  | [CMS et expériences](18-cms-experiences.md)         | Architecture cible clôturée : CMS, thèmes, ciblage, messages, échine de publication Staged/Online, groupes & rôles |
 
 ## Démarrage rapide
 
