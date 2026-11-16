@@ -211,8 +211,17 @@ describe('relational pilot (identity domain, typed columns)', () => {
     const feed = await store().changes('users', 0, 10);
     expect(feed.removedIds).toEqual(['u1']);
     expect(feed.revision).toBe(revision);
-    // The pilot refuses anything outside the common id guarantee, like every backend
-    await expect(store().put('users', '.hidden', { uid: 'x', type: 'client', isAnonymous: false })).rejects.toThrow();
+    // The pilot refuses anything outside the common id guarantee, like every backend:
+    // a slash, the reserved `.`/`..`, and the reserved `__.*__` pattern. A leading dot is
+    // legal (`.hidden` and `a.b` are accepted ids) — the reserved pattern is `__.*__`.
+    await expect(store().put('users', 'a/b', { uid: 'x', type: 'client', isAnonymous: false })).rejects.toThrow();
+    await expect(
+      store().put('users', '__internal__', { uid: 'x', type: 'client', isAnonymous: false })
+    ).rejects.toThrow();
+    await expect(store().put('users', '..', { uid: 'x', type: 'client', isAnonymous: false })).rejects.toThrow();
+    // …and a legal id starting with a dot stays accepted
+    const hidden = await store().put('users', '.hidden', { uid: 'x', type: 'client', isAnonymous: false });
+    expect(hidden).toBeGreaterThan(0);
   });
 
   it('transacts a read-merge-write over a relational document', async () => {

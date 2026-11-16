@@ -16,10 +16,6 @@ interface StoredDoc {
   revision: number;
   doc: Record<string, unknown>;
 }
-  id: string;
-  revision: number;
-  doc: Record<string, unknown>;
-}
 
 /**
  * In-memory reference implementation of the DataStore contract: strictly increasing

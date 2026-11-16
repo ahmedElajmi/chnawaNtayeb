@@ -56,16 +56,12 @@ async function fullCatchUp(store: DataStore): Promise<number> {
 }
 
 describe('change-feed pagination smoke benchmark', () => {
-  it(
-    'a full catch-up of 1000 documents stays linear (sqlite)',
-    async () => {
-      for (const spec of Object.values(COLLECTIONS)) driver.prepare(`DELETE FROM ${spec.name}`).run();
-      const store = createSqlStore(db);
-      for (let i = 1; i <= N; i++) await store.put('recipes', `r${i}`, { name_fr: `Recette ${i}` });
-      expect(await fullCatchUp(store)).toBe(N);
-    },
-    60_000 // the 1000 sequential writes are the fixture, not the measurement: no 5 s cap
-  );
+  it('a full catch-up of 1000 documents stays linear (sqlite)', async () => {
+    for (const spec of Object.values(COLLECTIONS)) driver.prepare(`DELETE FROM ${spec.name}`).run();
+    const store = createSqlStore(db);
+    for (let i = 1; i <= N; i++) await store.put('recipes', `r${i}`, { name_fr: `Recette ${i}` });
+    expect(await fullCatchUp(store)).toBe(N);
+  }, 60_000); // the 1000 sequential writes are the fixture, not the measurement: no 5 s cap
 
   it('a full catch-up of 1000 documents stays linear (memory)', async () => {
     const store = createMemoryDataStore();

@@ -13,12 +13,7 @@ import type {
   WriteOp,
 } from './types';
 import { normalizeCursor } from './types';
-import {
-  assertCommitEnvelope,
-  assertWritable,
-  DocumentValidationError,
-  stripUndefined,
-} from './validation';
+import { assertCommitEnvelope, assertWritable, DocumentValidationError, stripUndefined } from './validation';
 
 /**
  * Relational pilot (HARNESS ONLY — never wired in the app): proves the DataStore contract
@@ -135,6 +130,14 @@ export function createRelationalPilot(knex: Knex): DataStore {
       );
     }
   };
+  /** The typed column behind one mapped field (filters never use the whole mapped row). */
+  const columnOf = (name: CollectionName, field: string): string => {
+    const fields = name === 'users' ? USER_FIELDS : name === 'auth' ? AUTH_FIELDS : EMAIL_INDEX_FIELDS;
+    if (!Object.prototype.hasOwnProperty.call(fields, field)) {
+      throw new DocumentValidationError('invalid_document', `${name}.${field}: no mapped column`);
+    }
+    return fields[field as keyof typeof fields] as string;
+  };
   const table = (name: CollectionName) => knex(`pilot_${name}`);
   /** The strictly increasing sequence: max(stored)+1 inside the write transaction. */
   const stamp = async (trx: Knex.Transaction, name: CollectionName): Promise<number> => {
@@ -181,11 +184,19 @@ export function createRelationalPilot(knex: Knex): DataStore {
 
   const writeOne = async (trx: Knex.Transaction, op: WriteOp, revision: number): Promise<void> => {
     if (op.doc.deleted === true) {
-      // A deletion marker: the row stays (relations intact), its revision moves forward
-      await trx(`pilot_${op.name}`)
-        .insert({ id: op.id, revision, deleted: 1 })
-        .onConflict('id')
-        .merge({ revision, deleted: 1 });
+      // A deletion marker: the row stays (relations intact), its revision moves forward.
+      // SQLite evaluates the NOT NULL constraints of the inserted tuple even when the
+      // conflict clause resolves on the id — a bare marker cannot be inserted in a typed
+      // entity table. A marker therefore only ever soft-deletes a stored row: the identity
+      // domain always removes existing documents (the contract never tombstones an absent id
+      // in this pilot; the generic stores publish that case, tested on memory and SQLite).
+      const updated = await trx(`pilot_${op.name}`).where('id', op.id).update({ revision, deleted: 1 });
+      if (updated === 0) {
+        throw new DocumentValidationError(
+          'invalid_document',
+          `${op.name}.${op.id}: a deletion marker needs the stored row (relational pilot)`
+        );
+      }
       return;
     }
     // `undefined` leaves the stored shape: a removed field is absent on every provider
@@ -194,7 +205,7 @@ export function createRelationalPilot(knex: Knex): DataStore {
     row.id = op.id;
     row.revision = revision;
     row.deleted = 0;
-    if (op.name === 'email_index' && row.email === null) {
+    if (op.name === 'email_index' && !('email' in row)) {
       // The technical id is the reversible Base64URL of the normalized address: the address
       // column is derived from it (the unique constraint then guards the reservation).
       row.email = Buffer.from(op.id, 'base64url').toString('utf8');
@@ -289,10 +300,7 @@ export function createRelationalPilot(knex: Knex): DataStore {
 
     async findFirst(name, field, value) {
       supported(name);
-      const row = await table(name)
-        .where(toRow(name, { [field]: value }))
-        .whereNot('deleted', 1)
-        .first();
+      const row = await table(name).where(columnOf(name, field), value).whereNot('deleted', 1).first();
       if (!row) return null;
       const read = await readOne(name, row.id);
       return { ...read!.doc, id: row.id, revision: Number(row.revision) };
@@ -301,7 +309,7 @@ export function createRelationalPilot(knex: Knex): DataStore {
     async findWhere(name, field, value, limit) {
       supported(name);
       const rows = await table(name)
-        .where(toRow(name, { [field]: value }))
+        .where(columnOf(name, field), value)
         .whereNot('deleted', 1)
         .orderBy('revision', 'asc')
         .limit(Math.max(1, limit))
@@ -317,10 +325,9 @@ export function createRelationalPilot(knex: Knex): DataStore {
     async page(name, query: DirectoryQuery): Promise<DirectoryPage> {
       supported(name);
       const withFilters = (q: Knex.QueryBuilder): Knex.QueryBuilder => {
-        if (query.where) q = q.where(toRow(name, { [query.where.field]: query.where.value }));
+        if (query.where) q = q.where(columnOf(name, query.where.field), query.where.value);
         if (query.prefix) {
-          const column = toRow(name, { [query.prefix.field]: '' });
-          const key = Object.keys(column)[0];
+          const key = columnOf(name, query.prefix.field);
           q = q.where(key, '>=', query.prefix.value).where(key, '<=', `${query.prefix.value}\uf8ff`);
         }
         return q;

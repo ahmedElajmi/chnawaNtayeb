@@ -13,12 +13,7 @@ import type {
   WriteOp,
 } from './types';
 import { normalizeCursor } from './types';
-import {
-  assertCommitEnvelope,
-  assertWritable,
-  DocumentValidationError,
-  stripUndefined,
-} from './validation';
+import { assertCommitEnvelope, assertWritable, DocumentValidationError, stripUndefined } from './validation';
 
 /**
  * Firestore implementation of the DataStore contract (Admin SDK, bypasses the client rules:
