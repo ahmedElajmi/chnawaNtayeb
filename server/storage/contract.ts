@@ -1,11 +1,19 @@
 import { expect, describe, it } from 'vitest';
-import type { DataStore } from './types';
+import type { CommitResult, DataStore } from './types';
 
 /**
  * The behaviour every DataStore implementation (memory, Firestore, SQL…) must have.
  * A new backend runs this suite in its own test file — if it passes, the routes and
  * the future client need no change at all.
  */
+
+/** The revision of a commit result (the union's success branch) — `remove` returns it bare. */
+const committed = (result: CommitResult | number): number => {
+  if (typeof result === 'number') return result;
+  if (!result.ok) throw new Error('unexpected commit conflict in test');
+  return result.revision;
+};
+
 export function describeDataStore(name: string, create: () => DataStore): void {
   describe(`DataStore (${name})`, () => {
     it('writes and reads back whole documents, revisions increasing', async () => {
@@ -247,6 +255,153 @@ export function describeDataStore(name: string, create: () => DataStore): void {
         'pantry',
         'weeklyPlan',
       ]);
+    });
+
+    // ------------------------------------------------------------------------
+    // Structured change cursor: one commit = one revision shared by its ops, the tie set
+    // is covered completely by the strict resume, and the inclusive resume re-delivers it.
+    // ------------------------------------------------------------------------
+
+    it('shares one revision across a commit and resumes the tie set exactly from the cursor', async () => {
+      const store = create();
+      const done = await store.commit([
+        { name: 'recipes', id: 'r1', doc: { name_fr: 'Ojja' } },
+        { name: 'recipes', id: 'r2', doc: { name_fr: 'Kafteji' } },
+      ]);
+      expect(done.ok).toBe(true);
+      // One commit = one revision shared by every op of the collection (a frozen tie set)
+      expect((await store.get('recipes', 'r1'))!.revision).toBe(committed(done));
+      expect((await store.get('recipes', 'r2'))!.revision).toBe(committed(done));
+      // The page is delivered in contract order (revision, id) with the exact resume position
+      const page = await store.changes('recipes', 0, 10);
+      expect(page.items.map((d) => d.id)).toEqual(['r1', 'r2']);
+      expect(page.cursor).toEqual({ revision: committed(done), id: 'r2' });
+      expect(page.more).toBe(false);
+      // Strict resume from an earlier tie position: the rest arrives, nothing is lost
+      const rest = await store.changes('recipes', { revision: committed(done), id: 'r1' }, 10);
+      expect(rest.items.map((d) => d.id)).toEqual(['r2']);
+      expect(rest.more).toBe(false);
+    });
+
+    it('delivers a whole revision group rather than cutting inside it (the limit is soft)', async () => {
+      const store = create();
+      const ops = Array.from({ length: 5 }, (_, i) => ({
+        name: 'recipes' as const,
+        id: `r${i + 1}`,
+        doc: { name_fr: `Recette ${i + 1}` },
+      }));
+      const done = await store.commit(ops);
+      expect(done.ok).toBe(true);
+      // The group of 5 exceeds the page limit of 3: delivered whole, never cut
+      const page = await store.changes('recipes', 0, 3);
+      expect(page.items).toHaveLength(5);
+      expect(page.items.map((d) => d.id).sort()).toEqual(['r1', 'r2', 'r3', 'r4', 'r5']);
+      expect(page.more).toBe(false);
+      expect(page.cursor).toEqual({ revision: committed(done), id: 'r5' });
+    });
+
+    it('re-delivers the frontier revision inclusively when the cursor carries no id', async () => {
+      const store = create();
+      const done = await store.commit([
+        { name: 'recipes', id: 'r1', doc: { name_fr: 'Ojja' } },
+        { name: 'recipes', id: 'r2', doc: { name_fr: 'Kafteji' } },
+      ]);
+      expect(done.ok).toBe(true);
+      // Between polls the client resumes at the revision only: the whole tie set comes back
+      // (consumption is idempotent — an already-applied change is a no-op, never a loss)
+      const again = await store.changes('recipes', { revision: committed(done) }, 10);
+      expect(again.items.map((d) => d.id).sort()).toEqual(['r1', 'r2']);
+    });
+
+    it('covers deletion markers and rewrites in the tie set exactly like modifications', async () => {
+      const store = create();
+      await store.put('recipes', 'r0', { name_fr: 'Ancienne' });
+      const seen = await store.changes('recipes', 0, 100);
+      // One commit mixing a modification and a marker: same revision, both in the feed
+      const done = await store.commit([
+        { name: 'recipes', id: 'r1', doc: { name_fr: 'Ojja' } },
+        { name: 'recipes', id: 'r2', doc: { deleted: true } },
+      ]);
+      expect(done.ok).toBe(true);
+      // The tie group (modification + marker) is delivered whole, marker included
+      const page = await store.changes('recipes', seen.revision, 1);
+      expect(page.items.map((d) => d.id)).toEqual(['r1']);
+      expect(page.removedIds).toEqual(['r2']);
+      expect(page.cursor).toEqual({ revision: committed(done), id: 'r2' });
+      expect(page.more).toBe(false);
+      expect(page.revision).toBe(committed(done));
+      // Resuming from the cursor answers nothing more
+      const rest = await store.changes('recipes', page.cursor!, 10);
+      expect(rest.items).toHaveLength(0);
+      expect(rest.removedIds).toHaveLength(0);
+      expect(rest.more).toBe(false);
+    });
+
+    it('strips undefined fields (a removed field is absent) and refuses non-JSON-safe documents', async () => {
+      const store = create();
+      // `undefined` is the shape of a removed field: the write lands without it, on every provider
+      await store.put('recipes', 'r1', { name_fr: 'Ojja', tags: undefined });
+      expect(await store.get('recipes', 'r1')).toMatchObject({ name_fr: 'Ojja' });
+      expect((await store.get('recipes', 'r1'))!.tags).toBeUndefined();
+      // Inside an array, `undefined` becomes null (JSON semantics: nothing is lost)
+      await store.put('recipes', 'r3', { tags: ['ok', undefined] });
+      expect((await store.get('recipes', 'r3'))!.tags).toEqual(['ok', null]);
+      // NaN, provider types, class instances and circular references are refused, nothing written
+      await expect(store.put('recipes', 'r2', { price: Number.NaN })).rejects.toThrow();
+      await expect(store.put('recipes', 'r2', { when: new Date() })).rejects.toThrow();
+      const circular: Record<string, unknown> = {};
+      circular.self = circular;
+      await expect(store.put('recipes', 'r2', circular)).rejects.toThrow();
+      expect((await store.changes('recipes', 0, 10)).items.map((d) => d.id)).toEqual(['r1', 'r3']);
+    });
+
+    it('refuses ids outside the common guarantee (never a data lockout for legal ids)', async () => {
+      const store = create();
+      await expect(store.put('recipes', '', { name_fr: 'x' })).rejects.toThrow();
+      await expect(store.put('recipes', 'a/b', { name_fr: 'x' })).rejects.toThrow();
+      await expect(store.put('recipes', '.', { name_fr: 'x' })).rejects.toThrow();
+      await expect(store.put('recipes', '..', { name_fr: 'x' })).rejects.toThrow();
+      // The reserved Firestore pattern __.*__ : two underscores at the start AND the end
+      await expect(store.put('recipes', '__internal__', { name_fr: 'x' })).rejects.toThrow();
+      await expect(store.put('recipes', '__abc__', { name_fr: 'x' })).rejects.toThrow();
+      await expect(store.put('recipes', '____', { name_fr: 'x' })).rejects.toThrow();
+      // Plain ids, dots-only ids and dot-initial ids stay LEGAL
+      await store.put('recipes', 'internal', { name_fr: 'x' });
+      await store.put('recipes', 'abc', { name_fr: 'x' });
+      await store.put('recipes', '...', { name_fr: 'x' });
+      await store.put('recipes', '.hidden', { name_fr: 'x' });
+      await store.put('recipes', 'a.b', { name_fr: 'x' });
+      await store.put('recipes', '__leading', { name_fr: 'x' }); // double underscores, no closing pair
+      await store.put('recipes', 'trailing__', { name_fr: 'x' });
+      // E-mails, guest subs and long legal ids stay accepted — no existing data excluded
+      await store.put('email_index', 'a@b.co', { taken: 1 });
+      await store.put('kitchen', 'guest:0123456789abcdef', { sections: {} });
+      await store.put('recipes', 'x'.repeat(1500), { name_fr: 'x' });
+    });
+
+    it('refuses a commit beyond its envelope before writing anything', async () => {
+      const store = create();
+      const ops = Array.from({ length: 11 }, (_, i) => ({
+        name: 'recipes' as const,
+        id: `r${i + 1}`,
+        doc: { name_fr: `Recette ${i + 1}` },
+      }));
+      await expect(store.commit(ops)).rejects.toThrow();
+      expect(await store.maxRevision('recipes')).toBe(0); // nothing was written
+      // The envelope boundary itself works
+      const ok = await store.commit(ops.slice(0, 10));
+      expect(ok.ok).toBe(true);
+      expect(await store.maxRevision('recipes')).toBe(committed(ok));
+    });
+
+    it('keeps revisions strictly increasing across commits, markers included', async () => {
+      const store = create();
+      const a = await store.commit([{ name: 'recipes', id: 'r1', doc: { name_fr: 'A' } }]);
+      const b = await store.remove('recipes', 'r1');
+      const c = await store.commit([{ name: 'recipes', id: 'r1', doc: { name_fr: 'Retour' } }]);
+      expect(b).toBeGreaterThan(committed(a));
+      expect(committed(c)).toBeGreaterThan(b);
+      expect(await store.maxRevision('recipes')).toBe(committed(c)); // markers count in the maximum
     });
   });
 }

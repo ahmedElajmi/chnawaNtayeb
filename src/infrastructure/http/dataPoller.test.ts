@@ -96,6 +96,36 @@ describe('the shared data poller', () => {
     expect((received.at(-1) as { removedIds: string[] }).removedIds).toEqual(['i1']);
   });
 
+  it('switches to the composite cursor only after the server negotiated it', async () => {
+    // The negotiation by the response: a legacy number until a response carries a cursor,
+    // then the structured shape — an old server never receives a shape it would ignore.
+    const sentShapes: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url !== '/api/data/changes') return jsonResponse(404, {});
+        const rev = JSON.parse(String(init?.body)).rev as Record<string, unknown>;
+        sentShapes.push(rev.recipes);
+        return jsonResponse(200, {
+          ok: true,
+          data: { recipes: { items: [], removedIds: [], revision: 101, cursor: { revision: 101, id: 'r1' } } },
+        });
+      })
+    );
+    const poller = new DataPoller();
+    poller.follow(
+      'recipes',
+      null,
+      () => undefined,
+      () => undefined
+    );
+    await vi.waitFor(() => expect(sentShapes.length).toBeGreaterThan(0));
+    expect(sentShapes[0]).toBe(0); // first poll: the legacy number
+    poller.refresh();
+    await vi.waitFor(() => expect(sentShapes.length).toBeGreaterThan(1));
+    expect(sentShapes[1]).toEqual({ revision: 101, id: 'r1' }); // then the structured cursor
+  });
+
   it('keeps polling after a network failure and recovers', async () => {
     const failing = vi.fn(async () => {
       throw new Error('offline');

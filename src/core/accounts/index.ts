@@ -26,4 +26,5 @@ export {
   validateProfileUpdate,
   validateRegistration,
 } from './validation';
+export { emailReservationId } from './emailReservationId';
 export { initialCountries } from './countriesSeed';

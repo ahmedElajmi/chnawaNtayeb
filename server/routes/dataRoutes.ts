@@ -5,6 +5,7 @@ import { collectionSpec } from '../storage/collections';
 import { computeChanges } from '../storage/gateway';
 import { resolveIdentity } from '../storage/identity';
 import { raiseWatermark } from '../storage/watermark';
+import { DocumentValidationError } from '../storage/validation';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
 
 /** Body of the batched change feed: the client's newest revision per collection. */
@@ -44,6 +45,15 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
 
   const unavailable = (res: express.Response) => res.status(503).json({ ok: false, error: 'storage_unavailable' });
   const forbidden = (res: express.Response) => res.status(403).json({ ok: false, error: 'forbidden' });
+  /** The storage layer refused the write before touching the provider: a 400, not a crash. */
+  const invalid = (res: express.Response, error: unknown) => {
+    if (error instanceof DocumentValidationError) {
+      return res
+        .status(400)
+        .json({ ok: false, error: error.code === 'invalid_id' ? 'invalid_id' : 'invalid_document' });
+    }
+    throw error;
+  };
 
   /** Writes through the endpoints are refused for server-only collections. */
   const writable = (name: string, canManage: boolean) => {
@@ -58,9 +68,24 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
     if (!store) return unavailable(res);
     const identity = await resolveIdentity(req, backofficeAuthConfig);
     const body = (req.body ?? {}) as ChangesBody;
-    const rev: Record<string, number> = {};
+    // Cursor negotiation: a plain number is the legacy shape (strict revision); a structured
+    // { revision, id? } object is the composite cursor — the client only sends it after a
+    // response carried one, so an old server never receives a shape it would ignore.
+    const rev: Record<string, number | { revision: number; id?: string }> = {};
     for (const [name, value] of Object.entries(body.rev ?? {})) {
       if (typeof value === 'number' && value >= 0) rev[name] = value;
+      else if (
+        typeof value === 'object' &&
+        value !== null &&
+        typeof (value as { revision?: unknown }).revision === 'number' &&
+        (value as { revision: number }).revision >= 0 &&
+        ((value as { id?: unknown }).id === undefined ||
+          (typeof (value as { id?: unknown }).id === 'string' && (value as { id: string }).id.length <= 1500))
+      ) {
+        const cursor = value as { revision: number; id?: string };
+        rev[name] =
+          cursor.id !== undefined ? { revision: cursor.revision, id: cursor.id } : { revision: cursor.revision };
+      }
     }
     const data = await computeChanges(rev, { read: identity.canManage ? 'admin' : 'public' }, store);
     res.json({ ok: true, data });
@@ -122,9 +147,13 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return res.status(400).json({ ok: false, error: 'invalid_id' });
     const parsed = spec.parse((req.body ?? {}).doc);
     if (!parsed) return res.status(400).json({ ok: false, error: 'invalid_document' });
-    const revision = await store.put(spec.name, id, parsed);
-    raiseWatermark(spec.name, revision);
-    return res.json({ ok: true, revision });
+    try {
+      const revision = await store.put(spec.name, id, parsed);
+      raiseWatermark(spec.name, revision);
+      return res.json({ ok: true, revision });
+    } catch (error) {
+      return invalid(res, error);
+    }
   });
 
   router.delete('/api/data/:name/:id', writeLimiter, async (req, res) => {
@@ -135,9 +164,13 @@ export function dataRoutes(backofficeAuthConfig: BackofficeAuthConfig, store: Da
     if (!spec) return res.status(404).json({ ok: false, error: 'unknown_collection' });
     const id = req.params.id ?? '';
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return res.status(400).json({ ok: false, error: 'invalid_id' });
-    const revision = await store.remove(spec.name, id);
-    raiseWatermark(spec.name, revision);
-    return res.json({ ok: true, revision });
+    try {
+      const revision = await store.remove(spec.name, id);
+      raiseWatermark(spec.name, revision);
+      return res.json({ ok: true, revision });
+    } catch (error) {
+      return invalid(res, error);
+    }
   });
 
   // Many documents at once (catalog import): complete writes, chunked by the client

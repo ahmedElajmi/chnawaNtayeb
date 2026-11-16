@@ -1,16 +1,20 @@
 import type { Knex } from 'knex';
 import { COLLECTIONS } from './collections';
 import type {
+  ChangeCursor,
   CollectionName,
   CommitResult,
   DataStore,
   DirectoryPage,
   DirectoryQuery,
   StorageChanges,
+  SyncCursor,
   TransactOutcome,
   WriteGuard,
   WriteOp,
 } from './types';
+import { normalizeCursor } from './types';
+import { assertCommitEnvelope, assertWritable, stripUndefined } from './validation';
 
 /**
  * SQL implementation of the DataStore contract — the portability preparation (PR E).
@@ -77,14 +81,18 @@ export function createSqlStore(knex: Knex): DataStore {
   const table = (name: CollectionName) => knex(name);
 
   /** Strictly increasing revision per collection: the clock, held back by the newest row. */
+  /** The strictly increasing per-collection sequence: max(stored)+1, computed inside the
+   *  write transaction (SQLite serialises writers; other engines get their own locking
+   *  strategy in lot 1.4). No clock dependence: a revision is a sequence value, not a date. */
   const stamp = async (trx: Knex.Transaction, name: CollectionName): Promise<number> => {
     const row = await trx(name).max({ max: 'revision' }).first();
     const max = typeof row?.max === 'number' ? row.max : Number(row?.max ?? 0);
-    return Math.max(max + 1, Date.now());
+    return max + 1;
   };
 
   const writeOne = async (trx: Knex.Transaction, op: WriteOp, revision: number, insertOnly = false): Promise<void> => {
-    const doc = { ...op.doc };
+    // `undefined` leaves the stored shape: a removed field is absent on every provider
+    const doc = stripUndefined(op.doc) as Record<string, unknown>;
     delete doc.id;
     const row = {
       id: op.id,
@@ -125,21 +133,71 @@ export function createSqlStore(knex: Knex): DataStore {
     rowGuardValue(await table(guard.name).where('id', guard.id).first('data', 'deleted'), guard);
 
   return {
-    async changes(name, since, limit): Promise<StorageChanges> {
-      const rows = await table(name)
-        .where('revision', '>', since)
+    /** Per-collection changes in contract order (revision, id): the single pagination authority.
+     *  SQL orders natively on (revision, id) — the whole group machinery only exists for
+     *  Firestore, whose real order sorts by the timestamp itself. */
+    async changes(name, cursor: ChangeCursor, limit): Promise<StorageChanges> {
+      const c = normalizeCursor(cursor);
+      const inclusive = typeof cursor === 'object' && cursor.id === undefined; // resume at the whole revision
+      const L = Math.max(1, limit);
+      let rows = await table(name)
+        .where((q) => {
+          if (inclusive) {
+            q.where('revision', '>=', c.revision); // re-deliver the whole frontier revision
+          } else if (c.id !== undefined) {
+            q.where('revision', '>', c.revision).orWhere((tie) =>
+              tie.where('revision', c.revision).where('id', '>', c.id as string)
+            );
+          } else {
+            q.where('revision', '>', c.revision); // legacy number cursor: strict, as before
+          }
+        })
         .orderBy('revision', 'asc')
-        .limit(Math.max(1, limit))
+        .orderBy('id', 'asc')
+        .limit(L)
         .select('id', 'data', 'revision', 'deleted');
+      // A revision's tie set (one commit's changes) is never cut: complete the last delivered
+      // revision even past the limit — the limit is soft by contract.
+      if (rows.length >= L && rows.length > 0) {
+        const tieLast = rows[rows.length - 1];
+        const rest = await table(name)
+          .where('revision', Number(tieLast.revision))
+          .where('id', '>', tieLast.id)
+          .orderBy('id', 'asc')
+          .select('id', 'data', 'revision', 'deleted');
+        rows = [...rows, ...rest];
+      }
       const items: Record<string, unknown>[] = [];
       const removedIds: string[] = [];
-      let revision = since;
+      let revision = c.revision;
+      let lastPosition: SyncCursor | undefined;
       for (const row of rows) {
         revision = Number(row.revision);
+        lastPosition = { revision, id: row.id };
         if (row.deleted) removedIds.push(row.id);
-        else items.push(materialize(row.id, row.data, Number(row.revision)));
+        else items.push(materialize(row.id, row.data, revision));
       }
-      return { items, removedIds, revision, more: rows.length >= Math.max(1, limit) };
+      // `more` = a next call from the returned cursor would answer something (exact check)
+      let more = false;
+      if (lastPosition) {
+        const remaining = await table(name)
+          .whereRaw('(revision > ? OR (revision = ? AND id > ?))', [
+            lastPosition.revision,
+            lastPosition.revision,
+            // The cursor is always built with an id in this code path (last delivered row)
+            lastPosition.id as string,
+          ])
+          .select('id')
+          .limit(1);
+        more = remaining.length > 0;
+      }
+      return {
+        items,
+        removedIds,
+        revision,
+        ...(lastPosition ? { cursor: lastPosition } : {}),
+        more,
+      };
     },
 
     async get(name, id) {
@@ -204,14 +262,18 @@ export function createSqlStore(knex: Knex): DataStore {
     },
 
     async put(name, id, doc): Promise<number> {
+      // The validated shape is the sanitized one: `undefined` never reaches the provider
+      const clean = stripUndefined(doc) as Record<string, unknown>;
+      assertWritable(name, id, clean);
       return knex.transaction(async (trx) => {
         const revision = await stamp(trx, name);
-        await writeOne(trx, { name, id, doc }, revision);
+        await writeOne(trx, { name, id, doc: clean }, revision);
         return revision;
       });
     },
 
     async remove(name, id): Promise<number> {
+      assertWritable(name, id, { deleted: true });
       return knex.transaction(async (trx) => {
         const revision = await stamp(trx, name);
         await writeOne(trx, { name, id, doc: { deleted: true } }, revision);
@@ -220,6 +282,7 @@ export function createSqlStore(knex: Knex): DataStore {
     },
 
     async commit(ops, guard): Promise<CommitResult> {
+      assertCommitEnvelope(ops);
       try {
         const batchRevision = await knex.transaction(async (trx) => {
           let claimAbsentRow = false;
@@ -231,17 +294,21 @@ export function createSqlStore(knex: Knex): DataStore {
             // row still exists: it comes back to life through the merge, last writer wins).
             claimAbsentRow = !row;
           }
+          // Every collection touched gets ONE revision shared by all its ops (a commit is one
+          // moment of the collection's history — the tie set a cursor group covers completely).
+          const revisions = new Map<CollectionName, number>();
           let revision = 0;
           for (const op of ops) {
-            revision = await stamp(trx, op.name);
+            if (!revisions.has(op.name)) revisions.set(op.name, await stamp(trx, op.name));
+            revision = Math.max(revision, revisions.get(op.name) as number);
             // The primary key rejects a concurrent batch that claimed the same absent row in
             // between (a merge would silently overwrite it and break the uniqueness).
             const insertOnly = claimAbsentRow && op.name === guard?.name && op.id === guard?.id;
-            await writeOne(trx, op, revision, insertOnly);
+            await writeOne(trx, op, revisions.get(op.name) as number, insertOnly);
           }
           return revision;
         });
-        return batchRevision ? { ok: true, revision: batchRevision } : { ok: true, revision: Date.now() };
+        return batchRevision ? { ok: true, revision: batchRevision } : { ok: true, revision: 0 };
       } catch (error) {
         if (error instanceof GuardConflict) return { ok: false, conflict: true };
         // The batch failed after the guard was read: it may have lost a clean race (a concurrent
@@ -269,7 +336,8 @@ export function createSqlStore(knex: Knex): DataStore {
             const current = row && !row.deleted ? materialize(row.id, row.data, Number(row.revision)) : null;
             const outcome: TransactOutcome<T> = operation(current);
             if (outcome.next && outcome.next !== current) {
-              const doc = withoutOwnFields(outcome.next);
+              const doc = withoutOwnFields(stripUndefined(outcome.next) as Record<string, unknown>);
+              assertWritable(name, id, doc);
               const revision = await stamp(trx, name);
               if (!row) {
                 // The row must still be absent: a plain insert (the primary key rejects a
@@ -314,6 +382,7 @@ export async function ensureSchema(knex: Knex): Promise<void> {
         t.bigInteger('revision').index();
         t.text('updated_at');
         t.boolean('deleted').defaultTo(false);
+        t.index(['revision', 'id']); // the contract order (revision, id) natively indexable
       });
     });
   }
