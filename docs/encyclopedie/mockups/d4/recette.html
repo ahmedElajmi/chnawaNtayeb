@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar" data-scenario="base">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recette — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<!-- Page générée par tools/generate-pages.mjs depuis tools/pages.mjs — ne pas modifier à la main. -->
+<script>try{var m=location.hash.match(/(?:state=)?(\w+)/);if(m&&["base","merguezOk","pimentKnown","noPiment"].indexOf(m[1])!==-1)document.documentElement.setAttribute('data-scenario',m[1]);}catch(e){}</script>
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="false">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp" style="flex-wrap:wrap"><span class="lbl">Scénario</span>
+    <button class="ctl demo-attr" data-attr="data-scenario" data-v="base" aria-pressed="true">Frigo démo</button>
+    <button class="ctl demo-attr" data-attr="data-scenario" data-v="merguezOk" aria-pressed="false">Merguez achetée</button>
+    <button class="ctl demo-attr" data-attr="data-scenario" data-v="pimentKnown" aria-pressed="false">Piment connu</button>
+    <button class="ctl demo-attr" data-attr="data-scenario" data-v="noPiment" aria-pressed="false">Plus de piment</button></div>
+  <div class="grp"><span class="lbl">Pub</span><button class="ctl ads-ctl" aria-pressed="true">On</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+
+<div class="pagewrap">
+  <header data-shell="topbar" data-back="suggestions.html"><button class="icon-btn" data-fav aria-pressed="true" aria-label="Retirer des favoris" data-i18n="favRemove" data-i18n-attr="aria-label"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9c-1.8-3.2.4-7 4-7 2.2 0 3.6 1.2 6 3.6C14.4 6.2 15.8 5 18 5c3.6 0 5.8 3.8 4 7-2.5 4.4-10 9-10 9z"/></svg></button></header>
+  <div style="display:flex;flex:1;width:100%">
+    <nav data-shell="side" data-current="recipes"></nav>
+    <main class="page-main" style="padding-bottom:140px">
+      <div data-page-root></div>
+    </main>
+  </div>
+  <nav data-shell="bottom" data-current="recipes"></nav>
+</div>
+
+<script type="application/json" id="page-schema">
+{
+  "page": "recette",
+  "blocks": [
+    {
+      "c": "offline-strip"
+    },
+    {
+      "c": "recipe-hero"
+    },
+    {
+      "c": "recipe-facts"
+    },
+    {
+      "c": "recipe-status"
+    },
+    {
+      "c": "recipe-actions"
+    },
+    {
+      "c": "tabs",
+      "props": {
+        "tabs": [
+          {
+            "labelKey": "ingredients",
+            "c": "recipe-ingredients"
+          },
+          {
+            "labelKey": "steps",
+            "c": "recipe-steps"
+          }
+        ]
+      }
+    },
+    {
+      "c": "ad-slot",
+      "props": {
+        "id": "recipe_after_content_1",
+        "format": "infeed"
+      }
+    },
+    {
+      "c": "recipe-cta"
+    },
+    {
+      "c": "note",
+      "props": {
+        "text": "**Une seule page pour toutes les recettes** : recette.html?id=… (essayez ?id=chakchouka, ?id=kosksi, ?id=brik). Les cartes de tout le site y mènent."
+      }
+    }
+  ]
+}
+</script>
+<script src="assets/data.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/cn/i18n.js"></script>
+<script src="assets/cn/common.js"></script>
+<script src="assets/cn/home.js"></script>
+<script src="assets/cn/fridge.js"></script>
+<script src="assets/cn/recipe.js"></script>
+<script src="assets/cn/flows.js"></script>
+<script src="assets/cn/account.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

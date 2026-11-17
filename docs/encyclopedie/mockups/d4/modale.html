@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fenêtre ModalShell — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">Niveau « illustré » : la fenêtre et ses états (ouvre, saisie à perdre)</span>
+    <span class="chip-check">Niveau « simulé » : Échap + clic extérieur + focus initial et retour du focus (boutons ci-dessous)</span>
+    <span class="chip-check">Niveau « réel » : focus piégé, useCloseOnBack, confirmation de perte — implémentés et testés en 2.8+</span>
+  </div>
+  <h1>Fenêtre <code>ModalShell</code></h1>
+
+  <section class="demo card">
+    <h2>Ouverte (état normal) <span class="level level-illustre">illustré</span></h2>
+    <div class="modal-dim">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m1t">
+        <h3 id="m1t">Choisir la liste cible</h3>
+        <div class="list-item"><span class="thumb" aria-hidden="true">🛒</span><div class="grow"><span class="title">Liste du Ramadan</span><br /><span class="muted" style="font-size:11px">12 articles</span></div><button class="btn btn-secondary" style="min-height:36px;padding:4px 10px;font-size:12px">Choisir</button></div>
+        <div class="list-item"><span class="thumb" aria-hidden="true">🛒</span><div class="grow"><span class="title">Courses du week-end</span><br /><span class="muted" style="font-size:11px">5 articles</span></div><button class="btn btn-secondary" style="min-height:36px;padding:4px 10px;font-size:12px">Choisir</button></div>
+        <div class="foot">
+          <button class="btn btn-secondary" data-i18n="boCancel"></button>
+          <button class="btn btn-primary" data-i18n="boSave"></button>
+        </div>
+      </div>
+    </div>
+    <p class="overlay-note">Zone grise = le reste de la page (clic en dehors = fermeture, Échap = fermeture).</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Erreur de saisie à perdre (confirmation obligatoire) <span class="level level-illustre">illustré</span></h2>
+    <div class="modal-dim">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m2t">
+        <h3 id="m2t">Quitter sans enregistrer ?</h3>
+        <p style="font-size:13px">Vous avez modifié 3 champs non enregistrés. Si vous quittez, la saisie est perdue.</p>
+        <div class="field" style="margin:var(--sp-2) 0">
+          <label for="m2f">Nom</label>
+          <input class="input" id="m2f" type="text" value="Ojja (modifié)" aria-invalid="true" aria-describedby="m2e" />
+          <span class="error" id="m2e">Champ modifié non enregistré.</span>
+        </div>
+        <div class="foot">
+          <button class="btn btn-secondary" data-i18n="boCancel"></button>
+          <button class="btn btn-danger">Quitter quand même</button>
+        </div>
+      </div>
+    </div>
+    <p class="overlay-note">Le refus est explicite : la fermeture par Échap ou clic extérieur redemande confirmation.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Interactions réellement simulées <span class="level level-simule">simulé</span></h2>
+    <p class="muted">Ces boutons ouvrent une <b>vraie superposition de démonstration</b> :
+    focus initial dans la fenêtre, Échap ferme, clic en dehors ferme, focus rendu au bouton d'origine.
+    (La variante « saisie à perdre » est illustrée ci-dessus ; sa logique de confirmation sera réelle en 2.8+.)</p>
+    <div class="row">
+      <button class="btn btn-primary" data-modal-open>Ouvrir la fenêtre de démonstration</button>
+    </div>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

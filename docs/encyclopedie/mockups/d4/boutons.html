@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boutons — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">États : repos · focus clavier · actif · désactivé · chargement</span>
+    <span class="chip-check">Variantes : principal · secondaire · danger (token sémantique dédié)</span>
+    <span class="chip-check">Cibles tactiles ≥ 44 × 44 px</span>
+    <span class="chip-check">Chargement = bouton désactivé (pas de double soumission)</span>
+    <span class="chip-check">Textes réels (chaînes i18n de l'app) · focus visible au clavier</span>
+  </div>
+  <h1>Boutons</h1>
+
+  <section class="demo card">
+    <h2>Variantes — repos</h2>
+    <div class="row">
+      <button class="btn btn-primary" data-i18n="boSave"></button>
+      <button class="btn btn-secondary" data-i18n="boCancel"></button>
+    </div>
+    <p class="muted" style="font-size:12px">Le danger est un <b>token sémantique dédié</b> : il reste rouge
+    dans toutes les directions (A, B, FK) et les deux modes — il ne prend jamais la couleur d'accent.</p>
+    <div class="row">
+      <button class="btn btn-danger">Supprimer la recette</button>
+      <button class="btn btn-danger">Vider le frigo</button>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>États interactifs <span class="level level-illustre">illustré</span></h2>
+    <p class="muted">Tabulez pour voir le focus clavier ; le survol (desktop) change le principal.</p>
+    <div class="grid2">
+      <div class="card"><h3>Repos</h3><button class="btn btn-primary">Repos</button></div>
+      <div class="card"><h3>Focus clavier</h3><button class="btn btn-primary" style="outline:2px solid var(--focus-ring);outline-offset:2px;box-shadow:0 0 0 2px var(--card)">Focus</button></div>
+      <div class="card"><h3>Actif (pressé)</h3><button class="btn btn-primary" style="background:var(--brand-strong);transform:translateY(1px)">Pressé</button></div>
+      <div class="card"><h3>Désactivé</h3><button class="btn btn-primary" disabled>Désactivé</button></div>
+      <div class="card"><h3>Chargement</h3><button class="btn btn-primary loading" disabled aria-busy="true">Enregistrement<span class="spinner" aria-hidden="true"></span></button></div>
+      <div class="card"><h3>Secondaire — focus</h3><button class="btn btn-secondary" style="outline:2px solid var(--focus-ring);outline-offset:2px;box-shadow:0 0 0 2px var(--card)">Focus</button></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Chargement réel <span class="level level-simule">simulé</span></h2>
+    <p class="muted">Cliquez : le bouton se désactive pendant l'opération (pas de double soumission),
+    puis revient à son état de repos après 1,2 s.</p>
+    <div class="row">
+      <button class="btn btn-primary" id="demo-save">Enregistrer les modifications</button>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Avec icône et textes réels des 4 langues</h2>
+    <div class="row">
+      <button class="btn btn-primary"><span data-i18n="addToFavorites"></span></button>
+      <button class="btn btn-secondary" data-i18n="boCancel"></button>
+    </div>
+    <p class="muted" style="font-size:11px">Basculez la langue : les libellés sont les chaînes réelles de
+    <code>src/shared/i18n</code> (fr · derja · ar · derja_ar) — pas du lorem.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Bouton pleine largeur (mobile)</h2>
+    <button class="btn btn-primary" style="width:100%" data-i18n="boSave"></button>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+<script>
+/* Chargement simulé : désactive pendant l'opération, puis revient (niveau « simulé »). */
+document.addEventListener('DOMContentLoaded', function () {
+  var b = document.getElementById('demo-save');
+  if (!b) return;
+  var html = b.innerHTML;
+  b.addEventListener('click', function () {
+    b.disabled = true;
+    b.setAttribute('aria-busy', 'true');
+    b.classList.add('loading');
+    b.innerHTML = 'Enregistrement<span class="spinner" aria-hidden="true"></span>';
+    setTimeout(function () {
+      b.disabled = false;
+      b.removeAttribute('aria-busy');
+      b.classList.remove('loading');
+      b.innerHTML = html;
+    }, 1200);
+  });
+});
+</script>
+</body>
+</html>

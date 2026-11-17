@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Photos et médias — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="1280">
+  <div class="checklist">
+    <span class="chip-check">Règle d'or : une photo de PLAT illustre un plat — jamais une photo d'ingrédient</span>
+    <span class="chip-check">Photos tunisiennes authentiques ; démonstration : Wikimedia Commons, URL à re-vérifier en revue</span>
+    <span class="chip-check">Repli toujours prévu : tuile dégradée + emoji du plat (pas de fausse photo)</span>
+  </div>
+  <h1>Photos et médias — emplacements, ratios, comportements</h1>
+
+  <section class="demo card">
+    <h2>1 · Tableau des emplacements</h2>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="text-align:start;border-bottom:2px solid var(--line)">
+        <th style="padding:6px">Écran · emplacement</th><th style="padding:6px">Ratio</th><th style="padding:6px">Source demandée</th><th style="padding:6px">Recadrage</th><th style="padding:6px">Comportement responsive</th></tr></thead>
+      <tbody style="border-bottom:1px solid var(--line)">
+        <tr><td style="padding:6px">Accueil · bannière héros</td><td>16:9 → 21:9 (≥768)</td><td>1024 px</td><td>centre, bas</td><td>pleine largeur de la colonne</td></tr>
+        <tr><td style="padding:6px">Accueil · carte vedette</td><td>16:10</td><td>720 px</td><td>centre</td><td>2 colonnes (span 2)</td></tr>
+        <tr><td style="padding:6px">Accueil · catégorie (cercle)</td><td>1:1</td><td>240 px</td><td>centre</td><td>72 px fixe, défilement horizontal</td></tr>
+        <tr><td style="padding:6px">Recherche · carte résultat</td><td>4:3</td><td>480 px</td><td>centre</td><td>colonne de grille (2/3/4)</td></tr>
+        <tr><td style="padding:6px">Suggestions · carte par niveau</td><td>4:3</td><td>480 px</td><td>centre</td><td>colonne de grille</td></tr>
+        <tr><td style="padding:6px">Recette · photo principale</td><td>16:9 → 21:9 (≥768)</td><td>1024 px</td><td>centre, bas (titre superposé)</td><td>pleine largeur</td></tr>
+        <tr><td style="padding:6px">Recette · étape (optionnel)</td><td>16:9</td><td>720 px</td><td>centre</td><td>pleine largeur, masquable</td></tr>
+        <tr><td style="padding:6px">Mode cuisine · étape (optionnel)</td><td>16:9</td><td>720 px</td><td>centre</td><td>sous le texte, jamais au-dessus</td></tr>
+        <tr><td style="padding:6px">Frigo · vignette d'ingrédient</td><td>1:1</td><td>120 px</td><td>centre</td><td>44 px (mobile) / 56 px (desktop)</td></tr>
+        <tr><td style="padding:6px">Frigo · photo prise par l'utilisateur</td><td>4:3</td><td>telle quelle (≤ 1 600 px)</td><td>centre</td><td>pleine largeur de carte</td></tr>
+        <tr><td style="padding:6px">Profil · avatar</td><td>1:1</td><td>240 px</td><td>centre</td><td>56 px fixe</td></tr>
+      </tbody></table></div>
+    <p class="muted" style="font-size:12px">« Source demandée » = plus grande largeur demandée au serveur
+    (paramètre <code>?width=</code> en démonstration) ; le navigateur télécharge uniquement ce dont il a besoin.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>2 · Absence de photo : repli systématique</h2>
+    <div class="grid2">
+      <a class="rcard" href="recette.html"><span class="ph broken" data-fallback="🥘"><img src="inexistant.jpg" alt="" /></span><div class="rbody"><span class="rtitle">Repli « pas encore de photo »</span><span class="rmeta">tuile dégradée de la direction + emoji du plat + titre lisible — jamais une photo d'un autre aliment</span></div></a>
+      <div class="card">
+        <p style="font-weight:700;margin-top:0">Règles</p>
+        <ul style="font-size:13px;padding-inline-start:18px;margin:0">
+          <li>plat sans photo → tuile + emoji du plat ; l'emoji n'est jamais une illustration de « faux plat »</li>
+          <li>ingrédient sans photo → pastille de catégorie (<code>IngredientThumb</code>)</li>
+          <li>lien cassé → repli identique, aucune zone vide</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>3 · Placeholder de chargement (skeleton shimmer)</h2>
+    <div class="rgrid" style="max-width:520px">
+      <a class="rcard" href="recette.html"><div class="ph r43"><img class="ph-skel" alt="" src="" /></div><div class="rbody"><span class="rtitle">Chargement…</span></div></a>
+      <p class="muted" style="font-size:12px">L'image démarre en shimmer (animation suspendue si
+      <code>prefers-reduced-motion</code>) et se révèle au chargement — aucun saut de mise en page : le ratio
+      <code>aspect-ratio</code> réserve la place avant même la réponse du serveur.</p>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>4 · Optimisation et performances (budget limité, PWA rapide)</h2>
+    <ul style="font-size:13px;padding-inline-start:18px">
+      <li><b>Formats</b> : AVIF puis WebP puis JPEG (négociation <code>Accept</code>) ; qualité 78–82.</li>
+      <li><b>Dimensions</b> : la source demandée correspond à la plus large densité utile (2×) — jamais l'original.</li>
+      <li><b>Chargement différé</b> : <code>loading="lazy"</code> hors écran ; <code>fetchpriority="high"</code> seulement sur le héros visible.</li>
+      <li><b>Anti-CLS</b> : <code>aspect-ratio</code> CSS + <code>width/height</code> dans le HTML.</li>
+      <li><b>Hors-ligne</b> : seules les recettes sauvegardées gardent leur photo en cache (IndexedDB), jamais tout le catalogue.</li>
+      <li><b>Poids cible</b> : carte ≈ 25–40 ko, héros ≈ 80–120 ko — à mesurer à la revue avec de vraies images.</li>
+    </ul>
+  </section>
+
+  <section class="demo card">
+    <h2>5 · Démonstration — les mêmes recettes, vrais ratios</h2>
+    <div class="rgrid">
+      <a class="rcard featured" href="recette.html"><div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=720" alt="Ojja merguez" loading="lazy" /></div><span class="overlay-title">Vedette · 16:10</span></a>
+      <a class="rcard" href="recette.html"><div class="ph" data-fallback="🥗"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/SaladeMechouia%202013.JPG?width=480" alt="Salade mechouia" loading="lazy" /></div><div class="rbody"><span class="rtitle">Grille · 4:3</span></div></a>
+      <a class="rcard horizontal" href="recette.html"><div class="ph" data-fallback="🍜"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Lablabi.jpg?width=240" alt="Lablabi" loading="lazy" /></div><div class="rbody"><span class="rtitle">Horizontale · 1:1</span></div></a>
+    </div>
+    <div class="cat-row" style="margin-top:var(--sp-2)">
+      <span class="cat-card"><span class="ph" data-fallback="🍛"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=240" alt="" loading="lazy" /></span>1:1 · 72 px</span>
+      <span class="cat-card"><span class="ph broken" data-fallback="🥮"><img src="inexistant.jpg" alt="" /></span>repli</span>
+    </div>
+    <p class="muted" style="font-size:11px">URLs de démonstration (Wikimedia Commons, paramètre width) — la validité de
+    chaque lien sera vérifiée dans le navigateur à la revue ; le repli reste montré dans tous les cas.</p>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

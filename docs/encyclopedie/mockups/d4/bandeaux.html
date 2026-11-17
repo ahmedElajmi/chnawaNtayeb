@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bandeaux — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">Installation · hors-ligne · mise à jour · erreur réseau</span>
+    <span class="chip-check">Action adaptée à chaque situation — aucune mise à jour imposée</span>
+    <span class="chip-check">Icône + texte : l'état n'est jamais porté par la couleur seule</span>
+    <span class="chip-check">Textes réels (chaînes i18n de l'app)</span>
+  </div>
+  <h1>Bandeaux</h1>
+
+  <section class="demo card">
+    <h2>Installation (InstallBanner, sous l'en-tête) <span class="level level-illustre">illustré</span></h2>
+    <div class="banner banner-install"><span aria-hidden="true">📲</span><span style="flex:1">Installer l'application Chnawa Ntayeb</span><button class="btn btn-primary">Installer</button><button class="icon-btn" aria-label="Fermer le bandeau d'installation">✕</button></div>
+    <p class="muted" style="font-size:11px">Apparaît dès la première page d'une visite, reste jusqu'à fermeture, revient à la visite suivante ; application installée = aucun bandeau.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Hors-ligne <span class="level level-illustre">illustré</span></h2>
+    <div class="banner banner-offline"><span aria-hidden="true">📴</span><span style="flex:1" data-i18n="offlineNotice"></span></div>
+    <p class="muted" style="font-size:11px">Aucune action : c'est un état, pas une demande.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Mise à jour — jamais imposée <span class="level level-illustre">illustré</span></h2>
+    <div class="banner banner-update"><span aria-hidden="true">🔄</span><span style="flex:1" data-i18n="updateAvailable"></span><button class="btn btn-primary">Actualiser</button><button class="icon-btn" aria-label="Ignorer la mise à jour">✕</button></div>
+    <p class="muted" style="font-size:11px">La mise à jour est <b>proposée</b>, jamais forcée : l'utilisateur peut continuer et ignorer.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>Erreur réseau <span class="level level-illustre">illustré</span></h2>
+    <div class="banner banner-error"><span aria-hidden="true">⚠️</span><span style="flex:1" data-i18n="errorNetwork"></span><button class="btn btn-secondary">Réessayer</button></div>
+  </section>
+
+  <section class="demo card">
+    <h2>Pas de bandeau (état attendu après installation) <span class="level level-illustre">illustré</span></h2>
+    <div class="state-note"><span class="icon" aria-hidden="true">✅</span>Aucun bandeau, aucune mention « installée » — tout disparaît.</div>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

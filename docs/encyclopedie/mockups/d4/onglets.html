@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onglets et recherche — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">Onglets : rôles ARIA complets + navigation clavier (flèches, Home/End) + panneaux liés <span class="level level-simule" style="font-size:9px">simulé</span></span>
+    <span class="chip-check">Recherche : combobox ARIA, flèches + Entrée + Échap réellement gérées <span class="level level-simule" style="font-size:9px">simulé</span></span>
+    <span class="chip-check">Suggestions 44 px de haut (cible tactile)</span>
+    <span class="chip-check">Chaînes i18n réelles</span>
+  </div>
+  <h1>Onglets et recherche</h1>
+
+  <section class="demo card">
+    <h2>Onglets des deux listes de recettes (textes réels) <span class="level level-simule">simulé</span></h2>
+    <p class="muted" style="font-size:12px">Les onglets sont réellement navigables : flèches gauche/droite, Home/End,
+    les panneaux correspondants s'affichent. Les filtres sont conservés entre les écrans et entre les deux listes
+    (convention existante — vérifiée par tests en 2.8+).</p>
+    <div class="tabs" role="tablist" aria-label="Listes de recettes">
+      <button class="tab" role="tab" aria-selected="true" data-panel="panel-all" id="tab-all" data-i18n="recipesAllTab"></button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-sug" id="tab-sug" data-i18n="recipesSuggestionsTab"></button>
+    </div>
+    <div id="panel-all">
+      <p class="muted" style="font-size:13px">Catalogue complet : 128 recettes · 24 affichées (pagination sur la page listes.html).</p>
+    </div>
+    <div id="panel-sug">
+      <p class="muted" style="font-size:13px">Propositions du frigo, par niveau (prête · presque prête · à découvrir) — voir parcours.html.</p>
+    </div>
+    <h3>Réglages en onglets courts</h3>
+    <div class="tabs" role="tablist" aria-label="Réglages">
+      <button class="tab" role="tab" aria-selected="true" data-panel="panel-aff" id="tab-aff">Affichage</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-lng" id="tab-lng">Langue</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-app" id="tab-app">Application</button>
+    </div>
+    <div id="panel-aff"><p class="muted" style="font-size:13px">Thème, mode sombre, taille d'affichage.</p></div>
+    <div id="panel-lng"><p class="muted" style="font-size:13px">Français · Derja · العربية · دارجة.</p></div>
+    <div id="panel-app"><p class="muted" style="font-size:13px">Installation, hors-ligne, mise à jour.</p></div>
+  </section>
+
+  <section class="demo card">
+    <h2>Recherche d'ingrédient avec suggestions <span class="level level-simule">simulé</span></h2>
+    <p class="muted" style="font-size:12px">Mettez le focus dans le champ : ↑/↓ sélectionnent, Entrée valide,
+    Échap ferme les suggestions, clic sur une option remplit le champ.</p>
+    <div class="search">
+      <div class="box">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" data-i18n="searchPlaceholder" data-i18n-attr="placeholder" aria-label="Rechercher un ingrédient" />
+      </div>
+      <div class="suggestions" aria-label="Suggestions">
+        <div class="sug"><span class="thumb" style="width:28px;height:28px;font-size:13px" aria-hidden="true">🍅</span>Tomates<span class="tag">Légumes</span></div>
+        <div class="sug"><span class="thumb" style="width:28px;height:28px;font-size:13px" aria-hidden="true">🥚</span>Œufs<span class="tag">Base</span></div>
+        <div class="sug"><span class="thumb" style="width:28px;height:28px;font-size:13px" aria-hidden="true">🧅</span>Oignons<span class="tag">Légumes</span></div>
+      </div>
+      <p class="help">La sélection active est portée par <code>aria-selected</code> + <code>aria-activedescendant</code> (pas par la seule couleur).</p>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Frigo — récapitulatif en haut (convention conservée)</h2>
+    <p style="font-weight:700" data-i18n="selectedIngredientsTitle"></p>
+    <div class="row">
+      <span class="chip-check">🍅 Tomates ×2</span>
+      <span class="chip-check">🥚 Œufs ×6</span>
+      <span class="chip-check">🌶️ Harissa (présence)</span>
+    </div>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

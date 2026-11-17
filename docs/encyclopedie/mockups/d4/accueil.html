@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar" data-home-state="filled">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Accueil — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">État du frigo</span>
+    <button class="ctl state-ctl" data-state="empty" aria-pressed="false">Vide</button>
+    <button class="ctl state-ctl" data-state="filled" aria-pressed="true">Rempli</button>
+    <button class="ctl state-ctl" data-state="planning" aria-pressed="false">Planning</button></div>
+  <div class="grp"><span class="lbl"><span data-i18n="adsToggle"></span></span>
+    <button class="ctl ads-ctl" aria-pressed="true">On</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+
+<div class="pagewrap">
+  <header class="topbar">
+    <span class="brand brand-display">Chnawa Ntayeb<small>by chef Souhed</small></span>
+    <span class="spacer"></span>
+    <a class="icon-btn" href="notifications.html" aria-label="Notifications, 2 non lues" data-i18n="notifBellN" data-i18n-n="2" data-i18n-attr="aria-label"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10.5 20a1.8 1.8 0 0 0 3 0"/></svg><span class="bell-badge" aria-hidden="true">2</span></a>
+    <a class="icon-btn" href="profil.html" aria-label="Réglages" data-i18n="settings" data-i18n-attr="aria-label"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5l1.7 2.4 2.8-.7.7 2.8 2.4 1.7-1.3 2.6 1.3 2.6-2.4 1.7-.7 2.8-2.8-.7L12 21.5l-1.7-2.4-2.8.7-.7-2.8-2.4-1.7 1.3-2.6-1.3-2.6 2.4-1.7.7-2.8 2.8.7z"/></svg></a>
+  </header>
+
+  <div style="display:flex;flex:1;width:100%">
+    <nav class="side-nav" aria-label="Navigation principale">
+      <div class="brand-block"><span class="brand brand-display">Chnawa Ntayeb<small>by chef Souhed</small></span></div>
+      <a class="nav" href="accueil.html" aria-current="page"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5M9 21v-6h6v6"/></svg><span data-i18n="navHome"></span></a>
+      <a class="nav" href="frigo.html"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M5 10h14M9 5.5v2M9 13v3.5"/></svg><span data-i18n="navFridge"></span><span class="badge" aria-label="9 ingrédients">9</span></a>
+      <a class="nav" href="recherche.html"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 1-2 3-2 5 0 2 1 3 2 3s2-1 2-3c0-2-.5-4-2-5zM17 11v10"/></svg><span data-i18n="navRecipes"></span></a>
+      <a class="nav" href="planning.html"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span data-i18n="navWeekly"></span></a>
+      <a class="nav" href="courses.html"><svg class="ic" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11zM8 8V6a4 4 0 0 1 8 0v2"/></svg><span data-i18n="navGrocery"></span></a>
+      <a class="nav" href="profil.html"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span data-i18n="settings"></span></a>
+    </nav>
+
+    <main class="page-main wide">
+      <!-- PROPOSITION A « Éditorial » — héros plein-cadre, actions rapides,
+           cartes de correspondance dominantes. Comparée à la proposition B
+           (accueil-b.html) : 🚩 à arbitrer. -->
+      <section class="hero-photo">
+        <div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=1024" alt="Plat tunisien" loading="eager" fetchpriority="high" /></div>
+        <div class="hp-body">
+          <span class="chip-check">Chnawa Ntayeb · by chef Souhed</span>
+          <!-- État frigo vide : le héros invite à remplir -->
+          <div class="only-empty">
+            <h1 class="hp-title" data-i18n="heroEmpty"></h1>
+            <p class="hp-sub" data-i18n="emptyHomeLead"></p>
+            <a class="btn btn-primary" href="onboarding.html" data-i18n="heroEmptyCta"></a>
+          </div>
+          <!-- Frigo rempli : la promesse devient personnelle -->
+          <div class="if-filled">
+            <h1 class="hp-title" data-i18n="heroTagline"></h1>
+            <p class="hp-sub">9 ingrédients · 1 prête, 2 presque prêtes, 12 à découvrir</p>
+            <a class="btn btn-primary" href="suggestions.html" data-i18n="heroCta"></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Actions rapides : les 4 accès demandés, visibles sans défilement -->
+      <nav class="quick-actions" style="margin-top:var(--sp-3)" aria-label="Actions rapides">
+        <a href="suggestions.html"><span class="qa-ic" aria-hidden="true">🍽️</span><span data-i18n="qaCook"></span></a>
+        <a href="frigo.html"><span class="qa-ic" aria-hidden="true">🧊</span><span data-i18n="qaAdd"></span></a>
+        <a href="scan.html"><span class="qa-ic" aria-hidden="true">📸</span><span data-i18n="qaScan"></span></a>
+        <a href="courses.html"><span class="qa-ic" aria-hidden="true">🛒</span><span data-i18n="qaGrocery"></span></a>
+      </nav>
+
+      <!-- Prochain repas (état planning) -->
+      <section class="card if-planning" style="margin-top:var(--sp-3)" aria-label="Prochain repas prévu">
+        <div class="next-meal">
+          <div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=480" alt="Ojja merguez" loading="lazy" /></div>
+          <div class="grow">
+            <span class="muted" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em" data-i18n="nextMeal"></span>
+            <div class="title" style="font-size:16px;font-weight:800">Ojja merguez</div>
+            <span class="muted" style="font-size:12px">ce soir · 35 min · <span class="ing miss" style="font-size:10px;padding:1px 7px">🛒 2 à acheter</span></span>
+          </div>
+          <a class="btn btn-primary" href="recette.html" data-i18n="cookTonight"></a>
+        </div>
+      </section>
+
+      <!-- Suggestions du frigo : grandes cartes photo, badge + détail de correspondance -->
+      <div class="section-head if-filled">
+        <div><span class="eyebrow" data-i18n="secSuggest"></span><h2 data-i18n="secFridgeCta"></h2></div>
+        <a class="more" href="suggestions.html" data-i18n="seeAll"></a>
+      </div>
+      <div class="cat-row if-filled" style="gap:var(--sp-3)">
+        <a class="rcard" href="recette.html" style="flex:none;width:min(230px,72vw)">
+          <span class="match-badge warn">6 / 7</span>
+          <div class="ph" data-fallback="🥗"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/SaladeMechouia%202013.JPG?width=480" alt="Salade mechouia" loading="lazy" /></div>
+          <div class="rbody"><span class="rtitle">Salade mechouia</span><span class="rmeta">35 min</span>
+          <div class="row" style="gap:4px;margin-top:2px"><span class="ing have" style="font-size:10px;padding:1px 7px">✓ 6</span><span class="ing miss" style="font-size:10px;padding:1px 7px">🛒 1</span><span class="ing verify" style="font-size:10px;padding:1px 7px">? 1</span></div></div>
+        </a>
+        <a class="rcard" href="recette.html" style="flex:none;width:min(230px,72vw)">
+          <span class="match-badge warn">6 / 8</span>
+          <div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=480" alt="Ojja merguez" loading="lazy" /></div>
+          <div class="rbody"><span class="rtitle">Ojja merguez</span><span class="rmeta">35 min · 3,40 – 4,20 DT/pers.</span>
+          <div class="row" style="gap:4px;margin-top:2px"><span class="ing have" style="font-size:10px;padding:1px 7px">✓ 6</span><span class="ing miss" style="font-size:10px;padding:1px 7px">🛒 2</span><span class="ing verify" style="font-size:10px;padding:1px 7px">? 1</span></div></div>
+        </a>
+        <a class="rcard" href="recette.html" style="flex:none;width:min(230px,72vw)">
+          <span class="match-badge disc">3 / 9</span>
+          <div class="ph" data-fallback="🍛"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=480" alt="Kosksi" loading="lazy" /></div>
+          <div class="rbody"><span class="rtitle">Kosksi aux légumes</span><span class="rmeta">1 h 30</span>
+          <div class="row" style="gap:4px;margin-top:2px"><span class="ing have" style="font-size:10px;padding:1px 7px">✓ 3</span><span class="ing miss" style="font-size:10px;padding:1px 7px">🛒 6</span></div></div>
+        </a>
+      </div>
+
+      <!-- Favoris (état planning : favoris existants) -->
+      <div class="section-head if-planning">
+        <div><span class="eyebrow" data-i18n="favAgain"></span></div>
+        <a class="more" href="favoris.html" data-i18n="seeAll"></a>
+      </div>
+      <div class="fav-strip if-planning">
+        <a class="rcard horizontal" href="recette.html"><div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=240" alt="" loading="lazy" /></div><div class="rbody"><span class="rtitle">Ojja merguez</span></div></a>
+        <a class="rcard horizontal" href="recette.html"><div class="ph" data-fallback="🥗"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/SaladeMechouia%202013.JPG?width=240" alt="" loading="lazy" /></div><div class="rbody"><span class="rtitle">Salade mechouia</span></div></a>
+      </div>
+
+      <!-- Liste de courses en cours (état planning) -->
+      <a class="card if-planning" style="margin-top:var(--sp-3);display:flex;align-items:center;gap:var(--sp-3);text-decoration:none;color:var(--ink)" href="liste-detail.html">
+        <span class="qa-ic" aria-hidden="true">🛒</span>
+        <div class="grow"><span class="title" style="font-size:14px;font-weight:800" data-i18n="groceryOngoing"></span></div>
+        <span class="muted">→</span>
+      </a>
+
+      <!-- Publicité : un seul emplacement visible, rectangle entre sections, discret -->
+      <div class="adslot adslot--rect if-filled" data-ad-id="home_between_1" style="margin-block:var(--sp-4)" role="complementary" aria-label="Publicité">
+        <span class="adslot-label" data-i18n="adLabel"></span>
+        <span class="adslot-box" data-i18n="adDemo"></span>
+      </div>
+
+      <!-- Catégories : cercles photo -->
+      <div class="section-head">
+        <div><span class="eyebrow" data-i18n="secDiscover"></span><h2 data-i18n="secCats"></h2></div>
+        <a class="more" href="recherche.html" data-i18n="seeAll"></a>
+      </div>
+      <div class="cat-row">
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🍛"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=240" alt="" loading="lazy" /></span><span data-i18n="catKosksi"></span></a>
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=240" alt="" loading="lazy" /></span><span data-i18n="catOjja"></span></a>
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🍲"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/MarqaPoulet.jpg?width=240" alt="" loading="lazy" /></span><span data-i18n="catMarqa"></span></a>
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🥗"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/SaladeMechouia%202013.JPG?width=240" alt="" loading="lazy" /></span><span data-i18n="catSalade"></span></a>
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🥮"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Makroudh%20P%C3%A2tisserie%20tunisienne%2001.jpg?width=240" alt="" loading="lazy" /></span><span data-i18n="catDouceurs"></span></a>
+        <a class="cat-card" href="recherche.html"><span class="ph" data-fallback="🌯"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pain%20Tabouna%2C%20Lamta%20Tunisie%2C%20mai%202013.jpg?width=240" alt="" loading="lazy" /></span><span data-i18n="catPain"></span></a>
+      </div>
+
+      <!-- Nouveautés : une vedette + 2 cartes, pas d'accumulation -->
+      <div class="section-head">
+        <div><span class="eyebrow">by chef Souhed</span><h2 data-i18n="secNew"></h2></div>
+        <a class="more" href="recherche.html" data-i18n="seeAll"></a>
+      </div>
+      <div class="rgrid">
+        <a class="rcard featured" href="recette.html">
+          <div class="ph" data-fallback="🥟"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tunisian%20Briks.JPG?width=720" alt="Brik à l'œuf" loading="lazy" /></div>
+          <span class="overlay-title">Brik à l'œuf <span class="muted" style="color:rgba(255,255,255,.85);font-weight:600">· nouveau du chef</span></span>
+        </a>
+        <a class="rcard" href="recette.html">
+          <div class="ph" data-fallback="🍜"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Lablabi.jpg?width=480" alt="Lablabi" loading="lazy" /></div>
+          <div class="rbody"><span class="rtitle">Lablabi</span><span class="rmeta">45 min · 3 / 8</span></div>
+        </a>
+      </div>
+
+      <div class="banner banner-install">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+        <div class="grow" style="flex:1">Installez Chnawa Ntayeb sur votre écran d'accueil.</div>
+        <button class="btn btn-secondary">Installer</button>
+        <button class="icon-btn" aria-label="Fermer le bandeau"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </main>
+
+    <aside class="ad-rail" aria-label="Colonne publicitaire">
+      <div class="adslot adslot--v300" data-ad-id="home_side_1"><span class="adslot-label" data-i18n="adLabel"></span><span class="adslot-box">300 × 600<br />colonne latérale desktop</span></div>
+    </aside>
+  </div>
+
+  <nav class="bottomnav" aria-label="Navigation principale">
+    <a class="nav" href="accueil.html" aria-current="page"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5M9 21v-6h6v6"/></svg><span data-i18n="navHome"></span></a>
+    <a class="nav" href="frigo.html"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M5 10h14M9 5.5v2M9 13v3.5"/></svg><span data-i18n="navFridge"></span><span class="badge" aria-label="9 ingrédients">9</span></a>
+    <a class="nav" href="recherche.html"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 1-2 3-2 5 0 2 1 3 2 3s2-1 2-3c0-2-.5-4-2-5zM17 11v10"/></svg><span data-i18n="navRecipes"></span></a>
+    <a class="nav" href="planning.html"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span data-i18n="navWeekly"></span></a>
+    <a class="nav" href="courses.html"><svg class="ic" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 12h-11zM8 8V6a4 4 0 0 1 8 0v2"/></svg><span data-i18n="navGrocery"></span></a>
+  </nav>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

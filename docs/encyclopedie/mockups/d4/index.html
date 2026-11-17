@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquettes D4 — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="frame-wrap"><div class="frame" data-w="1280">
+  <h1>Maquettes D4 — Chnawa Ntayeb · by chef Souhed</h1>
+  <p class="muted"><b>v4.6 (consolidation) :</b> correspondance affichée depuis des résultats déclarés + scénarios testés, listes de courses interactives, interface des composants traduite (contenus restants : D-31), navigation accessible, 6 recettes complètes, captures réelles. <b>v4.5 :</b> <b>tous les écrans produit sont générés depuis des schémas de blocs</b> (59 composants réutilisables, une source de données) — mode d'emploi : <code>LISEZMOI.md</code>. <b>v4.4 :</b> maquettes décomposées en composants réutilisables (CMS) ; recettes, filtres et planning retenus implémentés. <b>v4.3 :</b> navigation desktop « Pastilles » retenue + variantes Éditorial / Dock, état invité, grand frigo, page de propositions. <b>v4.2 :</b> navigation desktop en barre haute, avatar de profil, panneaux notifications / profil, carrousel horizontal. Version issue de l'<a href="audit.html"><b>audit UX/UI du 17/11/2026</b></a>, construite sur le paquet D3
+(archivé hors dépôt). Pages HTML autonomes, aucun lien avec l'application : tout est
+  <span class="level level-simule">simulé</span> ou <span class="level level-illustre">illustré</span>. Pastille « ⚙ Démo » :
+  direction (<b>C vive, par défaut</b> · A · B · FK), clair/sombre, 4 langues pour l’interface (RTL réel ; certains contenus restent en français — D-31), <b>Notes</b> (annotations de conception
+  masquables), <b>Réseau</b> (hors ligne simulé), pub.</p>
+
+  <section class="demo card">
+    <h2>Commencer ici</h2>
+    <div class="list">
+      <a class="list-item" href="audit.html"><div class="grow"><span class="title">Rapport d'audit, direction UX/UI, parcours, validation et décisions</span><br /><span class="muted">inventaire · 65 constats P0–P3 · ce qui est corrigé en D4 · 33 décisions dont 24 ouvertes</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="captures.html"><div class="grow"><span class="title">Captures réelles du navigateur (v4.6)</span><br /><span class="muted">76 captures : 8 pages × 6 largeurs, arabe, sombre, états ; mesures de débordement / images / blocs</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="scenarios.html"><div class="grow"><span class="title">Scénarios de correspondance — tests d'affichage (v4.6)</span><br /><span class="muted">9 tests : substitution acceptée / refusée, ingrédient épuisé, quantité inconnue — attendu vs affiché</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="composants-cms.html"><div class="grow"><span class="title">Bibliothèque de composants CMS (v4.5)</span><br /><span class="muted">59 composants en 7 familles, props documentées, emplacements, aperçus réels</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="recherche.html"><div class="grow"><span class="title">Recettes : étals · mosaïque · « Ce soir je mange… » + filtres phrase / ingrédients / puces (v4.4)</span><br /><span class="muted">page entièrement composée de blocs CMS</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="planning.html"><div class="grow"><span class="title">Menu de la semaine : bande des jours + Ramadan, restes, portions, WhatsApp (v4.4)</span><br /><span class="muted">page entièrement composée de blocs CMS</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="propositions.html"><div class="grow"><span class="title">Propositions (v4.3) — R1 R2 R3 F1 F2 F3 P1 P3 retenues et appliquées</span><br /><span class="muted">liste des recettes, filtres, menu de la semaine, 12 améliorations pour tout le site</span></div><span class="level level-simule">🚩 à choisir</span></a>
+      <a class="list-item" href="accueil-c.html"><div class="grow"><span class="title">Accueil C — composition retenue ✅ (6 états)</span><br /><span class="muted">idée du soir photographiée + raison · frigo d'un coup d'œil · suggestions · favoris / planning / courses · découverte culinaire</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="identite.html"><div class="grow"><span class="title">Identité de marque + fichiers à fournir (v4.2)</span><br /><span class="muted">liste des logos, icônes et images de marque avec leurs dimensions ; palette vive, typographie, direction photo</span></div><span class="level level-simule">🚩 à valider</span></a>
+      <a class="list-item" href="connexion.html"><div class="grow"><span class="title">Connexion / création de compte (v4.3)</span><br /><span class="muted">état invité sur toutes les pages : pastille Démo › Compte › Invité</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="frigo.html#big"><div class="grow"><span class="title">Frigo avec 64 ingrédients (v4.3)</span><br /><span class="muted">recherche dans le frigo, catégories en carrousel, Liste / Mosaïque, tri, « Voir les N autres »</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="carrousel.html"><div class="grow"><span class="title">Carrousel horizontal + 16 catégories (v4.2)</span><br /><span class="muted">défilement au doigt sur mobile, flèches au milieu sur desktop ; cas avec et sans défilement</span></div><span class="level level-simule">nouveau</span></a>
+      <a class="list-item" href="profil.html"><div class="grow"><span class="title">Profil (v4.2)</span><br /><span class="muted">l'avatar remplace Réglages : panneau sur desktop, cet écran sur mobile</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="registre.html#v4"><div class="grow"><span class="title">Registre des décisions</span><br /><span class="muted">historique D3 + décisions ouvertes de l'audit (D-01 à D-17)</span></div><span class="muted">→</span></a>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Écrans réécrits en D4 (jeu de données unique)</h2>
+    <div class="list">
+      <a class="list-item" href="frigo.html"><div class="grow"><span class="title">Mon Frigo</span><br /><span class="muted">5 états d'ingrédient (avec / sans quantité, épuisé, retiré + Annuler, modifié), ajout sans quantité, photo à côté de la recherche</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="suggestions.html"><div class="grow"><span class="title">Mes suggestions</span><br /><span class="muted">3 niveaux 1 / 2 / 2, raison sur chaque carte, explication repliée en langage courant</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="recette.html"><div class="grow"><span class="title">Fiche recette (Ojja merguez)</span><br /><span class="muted">préparation · cuisson · difficulté · portions, 8 ingrédients à 3 états, substitution explicite, actions selon la situation</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="mode-cuisine.html"><div class="grow"><span class="title">Mode cuisine</span><br /><span class="muted">mêmes 5 étapes que la fiche, minuteur qui fonctionne, ingrédients de l'étape + feuille « tous les ingrédients », sortie neutre</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="courses.html"><div class="grow"><span class="title">Courses (liste active)</span><br /><span class="muted">progression ≠ budget, « Dans le panier », ajout au pouce, fourchettes de prix</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="liste-detail.html"><div class="grow"><span class="title">Mes listes (gérer)</span><br /><span class="muted">créer, renommer, vider les cochés, rendre active, supprimer (confirmation)</span></div><span class="level level-simule">réécrit</span></a>
+      <a class="list-item" href="scan.html"><div class="grow"><span class="title">Scan photo du frigo</span><br /><span class="muted">appareil photo natif, analyse, propositions corrigibles (liste), ajout d'un oubli, doublon, erreurs, hors ligne</span></div><span class="level level-simule">réécrit</span></a>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Écrans D3 mis en cohérence</h2>
+    <div class="list">
+      <a class="list-item" href="accueil.html"><div class="grow"><span class="title">Accueil A « éditorial » — archive (non retenu)</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="accueil-b.html"><div class="grow"><span class="title">Accueil B « tableau de bord » — archive (non retenu)</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="recherche.html"><div class="grow"><span class="title">Recherche de recettes</span><br /><span class="muted">prix en fourchette, scores alignés, doublon « Kosksi » supprimé</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="planning.html"><div class="grow"><span class="title">Menu de la semaine</span><br /><span class="muted">créneaux = vrais boutons, « aujourd'hui », manquants par repas, jours derja corrigés</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="favoris.html"><div class="grow"><span class="title">Favoris et hors ligne</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="notifications.html"><div class="grow"><span class="title">Notifications (v4.1)</span><br /><span class="muted">desktop : panneau sous la cloche de chaque page + « Voir toutes » ; mobile : cet écran dédié</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="bienvenue.html"><div class="grow"><span class="title">Bienvenue</span><br /><span class="muted">langue et thème appliqués immédiatement</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="onboarding.html"><div class="grow"><span class="title">Onboarding du frigo</span><br /><span class="muted">puces réellement sélectionnables, aucune quantité demandée</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="profil.html"><div class="grow"><span class="title">Profil et réglages</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="historique.html"><div class="grow"><span class="title">Historique</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="parcours.html"><div class="grow"><span class="title">Parcours (démo D3)</span><br /><span class="muted">les parcours à jour sont décrits dans audit.html § Parcours</span></div><span class="muted">→</span></a>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Fondations, composants, vérifications</h2>
+    <div class="list">
+      <a class="list-item" href="responsive.html"><div class="grow"><span class="title">Vérification responsive en vraies fenêtres</span><br /><span class="muted">écrans D4 à 320 · 375 · 390 · 768 · 1024 · 1280 px</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="composants.html"><div class="grow"><span class="title">Registre des composants (D3)</span><br /><span class="muted">complété par audit.html § Design system</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="fondations.html"><div class="grow"><span class="title">Fondations (tokens, contrastes)</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="medias.html"><div class="grow"><span class="title">Photos et médias</span></div><span class="muted">→</span></a>
+      <a class="list-item" href="publicite.html"><div class="grow"><span class="title">Emplacements publicitaires</span></div><span class="muted">→</span></a>
+      <div class="list-item"><div class="grow"><span class="title">Composants isolés (D3)</span><br /><span class="muted"><a href="boutons.html">boutons</a> · <a href="champs.html">champs</a> · <a href="modale.html">fenêtre</a> · <a href="listes.html">listes</a> · <a href="pastilles.html">pastilles</a> · <a href="bandeaux.html">bandeaux</a> · <a href="onglets.html">onglets</a> · <a href="shell.html">shell</a></span></div></div>
+    </div>
+  </section>
+
+  <p class="muted" style="font-size:11px">Outil : <code>node tools/contrast-check.mjs</code> (contrastes des 4 directions, clair et sombre).
+  Photos : toutes temporaires (Wikimedia Commons, mention « photo temporaire » sur chaque image) — décision D-14.</p>
+</div></div>
+</body>
+</html>

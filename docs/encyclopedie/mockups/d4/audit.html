@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Audit UX/UI — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<style>
+  .doc { max-width: 980px; margin-inline: auto; padding: var(--sp-4) var(--sp-3) var(--sp-6); }
+  .doc h1 { font-size: clamp(24px, 4vw, 32px); margin-top: 0; }
+  .doc h2 { font-size: 21px; margin-top: var(--sp-6); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+  .doc h3 { font-size: 16px; margin-top: var(--sp-5); }
+  .doc p, .doc li { font-size: 15px; }
+  .toc { columns: 2; column-gap: var(--sp-5); font-size: 14px; padding-inline-start: 18px; }
+  @media (max-width: 600px) { .toc { columns: 1; } }
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-field); background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: start; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { background: var(--surface); font-size: 12px; position: sticky; top: 0; }
+  tr:last-child td { border-bottom: none; }
+  .p0, .p1, .p2, .p3 { display: inline-block; font-weight: 800; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .p0 { color: var(--danger-text); } .p1 { color: var(--warning-text); } .p2 { color: var(--info-text); } .p3 { color: var(--ink-muted); }
+  .st { font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .st.ok { color: var(--success-text); } .st.dec { color: var(--warning-text); } .st.todo { color: var(--ink-muted); }
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-2); }
+  .kpi > div { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-field); padding: var(--sp-3); }
+  .kpi b { font-size: 24px; display: block; }
+  .cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-3); }
+  .cmp .card h3 { margin-top: 0; }
+  code { font-size: 12.5px; }
+</style>
+</head>
+<body>
+<main class="doc">
+  <p class="muted" style="margin:0"><a href="index.html">← Maquettes D4</a> · 17 novembre 2026</p>
+  <h1>Audit UX/UI des maquettes — Chnawa Ntayeb</h1>
+  <p><b>Objet :</b> audit indépendant du paquet <code>mockups/d3</code> (lot 2.1) et livraison d'un paquet amélioré
+  <code>mockups/d4</code>. D3 est conservé intact pour comparaison. Le code de l'application (<code>src/</code>) n'a pas été modifié.</p>
+
+  <section class="card" style="margin-top:var(--sp-4)">
+    <h2 style="margin-top:0;border:none;padding:0">Verdict en bref</h2>
+    <p>Le paquet D3 est <b>riche et sérieux sur le fond</b> (tokens sémantiques, cibles 44 px, RTL logique, publicité encadrée,
+    honnêteté du matching affirmée) mais il <b>ne tenait pas sa promesse principale</b> : les écrans se contredisaient entre eux
+    (même recette, chiffres différents ; même liste de courses, trois totaux), la règle « une quantité inconnue n'est jamais
+    garantie » était violée sur la recette mise en avant, <b>6 photos sur 8 ne s'affichaient pas</b> (les cartes s'effondraient
+    à zéro hauteur), et la pastille de démonstration couvrait tout l'écran mobile. Visuellement, l'identité A reste
+    <b>proche d'un gabarit générique</b> (vert + terracotta + Plus Jakarta Sans, emojis en guise d'icônes) : la personnalité vient
+    presque uniquement des photos — d'où l'importance de photos fiables.</p>
+    <p style="margin-bottom:0">D4 corrige ce qui était clair (cohérence, photos, RTL, accessibilité, états manquants, ergonomie du frigo,
+    des courses, du mode cuisine et du scan), ajoute une <b>composition d'accueil recommandée</b> (C) et une <b>proposition
+    d'identité</b> (C « Zitouna ») — toutes deux à arbitrer. 24 décisions restent ouvertes, 9 sont validées (§ 11).</p>
+  </section>
+
+  <div class="kpi" style="margin-top:var(--sp-3)">
+    <div><b>38</b><span class="muted">pages HTML inspectées</span></div>
+    <div><b id="k-total">–</b><span class="muted" id="k-split">constats</span></div>
+    <div><b id="k-fixed">–</b><span class="muted">corrigés dans D4 (dont partiels)</span></div>
+    <div><b>24</b><span class="muted">décisions ouvertes (9 validées)</span></div>
+  </div>
+
+  <h2>Sommaire</h2>
+  <ol class="toc">
+    <li><a href="#inventaire">Inventaire</a></li>
+    <li><a href="#forts">Points forts</a></li>
+    <li><a href="#constats">Constats priorisés (P0–P3)</a></li>
+    <li><a href="#direction">Direction UX/UI et identité</a></li>
+    <li><a href="#accueil">Accueil : trois compositions</a></li>
+    <li><a href="#ecrans">Propositions par écran</a></li>
+    <li><a href="#donnees">Jeu de données de démonstration</a></li>
+    <li><a href="#parcours">Parcours documentés</a></li>
+    <li><a href="#ds">Design system consolidé</a></li>
+    <li><a href="#validation">Rapport de validation</a></li>
+    <li><a href="#decisions">Décisions à arbitrer</a></li>
+    <li><a href="#paquet">Contenu du paquet D4</a></li>
+    <li><a href="#v41">Itération v4.1 (retours du chef)</a></li>
+    <li><a href="#v42">Itération v4.2 (profil, navigation, carrousel)</a></li>
+    <li><a href="#v43">Itération v4.3 (invité, grand frigo, propositions)</a></li>
+    <li><a href="#v44">Itération v4.4 (composants CMS, recettes, filtres, planning)</a></li>
+    <li><a href="#v45">Itération v4.5 (tous les écrans en composants)</a></li>
+    <li><a href="#v46">Consolidation v4.6 (revue externe)</a></li>
+  </ol>
+
+  <!-- ================================================================ -->
+  <h2 id="inventaire">1. Inventaire (D3, tel que reçu)</h2>
+  <p><b>Fichiers :</b> 38 pages HTML, <code>assets/d3.css</code> (819 lignes, ~50 ko), <code>assets/d3.js</code> (606 lignes, ~43 ko),
+  <code>tools/contrast-check.mjs</code>, <code>benchmark/</code> (sources de 6 prototypes de diagrammes + <code>dist/</code> de 1,9 Mo
+  et <code>node_modules/</code> — ignorés par Git) et un journal <code>vite-preview.log</code>. Le dossier <code>d3/</code> entier
+  n'est pas suivi par Git (aucun historique) : c'est pourquoi D4 est une copie et non une modification en place.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Famille</th><th>Pages</th><th>Observation</th></tr></thead>
+    <tbody>
+      <tr><td>Écrans produit (22)</td><td>accueil (A), accueil-b (B), recherche, frigo, suggestions, recette, mode-cuisine, courses, liste-detail, planning, favoris, notifications, historique, profil, bienvenue, onboarding, scan</td><td>Tous les modules du cahier des charges sont représentés. Le profil embarque en plus « préférences alimentaires », « statistiques », « photos et médias ».</td></tr>
+      <tr><td>Composants isolés (10)</td><td>fondations, boutons, champs, modale, listes, pastilles, bandeaux, onglets, shell, composants (registre de 15 familles)</td><td>Bonne base. Manquent : barre « Annuler », feuille d'édition réelle, sélecteur de liste, minuteur, états d'erreur des écrans.</td></tr>
+      <tr><td>Études et vérifications (6)</td><td>parcours, responsive, medias, publicite, diagrammes, registre</td><td>responsive.html chargeait ~70 iframes d'un coup ; 390 et 1024 px absents.</td></tr>
+      <tr><td>Thèmes</td><td>A « classique » (app actuelle), B « ardoise + safran », FK « fkhar · Nabeul » × clair/sombre</td><td>Bascule par page. FK clair : bordure de champ à 2,43:1 (échec signalé par l'outil du paquet lui-même).</td></tr>
+      <tr><td>Langues</td><td>fr, derja latine, arabe, derja arabe (RTL réel)</td><td>Traduction partielle assumée (notes en français), mais aussi des textes français écrits par-dessus les traductions par le JavaScript.</td></tr>
+      <tr><td>Interactions simulées</td><td>fenêtre (Échap / clic extérieur / focus), combobox, onglets ARIA, pagination, favoris, cases à cocher, scan en 4 états, mode cuisine</td><td>Minuteur non fonctionnel ; « Tout marquer comme lu » vidait la liste.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Absent ou incomplet dans D3 :</b> état « ingrédient épuisé » ; temps de préparation / cuisson / difficulté sur la recette ;
+  distinction favori / hors ligne ; accès aux favoris hors Réglages ; correction réelle d'une proposition du scan (on pouvait
+  seulement décocher) ; ajout d'un ingrédient oublié par le scan ; états d'erreur du scan ; accueil « nouvel utilisateur » et
+  « courses en cours » distincts ; parcours hors ligne visible ; préférences de notifications au-delà de 2 interrupteurs.
+  <b>Information métier non fournie</b> (et non supposée en silence) : règle de classement d'une recette sans manquant mais avec
+  une quantité à vérifier (D-02) ; statut des ingrédients de base (D-03) ; existence d'une notion « sauvegardée » distincte du favori (D-07).</p>
+
+  <!-- ================================================================ -->
+  <h2 id="forts">2. Points forts à conserver</h2>
+  <ul>
+    <li><b>Honnêteté du matching</b> posée comme principe (« jamais un oui trompeur »), niveaux nommés en langage courant.</li>
+    <li><b>Tokens sémantiques</b> (danger / succès / avertissement / info) indépendants de la direction : un rouge reste un rouge.</li>
+    <li><b>Propriétés logiques</b> (<code>inset-inline</code>, <code>margin-inline</code>) quasi partout : le RTL tient structurellement.</li>
+    <li><b>Publicité encadrée</b> : place réservée (CLS nul), libellé permanent, interdits clairs (cuisine, formulaires, onboarding).</li>
+    <li><b>Mode cuisine</b> pensé « mains occupées » : une étape, gros boutons, pas de navigation.</li>
+    <li><b>Performance</b> : aucune bibliothèque, CSS/JS légers, <code>loading="lazy"</code>, <code>aspect-ratio</code>, <code>prefers-reduced-motion</code>.</li>
+    <li><b>Registre des décisions</b> : rien n'est présenté comme validé implicitement.</li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="constats">3. Constats priorisés</h2>
+  <p>P0 = bloquant ou incohérence majeure · P1 = important · P2 = souhaitable · P3 = détail.
+  Statut : <span class="st ok">corrigé D4</span> · <span class="st dec">décision</span> · <span class="st todo">à faire (implémentation)</span>.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>ID</th><th>Prio.</th><th>Page / composant</th><th>Constat</th><th>Impact utilisateur</th><th>Correction</th><th>Statut</th></tr></thead>
+    <tbody>
+      <tr><td>C-01</td><td><span class="p0">P0</span></td><td>recette, mode-cuisine, accueil</td><td>La même Ojja a « 8 sur 9 » mais la liste n'en montre que 6 ; les étapes diffèrent entre fiche et mode cuisine (carottes, coriandre, « pochez » vs « rondelles »).</td><td>Perte de confiance dans le cœur du produit.</td><td>Jeu de données unique (§ 7), 8 ingrédients listés, 5 étapes identiques partout.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>C-04</td><td><span class="p0">P0</span></td><td>accueil, suggestions</td><td>Salade mechouia « Prête à cuisiner 5/5 » alors qu'elle exige piment (quantité inconnue) et huile (« stock, jamais suffisant »).</td><td>Viole la règle n°1 du cahier des charges : une recette semble garantie à tort.</td><td>Mechouia → Presque prête (thon à acheter, piment à vérifier) ; Prête = Chakchouka, entièrement en quantités connues.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>C-02</td><td><span class="p0">P0</span></td><td>courses, liste-detail, accueil</td><td>Liste « Week-end » : puce « 4 », 5 lignes, « 3 cochés sur 6 » (1 coché), « 2 / 6 » ailleurs ; oignons à acheter alors qu'il y en a 5 au frigo.</td><td>On ne sait plus ce qui reste à acheter.</td><td>6 articles, 2 achetés, mêmes chiffres partout, progression calculée sur la liste complète.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>P-01</td><td><span class="p0">P0</span></td><td>toutes les pages photo</td><td>6 URL Wikimedia sur 8 inexistantes (Ojja, mechouia, brik, couscous ×2, makroudh) ; « Marqa jout » aussi.</td><td>Application perçue vide, sans appétit ; revue visuelle impossible.</td><td>URLs vérifiées une à une dans le navigateur ; photo cohérente par plat ; mention « photo temporaire ».</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>P-02</td><td><span class="p0">P0</span></td><td>cartes recette</td><td>Photo cassée → <code>.ph</code> sans ratio → carte à 0 px de haut (la vedette « Brik » disparaissait).</td><td>Contenu qui saute et disparaît (CLS).</td><td>Ratio réservé sur toute carte (4:3, 16:10, 1:1) + <code>width/height</code>.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-01</td><td><span class="p0">P0</span></td><td>pastille Démo (toutes)</td><td>Ouverte par défaut et étirée sur toute la hauteur (<code>top:0</code> hérité) : couvre l'écran mobile.</td><td>Maquettes inutilisables sur téléphone.</td><td>Repliée sous 1024 px, hauteur corrigée, placée en haut sous l'en-tête.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>R-01</td><td><span class="p0">P0</span></td><td>badges, prix (RTL)</td><td>En arabe, « 8 / 9 » s'affiche « 9 / 8 » et « 4,20 – 5,10 » devient « 5,10 – 4,20 ».</td><td>Score et prix faux pour tout lecteur arabophone.</td><td>Isolation bidi (<code>.num</code>, badges en LTR isolé).</td><td class="st ok">corrigé D4</td></tr>
+
+      <tr><td>M-01</td><td><span class="p1">P1</span></td><td>frigo, onboarding</td><td>Deux notions concurrentes pour « je l'ai sans quantité » : « Présence (stock) » (huile) et « Quantité à vérifier » (piment), affichée comme alerte.</td><td>Confusion ; ressenti « l'app me reproche de ne pas saisir ».</td><td>Une seule notion neutre « quantité non renseignée » au frigo ; « à vérifier » réservé à la recette.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>M-02</td><td><span class="p1">P1</span></td><td>frigo</td><td>Pas d'état « épuisé » (exigé).</td><td>On supprime puis on ressaisit.</td><td>« Je n'en ai plus » : la ligne reste, barrée, reliée à la liste de courses.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>M-03</td><td><span class="p1">P1</span></td><td>règles de niveau</td><td>« 0 manquant + 1 à vérifier » n'est classé par aucune règle ; le texte de suggestions et le registre se contredisent sur « Presque ».</td><td>Comportement imprévisible.</td><td>Proposition : Presque prête + mention.</td><td class="st dec">D-02</td></tr>
+      <tr><td>M-04</td><td><span class="p1">P1</span></td><td>scan</td><td>Correction = décocher seulement ; confiance en % ; pas d'ajout d'oubli ; pas d'erreur ni d'état hors ligne ; photo de tomates au lieu d'un frigo.</td><td>L'IA fait une erreur → l'utilisateur ne peut pas la rattraper.</td><td>Liste de correction, ajout d'oubli, doublon décoché, confiance en mots, erreurs, hors ligne, appareil photo natif.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>M-05</td><td><span class="p1">P1</span></td><td>recette</td><td>Pas de temps de préparation / cuisson, ni difficulté ; portions non modifiables.</td><td>Informations exigées absentes.</td><td>Bandeau de 4 informations + sélecteur de portions.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>C-05</td><td><span class="p1">P1</span></td><td>suggestions, recette</td><td>Substitution « coriandre → cumin » alors que la coriandre est dans le frigo.</td><td>Substitution absurde, crédibilité.</td><td>Harissa (épuisée) → piment + ail (présents), proposée et acceptée explicitement.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>C-06</td><td><span class="p1">P1</span></td><td>favoris, historique, profil</td><td>Mechouia favorite d'un côté, pas de l'autre ; profil « 7 favoris » pour 2 affichés.</td><td>Incohérence.</td><td>2 favoris partout.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>C-07</td><td><span class="p1">P1</span></td><td>courses / liste-detail</td><td>Deux écrans pour la même liste, avec des chiffres différents.</td><td>Doublon, confusion.</td><td>Faire ses courses / gérer les listes.</td><td class="st dec">D-08 (appliqué)</td></tr>
+      <tr><td>C-08</td><td><span class="p1">P1</span></td><td>accueil A et B</td><td>« Cuisiner ce soir » ouvre directement le mode cuisine alors qu'il manque des ingrédients.</td><td>On découvre le manque en pleine préparation.</td><td>Mène à la fiche (situation + achats d'abord).</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>E-06</td><td><span class="p1">P1</span></td><td>recette</td><td>Action principale « Cuisiner maintenant » même avec 2 manquants.</td><td>Incite à une préparation impossible.</td><td>Presque prête : « Ajouter les 2 manquants » en premier ; Prête : mode cuisine en premier.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>E-04</td><td><span class="p1">P1</span></td><td>mode cuisine</td><td>Sortie en bouton rouge « danger » ; minuteur décoratif ; aucun accès aux quantités ; libellés écrasés en français.</td><td>Stress inutile ; on doit quitter pour relire une quantité.</td><td>Croix neutre, minuteur réel, ingrédients de l'étape + feuille complète, i18n.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>F-01</td><td><span class="p1">P1</span></td><td>favoris, recette</td><td>Favori / sauvegardé / hors ligne non distingués.</td><td>L'utilisateur croit qu'un favori est disponible sans réseau.</td><td>Deux gestes, deux icônes (♥ / ⤓).</td><td class="st dec">D-07</td></tr>
+      <tr><td>N-03</td><td><span class="p1">P1</span></td><td>navigation</td><td>Favoris joignables seulement par Réglages › Favoris.</td><td>Fonction clé introuvable.</td><td>Onglet « Favoris » dans Recettes.</td><td class="st dec">D-06 (appliqué)</td></tr>
+      <tr><td>F-04</td><td><span class="p1">P1</span></td><td>notifications</td><td>« Tout marquer comme lu » masque toute la liste et affiche l'état vide ; une notification reproche une quantité non saisie.</td><td>Perte d'historique ; notification culpabilisante contraire à « quantité facultative ».</td><td>Marquer lu garde la liste ; notification remplacée par « Ce soir : 2 ingrédients à acheter ».</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>L-01</td><td><span class="p1">P1</span></td><td>planning (derja)</td><td>Jours décalés : lundi = « tlet » (mardi), mardi = « arbda »…</td><td>Planning faux en derja.</td><td>Jours corrigés.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>L-04</td><td><span class="p1">P1</span></td><td>accueil (arabe)</td><td>Le texte « arabe » du titre était en derja.</td><td>Registre de langue incohérent.</td><td>MSA pour <code>ar</code>.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>L-02</td><td><span class="p1">P1</span></td><td>toutes</td><td>Qualité derja non garantie (« 3odhma » pour légumes, « El vesh » pour midi…).</td><td>Traductions perçues artificielles.</td><td>Relecture native.</td><td class="st dec">D-15</td></tr>
+      <tr><td>R-04</td><td><span class="p1">P1</span></td><td>mode cuisine, bienvenue</td><td>Le JS réécrit des libellés en français après la traduction (« Étape 2 sur 5 », « Suivant », « Remplir mon frigo »).</td><td>Langue mélangée en RTL.</td><td>Libellés passés par <code>D4.t()</code>.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>X-01</td><td><span class="p1">P1</span></td><td>FK clair</td><td>Bordure de champ 2,43:1 (&lt; 3:1).</td><td>Champs peu visibles.</td><td><code>#9a8763</code> → 3,40:1.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>X-02</td><td><span class="p1">P1</span></td><td>notifications</td><td>Notifications lues à 62 % d'opacité : texte sous 4,5:1.</td><td>Illisible pour les malvoyants.</td><td>Opacité pleine, graisse réduite.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>X-04</td><td><span class="p1">P1</span></td><td>planning</td><td>Créneaux en <code>div</code> : ni clavier ni lecteur d'écran.</td><td>Planning inutilisable au clavier.</td><td>Boutons / liens avec libellé.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>L-03</td><td><span class="p1">P1</span></td><td>cloche</td><td>La traduction remplaçait « (2 non lues) » par « Notifications ».</td><td>Le lecteur d'écran perd le compteur.</td><td>Libellé interpolé « Notifications, 2 non lues ».</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>P-05</td><td><span class="p1">P1</span></td><td>recherche</td><td>Prix uniques (4,80 DT…) contre la convention de fourchette.</td><td>Fausse précision.</td><td>Fourchettes.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>N-05</td><td><span class="p1">P1</span></td><td>accueil A</td><td>Bandeau d'installation en bas de page (convention : sous l'en-tête).</td><td>Jamais vu.</td><td>Remonté sous l'en-tête (accueil C).</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>V-01</td><td><span class="p1">P1</span></td><td>identité</td><td>A = combinaison très répandue (vert + terracotta + sans-serif géométrique) ; personnalité portée par les seules photos.</td><td>Produit interchangeable.</td><td>Proposition C « Zitouna » + titres Fraunces.</td><td class="st dec">D-04</td></tr>
+      <tr><td>A-03</td><td><span class="p1">P1</span></td><td>toutes</td><td>Notes de conception mêlées aux textes de l'écran (« convention », noms de fonctions, chemins d'API).</td><td>Impossible de juger l'écran tel que le verra l'utilisateur.</td><td>Classe <code>.anno</code> + bascule « Notes ».</td><td class="st ok">corrigé D4 (écrans réécrits)</td></tr>
+      <tr><td>Q-02</td><td><span class="p1">P1</span></td><td>responsive.html</td><td>~70 iframes chargées d'un coup ; 390 et 1024 px absents.</td><td>Page de revue lente, couverture incomplète.</td><td>Chargement différé + 6 largeurs pour les écrans D4.</td><td class="st ok">corrigé D4</td></tr>
+
+      <tr><td>E-01</td><td><span class="p2">P2</span></td><td>frigo</td><td>Un stepper −/+ et une corbeille sur chaque ligne.</td><td>Écran chargé, saisie de quantité suggérée comme obligatoire.</td><td>Quantité en texte + crayon → feuille ; « Ajouter une quantité » si absente.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>E-02</td><td><span class="p2">P2</span></td><td>frigo</td><td>Bloc de reconnaissance photo dupliqué de scan.html.</td><td>Deux parcours pour la même chose.</td><td>Bouton photo à côté de la recherche.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>E-03</td><td><span class="p2">P2</span></td><td>frigo</td><td>Fenêtre de confirmation pour un retrait réversible.</td><td>Friction.</td><td>Barre « Annuler » 6 s.</td><td class="st dec">D-17 (appliqué)</td></tr>
+      <tr><td>E-07</td><td><span class="p2">P2</span></td><td>accueil A/B</td><td>4 actions rapides qui doublonnent la barre basse (Frigo, Courses).</td><td>Densité sans valeur.</td><td>Accueil C : actions intégrées au contexte.</td><td class="st dec">D-01</td></tr>
+      <tr><td>E-08</td><td><span class="p2">P2</span></td><td>courses</td><td>Article coché barré au milieu de la liste ; budget et progression utilisent la même barre verte.</td><td>Lecture difficile en magasin.</td><td>« Dans le panier » replié ; progression ≠ budget.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>E-09</td><td><span class="p2">P2</span></td><td>suggestions</td><td>Paragraphe de règles techniques en tête.</td><td>Jargon.</td><td>« Comment c'est classé ? » replié + raison sur chaque carte.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>R-02</td><td><span class="p2">P2</span></td><td>en-têtes, fil d'ariane</td><td>Chevrons et « › » non inversés en RTL.</td><td>Direction de retour ambiguë.</td><td><code>.flip-rtl</code>.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>R-03</td><td><span class="p2">P2</span></td><td>pages D3 non réécrites</td><td>Descriptions restées en français dans les 3 autres langues.</td><td>Revue RTL partielle.</td><td>Écrans réécrits : chrome traduit ; descriptions à fournir par l'i18n réelle.</td><td class="st todo">à faire</td></tr>
+      <tr><td>X-03</td><td><span class="p2">P2</span></td><td>puces de filtre</td><td>Sélection portée par la couleur seule.</td><td>Daltoniens.</td><td>Coche « ✓ » ajoutée.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>X-05</td><td><span class="p2">P2</span></td><td>listes</td><td>Corbeille en emoji 🗑 ; icône Réglages ressemblant à un soleil ; icône Frigo = verre à pied.</td><td>Icônes ambiguës, rendu variable selon l'OS.</td><td>Icônes SVG au trait.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>X-06</td><td><span class="p2">P2</span></td><td>bienvenue</td><td>Sélecteur de langue sans <code>label</code> associé, choix sans effet ; thème annoncé mais absent.</td><td>Réglage inopérant.</td><td>Label associé, langue et thème appliqués.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>N-01</td><td><span class="p2">P2</span></td><td>toutes</td><td>En-tête et deux navigations recopiés dans 22 pages.</td><td>Incohérences (B sans page active).</td><td>Shell généré depuis une définition (écrans D4).</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>N-02</td><td><span class="p2">P2</span></td><td>barre basse</td><td>« Menu Semaine » sur deux lignes décale son icône.</td><td>Barre irrégulière.</td><td>Icônes alignées ; libellé court proposé.</td><td class="st dec">D-11</td></tr>
+      <tr><td>N-04</td><td><span class="p2">P2</span></td><td>frigo, courses</td><td>Flèche retour sur des destinations de premier niveau.</td><td>Modèle mental flou.</td><td>Retirée sur les destinations.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>N-06</td><td><span class="p2">P2</span></td><td>desktop</td><td>Marque affichée deux fois (en-tête + colonne).</td><td>Bruit.</td><td>Une seule fois.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>V-02</td><td><span class="p2">P2</span></td><td>A sombre</td><td>Cartes ardoise (<code>#1e293b</code>) sur fond vert-noir : deux familles de couleur.</td><td>Sombre « bricolé ».</td><td>Proposé dans C sombre (bruns chauds).</td><td class="st dec">D-04</td></tr>
+      <tr><td>V-03</td><td><span class="p2">P2</span></td><td>actions, rayons, repli photo</td><td>Emojis utilisés comme icônes et comme repli de photo.</td><td>Rendu enfantin, variable selon OS.</td><td>SVG pour les actions ; emoji conservé seulement comme vignette d'ingrédient sans photo (D-14).</td><td class="st ok">partiel</td></tr>
+      <tr><td>P-03</td><td><span class="p2">P2</span></td><td>catégories</td><td>« Marqa » illustrée par un lablabi, « Pains » par un sandwich, scan par des tomates.</td><td>Incohérence photo / libellé.</td><td>Photo juste pour chaque catégorie.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>D-12</td><td><span class="p2">P2</span></td><td>recette</td><td>Note communautaire sans règle métier.</td><td>Fonction implicite.</td><td>Conservée, à confirmer.</td><td class="st dec">D-12</td></tr>
+      <tr><td>D-13</td><td><span class="p2">P2</span></td><td>profil</td><td>« 128 DT économisés » non calculable.</td><td>Chiffre trompeur.</td><td>À retirer ou définir.</td><td class="st dec">D-13</td></tr>
+      <tr><td>Q-01</td><td><span class="p2">P2</span></td><td>polices</td><td>3 familles / 13 graisses Google Fonts chargées sur toutes les pages.</td><td>~150–250 ko de polices sur réseau faible.</td><td>Implémentation : auto-héberger, sous-ensembles latin / arabe, 3 graisses max, <code>font-display: swap</code>.</td><td class="st todo">à faire</td></tr>
+      <tr><td>Q-03</td><td><span class="p2">P2</span></td><td>photos</td><td>Shimmer infini sur chaque image.</td><td>Batterie / CPU sur petits appareils.</td><td>Arrêté avec <code>reduced-motion</code> ; implémentation : couleur dominante statique.</td><td class="st ok">partiel</td></tr>
+      <tr><td>D-10</td><td><span class="p2">P2</span></td><td>suggestions</td><td>Publicité entre deux niveaux de suggestions.</td><td>Coupe le cœur du produit.</td><td>La placer après le dernier niveau.</td><td class="st dec">D-10</td></tr>
+
+      <tr><td>A-02</td><td><span class="p3">P3</span></td><td>courses (D3)</td><td><code>&lt;/p&gt;</code> orphelin après l'emplacement pub.</td><td>—</td><td>Page réécrite.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-04</td><td><span class="p3">P3</span></td><td>registre</td><td>Deux lignes contradictoires sur l'orthographe de la marque ; titre « Chnowa » dans 2 pages.</td><td>—</td><td>Ligne périmée marquée, titres corrigés.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-05</td><td><span class="p3">P3</span></td><td>index</td><td>Lien imbriqué dans un lien, doublon « responsive » dans deux sections.</td><td>—</td><td>Index refait.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-06</td><td><span class="p3">P3</span></td><td>publicité</td><td>Rectangle 300 × 250 étiqueté « Emplacement réservé — 100 px ».</td><td>—</td><td>Libellé juste (accueil C).</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-07</td><td><span class="p3">P3</span></td><td>recherche</td><td>Deux suggestions de recherche pour le même couscous sous deux noms.</td><td>—</td><td>Noms uniques.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-08</td><td><span class="p3">P3</span></td><td>paquet</td><td><code>vite-preview.log</code>, <code>dist/</code> et <code>node_modules/</code> dans l'archive.</td><td>Poids, bruit.</td><td>Exclus de D4.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-09</td><td><span class="p3">P3</span></td><td>mode cuisine</td><td>« by chef Souhed » sous le nom du plat dans la barre de cuisson.</td><td>Bruit en situation de concentration.</td><td>Retiré.</td><td class="st ok">corrigé D4</td></tr>
+      <tr><td>A-10</td><td><span class="p3">P3</span></td><td>accueil B</td><td>Aucun lien actif (<code>aria-current</code>) dans la colonne desktop.</td><td>—</td><td>Ajouté.</td><td class="st ok">corrigé D4</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================================================================ -->
+  <h2 id="direction">4. Direction UX/UI et identité</h2>
+  <h3>Diagnostic</h3>
+  <p>Avec des photos qui chargent, la direction A fonctionne mais <b>ressemble à beaucoup d'applications de recettes</b> : vert
+  « nature », accent terracotta, Plus Jakarta Sans, cartes blanches arrondies, emojis. FK (fkhar · Nabeul) a une vraie identité
+  tunisienne mais son bleu de céramique sur crème vire au <b>folklore</b> dès qu'on ajoute des arches et des motifs. B est élégante
+  mais froide pour un produit de cuisine familiale.</p>
+  <h3>Recommandation (à valider — D-04)</h3>
+  <ul>
+    <li><b>La photo de plat est le premier signal</b> : une recommandation photographiée par écran plutôt que des grilles de vignettes.</li>
+    <li><b>Une palette tirée de la cuisine, pas de l'artisanat</b> : olive (huile, zitouna), harissa, safran, crème de semoule —
+      proposition jouable « C 🚩 » dans la pastille Démo de chaque page D4, contrastes AA vérifiés (outil du paquet).</li>
+    <li><b>Une voix typographique</b> : titres en Fraunces (déjà chargée par D3, aucun coût réseau supplémentaire), interface en
+      Plus Jakarta Sans, arabe en Cairo. Donne une touche éditoriale chaleureuse sans motif décoratif.</li>
+    <li><b>Une voix de texte</b> : phrases courtes, tutoiement possible en derja, la tagline en derja assumée comme signature
+      (« Elli 3andek fel frigo, chnowa tnajem tayeb ? »).</li>
+    <li><b>Pas d'effets</b> : ombres légères, aucune animation hors transitions de 150 ms, aucun dégradé décoratif hors repli photo.</li>
+  </ul>
+  <p>Alternative sobre : garder A en corrigeant seulement le sombre (V-02) et en ajoutant la typographie de titre. Coût nul,
+  gain d'identité moindre.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="accueil">5. Accueil : trois compositions comparées</h2>
+  <div class="cmp">
+    <div class="card"><h3>A « éditorial » (D3)</h3><p><b>+</b> grande photo, envie de cuisiner.<br /><b>−</b> le héros parle de
+      tout le frigo sans proposer de plat ; 4 actions rapides qui doublonnent la navigation ; 7 sections ; bandeau d'installation en bas.</p><a href="accueil.html">Voir A</a></div>
+    <div class="card"><h3>B « tableau de bord » (D3)</h3><p><b>+</b> situation lisible d'un coup d'œil.<br /><b>−</b> anneau
+      statistique en premier signal : outil de stock plutôt que cuisine ; jetons « 7 connues / ? 1 / stock » techniques.</p><a href="accueil-b.html">Voir B</a></div>
+    <div class="card" style="border-color:var(--brand)"><h3>C « personnel d'abord, éditorial ensuite » (D4, recommandée)</h3><p>
+      <b>1.</b> une phrase d'accueil ; <b>2.</b> <i>une</i> idée pour ce soir, photo + raison (« tout est dans votre frigo ») ;
+      <b>3.</b> le frigo d'un coup d'œil (+ et photo) ; <b>4.</b> autres idées avec ce qui manque ; <b>5.</b> une pub ;
+      <b>6.</b> découverte (catégories, nouveauté du chef). Six états : nouveau, frigo vide, rempli, favoris, planning (le repas
+      prévu remplace l'idée du soir), courses en cours.</p><a href="accueil-c.html">Voir C</a></div>
+  </div>
+  <p><b>Coût :</b> C n'ajoute aucun calcul : l'idée du soir est la première recette « Prête » (sinon « Presque ») déjà produite par
+  le matching ; l'état vient de données locales (frigo, planning, liste active). Aucune requête supplémentaire à l'ouverture.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="ecrans">6. Propositions par écran (appliquées dans D4 sauf mention)</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Écran</th><th>Ce qui change</th></tr></thead>
+    <tbody>
+      <tr><td>Frigo</td><td>Récapitulatif 3 états ; ajout par recherche + bouton photo côte à côte ; lignes légères (quantité en texte, crayon, corbeille) ; feuille d'édition avec « Je ne sais pas » et « Je n'en ai plus » ; épuisé visible ; retrait avec Annuler.</td></tr>
+      <tr><td>Suggestions</td><td>Onglet Favoris (🚩) ; rappel du frigo + Modifier ; explication repliée ; raison sur chaque carte (manquants nommés, ? à vérifier) ; pub à déplacer après le dernier niveau (D-10).</td></tr>
+      <tr><td>Recette</td><td>Badge niveau + score ; 4 informations ; phrase de situation ; Planifier / Garder hors ligne / favori ; 8 ingrédients à 3 états avec quantité du frigo ; substitution acceptable ; barre d'action selon le niveau.</td></tr>
+      <tr><td>Mode cuisine</td><td>Mêmes étapes, ingrédients de l'étape, minuteur, feuille des ingrédients, sortie neutre, reprise à l'étape par lien (<code>#step3</code>) depuis la notification.</td></tr>
+      <tr><td>Courses</td><td>Liste active au premier plan, progression ≠ budget, « reste à acheter » en fourchette, ligne entière cliquable, « Dans le panier », ajout en bas au pouce ; écran séparé pour gérer les listes.</td></tr>
+      <tr><td>Planning</td><td>Créneaux accessibles, aujourd'hui repéré, manquants par repas, budget de semaine aligné ; génération automatique laissée en proposition.</td></tr>
+      <tr><td>Favoris</td><td>Données alignées ; onglet aussi depuis Recettes ; distinction ♥ / ⤓. <i>À faire :</i> état vide affiché seulement quand il n'y a aucun favori.</td></tr>
+      <tr><td>Notifications</td><td>Marquer lu sans vider ; actions vers le bon écran (étape 3 du mode cuisine, liste de courses) ; libellé de cloche avec compteur.</td></tr>
+      <tr><td>Scan</td><td>6 étapes demandées couvertes (photo, analyse, résultats, correction, confirmation, ajout) + erreurs + hors ligne ; rien sans confirmation ; aucune quantité inventée.</td></tr>
+      <tr><td>Bienvenue / onboarding</td><td>Langue et thème réellement appliqués ; puces sélectionnables ; aucune quantité demandée.</td></tr>
+      <tr><td>États transverses</td><td>Bascule « Réseau » : bandeau hors ligne, actions réseau grisées (photo), le reste utilisable (données locales).</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================================================================ -->
+  <h2 id="donnees">7. Jeu de données de démonstration (unique, utilisé par tous les écrans D4)</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Élément</th><th>Valeur</th></tr></thead>
+    <tbody>
+      <tr><td>Frigo (9 disponibles)</td><td>Tomates 2 kg · Poivrons 2 · Oignons 5 · Carottes 3 · Œufs 6 · Huile d'olive 1 l · Ail 1 tête · Coriandre 1 botte · Piment vert (sans quantité) — + Harissa <i>épuisée</i></td></tr>
+      <tr><td>Prête (1)</td><td>Chakchouka 6/6 — tout en quantité connue</td></tr>
+      <tr><td>Presque prête (2)</td><td>Ojja merguez 6/8 (🛒 merguez, harissa 🔁 piment + ail ; ? piment) · Salade mechouia 6/7 (🛒 thon ; ? piment)</td></tr>
+      <tr><td>À découvrir (2)</td><td>Kosksi aux légumes 3/9 (6 à acheter) · Lablabi 3/8 (5 à acheter)</td></tr>
+      <tr><td>Liste « Week-end » (active)</td><td>6 articles, 2 achetés (merguez, thon) · reste 4,60 – 6,70 DT · total 14,60 – 19,00 DT · liste « Ramadan » 0/12</td></tr>
+      <tr><td>Planning (semaine du 3 mars, aujourd'hui lundi)</td><td>Lun. soir Ojja · Mar. midi Mechouia · Mer. soir Lablabi · Ven. midi Kosksi · Sam. soir Chakchouka · manquants 37,40 – 48,40 DT</td></tr>
+      <tr><td>Favoris / hors ligne</td><td>♥ Ojja merguez, Salade mechouia · ⤓ Ojja merguez, Lablabi</td></tr>
+      <tr><td>Notifications</td><td>2 non lues : minuteur étape 3 (→ mode cuisine), « Ce soir : 2 à acheter » (→ courses)</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================================================================ -->
+  <h2 id="parcours">8. Parcours documentés</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>#</th><th>Parcours et étapes (D4)</th><th>Erreurs / états alternatifs</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><a href="bienvenue.html">Bienvenue</a> (3 écrans, langue + thème) → <a href="onboarding.html">onboarding</a> (puces par catégorie, ≥ 3 conseillés) → <a href="suggestions.html">suggestions</a>. Accueil « Nouveau » propose la même entrée.</td><td>Passer l'intro ; frigo laissé vide → accueil « frigo vide » + inspiration ; reprise ultérieure depuis l'accueil.</td></tr>
+      <tr><td>2</td><td><a href="frigo.html">Frigo</a> → <a href="suggestions.html">suggestions</a> (raison par carte) → <a href="recette.html">recette</a> → <a href="mode-cuisine.html">mode cuisine</a>.</td><td>Presque prête : achats proposés d'abord ; quantité à vérifier signalée ; hors ligne : recettes gardées hors ligne seulement.</td></tr>
+      <tr><td>3</td><td><a href="scan.html">Scan</a> : photo native → analyse → propositions → correction (liste, ajout d'oubli, doublon) → confirmation → frigo.</td><td>Rien reconnu ; analyse impossible ; hors ligne (photo désactivée, ajout manuel) ; annulation à tout moment.</td></tr>
+      <tr><td>4</td><td>Suggestion → <a href="recette.html">recette</a> → « Ajouter les 2 manquants » → <a href="courses.html">courses</a>.</td><td>Plusieurs listes : choix de la liste cible ; unité compatible → fusion ; substitution acceptée → 1 seul manquant.</td></tr>
+      <tr><td>5</td><td>Recette → ♥ → <a href="favoris.html">Favoris</a> (onglet Recettes ou accueil) → recette.</td><td>Favori ≠ hors ligne ; score recalculé selon le frigo du jour.</td></tr>
+      <tr><td>6</td><td>Recette → Planifier → <a href="planning.html">planning</a> → Créer la liste → courses.</td><td>Créneau occupé ; recette sans manquant (rien à acheter) ; génération auto non validée (D-09).</td></tr>
+      <tr><td>7</td><td><a href="courses.html">Courses</a> : cocher (ligne entière) → « Dans le panier » → progression.</td><td>Décocher ; vider les cochés (<a href="liste-detail.html">Mes listes</a>) ; supprimer une liste (confirmation).</td></tr>
+      <tr><td>8</td><td><a href="notifications.html">Notification</a> → mode cuisine étape 3 / liste de courses.</td><td>Préparation déjà terminée → « Voir la recette » ; permission refusée → aucune notification, aucun blocage.</td></tr>
+      <tr><td>9</td><td>Hors ligne (bascule Réseau) : bandeau, frigo / courses / recettes gardées utilisables, photo désactivée.</td><td>Synchronisation au retour (dernier écrit gagnant, convention) — non simulée.</td></tr>
+      <tr><td>10</td><td>Arabe / derja arabe : RTL réel, chevrons et nombres isolés.</td><td>Textes descriptifs des pages D3 encore en français (R-03).</td></tr>
+      <tr><td>11</td><td>Thème : A, B, FK, C × clair / sombre sur chaque page.</td><td>Choix définitif : D-04.</td></tr>
+      <tr><td>12</td><td>Reprise après interruption : mode cuisine rouvert à l'étape (<code>#stepN</code>), courses conservées, brouillon d'édition gardé (convention backoffice).</td><td>Simulé partiellement (lien d'étape) ; le reste est un comportement d'implémentation.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ================================================================ -->
+  <h2 id="ds">9. Design system consolidé</h2>
+  <p><b>Source unique :</b> <code>assets/app.css</code> (sections 1–14 issues de D3, section 15 = D4). Les familles existantes
+  sont <b>réutilisées</b> ; D4 n'ajoute que ce qui manquait.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Famille</th><th>Variantes / tokens</th><th>Règles</th></tr></thead>
+    <tbody>
+      <tr><td>Couleurs</td><td>16 tokens de marque + structurels ; sémantiques <code>danger / success / warning / info</code> (+ <code>-text</code>) ; <code>line-strong</code>, <code>focus-ring</code>. Directions A, B, FK, C 🚩 × clair/sombre.</td><td>Texte ≥ 4,5:1, éléments ≥ 3:1 — <code>node tools/contrast-check.mjs</code> : 54 couples, tous conformes.</td></tr>
+      <tr><td>Typographie</td><td>Plus Jakarta Sans (UI), Cairo (arabe), Fraunces (titres FK / C). Échelle : 11 · 12 · 13 · 14 · 15 · 16 · 18 · 20–26 (clamp) · 32.</td><td>Champs 16 px (pas de zoom iOS) ; 11 px réservé aux métadonnées.</td></tr>
+      <tr><td>Espacements, rayons, ombres</td><td><code>--sp-1…6</code> (4 → 32) ; rayons carte / bouton / champ / pilule par direction ; 2 niveaux d'ombre.</td><td>Logique (<code>inline</code>/<code>block</code>) partout.</td></tr>
+      <tr><td>Boutons</td><td>primary · secondary · <b>ghost</b> (D4) · danger ; tailles normal (44) · <b>sm</b> (40) · cuisine (52) ; <b>block</b>.</td><td>Danger = irréversible seulement (pas « quitter »).</td></tr>
+      <tr><td>Champs</td><td>input, search (combobox), select, textarea, case, radio, interrupteur, quantité.</td><td>Label associé ; erreur sur le champ ; téléphone LTR.</td></tr>
+      <tr><td>Cartes</td><td><code>rcard</code> (grille, horizontale, vedette), <code>match-badge</code> ok/warn/disc, <b>reason</b> (D4), carte de liste, carte « reprendre ».</td><td>Ratio photo toujours réservé ; titre + raison avant les métadonnées.</td></tr>
+      <tr><td>Pastilles d'état</td><td><code>.ing</code> have · miss · sub · verify · <b>unknown</b> · <b>out</b> (D4) ; <b>flag</b> fav / hors ligne (D4).</td><td>Symbole + texte, jamais la couleur seule.</td></tr>
+      <tr><td>Fenêtres</td><td>modale (ModalShell), feuille basse (mobile) / centrée (≥ 768), tiroir, menu contextuel, popover.</td><td>Échap, clic extérieur, retour du focus ; confirmation seulement si perte.</td></tr>
+      <tr><td>Retours</td><td>toast, <b>snackbar avec Annuler</b> (D4), bandeaux installation / hors ligne / mise à jour / erreur, <b>offline-strip</b> (D4).</td><td>Annuler pour le réversible, fenêtre pour l'irréversible.</td></tr>
+      <tr><td>Navigation</td><td>topbar, barre basse 5 destinations, colonne ≥ 1024 px, onglets, fil d'ariane — <b>générés</b> par <code>data-shell</code> (D4).</td><td>Pas de retour sur une destination de premier niveau.</td></tr>
+      <tr><td>Listes et chargement</td><td>liste paginée 24 + ShowMore, squelettes, états vide / erreur / hors ligne.</td><td>Compteurs sur le total.</td></tr>
+      <tr><td>Progression</td><td><code>progress</code> (cuisine), <b>buy-progress</b> (achats), <b>budget-line</b> (D4).</td><td>Progression et budget ne partagent plus le même visuel.</td></tr>
+      <tr><td>Annotations</td><td><b>.anno</b> + bascule Notes (D4) ; mention « photo temporaire ».</td><td>Une note de maquette n'est jamais un texte du produit.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Responsive :</b> &lt; 360 px (grilles 2 col., méta en 2×2) · &lt; 768 (feuilles basses, 2 colonnes de cartes) · 768–1023
+  (3 colonnes, feuilles centrées) · ≥ 1024 (colonne de navigation, 4 colonnes, filtres en colonne, rail pub optionnel) ·
+  ≥ 1200 (bannière 970 × 250 optionnelle). Largeur de lecture max 720 px (fiches) / 1000 px (listes).</p>
+
+  <!-- ================================================================ -->
+  <h2 id="validation">10. Rapport de validation (réellement exécuté)</h2>
+  <div id="validation-body"><p><b>Environnement :</b> navigateur Chromium intégré (application de bureau), serveur statique local, pages D4 servies
+  telles quelles. Les largeurs ont été testées dans de <b>vrais documents</b> (iframes à la largeur donnée et émulation de
+  fenêtre), pas par simple resserrement du contenu.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Vérification</th><th>Ce qui a été réellement exécuté</th><th>Résultat</th></tr></thead>
+    <tbody>
+      <tr><td>Débordement horizontal</td><td>21 pages × 6 largeurs (320 · 375 · 390 · 768 · 1024 · 1280) = 126 rendus, mesure <code>scrollWidth − clientWidth</code>.</td><td>1er passage : accueil C +93 px à 1280 (colonne non rétractable), puis 3 accueils +12 px (rail pub). <b>Corrigés ; 2e passage : 0 débordement.</b></td></tr>
+      <tr><td>Photos</td><td>Chaque URL de D3 testée (6 / 8 cassées) ; nouvelles URLs vérifiées une à une ; balayage des images non chargées sur les 126 rendus.</td><td><b>0 image cassée</b> en D4 (au moment du test ; dépendance externe temporaire, D-14).</td></tr>
+      <tr><td>Cibles tactiles</td><td>À 375 px, tout bouton / lien-bouton / sélecteur / puce de hauteur &lt; 40 px hors pastille Démo.</td><td>1er passage : icônes hors en-tête, puces, boutons de bandeau et de notification. <b>Corrigés ; 2e passage : 0.</b> Les cases de courses sont dans une ligne entière cliquable ≥ 44 px.</td></tr>
+      <tr><td>Interactions</td><td>Scriptées puis lues dans la page : retrait frigo + Annuler (10 → 9 → 10 lignes) ; feuille d'édition (ouverture, Échap, retour du focus) ; substitution (2 → 1 manquant, libellé singulier) ; onglets au clavier (flèche droite) ; mode cuisine (étape suivante, minuteur 10:00 → 09:58 en 2 s, feuille fermée par clic extérieur) ; coche d'une ligne de courses (2/6 → 3/6, <code>aria-valuenow</code> mis à jour) ; « tout marquer comme lu » (0 non lue, liste conservée, badge retiré) ; scan (états 1 → 2 → 3 → 4) ; accueil C (6 états).</td><td>Conformes après correction du libellé « Ajouter les 1 manquants ».</td></tr>
+      <tr><td>RTL</td><td>Fiche recette en arabe à 320 px, mode cuisine en arabe, accueil C en derja arabe à 390 px (captures).</td><td><code>dir="rtl"</code> appliqué ; score « 6 / 8 » et fourchettes dans le bon ordre ; chevron retour inversé ; libellés du mode cuisine traduits (« الخطوة 2 من 5 »). <b>Limite :</b> phrases descriptives encore en français (R-03).</td></tr>
+      <tr><td>Thèmes</td><td>Captures A clair (375, 768, 1280), C sombre (390, derja arabe) ; D3 A sombre (768) pour le diagnostic.</td><td>Lisibles. B et FK non recapturés en D4 (tokens inchangés, contrastes vérifiés par l'outil).</td></tr>
+      <tr><td>Contrastes</td><td><code>node tools/contrast-check.mjs</code> : 54 couples (A, B, FK, C, clair et sombre ; boutons, erreurs, bordures, focus, barre Annuler).</td><td><b>54 / 54 conformes</b> (D3 : 1 échec FK).</td></tr>
+      <tr><td>Erreurs JavaScript</td><td>Console lue sur les pages réécrites.</td><td>Aucune erreur.</td></tr>
+      <tr><td>Hors ligne</td><td>Bascule « Réseau » sur scan : bandeau affiché, boutons photo désactivés.</td><td>Conforme (simulation visuelle seulement).</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>v4.1 (re-vérifié) :</b> 22 pages × 6 largeurs → 1 débordement (recette à 320 px, +22 px dû au logo dans l'en-tête),
+  corrigé puis re-mesuré à 0 ; aucune image cassée ; aucune cible &lt; 40 px à 375 px ; 58 / 58 contrastes conformes.
+  Panneau de notifications testé à 1280 px au clic réel : ouverture sous la cloche, 5 lignes, focus sur la première,
+  « Tout marquer comme lu » (badge retiré, libellé « Notifications »), touche Échap (fermeture + focus rendu à la cloche),
+  en arabe (panneau aligné à gauche, titre « الإشعارات »). À 375 px la cloche ouvre l'écran dédié (6 notifications, « (2) » non lues).</p>
+  <p><b>Non vérifié</b> (à faire en implémentation, lots 2.8+) : lecteur d'écran réel (NVDA / TalkBack / VoiceOver), clavier
+  physique sur toutes les pages, appareils réels bas de gamme, performances mesurées (Lighthouse), comportement PWA réel
+  (cache, synchronisation, permission de notification, Wake Lock), Safari iOS. Les pages D3 non réécrites
+  (composants, parcours, publicité, médias…) ont seulement été soumises au balayage automatique et à la lecture du code.</p></div>
+
+  <!-- ================================================================ -->
+  <h2 id="decisions">11. Décisions à arbitrer</h2>
+  <p>Rien n'est considéré comme validé. « Appliqué en D4 » signifie seulement que la maquette montre la proposition pour qu'elle
+  puisse être jugée ; un refus se défait sans toucher au reste.</p>
+  <div class="tbl-wrap"><table id="dec-table">
+    <thead><tr><th>ID</th><th>Sujet</th><th>Options et recommandation</th><th>Nature</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <!-- ================================================================ -->
+  <h2 id="paquet">12. Contenu du paquet D4</h2>
+  <ul>
+    <li><code>index.html</code>, <code>audit.html</code> (ce document), 7 écrans réécrits + <code>accueil-c.html</code>, 12 écrans D3 alignés, composants et études D3.</li>
+    <li><code>assets/app.css</code>, <code>assets/app.js</code> (ex-<code>d3.*</code>, renommés ; ajouts en sections 15 / « v4 »).</li>
+    <li><code>tools/contrast-check.mjs</code> (étendu à C et aux correctifs) ; <code>benchmark/</code> : sources seulement.</li>
+    <li>Exclus : <code>node_modules/</code>, <code>dist/</code>, journaux. Photos externes temporaires (Wikimedia Commons).</li>
+  </ul>
+
+  <h2 id="v41">13. Itération v4.1 — retours du chef (17/11/2026)</h2>
+  <ul>
+    <li><b>Accueil C validé</b> (D-01) ; l'éditorial passe sur une bande « miel » pour réchauffer le bas de page.</li>
+    <li><b>Plus vif et chaleureux</b> : direction C refondue (paprika pour les actions, olive pour les repères, safran pour les
+      accents, crème chaude, bruns chauds en sombre, coins plus ronds, halo crème en haut de page, anneau safran des catégories) ;
+      C devient la direction par défaut des maquettes (D-04, à confirmer avant AppTheme). 58 couples de contrastes conformes.</li>
+    <li><b>Logo et identité</b> : <a href="identite.html">identite.html</a> — deux pistes de logo, déclinaisons, icône PWA
+      (normale + maskable), favicon (utilisé par toutes les pages), palette, typographie, direction photo, liste de prises
+      pour la séance photo, voix. Sources SVG dans <code>assets/brand/</code>. Le logo apparaît dans l'en-tête de toutes les pages.</li>
+    <li><b>Notifications</b> : sur desktop (≥ 1024 px) la cloche ouvre un panneau sous l'icône (5 dernières, non lues teintées
+      avec point, « Tout marquer comme lu », « Voir toutes les notifications » en bas) ; Échap / clic extérieur ferment et
+      rendent le focus ; positionnement inversé en arabe. Sur mobile la cloche ouvre <a href="notifications.html">l'écran dédié</a>
+      (Toutes / Non lues, réglages). Une seule source de données et un seul rendu, compteur synchronisé partout.</li>
+  </ul>
+
+  <h2 id="v42">14. Itération v4.2 — profil, navigation desktop, carrousel (17/11/2026)</h2>
+  <ul>
+    <li><b>Logo fourni par le chef</b> (D-18) : <a href="identite.html#livrables">liste complète des fichiers de marque et de leurs
+      dimensions</a> — logo (horizontal, négatif, empilé, symbole, une couleur), icônes PWA (192, 512, maskable, monochrome),
+      apple-touch-icon 180, favicon SVG + ICO, badge de notification 96, captures d'installation, image de partage 1200 × 630,
+      logo Google 512, réseaux sociaux, et photos d'identité (originaux et exports).</li>
+    <li><b>Profil à la place de Réglages</b> (D-23) : avatar dans l'en-tête ; panneau déroulant sur desktop ; <a href="profil.html">écran
+      dédié</a> sur mobile. Le panneau de notifications et celui du profil ne s'ouvrent jamais ensemble.</li>
+    <li><b>Navigation desktop moderne</b> (D-22) : la colonne de gauche disparaît au profit d'une barre haute (logo · pastilles
+      centrées · cloche · avatar), contenu centré jusqu'à 1200 px. Appliquée à toutes les pages, y compris les pages D3.</li>
+    <li><b>Carrousel horizontal</b> (D-25) et <b>16 catégories</b> (D-24) : <a href="carrousel.html">composant et deux cas</a>
+      (avec / sans défilement), utilisé sur l'accueil pour les catégories, les idées du frigo, les favoris et les nouveautés.</li>
+    <li><b>Vérifié :</b> 23 pages × 6 largeurs sans débordement (barre haute comprise), sans image cassée, sans cible &lt; 40 px à 375 px ; panneau profil au clic réel (thème appliqué, fermé à l'ouverture des notifications) ; avatar mobile → écran profil ; carrousel : flèche « suivant » seule au départ, les deux après un clic, aucune sur mobile ni quand tout tient, sens inversé en arabe.</li>
+  </ul>
+
+  <h2 id="v43">15. Itération v4.3 — invité, grand frigo, propositions (17/11/2026)</h2>
+  <ul>
+    <li><b>Barre haute retenue</b> ; deux variantes jouables pour comparaison : <b>Éditorial</b> et <b>Dock</b> (D-22).</li>
+    <li><b>Client non connecté</b> (D-26) : bouton « Se connecter », icône de profil neutre, panneau et <a href="profil.html">profil</a>
+      invités, invitation fermable sur l'accueil, mention « sur cet appareil » aux favoris, <a href="connexion.html">connexion / création de compte</a>.
+      Bascule « Compte : Connecté / Invité » dans la pastille Démo de toutes les pages.</li>
+    <li><b>Frigo de 64 ingrédients</b> (D-27) : <a href="frigo.html#big">frigo.html#big</a>.</li>
+    <li><b>Propositions non appliquées</b> (D-28) : <a href="propositions.html">recettes, filtres, menu de la semaine, 12 améliorations</a>.</li>
+    <li><b>Vérifié :</b> 26 vues (dont frigo 64) × 6 largeurs ; 2 défauts trouvés puis corrigés et re-mesurés à 0 (puces de catégories du grand frigo sous 40 px ; page propositions +10 px à 320 px). Variantes Éditorial et Dock mesurées à 1280 px (recherche visible, dock fixé à 18 px du bas, centré) ; état invité au clic (bouton « Se connecter », panneau invité sans déconnexion, invitation de l'accueil, profil invité à 375 px) ; grand frigo (recherche « poi » → 4 résultats, état vide, mosaïque, « Voir les N autres »).</li>
+    <li><b>Corrigé en route :</b> changer le thème depuis le panneau de profil fermait le panneau puis provoquait une erreur JavaScript (clic simulé sur la pastille Démo) ; corrigé et revérifié.</li>
+  </ul>
+
+  <h2 id="v44">16. Itération v4.4 — composants réutilisables (CMS), recettes, filtres, planning</h2>
+  <ul>
+    <li><b>Architecture des maquettes</b> (D-30) : <code>assets/data.js</code> (source unique : 15 recettes, 16 catégories, 7 étals,
+      frigo, planning), <code>assets/components.js</code> (registre de 14 composants : props documentées, rendu, comportement,
+      état partagé), <code>assets/components.css</code> (styles par composant, tokens uniquement). Une page = un schéma
+      <code>{ blocks: [{ c, props }] }</code>. Catalogue généré : <a href="composants-cms.html">composants-cms.html</a>.</li>
+    <li><b>Page Recettes</b> (<a href="recherche.html">recherche.html</a>) : R1 étals, R2 mosaïque, R3 « Ce soir je mange… » (boutons,
+      flèches du clavier, glisser) sur le même résultat ; F1 phrase (une phrase modèle par langue), F2 inclure / exclure,
+      F3 puces avec le nombre de résultats + feuille (qui réutilise F1, F2 et les catégories) ; puces des filtres actifs.</li>
+    <li><b>Menu de la semaine</b> (<a href="planning.html">planning.html</a>) : P1 bande des jours + P3 (Ramadan, copier la semaine,
+      WhatsApp, portions, restes, note, déplacer par glisser-déposer ou par menu) ; résumé <b>calculé</b> : 5 repas · 11 achats ·
+      37,40 – 48,40 DT, identique aux chiffres canoniques.</li>
+    <li><b>Réutilisation prouvée</b> : l'accueil utilise désormais les mêmes composants <code>category-rail</code> et <code>shelf</code>
+      que la page Recettes ; la feuille de filtres imbrique trois composants existants.</li>
+    <li><b>Vérifié :</b> 27 vues × 6 largeurs (dont recettes, planning, catalogue) : 0 débordement, 0 image cassée, 0 erreur JavaScript ; une seule cible &lt; 40 px trouvée (« Déplacer » du planning) puis corrigée. Interactions réelles : mot de la phrase « rapide » → 15 → 5 recettes et puce « ≤ 30 min » activée d'elle-même ; « Avec mon frigo » → 1 ; mosaïque (grande carte en tête) ; « Ça me tente » ajoute aux envies ; « Tout effacer » → 15 ; feuille : « Voir 15 recettes », + Œufs → « Voir 8 recettes » et la page suit. Planning : résumé calculé 5 repas · 11 achats · 37,40 – 48,40 DT, mode Ramadan (Iftar), restes du kosksi au créneau suivant, déplacement par menu, ajout depuis les idées. Arabe : phrase F1 en arabe, compteur « 15 وصفة », RTL sans débordement. Limite : noms de catégories et titres de blocs encore en français dans les autres langues (D-31).</li>
+    <li><b>Catalogue élargi à 15 recettes</b> : niveaux 1 / 2 / 12 (suggestions et accueils mis à jour).</li>
+  </ul>
+
+  <h2 id="v45">17. Itération v4.5 — tous les écrans en composants réutilisables</h2>
+  <ul>
+    <li><b>18 pages générées</b> par <code>tools/generate-pages.mjs</code> depuis <code>tools/pages.mjs</code> (métadonnées + blocs
+      <code>{ c, props, show? }</code>) : accueil, suggestions, recette, mode cuisine, frigo, courses, mes listes, favoris, historique,
+      notifications, profil, scan, connexion, bienvenue, onboarding, recettes, menu de la semaine, carrousel. Aucune page ne
+      contient de contenu écrit à la main.</li>
+    <li><b>59 composants en 7 familles</b> (<code>assets/components.js</code> + <code>assets/cn/*.js</code>), catalogue généré :
+      <a href="composants-cms.html">composants-cms.html</a> ; mode d'emploi : <code>LISEZMOI.md</code>.</li>
+    <li><b>Mutualisations</b> : un seul inventaire de frigo pour 9 ou 64 ingrédients ; une seule fiche recette
+      (<code>recette.html?id=…</code>) et un seul mode cuisine pour toutes les recettes ; les mêmes composants
+      « catégories », « étal », « carte de recette » sur l'accueil, les recettes, les suggestions, les favoris et le planning ;
+      conteneurs <code>panel</code>, <code>tabs</code>, <code>warm-band</code> pour imbriquer des blocs ; visibilité par état
+      (<code>show</code>) pour les 6 états de l'accueil.</li>
+    <li><b>Vérifié :</b> chaque page rendue (aucun bloc vide ni composant inconnu, aucune erreur JavaScript) ; interactions :
+      frigo (retrait + Annuler, bascule 9 / 64, outils au-delà de 12), recette (substitution → « Ajouter le manquant », statut mis à jour,
+      portions arrondies pour ce qui se compte, onglets), courses (coche → 3 / 6, reste à acheter recalculé), scan (4 états),
+      bienvenue (3 écrans), onboarding (compteur), accueil (héros Chakchouka → Ojja en état planning, blocs selon l'état), favoris
+      (repères ♥ / ⤓).</li>
+  </ul>
+
+  <h2 id="v46">18. Consolidation v4.6 — suite à la revue externe (pas de D5)</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Point</th><th>Correction</th><th>Vérification réellement exécutée</th></tr></thead>
+    <tbody>
+      <tr><td>P0 Correspondance et substitutions</td><td>Plus de calcul : résultats déclarés (<code>data.js › STATES</code>) + scénarios (<code>SCENARIOS</code>). Une seule vue (<code>CN.match</code>) et une seule règle d'action (<code>CN.ctaKind</code>) servent au score, au niveau, à la liste d'ingrédients, au statut, à la barre d'action et aux cartes. Substitution structurée (ingrédient → remplaçants), acceptée / refusée / annulée ; remplaçants sans quantité = « à vérifier » ; nouvelle action « Vérifier puis cuisiner ». Sélecteur de scénario sur la fiche.</td><td><a href="scenarios.html">scenarios.html</a> : <b>9 / 9 tests conformes</b> (dont T5 : merguez achetée + substitution acceptée + piment sans quantité → « Presque prête », « Vérifier puis cuisiner », jamais « prête »). Fiche réelle : accepter → statut, badge et action changent ensemble ; refuser et « Annuler » rétablissent.</td></tr>
+      <tr><td>P1 Listes de courses</td><td>Ajout manuel (doublon détecté, champ vide ignoré), retrait d'un article avec « Annuler », création (nom obligatoire et unique, erreur sur le champ), renommage en place (Entrée / Échap), activation, « Vider les cochés » avec « Annuler », suppression avec confirmation (fenêtre, Échap, focus rendu), listes vides. Liste « Ramadan » avec ses 12 vrais articles. État partagé et gardé pour la session : « Courses », « Mes listes » et l'accueil montrent la même chose.</td><td>Scripté dans le navigateur : ajout « Sucre », doublon « harissa », retrait, création « Anniversaire » (erreur sur nom vide), renommage, vider les cochés (2 retirés), suppression confirmée ; « Courses » voit ensuite les listes modifiées.</td></tr>
+      <tr><td>P1 Quatre langues</td><td>Toutes les chaînes des composants dans <code>assets/cn/i18n.js</code> (4 langues) ; noms d'ingrédients et de catégories en écriture arabe ; textes de page du schéma en champs par langue ; jours de l'historique traduits.</td><td>Balayage des 17 pages en arabe : il ne reste en français que du <b>contenu</b> (étapes, articles de courses, 64 ingrédients du grand frigo, noms de listes, unités) — voir D-31. <b>La couverture n'est donc pas totale pour le contenu.</b></td></tr>
+      <tr><td>P1 Accessibilité de la navigation</td><td><code>link-tabs</code> = <code>&lt;nav&gt;</code> + liens + <code>aria-current="page"</code> ; vrais onglets (<code>tabs</code>, connexion) avec <code>aria-controls</code> / <code>tabpanel</code> et flèches du clavier ; filtres des notifications en boutons à état ; boutons segmentés à 44 px ; focus visible sur les onglets.</td><td>Balayage à 375 px (fr et ar) : 0 lien portant <code>role="tab"</code>, 0 cible &lt; 40 px après correction (« Toutes / Non lues », « Clair / Sombre » étaient à 36 px).</td></tr>
+      <tr><td>P1 Recettes représentatives</td><td>6 recettes complètes (quantités, étapes, temps, minuteurs) : Ojja (substitution), Chakchouka (rapide, prête), Kosksi (mijoté, variante impossible), Salade mechouia (entrée, à vérifier), Bsissa (dessert express), Brik (rapide, friture). Les 9 autres affichent « étapes bientôt ».</td><td>Contrôle de cohérence (script) : chaque ingrédient a sa quantité, aucune étape ne cite un ingrédient hors recette. Portions : ce qui se compte est arrondi à l'unité supérieure.</td></tr>
+      <tr><td>P2 Captures réelles</td><td><a href="captures.html">captures.html</a> : 76 captures JPEG par <code>tools/capture.mjs</code> (Edge headless, profil temporaire, fenêtre émulée par le protocole DevTools).</td><td>8 pages × 6 largeurs, 8 en arabe, 8 en sombre, 1 arabe + sombre desktop, 11 états (nouveau, frigo vide, planning, 64 ingrédients, recette sans étapes, profil invité, favoris, scénarios…). Mesuré dans chaque capture : <b>0 débordement, 0 image cassée, 0 bloc vide</b>.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Balayage final (navigateur intégré, iframes) :</b> 28 vues × 6 largeurs — 2 débordements trouvés à 320 px (courses : 4 px, bouton « Ajouter » ; catalogue des composants : 38 px), corrigés et re-mesurés à 0 ; 0 image cassée, 0 bloc vide, 0 cible &lt; 40 px à 375 px.</p>
+  <p><b>Non vérifié :</b> lecteur d'écran réel, Safari / iOS, téléphones réels, performances mesurées. Les captures montrent la zone visible, pas la page entière.</p>
+</main>
+<script>
+/* Compteurs calculés sur le tableau complet (jamais saisis à la main). */
+(function () {
+  var rows = document.querySelectorAll('#constats ~ .tbl-wrap')[0].querySelectorAll('tbody tr');
+  var n = { p0: 0, p1: 0, p2: 0, p3: 0 }, fixed = 0;
+  rows.forEach(function (r) { var p = r.querySelector('[class^="p"]'); if (p) n[p.className]++; if (/corrigé|partiel|appliqué/.test(r.lastElementChild.textContent)) fixed++; });
+  document.getElementById('k-total').textContent = rows.length;
+  document.getElementById('k-split').textContent = 'constats (' + n.p0 + ' P0 · ' + n.p1 + ' P1 · ' + n.p2 + ' P2 · ' + n.p3 + ' P3)';
+  document.getElementById('k-fixed').textContent = fixed;
+})();
+/* Table des décisions : même liste que registre.html § v4. */
+var D = [["D-01","Composition de l’accueil","Composition C « personnel d’abord, éditorial ensuite » retenue par le chef (17/11/2026), avec 6 états.","✅ validée (chef)"],["D-02","Recette sans manquant mais avec une quantité à vérifier","Aucune règle ne la classait (Prête exige 0 à vérifier ; Presque exige 1 à 3 manquants). Maquettes D4 : « Presque prête » avec la mention « ? à vérifier ». Recommandation : valider.","🚩 règle métier"],["D-03","Ingrédients de base (huile, sel, épices courantes)","Traitement particulier autorisé par le cahier des charges mais non défini. Recommandation : jamais comptés comme suffisants ; option « placard » à étudier dans le moteur.","🚩 règle métier"],["D-04","Identité visuelle « vive et chaleureuse »","Demande du chef : un site plus vif et chaleureux. Proposition C « Zitouna vive » (paprika, olive, safran, crème ; titres Fraunces), désormais direction par défaut des maquettes D4 ; A, B et FK restent jouables. À confirmer avant de toucher AppTheme.","🚩 à confirmer"],["D-05","Orthographe de la marque dans l’application","Maquettes : « Chnawa Ntayeb / by chef Souhed » (décision ferme ci-dessus). L’application et CLAUDE.md affichent encore « Chnowa Ntayeb / by Chef Souhed » : à aligner dans un lot de code (hors maquettes). La ligne « à trancher » plus bas est périmée.","🚩 alignement app"],["D-06","Accès aux favoris","D3 : uniquement via Réglages › Favoris. D4 : troisième onglet « Favoris » dans Recettes (navigation principale inchangée). Alternative : entrée dans la barre basse (6 destinations — déconseillé).","🚩 proposée, appliquée en D4"],["D-07","Favori / sauvegardé / hors ligne","D4 sépare 2 notions : ♥ favori (collection) et ⤓ gardé hors ligne (téléchargé). Une 3e notion « sauvegardée pour plus tard » n’existe pas dans le métier : à créer seulement si besoin réel.","🚩 périmètre"],["D-08","Répartition des écrans de courses","courses.html = faire ses courses (liste active) ; liste-detail.html = gérer les listes. Remplace deux écrans qui montraient la même liste.","🚩 proposée, appliquée en D4"],["D-09","Remplissage automatique du planning","« Remplir la semaine » reste une amélioration non validée ; le planning manuel suffit au MVP.","🚩 périmètre"],["D-10","Emplacements publicitaires","Recommandation : pas de pub entre deux niveaux de suggestions (elle coupe le cœur du produit) — la placer après le dernier niveau ; supprimer grocery_footer_1 ; aucune pub en cuisine, formulaires, onboarding, scan.","🚩 à arbitrer"],["D-11","Libellé « Menu Semaine »","Passe sur deux lignes dans la barre basse à 320–375 px. Proposition : « Semaine » / « Jom3a » / « الأسبوع ».","🚩 texte"],["D-12","Note communautaire (étoiles)","Présente dans les maquettes sans règle métier (qui note, modération, seuil d’affichage). Garder ou retirer.","🚩 fonctionnalité"],["D-13","Statistiques du profil","« Recettes cuisinées » exige un suivi ; « DT économisés » n’est pas calculable honnêtement. Recommandation : retirer « économisés ».","🚩 fonctionnalité"],["D-14","Photos définitives","Toutes les photos des maquettes sont temporaires (Wikimedia Commons, licences à vérifier). Jeu de photos du chef recommandé (même lumière, même vaisselle, ratio 4:3).","🚩 budget / contenu"],["D-15","Relecture native des traductions","Toutes les chaînes des composants sont désormais dans assets/cn/i18n.js (4 langues) et les noms d’ingrédients / catégories en écriture arabe y figurent aussi : un seul fichier à faire relire par un locuteur natif (derja latine et arabe) avant implémentation.","🚩 contenu"],["D-16","Préférences alimentaires","Bloc « exclure porc/alcool, allergies » présent dans le profil sans règle métier. Périmètre à décider.","🚩 périmètre"],["D-17","Retrait réversible sans fenêtre","Retirer un ingrédient du frigo : barre « Annuler » 6 s au lieu d’une fenêtre de confirmation ; fenêtre gardée pour l’irréversible (supprimer une liste, le compte).","🚩 proposée, appliquée en D4"],["D-18","Logo","Le chef fournira son logo. Les pistes « Tajine ? » / « Bulle-bol » ne sont que des emplacements. Fichiers et dimensions à fournir : identite.html § 7.","⏳ fourni par le chef"],["D-19","Nom en arabe","Écrire aussi le nom en arabe dans le logo (ex. « شنوة نطيّب ») pour les langues ar / derja_ar, ou garder le nom latin partout.","🚩 à arbitrer"],["D-20","Notifications sur desktop","Demande du chef : panneau déroulant sous la cloche (5 dernières, non lues mises en avant, « Tout marquer comme lu », « Voir toutes » en bas) ; sur mobile, écran dédié. Appliqué dans D4.","✅ validée (chef)"],["D-21","Photos d’identité","Séance photo selon identite.html § 5 : option A chef + téléphone (0 DT) ou option B photographe une journée pour portraits et plats signature. Remplace D-14 pour le contenu.","🚩 budget"],["D-22","Navigation desktop","Barre haute à pastilles retenue par le chef. Deux autres options jouables (pastille Démo › Nav desktop) : « Éditorial » (recherche centrale + onglets soulignés sur une 2e ligne) et « Dock » (navigation flottante en bas au centre). La barre basse reste sur mobile.","✅ retenue (chef) · variantes à comparer"],["D-23","Profil à la place de Réglages","Demande du chef : l’avatar remplace la roue dentée. Desktop : panneau (favoris, historique, listes, notifications, thème, langue, tous les réglages, déconnexion). Mobile : écran dédié. Implique de modifier la convention CLAUDE.md « icône d’en-tête = roue dentée » lors de l’implémentation.","✅ validée (chef)"],["D-24","Catégories affichées","16 catégories proposées (Kosksi, Ojja, Marqa, Tajines, Soupes et chorba, Salades, Briks et feuilletés, Poissons, Grillades, Mloukhia et mijotés, Street food, Pains et crêpes, Petit-déjeuner, Douceurs, Beignets, Prêt en 30 min). Elles viendront de l’arbre de catégories géré dans /admin (jamais codées en dur) : liste et ordre à valider.","🚩 contenu"],["D-25","Carrousel horizontal","Demande du chef : un seul composant (.rail) — défilement au doigt sur mobile, flèches au milieu des bords sur desktop seulement s’il reste du contenu caché, aucune flèche si tout tient. Démonstration des deux cas : carrousel.html et accueil.","✅ validée (chef)"],["D-26","Client non connecté (invité)","Tout fonctionne sans compte (données sur l’appareil). En-tête : « Se connecter » (≥ 600 px) + icône de profil neutre ; panneau invité ; profil invité ; invitation discrète et fermable sur l’accueil ; mention sur les favoris ; écran connexion / création (téléphone E.164, reprise des données locales). Appliqué en D4.","🚩 proposée, appliquée en D4"],["D-27","Frigo avec beaucoup d’ingrédients","Recherche dans le frigo, catégories en carrousel avec nombres, vue Liste / Mosaïque, tri, 8 éléments par catégorie puis « Voir les N autres », épuisés en fin de catégorie ; bascule 9 / 64 dans la démo de frigo.html.","🚩 proposée, appliquée en D4"],["D-28","Recettes, filtres, planning","Retenus par le chef et appliqués (v4.4) : R1 étals, R2 mosaïque, R3 « Ce soir je mange… », F1 phrase, F2 ingrédients, F3 puces + feuille, P1 bande des jours, P3 options. Non retenus : R4 liste compacte, P2 table de la semaine.","✅ validée (chef)"],["D-29","Règles du planning (P3)","Mode Ramadan (créneaux Iftar / Shour, idées « Ramadan »), « cuisiner double » (portions × 2, restes au créneau suivant, rien à acheter), portions par repas, note du jour : comportements montrés en maquette, à confirmer comme règles métier avant implémentation.","🚩 règles métier"],["D-30","Maquettes en composants réutilisables (CMS)","Fait pour tous les écrans produit (v4.5) : 18 pages générées depuis leur schéma de blocs (tools/pages.mjs), 59 composants en 7 familles, une seule source de données (data.js). Fiche recette unique pilotée par ?id=. Restent en HTML : les pages d’étude D3 et les accueils A / B archivés.","✅ validée (chef) · faite"],["D-31","Contenus encore en français dans les autres langues","L’interface des composants est traduite. Restent en français, comme CONTENU destiné au CMS (champs <champ>_<langue>) : texte des étapes de recette, libellés des articles de courses et rayons, noms des 64 ingrédients du grand frigo, noms de listes créés par l’utilisateur, unités de quantité (« tête », « botte »), notes de conception.","🚩 à faire (CMS)"],["D-32","Correspondance affichée, pas calculée","Demande du chef : la maquette n’implémente pas le moteur. Les résultats sont déclarés dans data.js (STATES), avec 3 scénarios de test (SCENARIOS) ; 9 tests d’affichage (scenarios.html) vérifient score, niveau, manquants, à vérifier et action principale.","✅ validée (chef)"],["D-33","Règles d’affichage des substitutions","Substitution proposée seulement si tous les remplaçants sont présents ; acceptée → l’ingrédient n’est plus « à acheter » mais « remplacé », et les remplaçants sans quantité deviennent « à vérifier » ; refusée → reste à acheter ; « Annuler » possible. Sur les cartes, une substitution possible est signalée « (🔁) » sans changer le niveau. Jamais « prête » tant qu’une quantité est incertaine.","✅ conforme à la demande (chef)"]];
+document.querySelector('#dec-table tbody').innerHTML = D.map(function (d) {
+  return '<tr><td><b>' + d[0] + '</b></td><td>' + d[1] + '</td><td>' + d[2] + '</td><td>' + d[3] + '</td></tr>';
+}).join('');
+</script>
+</body>
+</html>

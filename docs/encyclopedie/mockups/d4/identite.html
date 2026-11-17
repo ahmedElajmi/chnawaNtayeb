@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Identité de marque — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<style>
+  .doc { max-width: 1040px; margin-inline: auto; padding: var(--sp-4) var(--sp-3) var(--sp-6); }
+  .doc h2 { font-size: 22px; margin-top: var(--sp-6); }
+  .doc h3 { font-size: 16px; }
+  .brand-hero { border-radius: 24px; padding: clamp(24px, 6vw, 56px); color: #fff; text-align: center;
+    background: radial-gradient(600px 260px at 80% 0%, rgba(242, 165, 22, 0.45), transparent 70%), linear-gradient(135deg, #c2551f, #6e2a10); }
+  .brand-hero .logo-mark { width: 96px; height: 96px; --logo-lid: #fdf6ec; --logo-base: #f6d9b8; --logo-q: #f6b93b; }
+  .brand-hero h1 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(32px, 7vw, 56px); margin: 8px 0 0; }
+  .brand-hero p { margin: 4px 0 0; font-size: 18px; opacity: 0.95; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: var(--sp-4); }
+  .tile.center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; min-height: 180px; }
+  .g2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-3); }
+  .g3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
+  .g4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2); }
+  .lockup { display: inline-flex; align-items: center; gap: 12px; }
+  .lockup .logo-mark { width: 56px; height: 56px; }
+  .lockup b { font-family: 'Fraunces', Georgia, serif; font-size: 28px; color: var(--brand-text); display: block; line-height: 1.05; }
+  .lockup small { display: block; font-weight: 700; color: var(--accent-text); font-size: 14px; }
+  .dark-tile { background: #1a120c; border-color: #3d2a1c; color: #f8eee2; --logo-lid: #f08a4b; --logo-base: #f6d9b8; --logo-q: #b9d27a; }
+  .dark-tile .lockup b { color: #f5a36e; } .dark-tile .lockup small { color: #b9d27a; }
+  .sw { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+  .sw .c { height: 72px; }
+  .sw .n { padding: 8px 10px; font-size: 12px; }
+  .sw .n b { display: block; font-size: 13px; }
+  .phone { width: 220px; border-radius: 30px; padding: 18px 14px 26px; margin-inline: auto; background: linear-gradient(160deg, #3b2a1e, #12100c); }
+  .phone .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 8px; }
+  .phone .app { text-align: center; color: #fff; font-size: 10px; }
+  .phone .app span { display: block; width: 40px; height: 40px; border-radius: 11px; margin: 0 auto 4px; background: rgba(255, 255, 255, 0.18); }
+  .phone .app img { width: 40px; height: 40px; display: block; margin: 0 auto 4px; }
+  .mood { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .mood .ph { aspect-ratio: 4 / 3; border-radius: 14px; }
+  .mood figure { margin: 0; } .mood figcaption { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  .do, .dont { font-size: 13px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); }
+  .do b { color: var(--success-text); } .dont b { color: var(--danger-text); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: start; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+</style>
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<main class="doc">
+  <p class="muted" style="margin:0 0 var(--sp-3)"><a href="index.html">← Maquettes D4</a> · v4.2 — le logo définitif sera fourni par le chef ; <a href="#livrables"><b>liste des fichiers de marque et dimensions</b></a></p>
+
+  <section class="brand-hero" aria-label="Signature de marque">
+    <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M6 47h52c0 4.4-3.6 8-8 8H14c-4.4 0-8-3.6-8-8z" fill="var(--logo-base)"/><path d="M11 45.5c6-3.5 13-11.5 18-23.5h6c5 12 12 20 18 23.5z" fill="var(--logo-lid)"/><circle cx="32" cy="20" r="3.2" fill="var(--logo-q)"/><path d="M27 9.5C27 6.3 29.3 4 32 4s5 2.1 5 5c0 2.4-1.6 3.4-3 4.2-1.1.6-2 1.3-2 2.3" fill="none" stroke="var(--logo-q)" stroke-width="3.2" stroke-linecap="round"/></svg>
+    <h1>Chnawa Ntayeb</h1>
+    <p><b>by chef Souhed</b></p>
+    <p style="margin-top:14px;font-size:16px">« Elli 3andek fel frigo, chnowa tnajem tayeb ? »</p>
+  </section>
+
+  <h2>1. Le logo — emplacement (le logo définitif sera fourni)</h2>
+  <p class="anno">v4.2 : le chef fournira son logo. Les deux pistes ci-dessous restent des <b>emplacements de maquette</b> ; il suffira de remplacer les fichiers de <code>assets/brand/</code> (mêmes noms) et le symbole MARK de <code>assets/app.js</code>.</p>
+  <div class="g2">
+    <div class="tile">
+      <div class="tile center" style="border:none;min-height:150px"><img src="assets/brand/mark-tajine.svg" alt="Piste 1 : tajine dont le bouton forme un point d'interrogation" width="120" height="120" /></div>
+      <h3>Piste 1 · « Tajine ? » — recommandée</h3>
+      <p style="font-size:14px">Le couvercle du tajine porte un <b>point d'interrogation</b> dont le point est le bouton du couvercle :
+      la question du nom (« chnawa ? » = « quoi ? ») posée sur l'objet de cuisine le plus reconnaissable de Tunisie, sans
+      motif folklorique. Lisible en 16 px, fonctionne en une couleur, devient naturellement l'icône d'application.</p>
+    </div>
+    <div class="tile">
+      <div class="tile center" style="border:none;min-height:150px"><img src="assets/brand/mark-bulle.svg" alt="Piste 2 : bulle de conversation contenant un bol fumant" width="120" height="120" /></div>
+      <h3>Piste 2 · « Bulle-bol »</h3>
+      <p style="font-size:14px">Une bulle de conversation (la question, l'assistant) contenant un bol fumant. Plus « application »,
+      très lisible, mais <b>moins tunisienne</b> et proche de nombreuses applis de recettes ou de messagerie.</p>
+    </div>
+  </div>
+  <p class="anno">Fichiers sources dans <code>assets/brand/</code> (SVG). Le texte du logo utilise Fraunces : avant production,
+  un graphiste vectorise le texte, ajuste les approches et dessine éventuellement le nom en arabe (D-19). Aucune banque
+  d'images ni police payante n'est nécessaire.</p>
+
+  <h3>Déclinaisons de la piste 1</h3>
+  <div class="g2">
+    <div class="tile center"><span class="lockup"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M6 47h52c0 4.4-3.6 8-8 8H14c-4.4 0-8-3.6-8-8z" fill="var(--logo-base)"/><path d="M11 45.5c6-3.5 13-11.5 18-23.5h6c5 12 12 20 18 23.5z" fill="var(--logo-lid)"/><circle cx="32" cy="20" r="3.2" fill="var(--logo-q)"/><path d="M27 9.5C27 6.3 29.3 4 32 4s5 2.1 5 5c0 2.4-1.6 3.4-3 4.2-1.1.6-2 1.3-2 2.3" fill="none" stroke="var(--logo-q)" stroke-width="3.2" stroke-linecap="round"/></svg><span><b>Chnawa Ntayeb</b><small>by chef Souhed</small></span></span><span class="muted" style="font-size:12px">horizontal · fond clair</span></div>
+    <div class="tile center dark-tile"><span class="lockup"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M6 47h52c0 4.4-3.6 8-8 8H14c-4.4 0-8-3.6-8-8z" fill="var(--logo-base)"/><path d="M11 45.5c6-3.5 13-11.5 18-23.5h6c5 12 12 20 18 23.5z" fill="var(--logo-lid)"/><circle cx="32" cy="20" r="3.2" fill="var(--logo-q)"/><path d="M27 9.5C27 6.3 29.3 4 32 4s5 2.1 5 5c0 2.4-1.6 3.4-3 4.2-1.1.6-2 1.3-2 2.3" fill="none" stroke="var(--logo-q)" stroke-width="3.2" stroke-linecap="round"/></svg><span><b>Chnawa Ntayeb</b><small>by chef Souhed</small></span></span><span style="font-size:12px;opacity:.8">horizontal · fond sombre</span></div>
+  </div>
+  <div class="g4" style="margin-top:var(--sp-3)">
+    <div class="tile center"><img src="assets/brand/logo-stacked.svg" alt="Logo empilé" width="160" height="112" /><span class="muted" style="font-size:12px">empilé (écran d'accueil, bienvenue)</span></div>
+    <div class="tile center"><img src="assets/brand/mark-tajine.svg" alt="Symbole seul" width="64" height="64" /><span class="muted" style="font-size:12px">symbole seul · min. 24 px</span></div>
+    <div class="tile center"><img src="assets/brand/mark-tajine-mono.svg" alt="Symbole une couleur" width="64" height="64" /><span class="muted" style="font-size:12px">une couleur (tampon, emballage)</span></div>
+    <div class="tile center" style="padding:0;overflow:hidden;position:relative;min-height:180px">
+      <div class="ph" style="position:absolute;inset:0"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shakshuka%20Dish.jpg?width=480" alt="" width="480" height="360" loading="lazy" /></div>
+      <span style="position:relative;z-index:4;background:rgba(253,246,236,.92);border-radius:14px;padding:8px 12px"><img src="assets/brand/logo-horizontal.svg" alt="Logo sur photo" width="170" height="36" /></span>
+      <span style="position:relative;z-index:4;font-size:11px;color:#fff;font-weight:800;text-shadow:0 1px 2px #000">sur photo : toujours sur pastille crème</span></div>
+  </div>
+  <div class="g2" style="margin-top:var(--sp-3)">
+    <div class="do"><b>À faire</b> — zone de protection = hauteur du bouton du couvercle × 2 autour du logo ; symbole seul en
+    dessous de 120 px de large ; couleurs de la palette uniquement ; nom toujours écrit « Chnawa Ntayeb » et signature « by chef Souhed ».</div>
+    <div class="dont"><b>À éviter</b> — déformer, ajouter une ombre ou un contour, poser sur une photo sans pastille, changer
+    l'ordre nom / signature, écrire « Chnowa » ou « Chef » avec majuscule, ajouter un motif (arche, zellige) autour du logo.</div>
+  </div>
+
+  <h2>2. Icône d'application</h2>
+  <div class="g3">
+    <div class="tile center"><img src="assets/brand/icon-512.svg" alt="Icône d'application" width="128" height="128" /><span class="muted" style="font-size:12px">icon-512 (coins arrondis)</span></div>
+    <div class="tile center"><img src="assets/brand/icon-maskable-512.svg" alt="Icône maskable" width="128" height="128" style="border-radius:50%" /><span class="muted" style="font-size:12px">maskable (zone sûre 80 %, ici découpe ronde Android)</span></div>
+    <div class="tile center"><div class="row" style="justify-content:center;gap:14px;align-items:end"><img src="assets/brand/favicon.svg" alt="" width="16" height="16" /><img src="assets/brand/favicon.svg" alt="" width="32" height="32" /><img src="assets/brand/favicon.svg" alt="" width="48" height="48" /></div><span class="muted" style="font-size:12px">favicon 16 · 32 · 48 px (déjà utilisé par toutes les maquettes)</span></div>
+    <div class="tile center">
+      <div class="phone" aria-label="Aperçu sur un écran d'accueil de téléphone">
+        <div class="apps">
+          <div class="app"><span></span>Photos</div><div class="app"><span></span>Météo</div><div class="app"><img src="assets/brand/icon-512.svg" alt="" />Chnawa</div><div class="app"><span></span>Maps</div>
+          <div class="app"><span></span>Agenda</div><div class="app"><span></span>Notes</div><div class="app"><span></span>Radio</div><div class="app"><span></span>Banque</div>
+        </div>
+      </div>
+      <span class="muted" style="font-size:12px">nom court du manifeste PWA : « Chnawa » (12 caractères max conseillés)</span>
+    </div>
+  </div>
+
+  <h2>3. Palette vive et chaleureuse (direction C)</h2>
+  <div class="g4">
+    <div class="sw"><div class="c" style="background:#b84d1a"></div><div class="n"><b>Paprika</b>#b84d1a · actions, liens, logo</div></div>
+    <div class="sw"><div class="c" style="background:#5a7d23"></div><div class="n"><b>Olive</b>#5a7d23 · repères, signature</div></div>
+    <div class="sw"><div class="c" style="background:#f2a516"></div><div class="n"><b>Safran</b>#f2a516 · accents, étiquettes</div></div>
+    <div class="sw"><div class="c" style="background:#6e2a10"></div><div class="n"><b>Terre cuite</b>#6e2a10 · dégradés, socle</div></div>
+    <div class="sw"><div class="c" style="background:#fdf6ec"></div><div class="n"><b>Semoule</b>#fdf6ec · fond</div></div>
+    <div class="sw"><div class="c" style="background:#fdebd3"></div><div class="n"><b>Miel</b>#fdebd3 · bandes, non lus</div></div>
+    <div class="sw"><div class="c" style="background:#2a1d14"></div><div class="n"><b>Café</b>#2a1d14 · texte</div></div>
+    <div class="sw"><div class="c" style="background:#b4233c"></div><div class="n"><b>Cramoisi</b>#b4233c · danger seulement</div></div>
+  </div>
+  <p style="font-size:14px">La vivacité vient de <b>trois couleurs franches utilisées avec parcimonie</b> (une action paprika par écran,
+  des accents safran, l'olive pour les repères) sur un fond crème chaud — pas de dégradés multicolores ni d'animations.
+  Toutes les paires texte / fond passent l'AA (<code>node tools/contrast-check.mjs</code>). Le sombre utilise des bruns chauds,
+  jamais du gris-bleu.</p>
+
+  <h2>4. Typographie</h2>
+  <div class="g3">
+    <div class="tile"><span class="muted" style="font-size:12px">Titres · Fraunces 700</span><p style="font-family:Fraunces,Georgia,serif;font-size:30px;margin:6px 0;line-height:1.1;color:var(--brand-text)">Ce soir, une chakchouka ?</p></div>
+    <div class="tile"><span class="muted" style="font-size:12px">Interface · Plus Jakarta Sans 400–800</span><p style="font-size:16px;margin:6px 0"><b>6 ingrédients sur 8</b> — il manque la merguez et la harissa.</p></div>
+    <div class="tile" dir="rtl" lang="ar"><span class="muted" style="font-size:12px">العربية · Cairo 400–800</span><p style="font-family:Cairo,sans-serif;font-size:22px;margin:6px 0;font-weight:800">شنوة نطيّب الليلة؟</p></div>
+  </div>
+
+  <h2>5. Direction photo — les « photos d'identité » de l'application</h2>
+  <p style="font-size:15px">Les photos portent l'essentiel de la chaleur. Elles doivent être <b>vraies, cohérentes et
+  reconnaissables</b> : même lumière, même famille de vaisselle, même étalonnage, partout.</p>
+  <div class="g2">
+    <div class="do"><b>Le style</b> — lumière naturelle de fenêtre, latérale, chaude (fin d'après-midi) ; plats servis dans
+    une vaisselle tunisienne réelle mais sobre (terre cuite, poterie de Nabeul unie, pain tabouna, huile dans une petite
+    jarre) ; fonds bois clair, lin, pierre ; vapeur et texture visibles ; mains en action (casser un œuf, rompre le pain) ;
+    angles 45° pour les plats, zénithal pour les ingrédients.</div>
+    <div class="dont"><b>À éviter</b> — décor folklorique (chéchia, tapis, cages bleues) ; fonds blancs de banque d'images ;
+    photos d'ingrédient pour illustrer un plat ; filtres saturés ; images générées présentées comme de vrais plats du chef ;
+    visages identifiables sans autorisation écrite.</div>
+  </div>
+  <h3>Planche d'ambiance (photos temporaires, Wikimedia Commons — à remplacer)</h3>
+  <div class="mood">
+    <figure><div class="ph" data-fallback="🍳"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shakshuka%20Dish.jpg?width=480" alt="Chakchouka en cocotte" width="480" height="360" loading="lazy" /></div><figcaption>Plat vedette, vapeur, cocotte</figcaption></figure>
+    <figure><div class="ph" data-fallback="🌶️"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Djerba%20spice%20market-snopek.jpg?width=480" alt="Étal d'épices" width="480" height="360" loading="lazy" /></div><figcaption>Matière, couleurs du marché</figcaption></figure>
+    <figure><div class="ph" data-fallback="🥫"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Harissa%2C%20Tunisia.JPG?width=480" alt="Harissa" width="480" height="360" loading="lazy" /></div><figcaption>Ingrédient signature</figcaption></figure>
+    <figure><div class="ph" data-fallback="🫒"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pot%20en%20terre%20cuite%20pour%20huile%20d%27olive%2C%20Lamta%20Tunisie%20mai%202013.jpg?width=480" alt="Jarre d'huile d'olive en terre cuite" width="480" height="360" loading="lazy" /></div><figcaption>Objets réels, sobres</figcaption></figure>
+    <figure><div class="ph" data-fallback="🫓"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Four%20tabouna%20Kairouan.jpg?width=480" alt="Four tabouna" width="480" height="360" loading="lazy" /></div><figcaption>Geste, savoir-faire</figcaption></figure>
+    <figure><div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ojja%20merguez%20photo1%20%D8%B9%D8%AC%D8%A9%20%D9%85%D8%B1%D9%82%D8%A7%D8%B2.jpg?width=480" alt="Ojja merguez" width="480" height="360" loading="lazy" /></div><figcaption>Fiche recette (4:3)</figcaption></figure>
+  </div>
+
+  <h3>Séance photo à prévoir (liste de prises)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Série</th><th>Nombre</th><th>Usage</th><th>Cadrage</th></tr></thead>
+    <tbody>
+      <tr><td>Portraits « by chef Souhed » (en cuisine, mains, sourire)</td><td>3–4</td><td>bienvenue, page « à propos », nouveautés du chef</td><td>4:5 et 16:9, arrière-plan cuisine floue</td></tr>
+      <tr><td>Plats signature (ojja, kosksi, chakchouka, mechouia, lablabi, brik)</td><td>6 × 2 angles</td><td>héros d'accueil et fiches recette</td><td>16:9 (héros) + 4:3 (cartes), sujet centré</td></tr>
+      <tr><td>Toutes les recettes publiées</td><td>1 par recette</td><td>cartes, suggestions, favoris</td><td>4:3, même table, même lumière</td></tr>
+      <tr><td>Gestes (casser un œuf, râper la tomate, rouler la semoule)</td><td>6</td><td>étapes de recette, onboarding</td><td>16:9, mains seulement</td></tr>
+      <tr><td>Ingrédients à plat (frigo du quotidien, marché)</td><td>6</td><td>frigo vide, scan, bienvenue</td><td>1:1 zénithal</td></tr>
+      <tr><td>Table conviviale (plats partagés, pain, mains qui se servent)</td><td>3</td><td>accueil « nouvel utilisateur », installation</td><td>16:9</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:14px"><b>Budget :</b> option A — le chef avec un téléphone récent, près d'une fenêtre, en suivant ce guide
+  (coût 0 DT, 2 à 3 demi-journées) ; option B — un photographe culinaire une journée pour les portraits et les 6 plats signature,
+  le reste en option A (D-14). <b>Livraison :</b> originaux 2400 px, exports AVIF + WebP en 480 / 1024 px, qualité ~80,
+  ~25–40 ko par carte, ~80–120 ko par héros, couleur dominante notée pour l'affichage pendant le chargement.</p>
+  <div class="tile" style="display:flex;gap:var(--sp-3);align-items:center;margin-top:var(--sp-3)">
+    <span class="thumb" style="width:72px;height:72px;font-size:13px;background:var(--tint);border-style:dashed" aria-hidden="true">photo</span>
+    <span><b>Portrait du chef à produire</b><br /><span class="muted" style="font-size:13px">Aucun portrait n'est simulé dans les maquettes : un visage inventé ne doit jamais représenter chef Souhed.</span></span>
+  </div>
+
+  <h2 id="livrables">7. Fichiers de marque à fournir — liste et dimensions</h2>
+  <p style="font-size:15px">Le logo définitif sera fourni par le chef : les fichiers des maquettes (« Tajine ? ») ne sont que des
+  emplacements. Cette liste est la <b>commande complète</b> : chaque ligne dit quoi fournir, à quelle taille et où c'est utilisé.
+  <b>Règle générale :</b> fournir un original vectoriel (SVG ou PDF/AI) pour tout ce qui est logo ; les PNG se déclinent ensuite
+  depuis cet original. Les tailles ci-dessous sont en pixels.</p>
+  <p class="muted" style="font-size:13px">Légende : <b>Obligatoire</b> = nécessaire à la mise en ligne · <b>Recommandé</b> = qualité
+  d'installation et de partage · <b>Optionnel</b> = plus tard (stores, campagnes).</p>
+
+  <h3>7.1 Logo</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Fichier</th><th>Dimensions</th><th>Format</th><th>Usage</th><th>Priorité</th></tr></thead>
+    <tbody>
+      <tr><td><code>logo-horizontal.svg</code></td><td>vectoriel, ratio ≈ 4,5 : 1 ; affiché à 32–40 px de haut</td><td>SVG (+ PNG 1200 × 266 transparent)</td><td>en-tête desktop et mobile, e-mails</td><td>Obligatoire</td></tr>
+      <tr><td><code>logo-horizontal-negatif.svg</code></td><td>idem</td><td>SVG (+ PNG 1200 × 266)</td><td>mode sombre, sur photo ou fond paprika</td><td>Obligatoire</td></tr>
+      <tr><td><code>logo-empile.svg</code></td><td>vectoriel, ratio ≈ 1,4 : 1</td><td>SVG (+ PNG 1024 × 730)</td><td>bienvenue, écran de chargement, page « à propos »</td><td>Recommandé</td></tr>
+      <tr><td><code>symbole.svg</code></td><td>carré, vectoriel ; lisible à 16 px</td><td>SVG (+ PNG 512 × 512 transparent)</td><td>barre d'onglets du navigateur, avatar des réseaux, filigrane</td><td>Obligatoire</td></tr>
+      <tr><td><code>symbole-mono-noir.svg</code> · <code>-blanc.svg</code></td><td>carré</td><td>SVG</td><td>une couleur : tampon, impression, badge de notification</td><td>Recommandé</td></tr>
+      <tr><td><code>logo-ar.svg</code> (si D-19)</td><td>comme le logo horizontal</td><td>SVG</td><td>en-tête en arabe et derja arabe</td><td>Optionnel</td></tr>
+      <tr><td>Fiche couleurs et police</td><td>—</td><td>PDF ou texte</td><td>codes HEX exacts du logo, nom de la police, zone de protection</td><td>Obligatoire</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7.2 Icônes d'application (PWA, navigateurs, téléphones)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Fichier</th><th>Dimensions</th><th>Format</th><th>Usage</th><th>Priorité</th></tr></thead>
+    <tbody>
+      <tr><td><code>icon-192.png</code></td><td>192 × 192</td><td>PNG</td><td>manifeste PWA (« any »), Android</td><td>Obligatoire</td></tr>
+      <tr><td><code>icon-512.png</code></td><td>512 × 512</td><td>PNG</td><td>manifeste PWA, écran de démarrage Android</td><td>Obligatoire</td></tr>
+      <tr><td><code>icon-maskable-192.png</code> · <code>-512.png</code></td><td>192 × 192 et 512 × 512 ; symbole dans le cercle central de 80 % (≈ 410 px sur 512)</td><td>PNG, fond plein</td><td>Android (découpe ronde, carrée, goutte…)</td><td>Obligatoire</td></tr>
+      <tr><td><code>icon-monochrome-512.png</code></td><td>512 × 512, symbole blanc sur transparent</td><td>PNG</td><td>icônes à thème Android 13+</td><td>Optionnel</td></tr>
+      <tr><td><code>apple-touch-icon.png</code></td><td>180 × 180, <b>fond plein, sans transparence ni coins arrondis</b></td><td>PNG</td><td>écran d'accueil iPhone / iPad</td><td>Obligatoire</td></tr>
+      <tr><td><code>favicon.svg</code> + <code>favicon.ico</code></td><td>SVG + ICO contenant 16, 32 et 48</td><td>SVG, ICO</td><td>onglet du navigateur</td><td>Obligatoire</td></tr>
+      <tr><td><code>badge-notification.png</code></td><td>96 × 96, symbole blanc sur transparent</td><td>PNG</td><td>petite icône des notifications Android</td><td>Recommandé</td></tr>
+      <tr><td>Captures pour l'installation</td><td>mobile 1080 × 1920 (× 3) · desktop 1920 × 1080 (× 2)</td><td>PNG ou JPG</td><td>fenêtre d'installation enrichie (Chrome / Android)</td><td>Recommandé</td></tr>
+      <tr><td>Écrans de démarrage iOS</td><td>1179 × 2556, 1290 × 2796, 1170 × 2532, 750 × 1334 (portrait)</td><td>PNG</td><td>ouverture de la PWA sur iPhone (sinon écran blanc)</td><td>Optionnel</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7.3 Partage et référencement</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Fichier</th><th>Dimensions</th><th>Format</th><th>Usage</th><th>Priorité</th></tr></thead>
+    <tbody>
+      <tr><td><code>og-default.jpg</code></td><td>1200 × 630 (zone utile centrale 1080 × 566), &lt; 300 ko</td><td>JPG</td><td>aperçu des liens (WhatsApp, Facebook, X, Messenger) pour les pages sans photo</td><td>Obligatoire</td></tr>
+      <tr><td>Aperçu par recette</td><td>1200 × 630, recadré automatiquement depuis la photo du plat</td><td>JPG</td><td>partage d'une recette</td><td>généré (rien à fournir)</td></tr>
+      <tr><td><code>logo-google.png</code></td><td>carré, minimum 112 × 112 (fournir 512 × 512), fond blanc</td><td>PNG</td><td>données structurées « Organization » (résultats Google)</td><td>Recommandé</td></tr>
+      <tr><td>Avatar réseaux sociaux</td><td>1080 × 1080 (affiché en rond)</td><td>PNG/JPG</td><td>Facebook, Instagram, TikTok</td><td>Optionnel</td></tr>
+      <tr><td>Bannières réseaux</td><td>Facebook 1640 × 624 · YouTube 2560 × 1440 (zone sûre 1546 × 423)</td><td>JPG</td><td>pages de la marque</td><td>Optionnel</td></tr>
+      <tr><td>Google Play (si application TWA)</td><td>icône 512 × 512 · bannière 1024 × 500 · captures 1080 × 1920</td><td>PNG/JPG</td><td>fiche du store</td><td>Optionnel</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7.4 Photos d'identité (séance photo, § 5)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Série</th><th>Original à livrer</th><th>Exports générés par l'application</th><th>Usage</th><th>Priorité</th></tr></thead>
+    <tbody>
+      <tr><td>Héros d'accueil et de recette</td><td>16:9 · 2400 × 1350 (+ recadrage 21:9 possible)</td><td>1024 et 1600 px de large, AVIF + WebP</td><td>accueil, fiche recette</td><td>Obligatoire (6 plats)</td></tr>
+      <tr><td>Carte de recette</td><td>4:3 · 2400 × 1800</td><td>480 et 960 px</td><td>listes, suggestions, favoris</td><td>Obligatoire (1 par recette)</td></tr>
+      <tr><td>Catégories</td><td>1:1 · 800 × 800, sujet centré (affiché en rond)</td><td>240 px</td><td>carrousel des catégories (16)</td><td>Obligatoire</td></tr>
+      <tr><td>Étapes</td><td>16:9 · 1600 × 900</td><td>720 px</td><td>étapes utiles, mode cuisine</td><td>Optionnel</td></tr>
+      <tr><td>Portrait du chef</td><td>4:5 · 1600 × 2000 + 1:1 · 1024 × 1024</td><td>avatar 96 / 240 px</td><td>« by chef Souhed », nouveautés, bienvenue</td><td>Recommandé</td></tr>
+      <tr><td>Bienvenue</td><td>4:3 · 1600 × 1200 (× 3)</td><td>720 px</td><td>3 écrans d'introduction</td><td>Recommandé</td></tr>
+      <tr><td>Ingrédients</td><td>1:1 · 400 × 400, fond neutre</td><td>120 px</td><td>vignettes du frigo et des courses</td><td>Optionnel (repli : pastille)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:13px">Les originaux restent hors de l'application ; elle sert uniquement les exports réduits
+  (poids cible : carte 25–40 ko, héros 80–120 ko). Format d'original : JPG qualité 90 ou PNG, profil sRGB, sans filtre.</p>
+
+  <h2>8. Voix</h2>
+  <div class="g3">
+    <div class="tile"><b>Chaleureuse</b><p style="font-size:14px;margin-bottom:0">« Bonsoir ! On cuisine quoi ce soir ? »</p></div>
+    <div class="tile"><b>Honnête</b><p style="font-size:14px;margin-bottom:0">« Il manque la merguez. Vérifiez qu'il vous reste du piment. »</p></div>
+    <div class="tile"><b>Fière de la derja</b><p style="font-size:14px;margin-bottom:0">« Elli 3andek fel frigo, chnowa tnajem tayeb ? » comme signature, dans toutes les langues.</p></div>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

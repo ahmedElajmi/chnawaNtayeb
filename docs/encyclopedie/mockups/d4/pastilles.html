@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pastilles d'ingrédient — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false" style="display:none">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false" style="display:none">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false" style="display:none">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">Avec photo RÉELLE (Wikimedia Commons) · sans photo (pastille de catégorie) · lien cassé</span>
+    <span class="chip-check">Les emojis restent pour la démonstration « sans photo » ; la décision d'identité se juge sur les vraies photos</span>
+    <span class="chip-check">Alternative textuelle sur chaque pastille · repli propre (onerror) si un lien casse</span>
+  </div>
+  <h1>Pastilles d'ingrédient</h1>
+
+  <section class="demo card">
+    <h2>Avec photo réelle (Wikimedia Commons) <span class="level level-illustre">illustré</span></h2>
+    <p class="muted" style="font-size:12px">Photos réelles de plats et d'ingrédients — nécessaires pour juger
+    l'identité visuelle d'une application culinaire. Si un lien casse, la pastille retombe sur son repli
+    (dernière rangée). <b>À vérifier en navigateur</b> lors de la revue (connexion requise).</p>
+    <div class="list">
+      <div class="list-item"><span class="thumb"><img alt="Tomates" src="https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_je.jpg?width=120" onerror="this.closest('.thumb').classList.add('broken')" /></span><div class="grow"><span class="title">Tomates</span><br /><span class="muted" style="font-size:11px">2 kg dans le frigo</span></div></div>
+      <div class="list-item"><span class="thumb"><img alt="Œufs" src="https://commons.wikimedia.org/wiki/Special:FilePath/Chicken%20egg%20c06.jpg?width=120" onerror="this.closest('.thumb').classList.add('broken')" /></span><div class="grow"><span class="title">Œufs</span><br /><span class="muted" style="font-size:11px">6 unités dans le frigo</span></div></div>
+      <div class="list-item"><span class="thumb"><img alt="Oignons" src="https://commons.wikimedia.org/wiki/Special:FilePath/Red%20onions.jpg?width=120" onerror="this.closest('.thumb').classList.add('broken')" /></span><div class="grow"><span class="title">Oignons</span><br /><span class="muted" style="font-size:11px">5 unités dans le frigo</span></div></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Plats tunisiens réels (fiche recette) <span class="level level-illustre">illustré</span></h2>
+    <p class="muted" style="font-size:12px">Les deux directions comparées sur de vrais plats (basculez Direction).</p>
+    <div class="grid2">
+      <div class="card" style="padding:0;overflow:hidden">
+        <img alt="Couscous tunisien aux légumes" src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=320" style="width:100%;aspect-ratio:3/2;object-fit:cover;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display=''" />
+        <div style="display:none" class="hero">Photo indisponible (repli)</div>
+        <div style="padding:var(--sp-3)"><span class="title">Kosksi aux légumes</span><br /><span class="muted" style="font-size:12px">6 personnes · 1 h 30</span></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <img alt="Merguez grillé" src="https://commons.wikimedia.org/wiki/Special:FilePath/Merguez%20sausage.jpg?width=320" style="width:100%;aspect-ratio:3/2;object-fit:cover;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display=''" />
+        <div style="display:none" class="hero">Photo indisponible (repli)</div>
+        <div style="padding:var(--sp-3)"><span class="title">Ojja merguez</span><br /><span class="muted" style="font-size:12px">4 personnes · 45 min</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Sans photo — pastille de catégorie <span class="level level-illustre">illustré</span></h2>
+    <div class="list">
+      <div class="list-item"><span class="thumb" aria-label="Épices">🌶️</span><div class="grow"><span class="title">Harissa</span><br /><span class="muted" style="font-size:11px">Épices · stock permanent</span></div></div>
+      <div class="list-item"><span class="thumb" aria-label="Légumes">🧅</span><div class="grow"><span class="title">Oignons (sans photo configurée)</span><br /><span class="muted" style="font-size:11px">Légumes · 1 kg</span></div></div>
+      <div class="list-item"><span class="thumb" aria-label="Viandes">🥩</span><div class="grow"><span class="title">3dham</span><br /><span class="muted" style="font-size:11px">Viandes · 500 g</span></div></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Lien cassé — repli propre <span class="level level-illustre">illustré</span></h2>
+    <div class="list">
+      <div class="list-item"><span class="thumb broken" role="img" aria-label="Photo de « Batata » indisponible"><img alt="" src="https://example.invalid/batata.jpg" /></span><div class="grow"><span class="title">Batata</span><br /><span class="muted" style="font-size:11px">Lien d'image indisponible — repli propre</span></div></div>
+    </div>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

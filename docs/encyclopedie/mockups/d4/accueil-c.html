@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar" data-home-state="filled">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Accueil — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<!-- Page générée par tools/generate-pages.mjs depuis tools/pages.mjs — ne pas modifier à la main. -->
+<script>try{var m=location.hash.match(/(?:state=)?(\w+)/);if(m&&["new","empty","filled","favs","planning","grocery"].indexOf(m[1])!==-1)document.documentElement.setAttribute('data-home-state',m[1]);}catch(e){}</script>
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="false">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp" style="flex-wrap:wrap"><span class="lbl">Utilisateur</span>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="new" aria-pressed="false">Nouveau</button>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="empty" aria-pressed="false">Frigo vide</button>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="filled" aria-pressed="true">Frigo rempli</button>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="favs" aria-pressed="false">+ Favoris</button>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="planning" aria-pressed="false">+ Planning</button>
+    <button class="ctl demo-attr" data-attr="data-home-state" data-v="grocery" aria-pressed="false">+ Courses</button></div>
+  <div class="grp"><span class="lbl">Pub</span><button class="ctl ads-ctl" aria-pressed="true">On</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+
+<div class="pagewrap">
+  <header data-shell="topbar"></header>
+  <div style="display:flex;flex:1;width:100%">
+    <nav data-shell="side" data-current="home"></nav>
+    <main class="page-main wide">
+      <div data-page-root></div>
+    </main>
+    <aside class="ad-rail" aria-label="Colonne publicitaire" data-show-attr="data-home-state" data-show-in="empty filled favs planning grocery"><div data-c="ad-slot" data-props='{"id":"home_side_1","format":"v300"}'></div></aside>
+  </div>
+  <nav data-shell="bottom" data-current="home"></nav>
+</div>
+
+<script type="application/json" id="page-schema">
+{
+  "page": "accueil-c",
+  "blocks": [
+    {
+      "c": "install-banner"
+    },
+    {
+      "c": "offline-strip"
+    },
+    {
+      "c": "home-greeting",
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "empty",
+          "filled",
+          "favs",
+          "planning",
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "home-hero"
+    },
+    {
+      "c": "grocery-progress",
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "fridge-peek",
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "filled",
+          "favs",
+          "planning",
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "guest-card",
+      "props": {
+        "compact": true,
+        "dismissible": true,
+        "leadKey": "guestLeadHome"
+      },
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "filled",
+          "favs",
+          "planning",
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "shelf",
+      "props": {
+        "shelf": "frigo"
+      },
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "filled",
+          "favs",
+          "planning",
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "favorites-strip",
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "favs"
+        ]
+      }
+    },
+    {
+      "c": "ad-slot",
+      "props": {
+        "id": "home_between_1",
+        "format": "rect"
+      },
+      "show": {
+        "attr": "data-home-state",
+        "in": [
+          "empty",
+          "filled",
+          "favs",
+          "planning",
+          "grocery"
+        ]
+      }
+    },
+    {
+      "c": "warm-band",
+      "props": {
+        "blocks": [
+          {
+            "c": "category-rail",
+            "props": {
+              "mode": "link",
+              "titleKey": "byCategory"
+            }
+          },
+          {
+            "c": "recipe-rail",
+            "props": {
+              "ids": [
+                "brik",
+                "malsouka"
+              ],
+              "eyebrow": "by chef Souhed",
+              "titleKey": "chefNews"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "c": "note",
+      "props": {
+        "text": "**Accueil C (validé), entièrement en blocs.** Le héros choisit seul : promesse (nouveau), invitation (frigo vide), idée du soir (première recette prête du moteur) ou repas prévu (planning). Les blocs « catégories » et « étal » sont les mêmes que sur la page Recettes."
+      }
+    }
+  ]
+}
+</script>
+<script src="assets/data.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/cn/i18n.js"></script>
+<script src="assets/cn/common.js"></script>
+<script src="assets/cn/home.js"></script>
+<script src="assets/cn/fridge.js"></script>
+<script src="assets/cn/recipe.js"></script>
+<script src="assets/cn/flows.js"></script>
+<script src="assets/cn/account.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
