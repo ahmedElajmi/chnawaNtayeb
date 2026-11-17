@@ -29,16 +29,16 @@
 
 ## 3. État vérifié du code — tableau d'écart
 
-| Élément | État | Evidence | Reste à faire en 1.5 |
-| --- | --- | --- | --- |
-| Export complet Firestore | — | **Inexistant** — le seul chemin de lecture complet est `changes(name, 0, pageLimit)` + `ids()` + `get()` au contrat, qui perd les tombstones côté SQL et ignore `_sync_meta` | **C1** — outil d'export au niveau du stockage (22 collections + `_sync_meta`, tombstones, révisions) |
-| Import fidèle (révisions préservées) | — | `/replace` ré-estampille (`put`) ; `put` génère toujours une révision neuve | **C1** — import par adaptateur : écriture directe des révisions d'origine (Firestore : Timestamp + compteur `_sync_meta` ; SQL : INSERT avec la révision d'origine) |
-| Comparaison exhaustive | — | Inexistante | **C1** — comparateur : ensemble d'ids, contenu champ par champ, révision, tombstones, compteurs — zéro écart exigé |
-| Cible SQL de la répétition | C | `sqlStore.ts` (harnais générique, 22 tables) + pilote relationnel Identity (`relationalPilot.ts`, `users`/`auth`/`email_index` en colonnes typées) | **C2** — décision de portée (§ 7-1) |
-| Suite émulateur Firestore | C (réserve) | 22 tests `describe.skipIf(!emulatorReady)` dans `firestoreStore.test.ts` | **C5** — exécutés dans ce lot |
-| Reprise client après bascule | C | Curseur de sync `(revision, id)` + cache IndexedDB (`SyncedCollectionStore`, relecture complète après 30 jours hors ligne) ; frigo : sections en attente locales, push en reconnexion (`KitchenSync.ts:23,78`) | **C4** — démonstration scénario B avec un client réel sur les endpoints |
-| Monotonie des révisions après retour tardif | Décidée, non démontrée | 1.1 § 8 : `max(horloge, maxImporté + 1)` | **C4** — démontrée par le scénario B (écritures post-retour continuent la séquence) |
-| Fenêtre de gel | — | Inexistante | **C3** — mesurée pendant la répétition |
+| Élément                                     | État                   | Evidence                                                                                                                                                                                                       | Reste à faire en 1.5                                                                                                                                                |
+| ------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Export complet Firestore                    | —                      | **Inexistant** — le seul chemin de lecture complet est `changes(name, 0, pageLimit)` + `ids()` + `get()` au contrat, qui perd les tombstones côté SQL et ignore `_sync_meta`                                   | **C1** — outil d'export au niveau du stockage (22 collections + `_sync_meta`, tombstones, révisions)                                                                |
+| Import fidèle (révisions préservées)        | —                      | `/replace` ré-estampille (`put`) ; `put` génère toujours une révision neuve                                                                                                                                    | **C1** — import par adaptateur : écriture directe des révisions d'origine (Firestore : Timestamp + compteur `_sync_meta` ; SQL : INSERT avec la révision d'origine) |
+| Comparaison exhaustive                      | —                      | Inexistante                                                                                                                                                                                                    | **C1** — comparateur : ensemble d'ids, contenu champ par champ, révision, tombstones, compteurs — zéro écart exigé                                                  |
+| Cible SQL de la répétition                  | C                      | `sqlStore.ts` (harnais générique, 22 tables) + pilote relationnel Identity (`relationalPilot.ts`, `users`/`auth`/`email_index` en colonnes typées)                                                             | **C2** — décision de portée (§ 7-1)                                                                                                                                 |
+| Suite émulateur Firestore                   | C (réserve)            | 22 tests `describe.skipIf(!emulatorReady)` dans `firestoreStore.test.ts`                                                                                                                                       | **C5** — exécutés dans ce lot                                                                                                                                       |
+| Reprise client après bascule                | C                      | Curseur de sync `(revision, id)` + cache IndexedDB (`SyncedCollectionStore`, relecture complète après 30 jours hors ligne) ; frigo : sections en attente locales, push en reconnexion (`KitchenSync.ts:23,78`) | **C4** — démonstration scénario B avec un client réel sur les endpoints                                                                                             |
+| Monotonie des révisions après retour tardif | Décidée, non démontrée | 1.1 § 8 : `max(horloge, maxImporté + 1)`                                                                                                                                                                       | **C4** — démontrée par le scénario B (écritures post-retour continuent la séquence)                                                                                 |
+| Fenêtre de gel                              | —                      | Inexistante                                                                                                                                                                                                    | **C3** — mesurée pendant la répétition                                                                                                                              |
 
 ## 4. Conception proposée — six chantiers
 
@@ -50,22 +50,25 @@ Trois outils opérateurs, **lire/écrire au niveau du stockage** (jamais via le 
 2. **`import-sql.ts`** : reconstruction exacte dans la cible SQL — révisions d'origine écrites telles quelles (INSERT direct, la séquence repart à `max+1` — mécanisme vérifié en 1.4), tombstones incluses, compteurs reconstruits.
 3. **`import-firestore.ts`** : reconstruction exacte dans Firestore (cible du retour arrière) — révisions en Timestamp, documents de `_sync_meta` écrits au max importé.
 4. **`compare.ts`** : comparaison exhaustive **zéro écart** entre deux exports : ensemble d'ids identique par collection, contenu champ par champ, révision égale, tombstones égales, `_sync_meta` égale ; tout écart = échec nominatif (collection, id, champ).
+
 - **Garde de sécurité** : chaque outil **refuse de tourner sur la production** — il exige l'environnement émulateur (`FIRESTORE_EMULATOR_HOST`) ou un chemin SQLite local, et **refuse les identifiants Firestore réels** (aucune lecture ni écriture de production, même accidentelle).
 
 ### C2 — Cible de la répétition (🚩 décision de portée, § 7-1)
 
 Le dossier distingue **la mécanique** (export/import/comparaison/bascule/retour) de **la transformation relationnelle** (documents → tables par domaine). Deux options :
 
-- **Option A (recommandée)** : la répétition valide la **mécanique complète** sur les 22 collections via le harnais générique (`sqlStore`, tables uniformes — artefact de test assumé, décision 1.1 § 8), **et** démontre la **transformation relationnelle par domaine sur Identity** en étendant le pilote existant (`users`/`auth`/`email_index` → colonnes typées, tables de liaison, unicité e-mail) dans la même procédure ; la **spécification relationnelle par domaine** (tables, colonnes, clés, contraintes, index pour les 22 collections) est livrée comme document du lot, son implémentation complète restant attachée à la préparation de la bascule (arbitrage n° 5 du lot 1.2). *Justification* : les modèles évoluent en 5b/6a — une implémentation relationnelle complète maintenant serait à refaire après l'évolution des modèles (double travail) ; la répétition doit valider la **procédure** et la **réversibilité**, pas figer un schéma destiné à changer.
+- **Option A (recommandée)** : la répétition valide la **mécanique complète** sur les 22 collections via le harnais générique (`sqlStore`, tables uniformes — artefact de test assumé, décision 1.1 § 8), **et** démontre la **transformation relationnelle par domaine sur Identity** en étendant le pilote existant (`users`/`auth`/`email_index` → colonnes typées, tables de liaison, unicité e-mail) dans la même procédure ; la **spécification relationnelle par domaine** (tables, colonnes, clés, contraintes, index pour les 22 collections) est livrée comme document du lot, son implémentation complète restant attachée à la préparation de la bascule (arbitrage n° 5 du lot 1.2). _Justification_ : les modèles évoluent en 5b/6a — une implémentation relationnelle complète maintenant serait à refaire après l'évolution des modèles (double travail) ; la répétition doit valider la **procédure** et la **réversibilité**, pas figer un schéma destiné à changer.
 - **Option B** : implémentation relationnelle complète des 22 collections incluse dans 1.5 — la répétition démontrerait alors exactement la transformation de production, au prix d'un périmètre beaucoup plus large et d'un travail à refaire après 5b/6a.
 
 ### C3 — Procédure de bascule et fenêtre de gel (runbook livré)
 
 Procédure exécutée et **chronométrée** sur l'environnement de répétition :
+
 1. **Sauvegarde complète** de l'état initial (export Firestore — la « restauration obligatoire » du plan est un retour à cette sauvegarde, testé) ;
 2. **gel des écritures** (arrêt de l'application de répétition — le gel est la fenêtre mesurée) ;
 3. export → import → **comparaison zéro écart** → **bascule** (la sélection du fournisseur passe à SQL) → dégel ;
 4. la fenêtre mesurée = gel → dégel, sur le corpus de répétition ; **limite documentée** : le corpus de production sera plus grand — la fenêtre réelle s'estimera par extrapolation (coût de l'export/import mesuré en volume, cf. baseline 1.4) et sera mesurée à nouveau sur des données de taille réelle **avant** la décision de bascule.
+
 - **Production intacte** : l'émulateur Firestore et un SQLite local uniquement ; aucun accès à la production, vérifié par la garde des outils (C1).
 
 ### C4 — Retours arrière A et B (démonstrations, pas des descriptions)
@@ -73,6 +76,7 @@ Procédure exécutée et **chronométrée** sur l'environnement de répétition 
 **Scénario A — retour immédiat** : après bascule et **aucune écriture SQL**, retour vers Firestore : export SQL → import Firestore → comparaison avec la sauvegarde initiale → **zéro écart** (la sauvegarde est la référence).
 
 **Scénario B — retour après usage réel de SQL** (plusieurs « jours » simulés par un volume d'opérations réel) :
+
 1. usage réel via les **endpoints** de l'application de répétition (jamais d'écritures directes) : publications de recettes (commits atelier + versions), créations de **comptes** (`users`+`auth`+`email_index` atomiques), modifications de **droits** d'employés, réglages publiés, **tombstones** (suppressions publiées), écritures frigo via `transact` ;
 2. un **client réel** (navigateur sur l'app de répétition) a synchronisé : son cache IndexedDB porte des révisions de l'ère SQL ; un **appareil hors ligne** a des **sections frigo en attente** non poussées ;
 3. **retour arrière** : gel → export SQL (révisions de l'ère SQL) → import Firestore → comparaison Firestore↔SQL zéro écart → dégel ;
@@ -91,12 +95,12 @@ Les **22 tests ignorés** passent dans ce lot (l'environnement de répétition e
 
 ## 5. Analyse de non-régression explicite
 
-| Fonctionnalité existante | Risque | Tests |
-| --- | --- | --- |
-| Production | Les outils de migration pourraient pointer la production | **Garde dans les outils** (refus hors émulateur/SQLite local) + aucune variable de production dans les scripts ; test de la garde |
-| Application serveur | Les outils sont hors de l'application (`scripts/migration/`) — aucune modification de `server/` | Suites existantes au vert sans modification d'attente |
-| Suites de contrat/contention/perf | Les outils ne touchent pas la couche storage | `npm run check` vert, baseline 1.4 inchangée |
-| Tests émulateur (réserve) | Leur activation peut révéler des écarts d'adaptateur | **Exécutés dans ce lot** — tout écart est corrigé dans l'adaptateur (périmètre du lot), sans changement du contrat |
+| Fonctionnalité existante          | Risque                                                                                          | Tests                                                                                                                             |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Production                        | Les outils de migration pourraient pointer la production                                        | **Garde dans les outils** (refus hors émulateur/SQLite local) + aucune variable de production dans les scripts ; test de la garde |
+| Application serveur               | Les outils sont hors de l'application (`scripts/migration/`) — aucune modification de `server/` | Suites existantes au vert sans modification d'attente                                                                             |
+| Suites de contrat/contention/perf | Les outils ne touchent pas la couche storage                                                    | `npm run check` vert, baseline 1.4 inchangée                                                                                      |
+| Tests émulateur (réserve)         | Leur activation peut révéler des écarts d'adaptateur                                            | **Exécutés dans ce lot** — tout écart est corrigé dans l'adaptateur (périmètre du lot), sans changement du contrat                |
 
 Aucune fonctionnalité existante n'est supprimée ou dégradée ; le lot ajoute des outils et une procédure.
 
