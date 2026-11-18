@@ -89,6 +89,34 @@ describe('architecture: src/application has no UI framework and no backend SDK',
     expect(files.length).toBeGreaterThan(0);
     expect(offenders).toEqual([]);
   });
+
+  // Lot 2.6.0 (T2): the platform itself is a port too (e.g. HostLifecycle) — timers and
+  // page-visibility notifications are injected, so the same code runs on the web and on
+  // a future native shell with its own adapter.
+  it('never touches the host platform directly (no browser globals: the host is behind ports)', () => {
+    const offenders = files.filter((file) => FORBIDDEN_GLOBALS.test(fs.readFileSync(file, 'utf8'))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('architecture: vendor SDKs stay isolated behind ports', () => {
+  // Lot 2.6.0 (T4): a vendor SDK (Firebase today) is allowed only inside an infrastructure
+  // adapter, behind a replaceable port. The domain, the stores and the UI never import one;
+  // swapping the vendor means writing new adapters, not touching business code.
+  it('imports firebase or google SDKs only from src/infrastructure', () => {
+    const VENDOR_SDKS = [/^firebase(\/$|\.)/, /^firebase-admin/, /^@google\//];
+    const files = ['core', 'application', 'features', 'shared', 'app', 'infrastructure'].flatMap((dir) =>
+      listFiles(path.join(SRC_DIR, dir), isSource)
+    );
+    const offenders = files
+      .filter((file) => !file.includes(`${path.sep}infrastructure${path.sep}`))
+      .flatMap((file) =>
+        importsOf(file)
+          .filter((spec) => VENDOR_SDKS.some((re) => re.test(spec)))
+          .map((spec) => `${rel(file)} -> ${spec}`)
+      );
+    expect(offenders).toEqual([]);
+  });
 });
 
 describe('architecture: src/infrastructure never depends on the UI', () => {

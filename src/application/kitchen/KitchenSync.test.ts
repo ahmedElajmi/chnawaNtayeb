@@ -12,6 +12,7 @@ import {
 import type { DayId } from '@/core/planning';
 import type { GroceryList } from '@/core/grocery';
 import type {
+  HostLifecycle,
   KitchenRepository,
   KitchenSyncLedger,
   PreferencesRepository,
@@ -75,7 +76,8 @@ interface Harness {
     release: () => void;
   };
   time: { value: number };
-  documentListeners: Map<string, () => void>;
+  /** The fake host: fire the visibility callbacks, inspect the armed debounce timers */
+  host: HostLifecycle & { fireHidden(): void; fireVisible(): void; armed(): number };
   owner: { uid: string | null };
   preferences: PreferencesRepository & { saved: Partial<{ pantryStaples: string[]; themeId: string }>[] };
 }
@@ -103,9 +105,9 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
   let deviceClock = { physical: 0, counter: 0, device: 'test' };
   // Pre-existing lists (written before element sets existed) wrap once, like the real migration
   for (const section of ['favorites', 'fridge', 'pantry'] as const) {
-    const list = initial?.[section];
-    if (Array.isArray(list) && list.length) {
-      elements[section] = wrapLegacyList(list as string[], 100)!;
+    const legacyIds = initial?.[section];
+    if (Array.isArray(legacyIds) && legacyIds.length) {
+      elements[section] = wrapLegacyList(legacyIds as string[], 100)!;
     }
   }
 
@@ -254,18 +256,36 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     },
   };
 
-  const documentListeners = new Map<string, () => void>();
-  vi.stubGlobal('window', {
-    setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
-    clearTimeout: (id: number) => clearTimeout(id),
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-  });
-  vi.stubGlobal('document', {
-    addEventListener: (kind: string, listener: () => void) => documentListeners.set(kind, listener),
-    removeEventListener: (kind: string) => documentListeners.delete(kind),
-    visibilityState: 'visible',
-  });
+  const armedTimers = new Set<ReturnType<typeof setTimeout>>();
+  const visibility = { hidden: [] as (() => void)[], visible: [] as (() => void)[] };
+  const host: Harness['host'] = {
+    defer: (fn, ms) => {
+      const id = setTimeout(() => {
+        armedTimers.delete(id);
+        fn();
+      }, ms);
+      armedTimers.add(id);
+      return () => {
+        clearTimeout(id);
+        armedTimers.delete(id);
+      };
+    },
+    subscribeVisibility: (onHidden, onVisible) => {
+      visibility.hidden.push(onHidden);
+      visibility.visible.push(onVisible);
+      return () => {
+        const removeOne = (listeners: (() => void)[], fn: () => void) => {
+          const i = listeners.indexOf(fn);
+          if (i !== -1) listeners.splice(i, 1);
+        };
+        removeOne(visibility.hidden, onHidden);
+        removeOne(visibility.visible, onVisible);
+      };
+    },
+    fireHidden: () => [...visibility.hidden].forEach((fn) => fn()),
+    fireVisible: () => [...visibility.visible].forEach((fn) => fn()),
+    armed: () => armedTimers.size,
+  };
 
   const sync = new KitchenSync({
     gateway: gatewayPort,
@@ -274,8 +294,9 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     ledger,
     owner: () => owner.uid,
     now: () => time.value,
+    host,
   });
-  return { sync, kitchen, ledger, gateway, time, documentListeners, owner, preferences };
+  return { sync, kitchen, ledger, gateway, time, host, owner, preferences };
 }
 
 beforeEach(() => {
@@ -284,7 +305,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
-  vi.unstubAllGlobals();
 });
 
 describe('the kitchen sync engine', () => {
@@ -410,11 +430,11 @@ describe('the kitchen sync engine', () => {
     expect(h.gateway.pulls).toBe(1);
 
     h.time.value += 30_000;
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     expect(h.gateway.pulls).toBe(1); // inside the one-minute guard
 
     h.time.value += 61_000;
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     expect(h.gateway.pulls).toBe(2);
   });
 
@@ -424,14 +444,86 @@ describe('the kitchen sync engine', () => {
     await vi.runAllTimersAsync();
 
     h.kitchen.toggleFavorite('r1'); // debounce timer armed
-    h.documentListeners.get('visibilitychange')!(); // hidden flush — but the stub says visible
-    expect(h.gateway.pushes).toHaveLength(0); // no flush while visible
+    h.host.fireVisible(); // coming back to the page never flushes
+    expect(h.gateway.pushes).toHaveLength(0);
 
-    (document as { visibilityState: string }).visibilityState = 'hidden';
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireHidden(); // backgrounded (or parked in the back/forward cache): flush now
     expect(h.gateway.pushes).toHaveLength(1);
     expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['r1']);
-    (document as { visibilityState: string }).visibilityState = 'visible';
+  });
+
+  it('survives repeated visibility cycles: every hidden flushes, visible keeps the pull guard', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    const pullsAfterStart = h.gateway.pulls;
+
+    for (let cycle = 1; cycle <= 3; cycle++) {
+      h.kitchen.toggleFavorite(`r${cycle}`);
+      expect(h.host.armed()).toBe(1); // one debounce timer armed per change burst
+      h.host.fireHidden();
+      expect(h.gateway.pushes).toHaveLength(cycle);
+      expect(h.host.armed()).toBe(0); // the timer was flushed, not left behind
+
+      h.time.value += 15_000; // still inside the one-minute pull guard
+      h.host.fireVisible();
+      expect(h.gateway.pulls).toBe(pullsAfterStart);
+    }
+
+    h.time.value += 61_000; // past the guard: the next return pulls
+    h.host.fireVisible();
+    expect(h.gateway.pulls).toBe(pullsAfterStart + 1);
+  });
+
+  it('stop() unsubscribes from the host and cancels the armed debounce', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.kitchen.toggleFavorite('r1');
+    expect(h.host.armed()).toBe(1);
+    h.sync.stop();
+    expect(h.host.armed()).toBe(0); // the timer is cancelled, nothing is sent
+
+    h.host.fireHidden(); // no listener left: no flush
+    h.host.fireVisible(); // no listener left: no pull
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(h.gateway.pushes).toHaveLength(0);
+    expect(h.gateway.pulls).toBe(1); // only the start-up one
+  });
+
+  it('a pending debounce is cancelled when the account changes, the section stays pending', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.kitchen.toggleFavorite('r1');
+    expect(h.host.armed()).toBe(1);
+    h.owner.uid = 'u2';
+    h.sync.onAccountChanged();
+    expect(h.host.armed()).toBe(0); // the timer of u1 is gone, nothing was sent for u1
+    expect(h.ledger.pendingSet.has('favorites')).toBe(true); // it will go up on the next trigger
+  });
+
+  it('a flush while another push is in flight sends the remaining changes (no loss)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.gateway.holdPushes = 1;
+    h.kitchen.toggleFavorite('r1');
+    await vi.advanceTimersByTimeAsync(2000); // push 1 in flight (held by the server)
+    expect(h.gateway.pushes).toHaveLength(1);
+
+    h.kitchen.toggleFavorite('r2'); // new pending section, debounce armed
+    h.host.fireHidden(); // immediate flush instead of waiting the debounce
+    expect(h.gateway.pushes).toHaveLength(2);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r1', 'r2']);
+
+    h.gateway.release(); // both responses settle
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().pending).toBe(0);
+    expect(h.sync.getState().failed).toBe(false);
   });
 
   it('pushes and pulls nothing for a visitor without an account', async () => {
@@ -518,7 +610,7 @@ describe('the kitchen sync engine', () => {
     h.gateway.remote = { favorites: { value: elementSet(['stale-u1'], [], 9000), updatedAt: 9000 } };
     h.gateway.holdPulls = 2;
     h.time.value += 61_000;
-    h.documentListeners.get('visibilitychange')!(); // u1's pull, held
+    h.host.fireVisible(); // u1's pull, held
     h.owner.uid = 'u2';
     h.gateway.remote = { favorites: { value: elementSet(['from-u2'], [], 9000), updatedAt: 9000 } };
     h.sync.onAccountChanged(); // u2's pull, held
@@ -617,9 +709,9 @@ describe('the kitchen sync engine', () => {
       favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 },
       weeklyPlan: { value: [DAY('mon', 'server-plan')], updatedAt: 9000 },
     };
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     h.time.value += 61_000; // past the pull guard
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     await vi.runAllTimersAsync();
     // The stale local data is wiped and the server document is adopted as it is
     expect(h.kitchen.getState().favorites).toEqual(['from-server']);
@@ -633,9 +725,9 @@ describe('the kitchen sync engine', () => {
     await vi.runAllTimersAsync();
     h.time.value += STALE_DEVICE_MS + 1;
     h.gateway.fail = 'pull';
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     h.time.value += 61_000;
-    h.documentListeners.get('visibilitychange')!();
+    h.host.fireVisible();
     await vi.runAllTimersAsync();
     expect(h.sync.getState().failed).toBe(true);
     expect(h.kitchen.getState().favorites).toEqual(['kept']); // the local data is untouched
