@@ -1,6 +1,6 @@
 # Lot 2.6.1b — Composants du shell & adoption des variables (dossier d'exécution)
 
-**Statut** : dossier remis au chef pour revue et validation explicite — **aucun développement, aucune dépendance, aucune modification de code avant validation**.
+**Statut** : dossier **validé par le chef** (autorisation de développement accordée) — **implémenté, vérifié, validation technique du chef obtenue et contrôle manuel du clavier concluant** ; **commité sur autorisation explicite du chef** (`f8fc85b` feat — 18 fichiers de code). Rapports : `lot-2.6.1b-shell-composants-rapport.md` + `lot-2.6.1b-shell-composants-rapport-complement.md`.
 **Références** : `lot-2.6.1-identite-shell-dossier.md` (§ 10-1b, périmètre de référence) · `lot-2.6.1a-identite-rapport.md` + complément (état de départ, cibles tactiles reportées) · maquettes D4 `shell.html`, `registre.html` (pastille d'onglet actif fond `--tint`, avatar/panneau, squelettes) · décisions validées D-22, D-23, D-05, D-26 (appliquée en D4 pour l'invité), D-11.
 **Principes hérités (non renégociés)** : composants réutilisables sans généralisation excessive ; identité **entièrement configurable** (aucun « Chnawa Ntayeb » / « by chef Souhed » figé) ; thème résolu centralement par `ThemeProvider` ; aucune logique métier inventée depuis les maquettes ; préservation des fonctionnalités existantes et des performances (N1–N8).
 
