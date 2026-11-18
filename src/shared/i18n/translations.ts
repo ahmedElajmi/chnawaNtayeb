@@ -251,6 +251,10 @@ export interface TranslationDictionary {
   networkStatusLabel: string;
   accountLabel: string;
   accountMine: string;
+  /** Header avatar (opens the compact profile panel) */
+  avatarLabel: string;
+  /** Accessible name of the compact profile panel */
+  profilePanelLabel: string;
   accountSpace: string;
   accountSynced: string;
   accountSaveFavorites: string;
@@ -673,6 +677,8 @@ export const translations = {
     networkStatusLabel: '7alet el réseau',
     accountLabel: 'Compte',
     accountMine: 'Compte mte3i',
+    avatarLabel: 'Profil w réglages',
+    profilePanelLabel: 'Menu profil',
     accountSpace: 'Espace mte3ek',
     accountSynced: 'Msajjel m3a compte mte3ek',
     accountSaveFavorites: 'Sajjel el favoris mte3ek',
@@ -1080,6 +1086,8 @@ export const translations = {
     networkStatusLabel: 'Statut réseau',
     accountLabel: 'Compte',
     accountMine: 'Mon compte',
+    avatarLabel: 'Profil et réglages',
+    profilePanelLabel: 'Menu profil',
     accountSpace: 'Espace utilisateur',
     accountSynced: 'Synchronisé avec votre compte',
     accountSaveFavorites: 'Sauvegardez vos favoris',
@@ -1482,6 +1490,8 @@ export const translations = {
     networkStatusLabel: 'حالة الشبكة',
     accountLabel: 'الحساب',
     accountMine: 'حسابي',
+    avatarLabel: 'الملف الشخصي والإعدادات',
+    profilePanelLabel: 'قائمة الملف الشخصي',
     accountSpace: 'فضاء المستخدم',
     accountSynced: 'متزامن مع حسابك',
     accountSaveFavorites: 'احفظ وصفاتك المفضّلة',

@@ -62,7 +62,7 @@ export function BrandMark({ brand, tagline, onClick, markClass }: BrandMarkProps
 
   if (!onClick) return <div className="flex items-center gap-2 sm:gap-2.5 group min-w-0">{content}</div>;
   return (
-    <button onClick={onClick} className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0">
+    <button onClick={onClick} className="flex min-h-[44px] items-center gap-2 sm:gap-2.5 py-1 text-left group min-w-0">
       {content}
     </button>
   );

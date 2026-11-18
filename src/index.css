@@ -20,6 +20,18 @@
   --color-surface: #fbf9f5;
   --color-card: #ffffff;
   --color-line: #e8e4dc;
+  --color-line-strong: #8a8378;
+  --color-tint: #f0f4ef;
+  --color-focus-ring: #2d5a27;
+  --color-danger: #c0392b;
+  --color-danger-strong: #a93226;
+  --color-danger-text: #b3261e;
+  --color-success: #2e6b34;
+  --color-success-text: #2e6b34;
+  --color-warning: #8a6100;
+  --color-warning-text: #8a6100;
+  --color-info: #1d4ed8;
+  --color-info-text: #1d4ed8;
   --color-ink: #0f172a;
   --color-ink-muted: #64748b;
   --color-hero-from: #2d5a27;

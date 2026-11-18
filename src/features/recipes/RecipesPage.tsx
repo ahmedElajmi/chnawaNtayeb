@@ -6,6 +6,7 @@ import { RecipeFilterBar } from './components/RecipeFilterBar';
 import { RecipeListTabs } from './components/RecipeListTabs';
 import { RecipeCategoryBrowser } from './components/RecipeCategoryBrowser';
 import { RecipeGrid } from './RecipeGrid';
+import { Skeleton } from '@/shared/ui/Skeleton';
 import { DEFAULT_RECIPE_FILTERS } from './recipeFilters';
 
 /** The whole recipe catalog, with filters (recipes that fit the fridge come first). */
@@ -29,7 +30,11 @@ export function RecipesPage() {
       <RecipeCategoryBrowser filters={filters} setFilters={setFilters} />
 
       {recipes.length === 0 && !remoteChecked ? (
-        <div className="h-40 rounded-2xl bg-card border border-line animate-pulse" aria-busy="true" />
+        <div className="rounded-2xl bg-card border border-line p-4 space-y-3" aria-busy="true">
+          <Skeleton height="8rem" rounded="xl" />
+          <Skeleton height="1rem" width="60%" />
+          <Skeleton height="0.75rem" width="40%" />
+        </div>
       ) : recipes.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-card border border-slate-200 dark:border-slate-700 space-y-2">
           <p className="text-base font-bold text-ink">{t.catalogSoonTitle}</p>

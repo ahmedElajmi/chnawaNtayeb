@@ -162,6 +162,22 @@ describe('architecture: the brand identity is never hardcoded in a shell compone
   });
 });
 
+describe('architecture: the shell uses theme tokens only (lot 2.6.1b)', () => {
+  it('no hard-coded palette class or hex color in the shell files and components of the lot', () => {
+    const HARDCODED_PALETTE =
+      /(?:slate|rose|emerald|red|zinc|gray|orange|amber|lime|green|teal|sky|blue|indigo|violet|purple|fuchsia|pink)-\d|white\/|black\/|#[0-9a-fA-F]{3}(?![0-9a-fA-F])|#[0-9a-fA-F]{6}(?![0-9a-fA-F])/;
+    const shellFiles = [
+      ...listFiles(path.join(SRC_DIR, 'app', 'layout'), isSource),
+      path.join(SRC_DIR, 'app', 'AppLayout.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'Skeleton.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'AvatarButton.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'ScrollToTopButton.tsx'),
+    ].filter((file) => fs.existsSync(file));
+    const offenders = shellFiles.filter((file) => HARDCODED_PALETTE.test(fs.readFileSync(file, 'utf8'))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('architecture: the database can be replaced at any time', () => {
   it('no database vendor is named outside src/infrastructure and src/app/container.ts (code, comments or texts)', () => {
     const VENDOR = /firebase|firestore/i;

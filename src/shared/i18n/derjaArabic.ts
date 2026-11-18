@@ -239,6 +239,8 @@ export const DERJA_ARABIC: TranslationDictionary = {
   networkStatusLabel: 'حالة الريزو',
   accountLabel: 'الكونت',
   accountMine: 'الكونت متاعي',
+  avatarLabel: 'البروفيل والريغلاج',
+  profilePanelLabel: 'مينو الكونت',
   accountSpace: 'الفضاء متاعك',
   accountSynced: 'متسجّل مع الكونت متاعك',
   accountSaveFavorites: 'سجّل المفضّلة متاعك',
