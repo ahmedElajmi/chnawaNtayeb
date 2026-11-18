@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { Header } from '@/app/layout/Header';
+import { BRAND } from '@/app/brand';
+import { BrandMark } from '@/app/layout/BrandMark';
 import { BottomNav } from '@/app/layout/BottomNav';
 import { SettingsModal } from '@/features/settings/SettingsModal';
 import { UserAccountModal } from '@/features/account/UserAccountModal';
@@ -93,14 +95,11 @@ export function AppLayout() {
         <footer className="max-w-7xl w-full mx-auto px-4 sm:px-6 mt-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-6 border-t border-line text-xs text-ink-muted">
             <div className="flex items-center gap-2.5">
-              <img src="/mark.png" alt="" width={75} height={32} className="h-8 w-auto" />
-              <div className="leading-tight">
-                <p className="font-display font-extrabold text-sm text-ink">Chnowa Ntayeb?</p>
-                <p>{t.slogan}</p>
-              </div>
+              <BrandMark brand={BRAND} markClass="sm:h-8" />
+              <p className="leading-tight">{t.slogan}</p>
             </div>
             <p>
-              <span className="font-semibold text-accent-text">by Chef Souhed</span> · © {year} Chnowa Ntayeb
+              <span className="font-semibold text-accent-text">{BRAND.signature}</span> · © {year} {BRAND.wordmark}
             </p>
           </div>
         </footer>

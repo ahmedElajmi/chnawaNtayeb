@@ -13,11 +13,11 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { PATHS } from '@/shared/paths';
+import { BRAND } from '@/app/brand';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useTheme } from '@/app/providers/ThemeContext';
 import { languageInfo, SELECTOR_ORDER, type Language } from '@/core/shared';
 import { ThemeMode } from '@/core/preferences';
-import { ThemePreviewCard } from '@/features/settings/ThemePreviewCard';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { useInstallApp } from '@/shared/ui/PWAInstallButton';
 
@@ -45,8 +45,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isBackofficeAuthenticated = false,
   onBackofficeLogout,
 }) => {
-  const { t, language, setLanguage, getThemeName } = useLanguage();
-  const { themes, activeTheme, mode, resolvedMode, setMode, setThemeId, isPreviewing } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
+  const { mode, setMode } = useTheme();
   const install = useInstallApp();
   const [tab, setTab] = useState<SettingsTab>('display');
 
@@ -147,24 +147,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     ))}
                   </div>
                 </section>
-
-                <section className="space-y-2">
-                  <h3 className={HEADING}>{t.settingsTheme}</h3>
-                  {isPreviewing && <p className="text-xs text-accent-text">{t.themePreviewNote}</p>}
-                  <div className="grid grid-cols-2 gap-3">
-                    {themes.map((theme) => (
-                      <ThemePreviewCard
-                        key={theme.id}
-                        theme={theme}
-                        name={getThemeName(theme)}
-                        dark={resolvedMode === 'dark'}
-                        isActive={activeTheme.id === theme.id}
-                        activeLabel={t.themeActive}
-                        onSelect={() => setThemeId(theme.id)}
-                      />
-                    ))}
-                  </div>
-                </section>
               </>
             )}
 
@@ -237,9 +219,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             )}
 
             <p className="flex items-center justify-center gap-2 pt-2 text-xs text-ink-muted">
-              <img src="/mark.png" alt="" width={47} height={20} className="h-5 w-auto" />
+              {BRAND.markSrc && <img src={BRAND.markSrc} alt="" width={47} height={20} className="h-5 w-auto" />}
               <span>
-                Chnowa Ntayeb? · <span className="font-semibold text-accent-text">by Chef Souhed</span>
+                {BRAND.wordmark && `${BRAND.wordmark} · `}
+                <span className="font-semibold text-accent-text">{BRAND.signature}</span>
               </span>
             </p>
           </div>

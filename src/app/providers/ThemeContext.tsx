@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { AppTheme, BUILTIN_THEMES, CLASSIQUE_THEME, colorsToCssVars, FONT_REGISTRY } from '@/core/theme';
+import { AppTheme, BUILTIN_THEMES, resolveThemeColors, colorsToCssVars, FONT_REGISTRY } from '@/core/theme';
+import { resolveTheme } from '@/application/theme/resolveTheme';
+import { DEFAULT_THEME_ID } from '@/app/themeConfig';
 import { ThemeMode } from '@/core/preferences';
 import { useContainer } from '@/app/ContainerContext';
 
@@ -10,7 +12,6 @@ interface ThemeContextType {
   mode: ThemeMode;
   resolvedMode: 'light' | 'dark';
   setMode: (mode: ThemeMode) => void;
-  setThemeId: (id: string) => void;
   /** Temporarily applies a theme to the whole app (backoffice "try it" button). `null` stops the preview. */
   setPreviewTheme: (theme: AppTheme | null) => void;
   isPreviewing: boolean;
@@ -37,7 +38,6 @@ export function ensureFontLoaded(href: string | null) {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { preferences, themes: themeRepository } = useContainer();
   const [mode, setModeState] = useState<ThemeMode>(() => preferences.load().mode);
-  const [themeId, setThemeIdState] = useState<string>(() => preferences.load().themeId);
   const [remoteThemes, setRemoteThemes] = useState<AppTheme[]>(() => themeRepository.cached());
   const [previewTheme, setPreviewTheme] = useState<AppTheme | null>(null);
   const [systemDark, setSystemDark] = useState<boolean>(getSystemDark);
@@ -73,15 +73,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return [...BUILTIN_THEMES, ...remoteThemes.filter((t) => t.is_published && !builtinIds.has(t.id))];
   }, [remoteThemes]);
 
-  // Unknown or unpublished theme → fall back to Classique
-  const selectedTheme = themes.find((t) => t.id === themeId) ?? CLASSIQUE_THEME;
+  // Themes are assigned from the backoffice (never from device preferences):
+  // resolve from the already-loaded list; the configured default covers any
+  // unavailable/unknown theme. Device preferences keep only the display mode.
+  const selectedTheme = resolveTheme(themes, null, DEFAULT_THEME_ID);
   const activeTheme = previewTheme ?? selectedTheme;
   const resolvedMode: 'light' | 'dark' = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
 
   // Apply the theme to <html> before paint
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const colors = resolvedMode === 'dark' ? activeTheme.dark : activeTheme.light;
+    const colors = resolveThemeColors(resolvedMode === 'dark' ? activeTheme.dark : activeTheme.light);
     const vars = colorsToCssVars(colors);
     const font = FONT_REGISTRY[activeTheme.displayFont] ?? FONT_REGISTRY['plus-jakarta'];
     vars['--font-display'] = font.family;
@@ -110,11 +112,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setModeState(next);
   };
 
-  const setThemeId = (id: string) => {
-    preferences.save({ themeId: id });
-    setThemeIdState(id);
-  };
-
   return (
     <ThemeContext.Provider
       value={{
@@ -123,7 +120,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         mode,
         resolvedMode,
         setMode,
-        setThemeId,
         setPreviewTheme,
         isPreviewing: !!previewTheme,
         refreshThemes,

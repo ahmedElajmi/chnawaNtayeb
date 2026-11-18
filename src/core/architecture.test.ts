@@ -148,6 +148,20 @@ describe('architecture: the UI only talks to ports', () => {
   });
 });
 
+describe('architecture: the brand identity is never hardcoded in a shell component (N8)', () => {
+  it('no app/shell component contains the brand wordmark, signature or tagline', () => {
+    const BRAND_TEXTS = /Chnawa Ntayeb|Chnowa Ntayeb|by chef Souhed|by Chef Souhed|شنوة نطيب/;
+    const files = listFiles(path.join(SRC_DIR, 'app'), isSource);
+    const offenders = files
+      // The transitional default configuration is the only allowed source (src/app/brand.ts);
+      // tests may quote the texts to assert the fallback behavior.
+      .filter((file) => rel(file) !== 'app/brand.ts' && !file.endsWith('.test.ts') && !file.endsWith('.test.tsx'))
+      .filter((file) => BRAND_TEXTS.test(fs.readFileSync(file, 'utf8')))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('architecture: the database can be replaced at any time', () => {
   it('no database vendor is named outside src/infrastructure and src/app/container.ts (code, comments or texts)', () => {
     const VENDOR = /firebase|firestore/i;

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { NavLink, useMatch, useNavigate } from 'react-router';
 import { Settings, Globe, User, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/app/providers/LanguageContext';
+import { BRAND } from '@/app/brand';
+import { BrandMark } from '@/app/layout/BrandMark';
 import { languageInfo, SELECTOR_ORDER, type Language } from '@/core/shared';
 import type { AppUser } from '@/application';
 import { PATHS } from '@/shared/paths';
@@ -51,23 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 w-full bg-surface/90 backdrop-blur-md border-b border-line transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-8">
         {/* Zone 1: Brand Wordmark (3-click staff trigger, never advertised to clients) */}
-        <button onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-2.5 text-left group min-w-0">
-          <img
-            src="/mark.png"
-            alt=""
-            width={94}
-            height={40}
-            className="h-8 sm:h-10 w-auto shrink-0 drop-shadow-sm group-hover:scale-105 transition-transform"
-          />
-          <div className="flex flex-col min-w-0">
-            <span className="font-display text-[15px] min-[360px]:text-base sm:text-xl font-extrabold tracking-tight text-ink truncate">
-              Chnowa Ntayeb
-            </span>
-            <span className="text-[10px] text-accent-text font-bold tracking-wide -mt-0.5 truncate">
-              <span className="hidden sm:inline">شنوة نطيب؟ · </span>by Chef Souhed
-            </span>
-          </div>
-        </button>
+        <BrandMark brand={BRAND} tagline={BRAND.tagline} onClick={handleLogoClick} />
 
         {/* Zone 2: Public Navigation Links (Backoffice strictly removed) */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-semibold text-slate-600 dark:text-slate-300">

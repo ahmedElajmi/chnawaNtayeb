@@ -18,3 +18,4 @@ export * from './categories/CategoryStore';
 export * from './accounts/AccountDirectoryStore';
 export * from './accounts/AccountProfileStore';
 export * from './accounts/CountriesStore';
+export * from './theme/resolveTheme';

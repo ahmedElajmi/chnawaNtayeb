@@ -1,6 +1,5 @@
 import { isLanguage } from '../shared/language';
 import type { UserPreferences } from './types';
-import { DEFAULT_THEME_ID } from '../theme/builtinThemes';
 
 /** Ingredients most Tunisian kitchens always have. Editable by the user from the fridge screen. */
 export const DEFAULT_PANTRY_STAPLES = [
@@ -15,7 +14,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   language: 'derja',
   default_servings: 4,
   mode: 'system',
-  themeId: DEFAULT_THEME_ID,
+  // Legacy field, kept for compatibility only: theme selection never comes from
+  // device preferences (themes are assigned by the backoffice, lot 2.6.1 dossier).
+  themeId: '',
   pantryStaples: DEFAULT_PANTRY_STAPLES,
   dietary_filter: 'all',
 };
@@ -30,7 +31,7 @@ export function normalizePreferences(raw: unknown): UserPreferences {
   const prefs = { ...DEFAULT_PREFERENCES, ...parsed } as UserPreferences;
   if (!Array.isArray(prefs.pantryStaples)) prefs.pantryStaples = DEFAULT_PANTRY_STAPLES;
   if (!['light', 'dark', 'system'].includes(prefs.mode)) prefs.mode = 'system';
-  if (typeof prefs.themeId !== 'string') prefs.themeId = DEFAULT_THEME_ID;
+  if (typeof prefs.themeId !== 'string') prefs.themeId = '';
   if (!isLanguage(prefs.language)) prefs.language = DEFAULT_PREFERENCES.language;
   return prefs;
 }

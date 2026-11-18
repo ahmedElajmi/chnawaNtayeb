@@ -12,7 +12,7 @@ export const DERJA_ARABIC: TranslationDictionary = {
   navHome: 'الأكاي',
   navFridge: 'الفريجيدار',
   navRecipes: 'ماكلات',
-  navWeekly: 'منيو الجمعة',
+  navWeekly: 'الأسبوع',
   navGrocery: 'قضية',
   heroTitle: 'شنوة نطيب اليوم ؟',
   heroSubtitle: 'اختار اللي عندك في الكوجينة وشوف أحسن ماكلات تونسية تنجم تطيبهم في أقل من 30 ثانية !',

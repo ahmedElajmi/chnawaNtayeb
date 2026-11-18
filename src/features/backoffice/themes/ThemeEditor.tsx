@@ -15,7 +15,6 @@ import {
 import {
   AppTheme,
   ThemeColors,
-  THEME_COLOR_KEYS,
   DISPLAY_FONTS,
   CARD_SHAPES,
   THEME_PATTERNS,
@@ -32,13 +31,14 @@ import {
 import { useTheme } from '@/app/providers/ThemeContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { useContainer } from '@/app/ContainerContext';
+import { BASE_THEME_COLOR_KEYS, resolveThemeColors } from '@/core/theme';
 import { ThemePreviewCard } from '@/features/settings/ThemePreviewCard';
 import { languageInfo } from '@/core/shared';
 import { useCloseOnBack } from '@/shared/hooks/useCloseOnBack';
 import { format, type BackofficeTexts } from '../i18n/backofficeTexts';
 import { useBackofficeText } from '../i18n/useBackofficeText';
 
-const colorLabels = (b: BackofficeTexts): Record<keyof ThemeColors, string> => ({
+const colorLabels = (b: BackofficeTexts): Record<(typeof BASE_THEME_COLOR_KEYS)[number], string> => ({
   brand: b.panColorBrand,
   brandStrong: b.panColorBrandStrong,
   brandText: b.panColorBrandText,
@@ -337,7 +337,7 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
-                {THEME_COLOR_KEYS.map((key) => {
+                {BASE_THEME_COLOR_KEYS.map((key) => {
                   const value = colors[key];
                   const valid = isHexColor(value);
                   return (
@@ -384,7 +384,10 @@ export const ThemeEditor: React.FC<ThemeEditorProps> = ({ onNotify }) => {
                 {colorMode === 'light' ? b.panReadabilityLight : b.panReadabilityDark}
               </h4>
               {CONTRAST_PAIRS.map(({ fg, bg, label }) => {
-                const ratio = contrastRatio(colors[fg], colors[bg]);
+                const ratio = contrastRatio(
+                  resolveThemeColors(colors)[fg] as string,
+                  resolveThemeColors(colors)[bg] as string
+                );
                 const ok = ratio >= 4.5;
                 return (
                   <div key={label} className="flex items-center gap-2 text-[11px]">
