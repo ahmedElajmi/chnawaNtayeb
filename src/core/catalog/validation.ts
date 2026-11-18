@@ -1,5 +1,6 @@
-import { type Ingredient, type Recipe, type RecipeStep } from './types';
+import { type Ingredient, type Recipe, type RecipeIngredient, type RecipeStep } from './types';
 import { migrateIngredient, migrateRecipes } from './migrations';
+import { initialIngredients } from './seed/initialIngredients';
 import { normalizeRecipe } from './course';
 import { hasAnyText, localizedField, trimLocalized, withLocalizedField, withoutUndefined } from '../shared';
 import { hasImplausibleUnitPrice } from './costEstimate';
@@ -132,7 +133,17 @@ export function parseStoredRecipe(raw: unknown): Recipe | null {
     (k) => typeof raw[k] === 'number'
   );
   if (!ingredientsOk || !stepsOk || !numbersOk) return null;
-  return normalizeRecipe(raw as unknown as Recipe);
+  // Every ingredient line carries a unit: a stored copy may predate the unit or lose it (old
+  // device copy, old export), and an absent unit would later crash the unit display. The unit of
+  // the built-in catalog is used when the ingredient is known there, '' otherwise (a missing unit
+  // stays bare on screen — nothing is invented).
+  const builtInUnitById = new Map(initialIngredients.map((i) => [i.id, i.unit_default] as const));
+  const ingredients = raw.ingredients.map((i) => {
+    const item = i as unknown as RecipeIngredient;
+    if (typeof item.unit === 'string' && item.unit.trim() !== '') return item;
+    return { ...item, unit: builtInUnitById.get(item.ingredient_id) ?? '' };
+  });
+  return normalizeRecipe({ ...(raw as unknown as Recipe), ingredients });
 }
 
 /**
