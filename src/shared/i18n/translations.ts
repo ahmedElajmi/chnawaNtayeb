@@ -432,6 +432,19 @@ export interface TranslationDictionary {
   customUnitUnitLabel: string;
   customUnitOther: string;
   customUnitOtherPlaceholder: string;
+  // Matching display (codes from the core, texts here — lot 2.6.2)
+  matchLevelAllPresent: string;
+  matchLevelAlmost: string;
+  matchLevelIdeas: string;
+  matchBadgeAriaLabel: string;
+  matchReasonMissingKey: string;
+  matchReasonMissingSecondary: string;
+  matchReasonSubstitution: string;
+  matchReasonUnknownQuantity: string;
+  matchReasonMissingCost: string;
+  matchActionViewRecipe: string;
+  matchActionAddMissing: string;
+  matchActionExplore: string;
 }
 
 /**
@@ -846,6 +859,18 @@ export const translations = {
     customUnitUnitLabel: 'Unité mta3 l’article',
     customUnitOther: 'okhra…',
     customUnitOtherPlaceholder: 'Unité 7orra (boccal, filet...)',
+    matchLevelAllPresent: 'El kol yban mawjoud — el kemeyet lezem tetnekker',
+    matchLevelAlmost: 'T9rib na3mlet',
+    matchLevelIdeas: 'Bech tekchouf',
+    matchBadgeAriaLabel: 'El moutabba9a m3a frigeek',
+    matchReasonMissingKey: 'Naqes mkawwen assasi : {names}',
+    matchReasonMissingSecondary: 'Lezem techri : {names}',
+    matchReasonSubstitution: 'Yemken tabdil : {names}',
+    matchReasonUnknownQuantity: 'El kemeyet lezem tetnekker',
+    matchReasonMissingCost: 'Soum el na9s : {range}',
+    matchActionViewRecipe: 'Chouf el recette',
+    matchActionAddMissing: 'Zid el na9s lel lista',
+    matchActionExplore: 'Fakker bech tekchouf',
   },
   fr: {
     appName: 'Chnowa Ntayeb',
@@ -1256,6 +1281,19 @@ export const translations = {
     customUnitUnitLabel: 'Unité de l’article',
     customUnitOther: 'autre…',
     customUnitOtherPlaceholder: 'Unité libre (bocal, filet...)',
+    // Matching display (core codes → interface texts, lot 2.6.2): never a guarantee of being ready now
+    matchLevelAllPresent: 'Tous les ingrédients semblent présents — quantités à vérifier',
+    matchLevelAlmost: 'Presque prête',
+    matchLevelIdeas: 'À découvrir',
+    matchBadgeAriaLabel: 'Correspondance avec votre frigo',
+    matchReasonMissingKey: 'Ingrédient clé manquant : {names}',
+    matchReasonMissingSecondary: 'À acheter : {names}',
+    matchReasonSubstitution: 'Remplacement possible : {names}',
+    matchReasonUnknownQuantity: 'Quantités à vérifier',
+    matchReasonMissingCost: 'Coût des manquants : {range}',
+    matchActionViewRecipe: 'Voir la recette',
+    matchActionAddMissing: 'Ajouter les manquants à la liste',
+    matchActionExplore: 'Explorer des idées',
   },
   ar: {
     appName: 'Chnowa Ntayeb',
@@ -1658,6 +1696,18 @@ export const translations = {
     customUnitUnitLabel: 'وحدة المنتج',
     customUnitOther: 'أخرى…',
     customUnitOtherPlaceholder: 'وحدة حرّة (علبة، كيس...)',
+    matchLevelAllPresent: 'جميع المكوّنات تبدو موجودة — الكميات للتحقق',
+    matchLevelAlmost: 'شبه جاهزة',
+    matchLevelIdeas: 'للاكتشاف',
+    matchBadgeAriaLabel: 'التوافق مع مخزونك',
+    matchReasonMissingKey: 'مكوّن أساسي ناقص : {names}',
+    matchReasonMissingSecondary: 'للشراء : {names}',
+    matchReasonSubstitution: 'إمكانية الاستبدال : {names}',
+    matchReasonUnknownQuantity: 'الكميات للتحقق',
+    matchReasonMissingCost: 'كلفة الناقص : {range}',
+    matchActionViewRecipe: 'عرض الوصفة',
+    matchActionAddMissing: 'أضف الناقص إلى القائمة',
+    matchActionExplore: 'استكشف أفكارًا',
   },
   derja_ar: DERJA_ARABIC,
 } satisfies Record<Language, TranslationDictionary>;

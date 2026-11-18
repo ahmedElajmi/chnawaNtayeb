@@ -32,6 +32,9 @@
   --color-warning-text: #8a6100;
   --color-info: #1d4ed8;
   --color-info-text: #1d4ed8;
+  /* Fixed image overlays (badges on photos): independent of the theme, like a photo itself */
+  --color-scrim: rgba(0 0 0 / 0.6);
+  --color-on-scrim: #ffffff;
   --color-ink: #0f172a;
   --color-ink-muted: #64748b;
   --color-hero-from: #2d5a27;

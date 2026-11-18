@@ -162,10 +162,11 @@ describe('architecture: the brand identity is never hardcoded in a shell compone
   });
 });
 
+const HARDCODED_PALETTE =
+  /(?:slate|rose|emerald|red|zinc|gray|orange|amber|lime|green|teal|sky|blue|indigo|violet|purple|fuchsia|pink)-\d|white\/|black\/|#[0-9a-fA-F]{3}(?![0-9a-fA-F])|#[0-9a-fA-F]{6}(?![0-9a-fA-F])/;
+
 describe('architecture: the shell uses theme tokens only (lot 2.6.1b)', () => {
   it('no hard-coded palette class or hex color in the shell files and components of the lot', () => {
-    const HARDCODED_PALETTE =
-      /(?:slate|rose|emerald|red|zinc|gray|orange|amber|lime|green|teal|sky|blue|indigo|violet|purple|fuchsia|pink)-\d|white\/|black\/|#[0-9a-fA-F]{3}(?![0-9a-fA-F])|#[0-9a-fA-F]{6}(?![0-9a-fA-F])/;
     const shellFiles = [
       ...listFiles(path.join(SRC_DIR, 'app', 'layout'), isSource),
       path.join(SRC_DIR, 'app', 'AppLayout.tsx'),
@@ -174,6 +175,46 @@ describe('architecture: the shell uses theme tokens only (lot 2.6.1b)', () => {
       path.join(SRC_DIR, 'shared', 'ui', 'ScrollToTopButton.tsx'),
     ].filter((file) => fs.existsSync(file));
     const offenders = shellFiles.filter((file) => HARDCODED_PALETTE.test(fs.readFileSync(file, 'utf8'))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('architecture: shared components stay router-free and tokenized (lot 2.6.2)', () => {
+  const SHARED_FILES = [
+    'shared/ui/PageHeading.tsx',
+    'shared/ui/EmptyState.tsx',
+    'shared/ui/SkeletonList.tsx',
+    'shared/ui/Rail.tsx',
+    'shared/ui/Chips.tsx',
+    'shared/ui/Sheet.tsx',
+    'shared/ui/LinkTabs.tsx',
+    'shared/ui/linkComponent.tsx',
+    'features/catalog/components/PriceRange.tsx',
+    'features/catalog/components/Shelf.tsx',
+    'features/catalog/components/CategoryRail.tsx',
+    'features/recipes/components/MatchingBadge.tsx',
+    'features/recipes/components/RecipeCard.tsx',
+    'features/recipes/components/RecipeBadges.tsx',
+    'features/recipes/components/RecipeListTabs.tsx',
+    'shared/ui/OfflineIndicator.tsx',
+  ];
+
+  it('the generic components never import the router (link injected by the consumer, A-6)', () => {
+    // The generic shared components of the lot; the consumer adapters (RecipeListTabs) may import
+    // the router on purpose — that is the documented adapter location.
+    const generic = SHARED_FILES.filter((f) => f.startsWith('shared/ui/')).map((f) => path.join(SRC_DIR, f));
+    const offenders = generic.flatMap((file) =>
+      importsOf(file)
+        .filter((spec) => spec.startsWith('react-router'))
+        .map((spec) => `${rel(file)} -> ${spec}`)
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it('no hard-coded palette in the components of the lot (tokens only)', () => {
+    const files = SHARED_FILES.map((f) => path.join(SRC_DIR, f)).filter((file) => fs.existsSync(file));
+    expect(files).toHaveLength(SHARED_FILES.length);
+    const offenders = files.filter((file) => HARDCODED_PALETTE.test(fs.readFileSync(file, 'utf8'))).map(rel);
     expect(offenders).toEqual([]);
   });
 });

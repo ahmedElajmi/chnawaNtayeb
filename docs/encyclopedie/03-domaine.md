@@ -93,6 +93,14 @@ mais vide dans une autre langue ou variante).
   version de recette et de liste d'ingrédients (`getRecipeCost` / `useRecipeCost`,
   `src/app/ContainerContext.tsx`, gardé en cache).
 
+## `catalog` : lecture des données externes
+
+`parseStoredRecipe` (validation du core) garantit désormais que **chaque ligne d'ingrédient porte une
+unité** : une unité stockée est conservée ; une unité absente (copie d'appareil ou export ancien) est
+complétée par celle du catalogue intégré quand l'ingrédient y figure, sinon par une chaîne vide
+(quantité affichée nue, rien n'est inventé) — un `undefined` ne peut plus atteindre l'affichage des
+unités (`UnitInfo`). Correctif de non-régression testé dans `validation.test.ts`.
+
 ## `sync` : synchronisation des collections partagées
 
 `Versioned` (`id`, `revision`, `deleted`), `applyChanges` (applique en une passe les éléments changés,
@@ -189,6 +197,18 @@ Voir [12 Recherche](12-recherche.md).
 ## `matching` : le moteur de suggestions
 
 Voir la page dédiée [04 Moteur de matching](04-moteur-matching.md).
+
+**Règles d'affichage** (`src/core/matching/display.ts`, lot 2.6.2) — séparation stricte : le moteur
+(`engine.ts`, `tiers.ts`) reste la **seule source de vérité** du calcul du score et du tier
+(`ready`/`almost`/`ideas`) ; `display.ts` **consomme le tier déjà calculé** et effectue **uniquement le
+mapping exhaustif** vers un niveau d'affichage explicite (`all-present`/`almost`/`ideas`), des **codes
+de raisons** (`missing-key`, `missing-secondary`, `substitution`, `unknown-quantity`, `missing-cost`
+avec ids d'ingrédients et fourchette de coût) et un **type d'action** (`view-recipe`/`add-missing`/
+`explore`). Aucun seuil n'est recalculé ou réévalué dans cette couche, aucune duplication du calcul ;
+`MatchingConfig.tiers` n'y est utilisé que si une véritable donnée de présentation le nécessite.
+La traduction et la présentation des messages relèvent de l'interface (`MatchingBadge`/`MatchReason`) —
+le core ne retourne que des codes et des identifiants. Les quantités inconnues restent distinctes des
+manquants ; l'état « quantité vérifiée suffisante » (6b.7b) se branchera sans refonte.
 
 ## `planning` : menu de la semaine
 

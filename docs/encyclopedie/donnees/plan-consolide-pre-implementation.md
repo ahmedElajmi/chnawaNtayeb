@@ -290,7 +290,7 @@ validation ; `npm run check` vert ; non-régression écran par écran ; 4 langue
 | ----- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1     | **2.6.0 Socle (réduit)**               | T1 + T2 + T4 ; T3 si D15 ✅ (sinon intégré à 2.6.1)                                                                              | étape 0                       | garde étendue au vert ; KitchenSync sans `window` ; contrats centralisés + tests de contrat HTTP                                                                                                                                                                                                                                                                                                                       |
 | 2     | **2.6.1 Identité & shell**             | direction C ✅ (D-04 validée), en-tête cloche/avatar, barre basse (« Semaine » ✅ (D-11 validée)), barre haute desktop, bandeaux | 2.6.0 + D3 validée            | contrastes AA ; RTL 4 langues ; aucune régression A/fkhar ; **cibles tactiles en-tête ≥ 44×44 px (correction obligatoire reportée de 2.6.1a : Compte 36×28, Réglages 34×34), vérifiées sur navigateur réel (mobile + tablette), sans chevauchement ni dégradation visuelle ; PillTab = lien (`aria-current="page"`, pas de `tablist`) ; panneau avatar sans rôle `menu` (Entrée/Espace, Échap, focus rendu à l'avatar) |
-| 3     | **2.6.2 Composants communs**           | couches 1–2 des composants consommés par les écrans ; règles d'affichage matching en core (wording 🚩 D1)                        | 2.6.1                         | tests par composant ; badges/raisons conformes § 1.1                                                                                                                                                                                                                                                                                                                                                                   |
+| 3     | **2.6.2 Composants communs**           | couches 1–2 des composants consommés par les écrans ; règles d'affichage matching en core (wording 🚩 D1)                        | 2.6.1                         | tests par composant ; badges/raisons conformes § 1.1 — **implémenté, vérifié, rapport remis, aucun commit (attente de validation du chef)**                                                                                                                                                                                                                                                                            |
 | 4     | **2.6.4 Catalogue & suggestions**      | R1/R2/R3, F1/F2/F3, 3 niveaux avec raison, onglet Favoris 🚩 D4, bornes = constantes (D2)                                        | 2.6.2                         | scénarios d'affichage portés en tests Vitest ; totaux justes ; filtres gardés entre écrans                                                                                                                                                                                                                                                                                                                             |
 | 5     | **2.6.5 Fiche recette & mode cuisine** | fiche `?id=`, substitution acceptée/refusée (affichage), mode cuisine, minuteur, reprise                                         | 2.6.2                         | minuteur réel ; sortie neutre ; hors ligne                                                                                                                                                                                                                                                                                                                                                                             |
 | 6     | **2.6.3 Accueil C**                    | composition C + 6 états ; conteneurs pub repliés 🚩 D12                                                                          | 2.6.2                         | états testés ; zéro CLS ; accueil actuel en repli pendant le lot                                                                                                                                                                                                                                                                                                                                                       |
@@ -367,3 +367,32 @@ Décisions du chef — font foi devant les statuts [DA] de la § 6 :
    premier lot retenu** — approche, périmètre/fichiers, impacts et non-régression, livrables,
    critères — **pour validation avant tout code** ;
 3. Puis lot par lot : implémenter, tester, mesurer, corriger, documenter, avancer.
+
+---
+
+## Annexe — Arbitrages du chef pour le lot 2.6.2 (revue du dossier, tracés ici pour la roadmap)
+
+Tranchés (dossier d'exécution 2.6.2 v2, `lot-2.6.2-composants-communs-dossier.md`) : **A-1** `LinkTabs`
+liens réels (`href` en props, `aria-current="page"`, pas de `tablist`, pas de routeur importé) ;
+**A-2** `RecipeCard` href privilégié mais comportements actuels vérifiés et préservés (l'état
+`background` de la navigation fiche conserve le callback — aucune fonctionnalité supprimée pour la
+convention) ; **A-3** wording D1 = « Tous les ingrédients semblent présents — quantités à vérifier » +
+CTA « Voir la recette » (traductions 4 langues qui ne garantissent jamais la réalisabilité immédiate) ;
+**A-4** adoption des composants aux lots consommateurs uniquement ; **A-5** `FridgePeek` local à la
+Home (2.6.3), extraction réévaluée au 2.6.6 ; **variantes RecipeCard** : `grid` seule en 2.6.2,
+`featured` à son premier consommateur (2.6.3), `compact`/`deck` à leur premier besoin réel (2.6.4) ;
+**Sheet** validé sous réserve (réutilise `ModalShell` + `useCloseOnBack`, un seul système de modales) ;
+**EmptyState** : contrat à action exclusive (`href` ou `onClick`, jamais les deux). Séparation stricte
+matching : le moteur reste seul responsable du score/tier ; `src/core/matching/display` ne fait que la
+transformation en niveaux/codes de raisons/action — aucun seuil dupliqué, aucun texte ni dépendance de
+langue dans le core (traduction = interface). **A-6 clôturé** : `LinkTabs` reçoit un `LinkComponent` injectable
+(défaut = lien natif `<a href>` ; le composant générique n'importe aucune dépendance au routeur et
+transmet toujours `href` ; le consommateur React Router fournit un **adaptateur `href`→`to`** dans
+son module — `Link` attend `to`, l'injection directe ne fonctionnerait pas ; navigation SPA et
+comportement de `RecipeListTabs` préservés). Navigation `RecipeCard` : callback
+conservé (comportement `background` préservé, contexte de navigation intact, comparaison avant/après
+sur les 3 écrans consommateurs + retour à la liste). `FridgePeek` confirmé exclu de 2.6.2 : création
+au lot 2.6.3 (Home Page), mutualisation réévaluée au 2.6.6 uniquement si un second consommateur réel
+apparaît. Dossier final : **v3**. Traçabilité conservée : `compact`/`deck`, `FridgePeek` (extraction),
+filtres F1/F2/F3 + T5 + arbitrage Alt 1/Alt 2 (2.6.4), `ListesManager` (2.6.6), `WeekStrip`/
+`PlanSummary` (2.6.7), `NotifCenter`/`ScanFlow` (2.6.8) — rien n'est retiré de la roadmap.

@@ -209,6 +209,19 @@ développements futurs, y compris ceux qui ne font pas partie du chantier de mig
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
 - **Comptes** : trois niveaux — client (formulaire), employé (créé par le super admin via le serveur, mot de passe temporaire), super admin (session serveur uniquement) ; téléphone **E.164** en un seul champ (`normalizePhone`) ; le champ `type` d'un profil vaut `client` ou `employee`, les variantes de clients sont des données ; aucun droit ne vient d'un e-mail écrit dans le code. **Création de compte atomique** : hash calculé avant toute écriture, puis `users/{uid}` + `auth/{uid}` + réservation `email_index/{email}` dans un seul `commit` gardé — l'unicité de l'adresse vient de la garde, jamais d'un seul pré-contrôle ; une suppression de compte devra libérer sa réservation. Détails et exemples : `docs/encyclopedie/13-comptes.md`.
 - **Plateforme et SDK fournisseurs derrière des ports** (règle permanente) : `src/core` et `src/application` n'importent jamais un SDK fournisseur ni n'accèdent directement à la plateforme (`window`, `document`…) — la garde d'architecture le vérifie. Un SDK nécessaire vit dans un adaptateur d'`src/infrastructure` derrière un port remplaçable ; les API de l'hôte passent par le port `HostLifecycle` (adaptateur navigateur `src/infrastructure/host/`). Détails : `docs/encyclopedie/02-architecture.md`.
+- **Composants des couches 1–2** (lot 2.6.2) : génériques dans `src/shared/ui` (aucun import du domaine),
+  métier dans `src/features/<domaine>/components` (types du core uniquement, jamais de logique
+  décisionnaire) ; un composant n'est extrait qu'avec un second consommateur réel. **Navigation
+  découplée** : un composant générique n'importe jamais le routeur — il transmet `href` et rend un
+  `<a href>` natif par défaut ; le consommateur React Router injecte un `LinkComponent` avec un
+  adaptateur `href` → `to` dans son module (ex. `RecipeListTabs`). **Règle d'affichage du matching**
+  : le moteur (`engine.ts`, `tiers.ts`) reste seul responsable du score et du tier ; `@/core/matching/display`
+  ne fait que le mapping exhaustif tier → niveau d'affichage + **codes de raisons** ; la traduction est
+  dans l'interface (`MatchingBadge`/`MatchReason`), jamais dans le core. **Un seul système de modales**
+  : `Sheet` compose `ModalShell` + `useCloseOnBack`, jamais un second mécanisme. `EmptyState` : action
+  exclusive (`href` ou `onClick`). `RecipeCard` : navigation par callback conservée (état `background`),
+  coût en props, favori 44×44 px. Détails : `docs/encyclopedie/06-interface.md` (§ Composants partagés),
+  `03-domaine.md` (§ matching).
 - **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) et la normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ; sans réponse du moteur, l'ancien filtre par nom sert de repli. Détails et exemples : `docs/encyclopedie/12-recherche.md`.
 - Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).

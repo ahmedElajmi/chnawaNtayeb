@@ -1,9 +1,8 @@
 import React from 'react';
 import { Clock, Heart, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { MatchingResult } from '@/core/matching';
-import { Ingredient } from '@/core/catalog';
+import { Ingredient, type PriceRange } from '@/core/catalog';
 import { formatPriceRange } from '@/shared/i18n/formatPrice';
-import { getRecipeCost } from '@/app/ContainerContext';
 import { useLanguage } from '@/app/providers/LanguageContext';
 import { RecipeBadges } from '@/features/recipes/components/RecipeBadges';
 import { parseYouTubeId } from '@/core/shared';
@@ -13,8 +12,15 @@ interface RecipeCardProps {
   result: MatchingResult;
   isFavorite: boolean;
   onToggleFavorite: (recipeId: string) => void;
+  /**
+   * Kept as a callback on purpose (lot 2.6.2, decision A-2): the navigation carries the list
+   * `background` state (recipe opened as an overlay, back returns to the list) — a plain `href`
+   * cannot express it. Never replaced by a plain href.
+   */
   onSelectRecipe: (recipeId: string) => void;
   allIngredients: Ingredient[];
+  /** Cost range computed by the caller (`getRecipeCost`) — the card imports no app context */
+  cost: PriceRange;
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -23,9 +29,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onToggleFavorite,
   onSelectRecipe,
   allIngredients,
+  cost,
 }) => {
   const { recipe, score, tier, missing_ingredients, missing_key, substitutions, missing_cost } = result;
-  const cost = getRecipeCost(recipe, allIngredients);
   const { t, language, getRecipeName, getIngredientName } = useLanguage();
 
   const totalTime = recipe.prep_time_minutes + recipe.cook_time_minutes;
@@ -46,10 +52,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <div
       onClick={() => onSelectRecipe(recipe.id)}
-      className="theme-card group relative flex flex-col bg-card rounded-2xl border border-line overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer text-left"
+      className="theme-card group relative flex flex-col bg-card rounded-2xl border border-line overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer text-start"
     >
       {/* Recipe Photo with Gradient Scrim and Fallback */}
-      <div className="recipe-media relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+      <div className="recipe-media relative aspect-4/3 w-full overflow-hidden bg-line">
         {/* Fallback shown when the recipe has no photo yet or the photo cannot load */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand/20 via-accent/15 to-highlight/20 flex flex-col items-center justify-center gap-2 p-4 text-center">
           <img src="/mark.png" alt="" width={94} height={40} className="h-10 w-auto opacity-80" />
@@ -69,26 +75,28 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
         {/* Video available */}
         {parseYouTubeId(recipe.video_url) && (
-          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold shadow-sm">
+          <span className="absolute top-2.5 start-2.5 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-scrim backdrop-blur-xs text-on-scrim text-[10px] font-bold shadow-sm">
             <Play className="w-3 h-3 fill-current" />
             {t.videoBadge}
           </span>
         )}
 
-        {/* Favorite Button */}
+        {/* Favorite Button — the visual circle stays as is; the element itself is a 44×44 target */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(recipe.id);
           }}
           aria-label={isFavorite ? t.removeFromFavorites : t.addToFavorites}
-          className="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs text-slate-600 dark:text-slate-200 hover:text-rose-500 dark:hover:text-rose-400 shadow-sm transition active:scale-90"
+          className="absolute top-1 end-1 grid h-11 w-11 place-items-center"
         >
-          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'stroke-[2px]'}`} />
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-card/90 text-ink backdrop-blur-xs shadow-sm transition hover:text-danger-text active:scale-90">
+            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-danger-text text-danger-text' : 'stroke-[2px]'}`} />
+          </span>
         </button>
 
         {/* Match Tier Badge */}
-        <div className="absolute bottom-2.5 left-2.5">
+        <div className="absolute bottom-2.5 start-2.5">
           {tier === 'ready' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand text-on-brand text-[11px] font-bold shadow-md">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -106,7 +114,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             </span>
           )}
           {tier === 'ideas' && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-semibold backdrop-blur-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-scrim text-on-scrim text-[10px] font-semibold backdrop-blur-xs">
               {missing_key.length > 0 ? `${t.missingKeyLabel} · ${score}%` : t.mealIdea}
             </span>
           )}
@@ -118,9 +126,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         <div>
           <RecipeBadges recipe={recipe} className="mb-1.5" />
           {/* Unboxed Metadata (NO PILLS) */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">
+          <div className="flex items-center gap-2 text-xs text-ink-muted mb-1.5 font-medium">
             <span className="inline-flex items-center gap-1">
-              <Clock className="w-3 h-3 text-slate-400" />
+              <Clock className="w-3 h-3 text-ink-muted" />
               <span>{t.minutesValue.replace('{n}', String(totalTime))}</span>
             </span>
             <span aria-hidden="true">·</span>
@@ -138,9 +146,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           </h3>
 
           {/* Derja subtitle when viewing in French or Arabic */}
-          {derjaSubtitle && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 italic">{derjaSubtitle}</p>
-          )}
+          {derjaSubtitle && <p className="text-xs text-ink-muted mt-0.5 line-clamp-1 italic">{derjaSubtitle}</p>}
         </div>
 
         {/* Why this suggestion: what is missing (key ingredients highlighted) and substitutions used */}
