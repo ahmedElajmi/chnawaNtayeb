@@ -261,6 +261,24 @@ describe('lot F1 step 1 — the stock section of /api/kitchen (server)', () => {
     expect(Object.keys(legacyOf(doc, 'fridge').added).sort()).toEqual(['ingA', 'ingB', 'ingC']);
   });
 
+  it('D3 — a converted or projected stock section is stamped with the request clock, and the next client push is accepted', async () => {
+    const token = await newAccount();
+    // 1. A legacy-only push: the server converts and must stamp the new stock section itself
+    await putSections(token, { fridge: section({ added: { ingA: v(1000) }, removed: {} }, 1000) });
+    const afterConversion = await getDoc(token);
+    expect(afterConversion.sections.stock?.updated_at ?? 0).toBeGreaterThan(0); // never 0
+    // 2. A projection-only write (a legacy device syncs again): still stamped, never 0
+    await putSections(token, { fridge: section({ added: { ingA: v(1000), ingB: v(2000) }, removed: {} }, 3000) });
+    const afterProjection = await getDoc(token);
+    expect(afterProjection.sections.stock?.updated_at ?? 0).toBeGreaterThan(0);
+    // 3. The next client push — echoing back the section time it adopted — is accepted
+    const echoed = await putSections(token, {
+      stock: section(stockOf(afterProjection), afterProjection.sections.stock!.updated_at),
+    });
+    expect(echoed.status).toBe(200);
+    expect(stockOf(await getDoc(token))).toEqual(stockOf(afterProjection)); // nothing lost
+  });
+
   it('three full cycles of projection → legacy push back → conversion converge to a fixed point', async () => {
     const token = await newAccount();
     const t0 = Date.now();

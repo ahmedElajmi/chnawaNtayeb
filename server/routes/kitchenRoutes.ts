@@ -338,10 +338,19 @@ function mergeSections(
   const hasStock = Object.keys(stock).length > 0;
   if (hasStock || incoming.stock || stored?.stock) {
     // The stock section is (re)written whenever it holds something, the push carried one,
-    // or one is stored: a purge that empties it must be reflected, never left stale.
+    // or one is stored: a purge that empties it must be reflected, never left stale. The
+    // write time follows the push's own stamp; when the section is written by the CONVERSION
+    // or the projection alone (a legacy push, a first conversion), it is stamped with the
+    // request's clock: a section time of 0 would be refused on the next push (and would
+    // mean "never written", which a write is not).
+    const legacyWrite = legacyLocations.some((location) => incoming[location] !== undefined);
     merged.stock = {
       value: stock,
-      updated_at: Math.max(stored?.stock?.updated_at ?? 0, incoming.stock?.updated_at ?? 0),
+      updated_at: incoming.stock
+        ? Math.max(stored?.stock?.updated_at ?? 0, incoming.stock.updated_at)
+        : legacyWrite || !stored?.stock
+          ? Math.max(stored?.stock?.updated_at ?? 0, now)
+          : (stored?.stock?.updated_at ?? 0),
     };
   }
   for (const location of legacyLocations) {
