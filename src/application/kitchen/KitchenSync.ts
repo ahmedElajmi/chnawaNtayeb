@@ -189,13 +189,18 @@ export class KitchenSync extends Store<KitchenSyncState> {
     const now = this.deps.now();
     const sections: RemoteKitchenSections = {};
     const take = (name: keyof RemoteKitchenDocument, value: unknown) => {
-      if (pending.includes(name)) sections[name] = { value, updatedAt: times[name] ?? now } as never;
+      // A section time of 0 means "never written": the current clock is used instead (the
+      // server refuses a section stamped 0, and a real write is not "never")
+      if (pending.includes(name)) sections[name] = { value, updatedAt: times[name] || now } as never;
     };
     // The set sections travel as element sets (added/removed versions): the deletion of one
     // element propagates to the other devices instead of coming back from them
     if (pending.includes('favorites')) take('favorites', this.deps.kitchen.elementSet('favorites'));
     if (pending.includes('fridge')) take('fridge', this.deps.kitchen.elementSet('fridge'));
     if (pending.includes('pantry')) take('pantry', this.deps.kitchen.elementSet('pantry'));
+    // Lot F1: the stock of entries travels as its own section (one canonical envelope per
+    // entry id): additions AND deletions travel, and the server enforces the same merge.
+    if (pending.includes('stock')) take('stock', this.deps.kitchen.stock());
     take('weeklyPlan', state.weeklyPlan);
     take('groceryLists', { lists: state.groceryLists, activeId: state.activeGroceryListId });
     if (preferencesPending) {
@@ -251,9 +256,18 @@ export class KitchenSync extends Store<KitchenSyncState> {
     try {
       const times = this.deps.ledger.sectionTimes();
       const newer = (name: keyof RemoteKitchenDocument) => (doc[name]?.updatedAt ?? 0) > (times[name] ?? 0);
+      // Lot F1: the server's stock section may carry OTHER devices' envelopes inside OUR own
+      // section time (concurrent pushes land under one timestamp): the stock is adopted when
+      // it is NOT OLDER than what we hold — the envelope merge is idempotent, so adopting our
+      // own echo costs nothing and a device that pushed stale data still converges.
+      const notOlder = (name: keyof RemoteKitchenDocument) => (doc[name]?.updatedAt ?? 0) >= (times[name] ?? 0);
       if (doc.favorites && newer('favorites')) this.deps.kitchen.mergeElementSet('favorites', doc.favorites.value);
       if (doc.fridge && newer('fridge')) this.deps.kitchen.mergeElementSet('fridge', doc.fridge.value);
       if (doc.pantry && newer('pantry')) this.deps.kitchen.mergeElementSet('pantry', doc.pantry.value);
+      // Lot F1: the stock of entries travels as its own section; the envelopes reconcile by
+      // HLC version (a deletion travels with its tombstone, an enriched entry is never
+      // impoverished) and the visible lists are re-derived from the merged stock.
+      if (doc.stock && notOlder('stock')) this.deps.kitchen.mergeStock(doc.stock.value);
       if (doc.weeklyPlan && newer('weeklyPlan')) this.deps.kitchen.setWeeklyPlan(doc.weeklyPlan.value);
       if (doc.groceryLists && newer('groceryLists')) {
         // The named lists travel as one section (newest write wins); a server document that
@@ -265,7 +279,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
         const { pantryStaples: _pantry, ...preferences } = doc.preferences.value;
         this.deps.preferences.save(preferences as Partial<UserPreferences>, doc.preferences.updatedAt);
       }
-      for (const name of [...SET_SECTIONS, 'weeklyPlan', 'groceryLists', 'preferences'] as const) {
+      for (const name of [...SET_SECTIONS, 'stock', 'weeklyPlan', 'groceryLists', 'preferences'] as const) {
         if (doc[name]) this.deps.ledger.setSectionTime(name, doc[name]!.updatedAt);
       }
     } finally {

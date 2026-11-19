@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { KitchenStore } from './KitchenStore';
-import { EMPTY_ELEMENT_SET } from '@/core/kitchen';
+import {
+  EMPTY_ELEMENT_SET,
+  activeEnvelope,
+  mergeStockSections,
+  parseStockSection,
+  presenceEntryId,
+  stockDerivedPresence,
+  tombstoneEnvelope,
+  tombstoneStockLocation,
+  type ElementVersion,
+  type StockSection,
+} from '@/core/kitchen';
 import { DEFAULT_GROCERY_LIST_NAME, type GroceryItem, type GroceryList } from '@/core/grocery';
 import type { KitchenRepository } from '../ports';
 
@@ -48,6 +59,10 @@ function makeStore(
       saved.push(next);
     },
     elementSet: () => EMPTY_ELEMENT_SET,
+    loadStock: () => ({}),
+    saveStock: () => undefined,
+    mergeStock: () => undefined,
+    clearStockLocation: () => undefined,
     mergeElementSet: () => undefined,
     resetLocal: () => undefined,
   };
@@ -230,5 +245,153 @@ describe('KitchenStore: activating, clearing and regenerating', () => {
     store.setGroceryList([item({ name: 'Lait' })], 'l2');
     expect(store.getState().groceryLists[1].items.map((i) => i.name)).toEqual(['Lait']);
     expect(store.getState().groceryLists[0].items).toHaveLength(1);
+  });
+});
+
+describe('KitchenStore: the stock of entries (lot F1)', () => {
+  /** A stateful fake repo: the visible lists derive from the stock, like the real adapter. */
+  function makeStockStore(initial: StockSection = {}) {
+    let stock: StockSection = initial;
+    const repo: KitchenRepository = {
+      loadFridge: () => stockDerivedPresence(stock, 'fridge'),
+      saveFridge: () => undefined, // the changes go through the stock in the tests below
+      loadPantry: () => stockDerivedPresence(stock, 'pantry'),
+      savePantry: () => undefined,
+      loadFavorites: () => [],
+      saveFavorites: () => undefined,
+      loadWeeklyPlan: () => [],
+      saveWeeklyPlan: () => undefined,
+      loadGroceryLists: () => ({ lists: [], activeId: '' }),
+      saveGroceryLists: () => undefined,
+      elementSet: () => EMPTY_ELEMENT_SET,
+      mergeElementSet: () => undefined,
+      loadStock: () => stock,
+      saveStock: (next) => {
+        stock = parseStockSection(next) ?? stock;
+      },
+      mergeStock: (remote) => {
+        const parsed = parseStockSection(remote);
+        if (parsed) stock = mergeStockSections(stock, parsed);
+      },
+      clearStockLocation: (location) => {
+        stock = tombstoneStockLocation(stock, location, { physical: 900, counter: 0, device: 'devA' });
+      },
+      resetLocal: () => undefined,
+    };
+    return { store: new KitchenStore(repo), repo };
+  }
+
+  const version = (physical: number, device = 'remote'): ElementVersion => ({ physical, counter: 0, device });
+  const presence = (location: 'fridge' | 'pantry', ingredientId: string): string =>
+    presenceEntryId(location, ingredientId);
+
+  it('stock() serves the stock of entries (backup export)', () => {
+    const key = presence('fridge', 'ing1');
+    const { store } = makeStockStore({
+      [key]: activeEnvelope(
+        {
+          id: key,
+          ingredient_id: 'ing1',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-01T10:00:00Z',
+          quantity: 2,
+          unit: 'g',
+        },
+        version(500)
+      ),
+    });
+    expect(store.stock()[key].state).toBe('active');
+    expect(store.getState().fridge).toEqual(['ing1']);
+  });
+
+  it('setStock (backup restore) re-derives the visible lists', () => {
+    const { store } = makeStockStore();
+    const key = presence('pantry', 'ing2');
+    store.setStock({
+      [key]: activeEnvelope(
+        { id: key, ingredient_id: 'ing2', location: 'pantry', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(500)
+      ),
+    });
+    expect(store.getState().pantry).toEqual(['ing2']);
+    expect(store.getState().fridge).toEqual([]);
+  });
+
+  it('mergeStock (sync adoption) re-derives the visible lists', () => {
+    const { store } = makeStockStore();
+    const key = presence('fridge', 'ing1');
+    store.mergeStock({
+      [key]: activeEnvelope(
+        { id: key, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(500)
+      ),
+    });
+    expect(store.getState().fridge).toEqual(['ing1']);
+    // A newer remote tombstone removes it
+    store.mergeStock({
+      [key]: tombstoneEnvelope({ id: key, ingredient_id: 'ing1', location: 'fridge' }, version(800)),
+    });
+    expect(store.getState().fridge).toEqual([]);
+  });
+
+  it('clearFridge tombstones every entry of the location (explicit global clear)', () => {
+    const key1 = presence('fridge', 'ing1');
+    const key2 = presence('fridge', 'ing2');
+    const { store } = makeStockStore({
+      [key1]: activeEnvelope(
+        { id: key1, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100)
+      ),
+      [key2]: activeEnvelope(
+        {
+          id: key2,
+          ingredient_id: 'ing2',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-01T10:00:00Z',
+          quantity: 1,
+          unit: 'g',
+        },
+        version(101)
+      ),
+    });
+    store.clearFridge();
+    const stock = store.stock();
+    expect(stock[key1].state).toBe('tombstoned');
+    expect(stock[key2].state).toBe('tombstoned');
+    expect(store.getState().fridge).toEqual([]);
+  });
+
+  it('the visible state follows the stock after a save (the recomputed presence is authoritative)', () => {
+    // The repository holds the diff logic (one removal per action): the store re-reads the
+    // recomputed presence instead of trusting the list it passed (§ 4.1 of the dossier)
+    const key1 = presence('fridge', 'ing1');
+    const extra = 'st_fridge_ing1_x2';
+    const { store } = makeStockStore({
+      [key1]: activeEnvelope(
+        { id: key1, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100)
+      ),
+      [extra]: activeEnvelope(
+        {
+          id: extra,
+          ingredient_id: 'ing1',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-02T10:00:00Z',
+          quantity: 3,
+          unit: 'kg',
+        },
+        version(101)
+      ),
+    });
+    // The removal applies to ONE entry in the repository (see the localRepositories tests):
+    // the enriched entry survives, the presence is recomputed from the stock
+    store.setStock({
+      [key1]: tombstoneEnvelope({ id: key1, ingredient_id: 'ing1', location: 'fridge' }, version(200)),
+      [extra]: store.stock()[extra],
+    });
+    expect(store.getState().fridge).toEqual(['ing1']);
   });
 });

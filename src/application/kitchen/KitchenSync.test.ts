@@ -4,10 +4,23 @@ import { KitchenSync } from './KitchenSync';
 import {
   EMPTY_ELEMENT_SET,
   STALE_DEVICE_MS,
+  convertLegacyElementSet,
   mergeElementSets,
+  mergeLegacyCandidates,
+  mergeStockSections,
+  parseStockSection,
+  presenceEntryId,
+  presenceEnvelope,
   presentIds,
+  stockDerivedPresence,
+  stockRemovalTarget,
+  tombstonedFromEntry,
+  tombstoneStockLocation,
   wrapLegacyList,
   type ElementSet,
+  type StockEnvelope,
+  type StockLocation,
+  type StockSection,
 } from '@/core/kitchen';
 import type { DayId } from '@/core/planning';
 import type { GroceryList } from '@/core/grocery';
@@ -110,9 +123,21 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       elements[section] = wrapLegacyList(legacyIds as string[], 100)!;
     }
   }
+  // Lot F1: the stock of entries the visible fridge/pantry lists derive from (like the real
+  // migration, the legacy lists convert once with the same core function)
+  const stock: Record<string, StockEnvelope> = {};
+  for (const location of ['fridge', 'pantry'] as const) {
+    const set = elements[location];
+    if (set) Object.assign(stock, convertLegacyElementSet(set, location));
+  }
+  const presence = (location: StockLocation): string[] => stockDerivedPresence(stock, location);
+  const refreshDerived = (): void => {
+    data.fridge = presence('fridge');
+    data.pantry = presence('pantry');
+  };
 
-  /** A local list save: the diff becomes versions, like the real repository records them. */
-  const saveList = (section: 'favorites' | 'fridge' | 'pantry', ids: string[]): void => {
+  /** A local favorites save: the diff becomes versions, like the real repository records them. */
+  const saveList = (section: 'favorites', ids: string[]): void => {
     const before = (data[section] as string[]) ?? [];
     data[section] = ids;
     const set = elements[section] ?? EMPTY_ELEMENT_SET;
@@ -129,11 +154,37 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     }
   };
 
+  /** A local fridge/pantry save: the diff becomes stock envelopes (lot F1, like the real
+   * repository records them) — the change is marked pending as the 'stock' section. */
+  const saveStockList = (location: StockLocation, ids: string[]): void => {
+    const before = presence(location);
+    if (before.length === ids.length && before.every((id, i) => id === ids[i])) return;
+    const physical = Math.max(deviceClock.physical + 1, time.value);
+    deviceClock = { physical, counter: 0, device: 'test' };
+    const version = { ...deviceClock };
+    for (const id of ids) {
+      if (before.includes(id)) continue;
+      const key = presenceEntryId(location, id);
+      if (stock[key]?.state === 'active') continue;
+      stock[key] = presenceEnvelope(location, id, version);
+    }
+    for (const id of before) {
+      if (ids.includes(id)) continue;
+      const target = stockRemovalTarget(stock, location, id);
+      if (target) stock[target] = tombstonedFromEntry(stock[target], version);
+    }
+    if (!syncState.suspended) {
+      ledgerData.pending.add('stock');
+      ledgerData.times.stock = time.value;
+    }
+    refreshDerived();
+  };
+
   const repo: KitchenRepository = {
-    loadFridge: () => data.fridge as string[],
-    saveFridge: (ids) => saveList('fridge', ids),
-    loadPantry: () => data.pantry as string[],
-    savePantry: (ids) => saveList('pantry', ids),
+    loadFridge: () => presence('fridge'),
+    saveFridge: (ids) => saveStockList('fridge', ids),
+    loadPantry: () => presence('pantry'),
+    savePantry: (ids) => saveStockList('pantry', ids),
     loadFavorites: () => data.favorites as string[],
     saveFavorites: (ids) => saveList('favorites', ids),
     loadWeeklyPlan: () => data.weeklyPlan as never,
@@ -153,10 +204,34 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       }
     },
     elementSet: (section) => elements[section] ?? EMPTY_ELEMENT_SET,
+    loadStock: () => ({ ...stock }),
+    saveStock: (next) => {
+      for (const key of Object.keys(stock)) delete stock[key];
+      Object.assign(stock, parseStockSection(next) ?? {});
+      refreshDerived();
+    },
+    mergeStock: (remote) => {
+      const parsed = parseStockSection(remote);
+      if (!parsed) return;
+      Object.assign(stock, mergeStockSections(stock, parsed));
+      refreshDerived();
+    },
+    clearStockLocation: (location) => {
+      const physical = Math.max(deviceClock.physical + 1, time.value);
+      deviceClock = { physical, counter: 0, device: 'test' };
+      Object.assign(stock, tombstoneStockLocation(stock, location, { ...deviceClock }));
+      refreshDerived();
+    },
     mergeElementSet: (section, remote) => {
       const merged = mergeElementSets(elements[section] ?? EMPTY_ELEMENT_SET, remote);
       elements[section] = merged;
-      data[section] = presentIds(merged);
+      if (section !== 'favorites') {
+        // Like the real adapter: a legacy fridge/pantry section adopted from the server
+        // converts into the stock with the same core function (§ 7.2)
+        Object.assign(stock, mergeLegacyCandidates(stock, convertLegacyElementSet(remote, section)));
+      }
+      if (section === 'favorites') data.favorites = presentIds(merged);
+      else refreshDerived();
     },
     resetLocal: () => {
       for (const section of ['favorites', 'fridge', 'pantry', 'weeklyPlan'] as const) {
@@ -166,6 +241,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       const fresh = list('fresh');
       data.groceryLists = groceryLists([fresh]);
       for (const section of ['favorites', 'fridge', 'pantry'] as const) delete elements[section];
+      for (const key of Object.keys(stock)) delete stock[key];
       ledgerData.pending.clear();
       for (const key of Object.keys(ledgerData.times)) delete ledgerData.times[key];
     },
@@ -320,7 +396,9 @@ describe('the kitchen sync engine', () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(h.gateway.pushes).toHaveLength(1);
     expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['r0', 'r1', 'r2']);
-    expect(presentIds(h.gateway.pushes[0].fridge!.value)).toEqual(['ing1']);
+    // The fridge change travels as its stock section: one deterministic presence envelope
+    const stock = h.gateway.pushes[0].stock!.value as StockSection;
+    expect(stockDerivedPresence(stock, 'fridge')).toEqual(['ing1']);
     expect(h.sync.getState().pending).toBe(0);
   });
 
@@ -375,6 +453,67 @@ describe('the kitchen sync engine', () => {
     // The adoption marked nothing pending and triggered no push
     expect(h.ledger.pendingSet.size).toBe(0);
     expect(h.gateway.pushes).toHaveLength(0);
+  });
+
+  it('adopts a remote stock not older than ours without any echo, and ignores an older one (lot F1)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0);
+
+    // Concurrent pushes land under one server timestamp: the answer to OUR pull may carry
+    // another device's envelope inside OUR OWN section time. The stock is adopted when it
+    // is not older, and the adoption runs under suspend(): nothing pending, no push, no echo
+    h.ledger.times.stock = 500;
+    h.gateway.remote = {
+      stock: {
+        value: {
+          [presenceEntryId('fridge', 'ingX')]: presenceEnvelope('fridge', 'ingX', {
+            physical: 900,
+            counter: 0,
+            device: 'devB',
+          }),
+        },
+        updatedAt: 500,
+      },
+    };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().fridge).toEqual(['ingX']);
+    expect(h.ledger.pendingSet.size).toBe(0);
+    expect(h.gateway.pushes).toHaveLength(0);
+
+    // A strictly older remote stock changes nothing (same strict rule as the other sections)
+    h.gateway.remote = {
+      stock: {
+        value: {
+          [presenceEntryId('pantry', 'ingY')]: presenceEnvelope('pantry', 'ingY', {
+            physical: 400,
+            counter: 0,
+            device: 'devC',
+          }),
+        },
+        updatedAt: 400,
+      },
+    };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().pantry).toEqual([]);
+  });
+
+  it('never pushes a stock section stamped 0: 0 means "never written", the device clock goes out (lot F1)', async () => {
+    const h = makeHarness({ fridge: ['ing1'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.kitchen.toggleFridgeItem('ing1'); // a change flushes the pending stock section
+    h.ledger.times.stock = 0; // a persisted 0 adopted from an earlier server build (it once
+    // stamped its converted stock sections 0 — the server half of D3): the device heals by
+    // sending its own clock instead, which the fixed server accepts
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1);
+    expect(h.gateway.pushes[0].stock!.updatedAt).toBe(h.time.value);
   });
 
   it('pushes the named lists as one groceryLists section (debounced)', async () => {

@@ -2,7 +2,7 @@ import type { DayPlan } from '@/core/planning';
 import type { AccountSummary, PasswordPolicy, RegistrationInput, UserProfile } from '@/core/accounts';
 
 export type { PasswordPolicy };
-import type { ElementSet, SetSectionName } from '@/core/kitchen';
+import type { ElementSet, SetSectionName, StockLocation, StockSection } from '@/core/kitchen';
 import type { GroceryHistoryEntry, GroceryList } from '@/core/grocery';
 import type { MatchingConfig, MatchingScenario } from '@/core/matching';
 import type { UserPreferences } from '@/core/preferences';
@@ -113,6 +113,16 @@ export interface KitchenRepository {
   /** Clears the whole kitchen document of the current scope: a device that has not synced
    * within the tombstone retention re-adopts the server document instead of resurrecting. */
   resetLocal(): void;
+  /** The stock of entries of this scope (lot F1 § 4.3): one canonical envelope per entry id. */
+  loadStock(): StockSection;
+  /** Replaces the whole stock (backup restore), read through the core validators. */
+  saveStock(stock: StockSection): void;
+  /** Merges a stock section coming from the server: the envelopes reconcile by HLC version
+   *  (a deletion travels with its tombstone, an enriched entry is never impoverished). */
+  mergeStock(remote: StockSection): void;
+  /** Explicit global clear of one location (clearFridge/clearPantry): tombstones of EVERY
+   *  entry of the location — distinct from the single removal of a toggle (E3). */
+  clearStockLocation(location: StockLocation): void;
   loadWeeklyPlan(): DayPlan[];
   saveWeeklyPlan(plan: DayPlan[]): void;
   /** The named shopping lists of this scope, with the id of the active one. */
@@ -139,6 +149,8 @@ export interface RemoteKitchenDocument {
   favorites?: RemoteKitchenSection<ElementSet>;
   fridge?: RemoteKitchenSection<ElementSet>;
   pantry?: RemoteKitchenSection<ElementSet>;
+  /** The typed stock of entries (lot F1): one canonical envelope per entry id */
+  stock?: RemoteKitchenSection<StockSection>;
   weeklyPlan?: RemoteKitchenSection<DayPlan[]>;
   /** The named shopping lists and the active one, one newest-write-wins section */
   groceryLists?: RemoteKitchenSection<{ lists: GroceryList[]; activeId: string }>;
