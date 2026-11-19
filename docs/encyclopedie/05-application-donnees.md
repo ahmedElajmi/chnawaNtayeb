@@ -198,6 +198,28 @@ migration vers les versions par élément peut réapparaître une fois par appar
 re-supprime, la tombstone repart). La sync des préférences exclut le placard (qui a sa propre
 section) et inversement le push des préférences n'embarque pas `pantryStaples`.
 
+**Stock en entrées (lot F1)** : le contenu du frigo et du placard voyage aussi dans une section
+`stock` additionnelle (`@/core/kitchen/entries`) : une enveloppe par entrée, id technique
+déterministe `st_<emplacement>_<ingrédient>` (Unicode échappé), version d'ajout et de
+suppression sur la même horloge hybride (présent ⇔ `added` bat `removed`) ; les anciennes
+sections `fridge`/`pantry` restent servies par **projection** du stock pour les appareils plus
+anciens. La première lecture d'un document sans section `stock` mais avec des données legacy
+le convertit **une fois** avec la même fonction du core que le serveur (mêmes ids, versions
+locales reprises telles quelles), marque la section en attente et garde l'ancien contenu
+intact (retour arrière possible). Un **retrait** ne vise qu'**une** entrée (l'entrée de
+présence déterministe d'abord, sinon la plus récemment ajoutée) ; « vider le frigo » est une
+opération **distincte** qui marque toutes les entrées actives de l'emplacement ; un ré-ajout
+après suppression crée une enveloppe **nue** (jamais de donnée réinventée). Au pull, la
+section `stock` est adoptée quand elle n'est **pas plus ancienne** que la nôtre (des pushes
+concurrents atterrissent sous un même horodatage serveur ; la fusion par enveloppe est
+idempotente, l'adoption se fait sans marque d'attente ni écho) — les autres sections gardent
+le « plus récent » strict. Le serveur horodate lui-même la section qu'il crée par conversion
+ou projection à l'horloge de la requête (jamais 0), et le client n'envoie jamais d'horodatage
+0 (0 = « jamais écrite » → horloge courante). Les plafonds de la section vivent dans le core
+(`STOCK_LIMITS` : 300 entrées actives par emplacement, 2 000 tombstones) ; une section
+invalide refuse le push en entier, jamais de troncature silencieuse. La sauvegarde JSON
+embarque le stock complet (voir « Fichiers JSON »).
+
 **Scopage par uid** : la clé locale porte l'uid (`chnowa_kitchen_<uid>_v1`) ; à la connexion d'un
 compte différent, l'appareil recharge les données de ce compte. **Migration montante** : à la
 première ouverture d'un scope, les anciennes clés non scopées sont lues une fois et comptent
@@ -225,7 +247,8 @@ et réglages du moteur (onglet Moteur). Aucune donnée n'est enregistrée dans u
 
 La sauvegarde contient les objets complets : recettes (toutes les langues et variantes des noms, descriptions, étapes et
 astuce ; photo, vidéo, healthy, rôles, remplaçants), ingrédients (toutes les langues et variantes, fourchette de prix,
-photo), menu, favoris, liste de courses. La restauration relit tout par `parseBackup` (domaine) : les
+photo), menu, favoris, liste de courses, **frigo et placard (le stock en entrées, une enveloppe par entrée)**. La
+restauration relit tout par `parseBackup` (domaine) : les
 éléments invalides sont ignorés et comptés, les anciennes sauvegardes sont mises à jour (prix unique →
 fourchette, rôles). Elle s'applique **sur l'appareil** ; « Envoyer vers le cloud » la publie ensuite.
 Les brouillons de l'éditeur ne font pas partie de la sauvegarde.
