@@ -35,6 +35,21 @@ let base = '';
 beforeAll(async () => {
   resetWatermarks();
   const store: DataStore = createMemoryDataStore();
+  // The stock validation checks the ingredient references against the catalog: the ids the
+  // legacy pushes use are seeded as real ingredients (the registry rules are part of the
+  // F1 contract, § 4.5 of the execution dossier).
+  for (const id of ['ing1', 'ing2']) {
+    await store.put('ingredients', id, {
+      id,
+      name_fr: `Ingrédient ${id}`,
+      name_derja: '',
+      name_ar: '',
+      category: 'vegetables',
+      unit_default: 'pièce',
+      price_min_tnd: 1,
+      price_max_tnd: 2,
+    });
+  }
   app = express();
   app.use(express.json());
   app.use(authRoutes(ADMIN_CONFIG, store, async () => COUNTRIES));
@@ -249,7 +264,8 @@ describe('kitchen routes over HTTP', () => {
       { Authorization: `Bearer ${token}` }
     );
     expect(badValue.status).toBe(400);
-    // Nothing was written by the refused calls (the groceryMeta section comes from an earlier test)
+    // Nothing was written by the refused calls (the groceryMeta section comes from an earlier test);
+    // the stock section (from the converted legacy fridge push) and the projected pantry card are there too
     const read = await get('/api/kitchen', { Authorization: `Bearer ${token}` });
     const data = (await read.json()) as { doc: { sections: Record<string, unknown> } };
     expect(Object.keys(data.doc.sections).sort()).toEqual([
@@ -257,6 +273,8 @@ describe('kitchen routes over HTTP', () => {
       'fridge',
       'groceryList',
       'groceryMeta',
+      'pantry',
+      'stock',
       'weeklyPlan',
     ]);
   });
