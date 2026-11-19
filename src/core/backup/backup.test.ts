@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { initialIngredients, initialRecipes } from '../catalog';
+import { activeEnvelope, presenceEntryId, tombstoneEnvelope } from '../kitchen';
 import { createBackup, parseBackup } from './backup';
 
 const recipe = initialRecipes[0];
@@ -92,5 +93,48 @@ describe('createBackup', () => {
     expect(back?.recipes).toEqual([recipe]);
     expect(back?.ingredients).toEqual([initialIngredients[0]]);
     expect(back?.favorites).toEqual([recipe.id]);
+  });
+
+  it('keeps the full stock envelopes through an export / import round trip (lot F1 § 13-B)', () => {
+    const key = presenceEntryId('fridge', 'tomate');
+    const tombKey = presenceEntryId('pantry', 'sel');
+    const stock = {
+      [key]: activeEnvelope(
+        {
+          id: key,
+          ingredient_id: 'tomate',
+          location: 'fridge',
+          origin: 'manual' as const,
+          added_at: '2026-01-01T10:00:00Z',
+          quantity: 2,
+          unit: 'g',
+          note: 'paquet ouvert',
+        },
+        { physical: 500, counter: 0, device: 'devA' }
+      ),
+      [tombKey]: tombstoneEnvelope(
+        { id: tombKey, ingredient_id: 'sel', location: 'pantry' },
+        { physical: 600, counter: 0, device: 'devB' }
+      ),
+    };
+    const file = createBackup(
+      { recipes: [recipe], ingredients: [], weeklyPlan: [], favorites: [], groceryList: [], stock },
+      '2026-11-19T10:00:00.000Z'
+    );
+    const back = parseBackup(JSON.parse(JSON.stringify(file)));
+    expect(back?.stock).toEqual(stock); // quantity, note and tombstone kept as they are
+  });
+
+  it('reads old backups (no stock section) unchanged and skips a malformed stock', () => {
+    const old = createBackup(
+      { recipes: [recipe], ingredients: [], weeklyPlan: [], favorites: [], groceryList: [] },
+      '2026-11-12T10:00:00.000Z'
+    );
+    expect(parseBackup(JSON.parse(JSON.stringify(old)))?.stock).toBeUndefined();
+    const broken = JSON.parse(JSON.stringify(old));
+    broken.stock = 'not an object';
+    const parsed = parseBackup(broken);
+    expect(parsed?.stock).toBeUndefined();
+    expect(parsed?.skipped).toBe(1);
   });
 });
