@@ -454,6 +454,27 @@ export const tombstoneEnvelope = (stub: StockTombstoneStub, version: ElementVers
   removed: version,
 });
 
+/** The ACTIVE bare-presence envelope of the deterministic key, at the given version:
+ *  created by a toggle or a legacy conversion (no invented quantity; `added_at` = the
+ *  version's own date). */
+export const presenceEnvelope = (
+  location: StockLocation,
+  ingredientId: string,
+  version: ElementVersion
+): StockEnvelope =>
+  activeEnvelope(
+    {
+      id: presenceEntryId(location, ingredientId),
+      ingredient_id: ingredientId,
+      location,
+      origin: 'manual',
+      added_at: isoFromPhysical(version.physical),
+    },
+    version
+  );
+
+const isoFromPhysical = (physical: number): string => new Date(physical).toISOString();
+
 /** The canonical tombstone branch of the envelope union. */
 export type StockTombstoneEnvelope = Extract<StockEnvelope, { state: 'tombstoned' }>;
 
@@ -644,11 +665,65 @@ export function stockDerivedPresence(stock: StockSection, location: StockLocatio
   return [...seen];
 }
 
+/**
+ * The entry ONE removal action targets (E3, validated 19/11/2026): the deterministic
+ * presence entry first; otherwise the ACTIVE entry of the ingredient with the newest
+ * `added_at`, ties broken by the lexicographically smallest id (stable). Null when the
+ * ingredient holds no ACTIVE entry at this location (the next action then creates one).
+ */
+export function stockRemovalTarget(stock: StockSection, location: StockLocation, ingredientId: string): string | null {
+  const deterministic = presenceEntryId(location, ingredientId);
+  const at = stock[deterministic];
+  if (at?.state === 'active' && at.entry.location === location) return deterministic;
+  let target: { key: string; addedAt: string } | null = null;
+  for (const [key, envelope] of Object.entries(stock)) {
+    if (envelope.state !== 'active') continue;
+    const candidate = envelope.entry;
+    if (candidate.location !== location || candidate.ingredient_id !== ingredientId) continue;
+    if (!target || candidate.added_at > target.addedAt || (candidate.added_at === target.addedAt && key < target.key)) {
+      target = { key, addedAt: candidate.added_at };
+    }
+  }
+  return target?.key ?? null;
+}
+
+/** The canonical tombstone that replaces one ACTIVE envelope at a deletion (the stub is
+ *  written from the real entry — never guessed, § 4.2.1 bis). */
+export function tombstonedFromEntry(envelope: StockEnvelope, version: ElementVersion): StockEnvelope {
+  if (envelope.state !== 'active') return envelope;
+  return tombstoneEnvelope(
+    { id: envelope.entry.id, ingredient_id: envelope.entry.ingredient_id, location: envelope.entry.location },
+    version
+  );
+}
+
+/**
+ * Tombstones EVERY ACTIVE envelope of one location with the given version: the explicit
+ * global clear (`clearFridge`/`clearPantry`), distinct from a single removal (E3). Pure:
+ * the version is injected, the same stock always gives the same result. Returns the same
+ * reference when the location holds nothing active.
+ */
+export function tombstoneStockLocation(
+  stock: StockSection,
+  location: StockLocation,
+  version: ElementVersion
+): StockSection {
+  let changed = false;
+  const next: StockSection = {};
+  for (const [key, envelope] of Object.entries(stock)) {
+    if (envelope.state === 'active' && envelope.entry.location === location) {
+      changed = true;
+      next[key] = tombstonedFromEntry(envelope, version);
+      continue;
+    }
+    next[key] = envelope;
+  }
+  return changed ? next : stock;
+}
+
 /* ------------------------------------------------------------------ */
 /* Legacy conversion (§ 7.1) and reverse projection (§ 7.4)             */
 /* ------------------------------------------------------------------ */
-
-const isoFromPhysical = (physical: number): string => new Date(physical).toISOString();
 
 /** The bare-presence entry a legacy add converts into: no invented quantity, no invented
  *  date — `added_at` is the version's own date (§ 7.1). */

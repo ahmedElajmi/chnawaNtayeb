@@ -24,7 +24,11 @@ import {
   readStockSection,
   stubOfTombstone,
   stockDerivedPresence,
+  stockRemovalTarget,
+  presenceEnvelope,
   stockSectionCounts,
+  tombstonedFromEntry,
+  tombstoneStockLocation,
   utf8Length,
   validateStockEntry,
   withinStockCaps,
@@ -553,6 +557,102 @@ describe('stockDerivedPresence (presence first, permanent exhausted excluded)', 
       st_fridge_pa: active({ id: 'st_fridge_pa', ingredient_id: 'pa', permanent: true }, ver(101)),
     };
     expect(stockDerivedPresence(stock, 'fridge')).toEqual(['pa']);
+  });
+});
+
+describe('stockRemovalTarget / tombstonedFromEntry / tombstoneStockLocation (E3, one entry per action)', () => {
+  it('E3 targets the deterministic presence entry first, whatever its age', () => {
+    const deterministic = presenceEntryId('fridge', 'a');
+    const stock: StockSection = {
+      [deterministic]: active({ id: deterministic, ingredient_id: 'a', added_at: '2026-01-01T10:00:00Z' }, ver(100)),
+      st_fridge_a1: active(
+        { id: 'st_fridge_a1', ingredient_id: 'a', quantity: 1, unit: 'g', added_at: '2026-01-02T10:00:00Z' },
+        ver(101)
+      ),
+    };
+    expect(stockRemovalTarget(stock, 'fridge', 'a')).toBe(deterministic);
+  });
+
+  it('without the deterministic key, E3 targets the newest added_at; ties go to the smallest id', () => {
+    const stock: StockSection = {
+      st_fridge_a9: active({ id: 'st_fridge_a9', ingredient_id: 'a', added_at: '2026-01-01T10:00:00Z' }, ver(100)),
+      st_fridge_a3: active({ id: 'st_fridge_a3', ingredient_id: 'a', added_at: '2026-01-02T10:00:00Z' }, ver(101)),
+      st_fridge_a7: active({ id: 'st_fridge_a7', ingredient_id: 'a', added_at: '2026-01-02T10:00:00Z' }, ver(102)),
+    };
+    expect(stockRemovalTarget(stock, 'fridge', 'a')).toBe('st_fridge_a3');
+  });
+
+  it('a tombstoned envelope is never a removal target; another location neither', () => {
+    const stock: StockSection = {
+      st_fridge_a1: tomb('st_fridge_a1', 'a', 'fridge', ver(100)),
+      st_pantry_a1: active({ id: 'st_pantry_a1', ingredient_id: 'a', location: 'pantry' }, ver(101)),
+    };
+    expect(stockRemovalTarget(stock, 'fridge', 'a')).toBeNull();
+  });
+
+  it('tombstonedFromEntry writes the stub from the real entry and keeps the given version', () => {
+    const envelope = active(
+      {
+        id: 'st_fridge_a1',
+        ingredient_id: 'a',
+        quantity: 2,
+        unit: 'g',
+        note: 'opened',
+        added_at: '2026-01-01T10:00:00Z',
+      },
+      ver(100)
+    );
+    const next = tombstonedFromEntry(envelope, ver(200));
+    expect(next.state).toBe('tombstoned');
+    if (next.state === 'tombstoned') {
+      expect(next.stub).toEqual({ id: 'st_fridge_a1', ingredient_id: 'a', location: 'fridge' });
+      expect(next.version).toEqual(ver(200));
+      expect(next.removed).toEqual(ver(200));
+    }
+  });
+
+  it('an already tombstoned envelope passes through unchanged (never re-tombstoned)', () => {
+    const existing = tomb('st_fridge_a1', 'a', 'fridge', ver(100));
+    expect(tombstonedFromEntry(existing, ver(200))).toBe(existing);
+  });
+
+  it('the global clear tombstones every ACTIVE entry of the location only, same version', () => {
+    const stock: StockSection = {
+      st_fridge_a1: active({ id: 'st_fridge_a1', ingredient_id: 'a' }, ver(100)),
+      st_fridge_b1: active({ id: 'st_fridge_b1', ingredient_id: 'b', quantity: 1, unit: 'g', note: 'open' }, ver(101)),
+      st_fridge_a2: tomb('st_fridge_a2', 'a2', 'fridge', ver(99)),
+      st_pantry_c1: active({ id: 'st_pantry_c1', ingredient_id: 'c', location: 'pantry' }, ver(102)),
+    };
+    const next = tombstoneStockLocation(stock, 'fridge', ver(200));
+    const fridgeIds = Object.entries(next)
+      .filter(([, envelope]) => envelope.state === 'active' && envelope.entry.location === 'fridge')
+      .map(([key]) => key);
+    expect(fridgeIds).toEqual([]);
+    expect(next.st_fridge_a2).toBe(stock.st_fridge_a2); // the old tombstone stays untouched
+    expect(next.st_pantry_c1).toBe(stock.st_pantry_c1); // the other location is untouched
+    expect(next.st_fridge_a1?.state).toBe('tombstoned');
+    expect(next.st_fridge_b1?.state).toBe('tombstoned');
+    if (next.st_fridge_b1?.state === 'tombstoned') {
+      expect(next.st_fridge_b1.stub).toEqual({ id: 'st_fridge_b1', ingredient_id: 'b', location: 'fridge' });
+    }
+  });
+
+  it('clearing an empty location returns the same reference (pure idempotence)', () => {
+    const stock: StockSection = { st_fridge_a1: tomb('st_fridge_a1', 'a', 'fridge', ver(100)) };
+    expect(tombstoneStockLocation(stock, 'fridge', ver(200))).toBe(stock);
+    expect(tombstoneStockLocation({}, 'pantry', ver(200))).toEqual({});
+  });
+
+  it('presenceEnvelope builds the bare deterministic ACTIVE envelope (added_at = the version date)', () => {
+    const envelope = presenceEnvelope('fridge', 'tomate', ver(1_700_000_000_000, 'devA'));
+    expect(envelope.state).toBe('active');
+    expect(envelope.state === 'active' ? envelope.version : null).toEqual(ver(1_700_000_000_000, 'devA'));
+    expect(envelope.state === 'active' ? envelope.entry.id : null).toBe('st_fridge_tomate');
+    expect(envelope.state === 'active' ? envelope.entry.added_at : null).toBe(
+      new Date(1_700_000_000_000).toISOString()
+    );
+    expect(envelope.state === 'active' ? 'quantity' in envelope.entry : true).toBe(false);
+    expect(envelope.state === 'active' ? 'note' in envelope.entry : true).toBe(false);
   });
 });
 
