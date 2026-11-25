@@ -82,7 +82,10 @@ beforeAll(async () => {
   const server = app.listen(0);
   await new Promise<void>((resolve) => server.on('listening', resolve));
   const address = server.address() as AddressInfo;
-  backend = { base: `http://127.0.0.1:${address.port}`, close: () => new Promise((resolve) => server.close(() => resolve())) };
+  backend = {
+    base: `http://127.0.0.1:${address.port}`,
+    close: () => new Promise((resolve) => server.close(() => resolve())),
+  };
 });
 
 afterAll(async () => {
@@ -112,9 +115,15 @@ describe('D2 — the old client path over the server-projected legacy sections',
     const put = async (sections: Record<string, unknown>): Promise<void> => {
       const res = await fetch(backend.base + '/api/kitchen', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-Kitchen-Protocol-Version': '1',
+        },
         body: JSON.stringify({
-          sections: Object.fromEntries(Object.entries(sections).map(([name, value]) => [name, { value, updated_at: Date.now() }])),
+          sections: Object.fromEntries(
+            Object.entries(sections).map(([name, value]) => [name, { value, updated_at: Date.now() }])
+          ),
         }),
       });
       expect(res.status).toBe(200);
@@ -136,7 +145,12 @@ describe('D2 — the old client path over the server-projected legacy sections',
           unit: 'pièce',
         },
       },
-      st_fridge_ing2: { state: 'tombstoned', version: ELEMENT_VERSION(now - 90), stub: { id: 'st_fridge_ing2', ingredient_id: 'ing2', location: 'fridge' }, removed: ELEMENT_VERSION(now - 90) },
+      st_fridge_ing2: {
+        state: 'tombstoned',
+        version: ELEMENT_VERSION(now - 90),
+        stub: { id: 'st_fridge_ing2', ingredient_id: 'ing2', location: 'fridge' },
+        removed: ELEMENT_VERSION(now - 90),
+      },
       st_pantry_ing3: {
         state: 'active',
         version: ELEMENT_VERSION(now - 80),
@@ -151,7 +165,9 @@ describe('D2 — the old client path over the server-projected legacy sections',
     };
     await put({ stock });
 
-    const res = await fetch(backend.base + '/api/kitchen', { headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' } });
+    const res = await fetch(backend.base + '/api/kitchen', {
+      headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+    });
     const doc = (await res.json()) as { doc?: { sections?: Record<string, { value: unknown }> } };
     const projectedFridge = doc.doc?.sections?.fridge?.value as ElementSet;
     const projectedPantry = doc.doc?.sections?.pantry?.value as ElementSet;
@@ -173,7 +189,9 @@ describe('D2 — the old client path over the server-projected legacy sections',
     // The server's own projection agrees with what the old client's chain displays
     const getDoc = doc.doc?.sections?.stock?.value as never;
     expect(getDoc).toBeDefined();
-    expect(stockDerivedPresence(stock, 'fridge')).toEqual(presentIds(mergeElementSets(empty, parseElementSet(projectedFridge)!)));
+    expect(stockDerivedPresence(stock, 'fridge')).toEqual(
+      presentIds(mergeElementSets(empty, parseElementSet(projectedFridge)!))
+    );
   });
 
   it('the old client full-card write is converted by the server without loss or resurrection', async () => {
@@ -186,11 +204,17 @@ describe('D2 — the old client path over the server-projected legacy sections',
     };
     const put = await fetch(backend.base + '/api/kitchen', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-Kitchen-Protocol-Version': '1',
+      },
       body: JSON.stringify({ sections: { fridge: { value: card, updated_at: now } } }),
     });
     expect(put.status).toBe(200);
-    const res = await fetch(backend.base + '/api/kitchen', { headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' } });
+    const res = await fetch(backend.base + '/api/kitchen', {
+      headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+    });
     const doc = (await res.json()) as { doc?: { sections?: Record<string, { value: unknown }> } };
     const stock = doc.doc?.sections?.stock?.value as Record<
       string,
