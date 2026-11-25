@@ -21,6 +21,35 @@ export default defineConfig(() => {
       exclude: [...configDefaults.exclude, '**/.claude/**'],
       // Reuse workers across files: the suite is pure logic, isolation buys nothing.
       isolate: false,
+      // Two lanes: the Firestore emulator suites share one emulator base and wipe
+      // collections between their tests, so they must never overlap (see lot T1 and
+      // docs/encyclopedie/09-qualite-tests.md). Everything else keeps full parallelism.
+      // Convention: any new test file that touches FIRESTORE_EMULATOR_HOST must be added
+      // to the `emulator` project's include AND the `unit` project's exclude — both at once.
+      projects: [
+        {
+          test: {
+            name: 'emulator',
+            include: ['server/storage/firestoreStore.test.ts', 'server/routes/kitchenStockConvergence.test.ts'],
+            // One emulator suite at a time: they share the same base.
+            fileParallelism: false,
+            // Different maxWorkers than `unit` requires a distinct groupOrder (Vitest 5).
+            sequence: { groupOrder: 1 },
+          },
+        },
+        {
+          test: {
+            name: 'unit',
+            include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+            exclude: [
+              ...configDefaults.exclude,
+              '**/.claude/**',
+              'server/storage/firestoreStore.test.ts',
+              'server/routes/kitchenStockConvergence.test.ts',
+            ],
+          },
+        },
+      ],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

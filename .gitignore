@@ -49,3 +49,6 @@ docs/encyclopedie/donnees/lot-2.1-conception-d3-partie1.md
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Vitest report output (lot T1)
+.vitest/
