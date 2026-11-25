@@ -159,6 +159,18 @@ export interface RemoteKitchenDocument {
 
 export type RemoteKitchenSections = Partial<RemoteKitchenDocument>;
 
+/** Local-only archive of the offline changes a stale device could not push (lot F1 D3, chef
+ *  decision AR-2 option P1): persisted in its own storage key (it survives the local reset),
+ *  never re-emitted automatically, never presented as synced — exposed so the interface can
+ *  tell the user what was not synced. The snapshot is the exact payload the device would
+ *  have pushed (same shape as a sync push), tagged with the archive time. */
+export interface UnsyncedOfflineChanges {
+  /** When the snapshot was archived (ms since epoch). */
+  archivedAt: number;
+  /** The pending sections as they would have been pushed. */
+  sections: RemoteKitchenSections;
+}
+
 // ---------------------------------------------------------------------------
 // Host lifecycle: timers and page-visibility notifications, injected so the
 // application layer never touches the platform directly. The web adapter lives in
@@ -230,6 +242,15 @@ export interface KitchenSyncLedger {
    * merge; the returned function resumes the normal bookkeeping.
    */
   suspend(): () => void;
+  /** The archived offline changes of this scope (null = none). Local-only, survives the
+   *  local reset, never re-emitted by the sync (lot F1 D3, P1). */
+  unsyncedArchive(): UnsyncedOfflineChanges | null;
+  /** Archives the pending offline changes of a stale device before its local reset.
+   *  Returns TRUE only when the snapshot is confirmed persisted (lot F1 D3, AR-2: the
+   *  caller must abort the wipe on FALSE — no silent loss). */
+  archiveUnsyncedChanges(snapshot: UnsyncedOfflineChanges): boolean;
+  /** Discards the archive once the user has acted on it (interface acknowledgment). */
+  discardUnsyncedArchive(): void;
 }
 
 export type WriteResult = { ok: true } | { ok: false; error: string };

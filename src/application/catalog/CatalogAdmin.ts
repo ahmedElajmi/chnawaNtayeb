@@ -1,4 +1,4 @@
-import { createBackup, parseBackup } from '@/core/backup';
+import { backupImportWithinBound, createBackup, parseBackup } from '@/core/backup';
 import { initialIngredients, initialRecipes, type Ingredient, type Recipe } from '@/core/catalog';
 import { unitIdFromLabel, type UnitInfo } from '@/core/units';
 import { DEFAULT_WEEKLY_PLAN, migrateDayPlan, type DayPlan } from '@/core/planning';
@@ -120,8 +120,12 @@ export class CatalogAdmin {
     );
   }
 
-  /** Restores a JSON backup on this device (every entry read through the domain). */
+  /** Restores a JSON backup on this device (every entry read through the domain). An
+   *  absurdly large file is refused BEFORE any parse (lot F1 A4, AR-1 guard-rail): an
+   *  explicit refusal, no memory hazard, no partial restore — the same failure verdict the
+   *  interface already shows for a file that is not a backup. */
   importBackup(json: string): BackupImportResult {
+    if (!backupImportWithinBound(json)) return { ok: false };
     let backup;
     try {
       backup = parseBackup(JSON.parse(json));

@@ -514,21 +514,44 @@ function parseStockEnvelope(key: string, raw: unknown): StockEnvelope | null {
   return { state: 'tombstoned', version, removed: shape.removed as ElementVersion };
 }
 
-/**
- * Reads a `stock` section coming from outside (server payload, stored document, local
- * copy) — TOLERANT: one malformed envelope is dropped, the valid envelopes of the same
- * section are kept (read tolerance, never a `undefined` toward the display). The section
- * itself is refused (null) when it is not a plain object or when a volume cap is exceeded
- * (explicit refusal, never a silent truncation — § 4.2.4).
- */
-export function parseStockSection(raw: unknown): StockSection | null {
+/** Tolerant per-envelope read of a raw section: one malformed envelope is dropped, the
+ *  valid envelopes of the same section are kept (read tolerance, never a `undefined`
+ *  toward the display). The section itself is refused (null) when it is not a plain object.
+ *  Shared by the bounded and unbounded readers — the volume policy is applied by the
+ *  caller, never here. */
+function parseStockEnvelopes(raw: unknown): StockSection | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const stock: StockSection = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
     const envelope = parseStockEnvelope(key, value);
     if (envelope) stock[key] = envelope;
   }
-  return withinStockCaps(stock) ? stock : null;
+  return stock;
+}
+
+/**
+ * Reads a `stock` section coming from OUTSIDE the device (server payload, server-adoption
+ * path): TOLERANT per envelope and bounded — the section is refused (null) when a volume
+ * cap is exceeded (explicit refusal, never a silent truncation — § 4.2.4). The admission
+ * policy stays the reference protection for external data.
+ */
+export function parseStockSection(raw: unknown): StockSection | null {
+  const stock = parseStockEnvelopes(raw);
+  return stock && withinStockCaps(stock) ? stock : null;
+}
+
+/**
+ * Reads a `stock` section that THIS device persisted itself (own stored document, backup
+ * restore — lot F1 A4, chef decision AR-1 option α): the volume bounds are an ADMISSION
+ * policy (the server refuses an out-of-caps push; the client refuses an out-of-caps server
+ * adoption), NOT a filter of the device's own state. Re-reading or restoring what the user
+ * already holds must never silently drop entries: the whole section is read as persisted
+ * (malformed envelopes are still dropped individually — corruption handling, unchanged).
+ * The explicit refusal keeps happening at the sources that own it (server caps B1a–B1d,
+ * `mergeStock` adoption), so a large local state simply stays pending instead of vanishing.
+ */
+export function parseStockSectionUnbounded(raw: unknown): StockSection | null {
+  return parseStockEnvelopes(raw);
 }
 
 /**

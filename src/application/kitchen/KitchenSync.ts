@@ -1,5 +1,5 @@
 import type { UserPreferences } from '@/core/preferences';
-import { SET_SECTIONS, STALE_DEVICE_MS } from '@/core/kitchen';
+import { SET_SECTIONS, isStaleDevice } from '@/core/kitchen';
 import type {
   HostLifecycle,
   KitchenSyncGateway,
@@ -7,6 +7,7 @@ import type {
   PreferencesRepository,
   RemoteKitchenDocument,
   RemoteKitchenSections,
+  UnsyncedOfflineChanges,
 } from '../ports';
 import { Store } from '../store';
 import type { KitchenStore } from './KitchenStore';
@@ -43,6 +44,11 @@ export interface KitchenSyncState {
   /** The server signaled a protocol reconciliation on the LAST pull (client-side marker,
    * idempotent — never a device registry, a durable proof, nor a server-side state). */
   reconciliationRequired: boolean;
+  /** True once this device archived offline changes it could not push (lot F1 D3, P1: a
+   * device stale beyond the reset margin never pushes before its reset — the refused
+   * changes are archived locally instead, never silently lost, never re-emitted and
+   * never presented as synced). Reset when the account changes. */
+  offlineChangesArchived: boolean;
 }
 
 const PUSH_DEBOUNCE_MS = 2000;
@@ -70,7 +76,14 @@ export class KitchenSync extends Store<KitchenSyncState> {
   private unsubscribe: (() => void) | null = null;
 
   constructor(private readonly deps: KitchenSyncDeps) {
-    super({ syncing: false, pending: 0, lastPullAt: null, failed: false, reconciliationRequired: false });
+    super({
+      syncing: false,
+      pending: 0,
+      lastPullAt: null,
+      failed: false,
+      reconciliationRequired: false,
+      offlineChangesArchived: false,
+    });
   }
 
   /** Follows the kitchen store and installs the page lifecycle. Called once at start-up. */
@@ -82,6 +95,10 @@ export class KitchenSync extends Store<KitchenSyncState> {
       () => this.handleVisible()
     );
     this.updatePending();
+    // Lot F1 D3 (P1): the archive signal is restored from the persisted archive of this
+    // scope — a reload (or a return to an old scope) re-shows what was not synced, without
+    // any new synchronization and without re-emitting anything.
+    this.setState({ offlineChangesArchived: this.deps.ledger.unsyncedArchive() !== null });
     // Catch-up: sections pending from a previous run (crash, offline flush) go first
     void this.recover();
   }
@@ -105,9 +122,13 @@ export class KitchenSync extends Store<KitchenSyncState> {
     this.applying = false;
     this.lastPull = 0;
     this.updatePending();
-    // An operation still in flight belonged to the previous account: it must no longer
-    // touch the state (its stale response is dropped by the scope guard after its await)
-    this.setState({ syncing: false });
+    // The new scope's own archive signal is restored from its persisted archive (the old
+    // scope's archive is never deleted — it stays available locally, and coming back to
+    // that scope restores its signal again).
+    this.setState({
+      syncing: false,
+      offlineChangesArchived: this.deps.ledger.unsyncedArchive() !== null,
+    });
     if (scope) void this.pullNow();
   }
 
@@ -160,6 +181,14 @@ export class KitchenSync extends Store<KitchenSyncState> {
   private async pushNow(): Promise<void> {
     const uid = this.deps.owner();
     if (!uid) return;
+    // Lot F1 D3 (chef decision AR-2, option P1): a device stale beyond the reset margin
+    // never pushes its pending offline changes — an old deletion could resurrect a tombstone
+    // the server already purged. The changes stay pending (never silently dropped) until
+    // the recovery pull resets the state: the reset archives them first.
+    if (this.stale()) {
+      this.updatePending();
+      return;
+    }
     const pending = this.deps.ledger.pending();
     const preferencesPending = this.preferencesPending();
     const sections = this.pendingSections(pending, preferencesPending);
@@ -228,9 +257,18 @@ export class KitchenSync extends Store<KitchenSyncState> {
       // A device that has not synced for longer than the tombstone retention resets itself:
       // its stale pushes could resurrect elements whose tombstone the server already purged.
       // The reset happens only once the fresh document is here (a failed pull wipes nothing)
-      // and the merge below adopts it over the emptied state.
+      // and the merge below adopts it over the emptied state. Lot F1 D3 (P1): the refused
+      // offline changes are archived BEFORE the wipe. The AR-2 guarantee is absolute: if the
+      // archive could not be PERSISTED, the reset is ABORTED — the local state stays intact
+      // and the device stays stale (a later pull retries the whole sequence).
       const lastSync = this.deps.ledger.lastSyncedAt();
-      if (lastSync !== null && this.deps.now() - lastSync > STALE_DEVICE_MS) this.deps.kitchen.resetLocal();
+      if (isStaleDevice(lastSync, this.deps.now())) {
+        if (!this.archiveRefusedPending()) {
+          this.setState({ syncing: false, failed: true });
+          return;
+        }
+        this.deps.kitchen.resetLocal();
+      }
       if (doc) this.applyRemote(doc, uid);
       this.deps.ledger.recordSynced(this.deps.now());
       // The signal is a per-pull marker, recorded idempotently; a pull without signal means
@@ -244,8 +282,50 @@ export class KitchenSync extends Store<KitchenSyncState> {
 
   private async recover(): Promise<void> {
     if (!this.deps.owner()) return;
+    // Lot F1 D3 (P1): a stale device goes straight to the pull — the reset happens there,
+    // and the refused offline changes are archived before the wipe (never pushed first).
+    if (this.stale()) {
+      await this.pullNow();
+      return;
+    }
     if (this.deps.ledger.pending().length || this.preferencesPending()) await this.pushNow();
     await this.pullNow();
+  }
+
+  /** The single staleness test (core rule, D3): a device whose last successful exchange is
+   *  older than the reset margin. */
+  private stale(): boolean {
+    return isStaleDevice(this.deps.ledger.lastSyncedAt(), this.deps.now());
+  }
+
+  /** Archives the pending offline changes of a stale device right BEFORE the reset wipes
+   *  the local state: the snapshot is the exact payload the device would have pushed
+   *  (same shape as a sync push). Persisted in its own storage key — it survives the wipe,
+   *  is never re-emitted automatically and is never presented as synced; the interface can
+   *  read it (and discard it once the user has acted on it). Returns TRUE when the state
+   *  is safe to wipe: either there was nothing pending (nothing would be lost) or the
+   *  archive was confirmed persisted by the ledger. Returns FALSE when there WERE pending
+   *  changes and the persistence FAILED — the caller must abort the wipe (AR-2: no silent
+   *  loss), and the signal flag is NOT raised (nothing was actually archived). */
+  private archiveRefusedPending(): boolean {
+    const sections = this.pendingSections(this.deps.ledger.pending(), this.preferencesPending());
+    if (!sections) return true; // a device in sync with no change loses nothing
+    const snapshot: UnsyncedOfflineChanges = { archivedAt: this.deps.now(), sections };
+    const persisted = this.deps.ledger.archiveUnsyncedChanges(snapshot);
+    if (!persisted) return false;
+    this.setState({ offlineChangesArchived: true });
+    return true;
+  }
+
+  /** The archived offline changes of this scope, for the interface (lot F1 D3, P1). */
+  unsyncedArchive(): UnsyncedOfflineChanges | null {
+    return this.deps.ledger.unsyncedArchive();
+  }
+
+  /** Discards the archived offline changes once the user has acted on them (interface). */
+  discardUnsyncedArchive(): void {
+    this.deps.ledger.discardUnsyncedArchive();
+    this.setState({ offlineChangesArchived: false });
   }
 
   /** Applies a document coming from the server: element sets for the set sections (adds and

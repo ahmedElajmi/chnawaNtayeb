@@ -62,6 +62,14 @@ export const TOMBSTONE_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
  * clock-skew margin under the retention): a device that could resurrect an element is wiped first. */
 export const STALE_DEVICE_MS = TOMBSTONE_RETENTION_MS - 7 * 24 * 60 * 60 * 1000;
 
+/** The single rule shared by the sync paths (lot F1 D3, chef decision AR-2 option P1): a device
+ *  whose last successful exchange is older than the reset margin is stale — it must not push its
+ *  pending offline changes before its state is reset (an old deletion could resurrect a tombstone
+ *  the server already purged). Never used for anything else; one rule, one place. */
+export function isStaleDevice(lastSyncedAt: number | null, nowMs: number): boolean {
+  return lastSyncedAt !== null && nowMs - lastSyncedAt > STALE_DEVICE_MS;
+}
+
 /** The server-reserved device id inside sync versions (lot F1 § 7.5): only the server's own
  *  legacy projection writes it, so a version carrying it in a pushed map is an ECHO of the
  *  projection — never a business operation. Real device ids always contain a dash
@@ -135,15 +143,31 @@ export function receiveVersion(clock: DeviceClock, remote: ElementVersion): Devi
 }
 
 /**
- * Reads one set section coming from outside this code (server payload, stored document).
- * Accepts the current shape ({ added, removed }) and rejects anything malformed. When a map
- * goes over its cap, the oldest versions are dropped (bounded storage, a push is never refused).
+ * Reads one set section coming from outside this code (server payload, server-adoption
+ * path): accepts the current shape ({ added, removed }) and rejects anything malformed.
+ * When a map goes over its cap, the oldest versions are dropped (bounded storage, a push
+ * is never refused). This is the ADMISSION reader — external data only.
  */
 export function parseElementSet(raw: unknown): ElementSet | null {
+  return parseElementSetBounded(raw, true);
+}
+
+/**
+ * Reads one set section that THIS device persisted itself (own stored document — lot F1
+ * A4, chef decision AR-1 option α): the caps are an admission policy, not a filter of the
+ * device's own state. Re-reading what the user already holds must never silently drop the
+ * oldest versions (an écrémage at read time loses deletions without any refusal). Same
+ * shape validation, same per-element tolerance, no volume bound.
+ */
+export function parseElementSetUnbounded(raw: unknown): ElementSet | null {
+  return parseElementSetBounded(raw, false);
+}
+
+function parseElementSetBounded(raw: unknown, bounded: boolean): ElementSet | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const shape = raw as { added?: unknown; removed?: unknown };
-  const added = parseVersionMap(shape.added, ELEMENT_SET_LIMITS.added);
-  const removed = parseVersionMap(shape.removed, ELEMENT_SET_LIMITS.removed);
+  const added = parseVersionMap(shape.added, bounded ? ELEMENT_SET_LIMITS.added : Number.POSITIVE_INFINITY);
+  const removed = parseVersionMap(shape.removed, bounded ? ELEMENT_SET_LIMITS.removed : Number.POSITIVE_INFINITY);
   return added === null || removed === null ? null : { added, removed };
 }
 

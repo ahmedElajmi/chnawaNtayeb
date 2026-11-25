@@ -425,3 +425,67 @@ describe('the local stock of entries (lot F1, client)', () => {
     expect(repo.ledger.hasData()).toBe(true); // but the stock holds data (lot F1 § 4.3)
   });
 });
+
+describe('own-state integrity beyond the caps (lot F1 A4 — chef decision AR-1, option α)', () => {
+  it('restores a backup stock over the caps WHOLE and re-reads it intact (no silent truncation)', () => {
+    fakeLocalStorage();
+    const { repo } = makeRepo();
+    // 301 active fridge entries (one over the cap) + 2 001 tombstones: the adopted state
+    // B1d plus one offline toggle — exactly the scenario that used to lose st_fridge_ing0299
+    const stock: StockSection = {};
+    for (let i = 0; i < 301; i++) {
+      const id = presenceEntryId('fridge', `i${i}`);
+      stock[id] = activeEnvelope(
+        { id, ingredient_id: `i${i}`, location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100 + i, 'remote')
+      );
+    }
+    for (let i = 0; i < 2001; i++) {
+      const id = presenceEntryId('fridge', `t${i}`);
+      stock[id] = tombstoneEnvelope({ id, ingredient_id: `t${i}`, location: 'fridge' }, version(5000 + i, 'remote'));
+    }
+    repo.saveStock(stock);
+    // Re-reading through getKitchenDoc returns the whole persisted state — the entry over
+    // the cap is present, the tombstones are not trimmed at read time
+    const stored = storage.getKitchenDoc('u1')!;
+    expect(stored.stock && Object.keys(stored.stock).length).toBe(2302);
+    expect(repo.loadStock()[presenceEntryId('fridge', 'i300')]).toBeDefined();
+    expect(repo.loadFridge().length).toBe(301);
+  });
+
+  it('keeps the bounded admission on the server-adoption path (mergeStock still refuses over-caps data)', () => {
+    fakeLocalStorage();
+    const { repo } = makeRepo();
+    const over: StockSection = {};
+    for (let i = 0; i < 301; i++) {
+      const id = presenceEntryId('fridge', `r${i}`);
+      over[id] = activeEnvelope(
+        { id, ingredient_id: `r${i}`, location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100 + i, 'remote')
+      );
+    }
+    repo.mergeStock(over);
+    expect(repo.loadStock()).toEqual({}); // external data: the admission refusal still applies
+  });
+
+  it('archives the refused offline changes of a stale device outside the kitchen document (lot F1 D3, P1)', () => {
+    fakeLocalStorage();
+    const { repo, time } = makeRepo();
+    const id = presenceEntryId('fridge', 'ing1');
+    repo.saveStock({
+      [id]: activeEnvelope(
+        { id, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100, 'remote')
+      ),
+    });
+    const snapshot = { archivedAt: time.value + 5, sections: { stock: { value: repo.loadStock(), updatedAt: time.value } } };
+    repo.ledger.archiveUnsyncedChanges(snapshot);
+    // The archive lives OUTSIDE the kitchen document: a resetLocal wipe leaves it intact
+    repo.resetLocal();
+    expect(repo.ledger.unsyncedArchive()).toEqual(snapshot);
+    expect(repo.ledger.unsyncedArchive()?.sections.stock).toBeDefined();
+    // The user acknowledgment clears it explicitly (never automatic)
+    repo.ledger.discardUnsyncedArchive();
+    expect(repo.ledger.unsyncedArchive()).toBeNull();
+  });
+});
