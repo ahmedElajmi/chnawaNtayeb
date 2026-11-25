@@ -105,6 +105,23 @@ describe('parseStoredRecipe', () => {
     expect(parseStoredRecipe({ ...recipe, steps: [{}] })).toBeNull();
     expect(parseStoredRecipe({ ...recipe, base_servings: '4' })).toBeNull();
   });
+
+  it('every ingredient line carries a unit: a stored unit is kept, a missing one falls back to the built-in catalog or an empty string (non-regression of the unit display crash)', () => {
+    const withoutUnits = {
+      ...JSON.parse(JSON.stringify(recipe)),
+      ingredients: [
+        { ingredient_id: 'ing_tomate', quantity_base: 3 }, // built-in: takes its catalog unit
+        { ingredient_id: 'custom_ingredient', quantity_base: 1 }, // unknown: '' (bare on screen)
+      ],
+    };
+    const parsed = parseStoredRecipe(withoutUnits);
+    expect(parsed).not.toBeNull();
+    expect(typeof parsed!.ingredients[0].unit).toBe('string');
+    expect(parsed!.ingredients[0].unit.trim()).not.toBe(''); // built-in unit recovered
+    expect(parsed!.ingredients[1].unit).toBe('');
+    const withUnits = parseStoredRecipe(JSON.parse(JSON.stringify(recipe)));
+    expect(withUnits!.ingredients.map((i) => i.unit)).toEqual(recipe.ingredients.map((i) => i.unit));
+  });
 });
 
 describe('validateRecipe: cleared optional fields', () => {

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Champs de saisie — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <div class="grp"><span class="lbl">Cadre (aperçu resserré)</span>
+    <button class="ctl width-ctl" data-w="320" aria-pressed="false">320</button>
+    <button class="ctl width-ctl" data-w="375" aria-pressed="true">375</button>
+    <button class="ctl width-ctl" data-w="768" aria-pressed="false">768</button>
+    <button class="ctl width-ctl" data-w="1280" aria-pressed="false">1280</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="375">
+  <div class="checklist">
+    <span class="chip-check">États : repos · focus · erreur · aide · désactivé · saisie en cours</span>
+    <span class="chip-check">Erreur liée au champ (aria-describedby) + préfixe ⚠ (pas la couleur seule)</span>
+    <span class="chip-check">Bordures utiles ≥ 3:1 sur carte (token --line-strong)</span>
+    <span class="chip-check">Champs 16 px — pas de zoom automatique iOS · cibles ≥ 44 px</span>
+    <span class="chip-check">Téléphone E.164 LTR en contexte RTL</span>
+  </div>
+  <h1>Champs de saisie</h1>
+
+  <section class="demo card">
+    <h2>Repos et aide</h2>
+    <div class="field">
+      <label for="f1" data-i18n="fieldRecipeLabel"></label>
+      <input class="input" id="f1" type="text" placeholder="Ojja merguez" />
+      <span class="help" data-i18n="fieldHelpVisible"></span>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Focus clavier</h2>
+    <div class="field">
+      <label for="f2" data-i18n="fieldRecipeLabel"></label>
+      <input class="input" id="f2" type="text" style="border-color:var(--focus-ring);outline:2px solid var(--focus-ring);outline-offset:0;box-shadow:none" value="Kosksi aux légumes" />
+      <span class="help">Anneau et bordure de marque au focus.</span>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Erreur liée au champ</h2>
+    <div class="field">
+      <label for="f3" data-i18n="fieldQty"></label>
+      <input class="input" id="f3" type="text" aria-invalid="true" aria-describedby="f3e" value="-2" />
+      <span class="error" id="f3e" data-i18n="fieldQtyError"></span>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Désactivé et saisie en cours</h2>
+    <div class="field">
+      <label for="f4">Source (calculée)</label>
+      <input class="input" id="f4" type="text" disabled value="Coût calculé automatiquement" />
+      <span class="help">Champ non modifiable.</span>
+    </div>
+    <div class="field" style="margin-top:var(--sp-3)">
+      <label for="f5">Saisie en cours</label>
+      <input class="input" id="f5" type="text" value="Batata, 3dham…" />
+      <span class="help">La saisie est conservée (aucune perte).</span>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Texte réel — recherche d'ingrédient (placeholder i18n)</h2>
+    <div class="field">
+      <input class="input" id="f6" type="text" data-i18n="searchPlaceholder" data-i18n-attr="placeholder" />
+      <span class="help">Basculez la langue : le placeholder est la chaîne réelle de l'app.</span>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Téléphone — E.164, champ unique, LTR même en RTL</h2>
+    <div class="field">
+      <label for="f7" data-i18n="fieldTel"></label>
+      <input class="input" id="f7" type="tel" dir="ltr" value="+216 22 123 456" />
+      <span class="help" data-i18n="fieldTelHelp"></span>
+    </div>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

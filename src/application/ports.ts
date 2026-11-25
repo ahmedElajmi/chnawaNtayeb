@@ -147,6 +147,22 @@ export interface RemoteKitchenDocument {
 
 export type RemoteKitchenSections = Partial<RemoteKitchenDocument>;
 
+// ---------------------------------------------------------------------------
+// Host lifecycle: timers and page-visibility notifications, injected so the
+// application layer never touches the platform directly. The web adapter lives in
+// src/infrastructure/host (browser); a native app would provide its own.
+// ---------------------------------------------------------------------------
+
+export interface HostLifecycle {
+  /** Runs `fn` after `ms`; the returned function cancels it (harmless once run). */
+  defer(fn: () => void, ms: number): () => void;
+  /**
+   * Notifies when the page goes to the background or is parked in the back/forward cache
+   * (`onHidden`) and when it is visible again (`onVisible`). The returned function unsubscribes.
+   */
+  subscribeVisibility(onHidden: () => void, onVisible: () => void): () => void;
+}
+
 /** The signed-in account's kitchen kept on the server (never reachable for guests). */
 export interface KitchenSyncGateway {
   /** The stored document; null when the account has none yet. Throws when unreachable. */

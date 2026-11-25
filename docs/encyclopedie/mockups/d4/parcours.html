@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Parcours UX — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="1280">
+  <div class="checklist">
+    <span class="chip-check">4 parcours prioritaires — interactions et transitions visibles</span>
+    <span class="chip-check">Données factices cohérentes (frigo de 9 ingrédients, mêmes recettes que les pages complètes)</span>
+    <span class="chip-check">Niveaux : navigation entre étapes = simulé ; les comportements métier réels restent testés en 2.8+</span>
+    <span class="chip-check">Pages complètes liées : accueil · recherche · frigo · suggestions · recette · mode cuisine · courses · profil</span>
+  </div>
+  <h1>Parcours UX</h1>
+
+  <div class="chips" style="margin-bottom:var(--sp-3)" role="tablist" aria-label="Choix du parcours">
+    <button class="chip" role="tab" aria-selected="true" data-panel="j1" id="jt1" onclick="showJourney(1)">1 · Frigo → suggestions → recette</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j2" id="jt2" onclick="showJourney(2)">2 · Recette → mode cuisine</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j3" id="jt3" onclick="showJourney(3)">3 · Manquants → liste de courses</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j4" id="jt4" onclick="showJourney(4)">4 · Recherche → filtres → détail</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j5" id="jt5" onclick="showJourney(5)">5 · Photo → reconnaissance → frigo</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j6" id="jt6" onclick="showJourney(6)">6 · Bienvenue → onboarding → suggestions</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j7" id="jt7" onclick="showJourney(7)">7 · Recette → favori / planning → courses</button>
+    <button class="chip" role="tab" aria-selected="false" data-panel="j8" id="jt8" onclick="showJourney(8)">8 · Notification → écran fonctionnel</button>
+  </div>
+
+  <div id="journey-1">
+    <p class="muted" style="font-size:13px"><b>Parcours interactif</b> — cliquez à travers les étapes comme dans l'application.
+    Frigo de 9 ingrédients, 4 recettes (Salade mechouia 5/5 · Ojja merguez 8/9 dont 1 à vérifier · Kosksi 5/9 · Lablabi 6/10).</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check" id="step-label">Étape 1 / 4 · Frigo</span></div>
+      <div id="view-fridge">
+        <h2 style="margin-top:0" data-i18n="fridgeTitle"></h2>
+        <div class="chips" style="margin-bottom:var(--sp-2)">
+          <span class="chip-check">🍅 ×2 kg</span><span class="chip-check">🥚 ×6</span><span class="chip-check">🧅 ×5</span>
+          <span class="chip-check">🥕 ×3</span><span class="chip-check">🫑 ×2</span><span class="chip-check">🧄 ×1 · 🌿 ×1</span><span class="chip-check">🫒 (stock)</span><span class="chip-check">🌶️ ?</span>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" onclick="jgo(2)" style="flex:1">Voir les suggestions</button>
+          <a class="btn btn-secondary" href="frigo.html">Page complète →</a>
+        </div>
+      </div>
+      <div id="view-sug" hidden>
+        <h2 style="margin-top:0" data-i18n="recipesSuggestionsTab"></h2>
+        <div class="list-item"><div class="grow"><span class="title">Salade mechouia</span><br /><span class="muted" style="font-size:11px">5 / 5 · <span class="state-tag ok">prête</span></span></div><button class="btn btn-primary" style="min-height:36px" onclick="jgo(3)">Ouvrir</button></div>
+        <div class="list-item"><div class="grow"><span class="title">Ojja merguez</span><br /><span class="muted" style="font-size:11px">8 / 9 · <span class="state-tag warn">presque</span> · 1 à acheter · piment à vérifier</span></div><button class="btn btn-secondary" style="min-height:36px" onclick="jgo(3)">Ouvrir</button></div>
+        <div class="list-item"><div class="grow"><span class="title">Kosksi aux légumes</span><br /><span class="muted" style="font-size:11px">5 / 9 · <span class="state-tag err">à découvrir</span> · 4 à acheter</span></div><button class="btn btn-secondary" style="min-height:36px" onclick="jgo(3)">Ouvrir</button></div>
+        <div class="row" style="margin-top:var(--sp-2)">
+          <button class="btn btn-secondary" onclick="jgo(1)">← Frigo</button>
+          <a class="btn btn-secondary" href="suggestions.html">Page complète →</a>
+        </div>
+      </div>
+      <div id="view-rec" hidden>
+        <h2 style="margin-top:0">Ojja merguez</h2>
+        <p class="muted" style="font-size:12px">8 / 9 ingrédients du frigo · merguez à acheter · piment : quantité à vérifier (présence sans quantité).</p>
+        <div class="row">
+          <span class="ing have">✓ <span data-i18n="haveIng"></span> : 8 sur 9 <span class="muted" style="font-size:10px">(dont ? piment)</span></span>
+          <span class="ing miss">🥩 <span data-i18n="needBuy"></span> : 1 (merguez)</span>
+        </div>
+        <p class="muted" style="font-size:12px">Le piment compte dans les 8 (présence) mais sa quantité est
+        inconnue : « à vérifier », jamais suffisant.</p>
+        <div class="row" style="margin-top:var(--sp-2)">
+          <a class="btn btn-primary" href="mode-cuisine.html">Cuisiner maintenant</a>
+          <a class="btn btn-secondary" href="courses.html">Ajouter les manquants à la liste</a>
+        </div>
+        <div class="row" style="margin-top:var(--sp-2)">
+          <button class="btn btn-secondary" onclick="jgo(2)">← Suggestions</button>
+          <a class="btn btn-secondary" href="recette.html">Page complète →</a>
+        </div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px">États montrés : récap du frigo en haut (convention), niveaux de suggestion, détail recette avec trois catégories d'ingrédients.</p>
+  </div>
+
+  <div id="journey-2" hidden>
+    <p class="muted" style="font-size:13px"><b>Recette → préparation en mode cuisine.</b> Écran unique, gros textes,
+    progression, minuteur sur les étapes chronométrées.</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check">Étape 2 / 5 · mijotage</span></div>
+      <div class="progress" role="progressbar" aria-valuenow="2" aria-valuemin="1" aria-valuemax="5" aria-label="Progression"><div style="width:40%"></div></div>
+      <div class="card" style="margin-top:var(--sp-2)">
+        <p class="steptext" style="font-size:18px">Ajoutez les tomates concassées, la harissa et le piment. Mijotez 15 min.</p>
+        <div class="row"><button class="btn btn-secondary" data-i18n="cookTimer"></button><span class="muted" style="font-size:12px">15:00 · l'écran reste allumé</span></div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">🍅 🌶️ 🥕 — ingrédients de cette étape</p>
+      </div>
+      <div class="row" style="margin-top:var(--sp-2)">
+        <button class="btn btn-secondary" style="flex:1" data-i18n="cookPrev"></button>
+        <button class="btn btn-primary" style="flex:2" data-i18n="cookNext"></button>
+      </div>
+      <a class="btn btn-danger" href="mode-cuisine.html" style="width:100%;margin-top:var(--sp-2)" data-i18n="cookExit"></a>
+    </div>
+    <div class="row" style="margin-top:var(--sp-2)"><a class="btn btn-secondary" href="mode-cuisine.html">Démo interactive complète →</a></div>
+    <p class="muted" style="font-size:12px">Cas limites : étape avec minuteur, pause/reprise, sortie (confirmation si rien de saisi — rien à perdre ici), retour au détail.</p>
+  </div>
+
+  <div id="journey-3" hidden>
+    <p class="muted" style="font-size:13px"><b>Ingrédients manquants → liste de courses.</b> Depuis la recette, ajout
+    des manquants à la liste cible, puis gestion par rayons avec quantités et budget.</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check">Choisir la liste cible</span></div>
+      <div class="list-item"><span class="thumb" aria-hidden="true">🛒</span><div class="grow"><span class="title">Week-end</span><br /><span class="muted" style="font-size:11px">3 articles</span></div><button class="btn btn-secondary" style="min-height:36px">Choisir</button></div>
+      <div class="list-item"><span class="thumb" aria-hidden="true">🛒</span><div class="grow"><span class="title">Ramadan</span><br /><span class="muted" style="font-size:11px">12 articles</span></div><button class="btn btn-secondary" style="min-height:36px">Choisir</button></div>
+      <p class="muted" style="font-size:12px;margin:var(--sp-2) 0">La cible n'est demandée que si vous gardez plusieurs
+      listes (<code>GroceryListChooserModal</code> — convention). Fusion si unité compatible, deux lignes sinon.</p>
+      <div class="row"><div class="toast">✅ Merguez (0,5 kg) ajouté à « Week-end »</div></div>
+      <div class="row" style="margin-top:var(--sp-2)">
+        <a class="btn btn-primary" href="courses.html">Ouvrir la liste →</a>
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px">Cas limites : article déjà présent (fusion + cumul de quantité), unités
+    incompatibles (deux lignes), suppression avec confirmation, « à vérifier » jamais ajouté automatiquement.</p>
+  </div>
+
+  <div id="journey-4" hidden>
+    <p class="muted" style="font-size:13px"><b>Recherche → filtres → détail.</b> Depuis l'accueil, recherche « kosksi »,
+    filtres, tri, ouverture du détail.</p>
+    <div class="card" style="max-width:480px">
+      <div class="search">
+        <div class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" value="kosksi" aria-label="Recherche" /></div>
+        <p class="help">Le moteur renvoie 14 recettes ; sans réponse du moteur, repli sur le filtre par nom (convention).</p>
+      </div>
+      <div class="chips" style="margin-top:var(--sp-2)">
+        <button class="chip" aria-pressed="false">Kosksi</button>
+        <button class="chip" aria-pressed="true">30–60 min</button>
+        <button class="chip" aria-pressed="false">≤ 5 DT/pers.</button>
+      </div>
+      <p class="muted" style="font-size:12px">Filtres conservés en quittant l'écran (convention) — compteur total juste : « 14 recettes · 24 affichées » sur la page complète.</p>
+      <div class="row" style="margin-top:var(--sp-2)">
+        <a class="btn btn-primary" href="recherche.html">Résultats →</a>
+        <a class="btn btn-secondary" href="recette.html">Détail →</a>
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px">Cas limites : aucun résultat (état vide avec action « Réinitialiser les filtres »), hors-ligne (repli données sauvegardées), recherche avec accents/derja (<code>normalizeSearchText</code>).</p>
+  </div>
+  <div id="journey-5" hidden>
+    <p class="muted" style="font-size:13px"><b>Photo d'ingrédients → reconnaissance → confirmation → frigo.</b>
+    Rien n'est ajouté automatiquement : l'utilisateur coche les propositions reconnues avant validation.</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check">Étape 1 · prendre la photo</span><span class="level level-simule">simulé</span></div>
+      <div class="recognize card">
+        <div class="rec-photo ph" data-fallback="📸"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tomatoes.jpg?width=720" alt="Photo du frigo" loading="lazy" /></div>
+        <p class="muted" style="font-size:12px;margin:0" data-i18n="recognizeLead"></p>
+        <div class="rec-list">
+          <label class="rec-item"><input type="checkbox" checked /><span class="thumb" style="width:32px;height:32px;font-size:15px" aria-hidden="true">🍅</span>Tomates<span class="conf">92 % <span data-i18n="confidence"></span></span></label>
+          <label class="rec-item"><input type="checkbox" checked /><span class="thumb" style="width:32px;height:32px;font-size:15px" aria-hidden="true">🥚</span>Œufs<span class="conf">84 % <span data-i18n="confidence"></span></span></label>
+          <label class="rec-item rejected"><input type="checkbox" /><span class="thumb" style="width:32px;height:32px;font-size:15px" aria-hidden="true">🧅</span>Oignons<span class="conf">61 % <span data-i18n="confidence"></span></span></label>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" data-i18n="recognizeConfirm"></button>
+          <button class="btn btn-secondary" data-i18n="recognizeCancel"></button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:var(--sp-2)"><div class="toast">✅ 2 ingrédients ajoutés (quantités à compléter)</div></div>
+      <p class="muted" style="font-size:12px;margin-top:var(--sp-2)">Cas limites : photo floue (reprise manuelle demandée),
+      reconnaissance indisponible (ajout manuel toujours possible), doublon proposé (fusion), ingrédient inconnu
+      (création refusée côté client — le catalogue reste réservé au super admin).</p>
+    </div>
+  </div>
+  <div id="journey-6" hidden>
+    <p class="muted" style="font-size:13px"><b>Première utilisation → premières suggestions.</b> Bienvenue (3 écrans)
+    → onboarding du frigo (chips ou photo) → suggestions. Aucune publicité dans tout le flux d'entrée.</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check">Bienvenue · 3 écrans</span></div>
+      <div class="onb-dots" role="list" aria-label="Étapes"><span role="listitem" aria-current="step"></span><span role="listitem"></span><span role="listitem"></span></div>
+      <p class="muted" style="font-size:12px">marque + promesse → valeur (frigo / suggestions / courses) → langue,
+      thème, compte optionnel (sans compte = stockage local PWA).</p>
+      <div class="row" style="margin-top:var(--sp-2)">
+        <a class="btn btn-primary" href="bienvenue.html">Démo bienvenue →</a>
+        <a class="btn btn-secondary" href="onboarding.html">Onboarding frigo →</a>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:var(--sp-2)">Cas limites : compte refusé/skip (tout fonctionne
+      en local), frigo laissé vide (état « à découvrir », jamais un « oui »), reprise ultérieure de l'onboarding.</p>
+    </div>
+  </div>
+
+  <div id="journey-7" hidden>
+    <p class="muted" style="font-size:13px"><b>Continuité recette → favori / planning → courses.</b> Le favori garde
+    la recette ; le planning place un repas ; la liste de courses agrège les manquants de la semaine.</p>
+    <div class="card" style="max-width:480px">
+      <div class="row" style="margin-bottom:var(--sp-2)"><span class="chip-check">Depuis la fiche recette</span></div>
+      <div class="list-item"><span class="thumb" aria-hidden="true">🥘</span><div class="grow"><span class="title">Ojja merguez</span><br /><span class="muted" style="font-size:11px">8 / 9 · 1 à acheter</span></div><button class="fav-mini" data-fav aria-pressed="false" aria-label="Ajouter aux favoris" data-i18n="favAdd" data-i18n-attr="aria-label"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9c-1.8-3.2.4-7 4-7 2.2 0 3.6 1.2 6 3.6C14.4 6.2 15.8 5 18 5c3.6 0 5.8 3.8 4 7-2.5 4.4-10 9-10 9z"/></svg></button></div>
+      <div class="row" style="margin-top:var(--sp-2)">
+        <a class="btn btn-secondary" href="favoris.html">Favoris →</a>
+        <a class="btn btn-secondary" href="planning.html">Planning →</a>
+        <a class="btn btn-primary" href="liste-detail.html">Liste « Week-end » →</a>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:var(--sp-2)">Le score du favori suit le frigo du jour
+      (jamais figé) ; le planning alimente la liste (fusion d'unités compatibles) ; liste → modification →
+      progression des achats (rayons cochés).</p>
+    </div>
+  <div id="journey-8" hidden>
+    <p class="muted" style="font-size:13px"><b>Notification → écran fonctionnel.</b> Chaque notification porte une
+    action contextuelle : reprise de cuisson, frigo (quantité à vérifier), recette, liste. Reprise après
+    interruption : la notification ramène exactement là où l'utilisateur s'était arrêté.</p>
+    <div class="card" style="max-width:480px">
+      <div class="notif-item unread"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--info-text)"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><div class="grow"><b data-i18n="notifRemind"></b><br /><span class="muted" style="font-size:11px">Ojja merguez — minuteur de l'étape 3 terminé</span></div><a class="btn btn-primary" style="min-height:44px;font-size:13px" href="mode-cuisine.html" data-i18n="notifResume"></a></div>
+      <div class="notif-item unread"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--warning-text)"><path d="M12 3 2 21h20zM12 10v5M12 18h.01"/></svg><div class="grow"><b data-i18n="qtyVerify"></b><br /><span class="muted" style="font-size:11px">Piment : présence sans quantité</span></div><a class="btn btn-secondary" style="min-height:44px;font-size:13px" href="frigo.html" data-i18n="navFridge"></a></div>
+      <p class="muted" style="font-size:12px;margin-top:var(--sp-2)">Cas limites : notification de cuisson alors
+      que la préparation a été terminée (l'action devient « Voir la recette »), notification hors-ligne (mise en
+      file locale), permission refusée (pas de notification, pas de blocage).</p>
+    </div>
+  </div>
+</div></div>
+<script src="assets/app.js"></script>
+<script>
+function showJourney(n) {
+  for (var i = 1; i <= 8; i++) {
+    document.getElementById('journey-' + i).hidden = i !== n;
+    document.getElementById('jt' + i).setAttribute('aria-selected', String(i === n));
+  }
+  window.scrollTo(0, 0);
+}
+function jgo(step) {
+  document.getElementById('view-fridge').hidden = step !== 1;
+  document.getElementById('view-sug').hidden = step !== 2;
+  document.getElementById('view-rec').hidden = step !== 3;
+  var names = { 1: 'Frigo', 2: 'Suggestions', 3: 'Recette' };
+  document.getElementById('step-label').textContent = 'Étape ' + step + ' / 3 · ' + names[step];
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

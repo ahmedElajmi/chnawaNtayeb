@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recettes — filtres : alternatives (à arbitrer) — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<!-- Maquette d'étude écrite à la main — hors pages générées (tools/pages.mjs). Variante de filtres
+     pour la page Recettes, présentée pour arbitrage ; la variante validée (F1 phrase + F2 panneau
+     + F3 puces, D-28) reste la référence : recherche.html. Ne pas modifier recherche.html. -->
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="false">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <a class="ctl" href="recherche.html">← Variante validée</a>
+  <a class="ctl" href="index.html">Index</a>
+</div>
+
+<div class="pagewrap">
+  <header data-shell="topbar"></header>
+  <div style="display:flex;flex:1;width:100%">
+    <nav data-shell="side" data-current="recipes"></nav>
+    <main class="page-main wide">
+      <h1>Recettes — les filtres : deux alternatives</h1>
+      <p class="muted">Comparées à la variante validée (<a href="recherche.html">recherche.html</a> : phrase F1
+      en tête, panneau d'ingrédients F2 dépliable, puces F3, feuille « Filtres », résumé des filtres actifs).
+      Toutes les variantes écrivent dans <b>le même état</b> de filtres (CN.filters) et affichent le même
+      résultat : seule l'<em>emplacement</em> des commandes change. À arbitrer — hors décision D-28.</p>
+
+      <!-- ================= Alternative 1 ================= -->
+      <section class="demo card" style="margin-top:16px">
+        <h2 style="margin-top:0">Alternative 1 — « Feuille d'abord » <span class="muted" style="font-size:12px">· minimaliste</span></h2>
+        <p style="font-size:14px">En tête : <b>recherche + un seul bouton « Filtres » + résumé des filtres actifs</b>.
+        La phrase (F1), les catégories et les ingrédients (F2) n'apparaissent <b>que dans la feuille</b> ;
+        aucune puce rapide F3 inline. La page donne toute la place aux résultats.</p>
+        <div style="border:1px solid var(--line);border-radius:var(--radius-card);padding:12px;background:var(--surface)">
+          <div data-c="search-box"></div>
+          <div class="row" style="gap:8px;align-items:center;margin-top:8px">
+            <button type="button" class="chip cn-open-sheet" aria-haspopup="dialog">⚙ <span data-i18n="filters">Filtres</span> <span class="num" data-fcount hidden>0</span></button>
+          </div>
+          <div data-c="active-filters"></div>
+          <div data-c="recipe-views" data-props='{"view":"shelves","shelves":["frigo","rapide"]}'></div>
+        </div>
+        <table class="tbl" style="margin-top:10px"><tbody>
+          <tr><td style="width:110px"><b>Avantages</b></td><td>En-tête très court (1 ligne à 320 px) ; zéro filtre inline qui pousse les résultats ; un seul chemin mental « filtrer = ouvrir la feuille » ; le résumé des filtres actifs garde la trace de ce qui est appliqué.</td></tr>
+          <tr><td><b>Limites</b></td><td>Deux gestes pour le filtre le plus courant (ouvrir la feuille, ajuster) ; la phrase éditable perd sa visibilité permanente ; sur desktop, la feuille masque les résultats pendant le réglage.</td></tr>
+        </tbody></table>
+      </section>
+
+      <!-- ================= Alternative 2 ================= -->
+      <section class="demo card" style="margin-top:16px">
+        <h2 style="margin-top:0">Alternative 2 — « Phrase seule » <span class="muted" style="font-size:12px">· une ligne éditable</span></h2>
+        <p style="font-size:14px">La <b>phrase F1 reste en tête</b> (mots cliquables, RTL respecté) mais devient
+        l'<b>unique commande inline</b> : le bouton « Filtres » ouvre la feuille (ingrédients, catégories),
+        les puces F3 disparaissent, le résumé des filtres actifs reste une ligne. Ni panneau F2 dépliable
+        inline, ni rangée de puces.</p>
+        <div style="border:1px solid var(--line);border-radius:var(--radius-card);padding:12px;background:var(--surface)">
+          <div data-c="search-box"></div>
+          <div data-c="filter-sentence" data-props='{"compact":true}' style="margin-top:8px"></div>
+          <div class="row" style="gap:8px;align-items:center;margin-top:8px">
+            <button type="button" class="chip cn-open-sheet" aria-haspopup="dialog">⚙ <span data-i18n="filters">Filtres</span> <span class="num" data-fcount hidden>0</span></button>
+          </div>
+          <div data-c="active-filters"></div>
+          <div data-c="recipe-views" data-props='{"view":"shelves","shelves":["frigo","rapide"]}'></div>
+        </div>
+        <table class="tbl" style="margin-top:10px"><tbody>
+          <tr><td style="width:110px"><b>Avantages</b></td><td>Conserve le ton « phrase » (F1) qui distingue le produit, toujours visible et éditable ; un seul ajout par rapport à la variante minimaliste ; tient en 2 lignes à 320 px.</td></tr>
+          <tr><td><b>Limites</b></td><td>La phrase ne couvre que course / temps / personnes / frigo / prix — les filtres ingrédients restent derrière la feuille ; deux niveaux de « combiner » (mots de la phrase + feuille).</td></tr>
+        </tbody></table>
+      </section>
+
+      <!-- ================= Comparaison ================= -->
+      <section class="demo card" style="margin-top:16px">
+        <h2 style="margin-top:0">Comparaison avec la variante validée</h2>
+        <div class="tbl"><table>
+          <thead><tr><th></th><th>Validée (recherche.html)</th><th>Alt 1 — Feuille d'abord</th><th>Alt 2 — Phrase seule</th></tr></thead>
+          <tbody>
+            <tr><td><b>En-tête (375 px)</b></td><td>phrase + panneau F2 + puces F3 (3 blocs)</td><td>1 ligne (recherche + bouton)</td><td>2 lignes (recherche + phrase)</td></tr>
+            <tr><td><b>Filtre le plus courant</b></td><td>direct inline</td><td>via feuille</td><td>direct inline (phrase)</td></tr>
+            <tr><td><b>Ingrédients (F2)</b></td><td>panneau dépliable inline</td><td>feuille</td><td>feuille</td></tr>
+            <tr><td><b>Place des résultats</b></td><td>——</td><td>maximale</td><td>importante</td></tr>
+            <tr><td><b>Cohérence Suggestions / Favoris</b></td><td>puces F3 partagées</td><td>à adapter (même bouton)</td><td>à adapter (même phrase)</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted" style="font-size:13px;margin-bottom:0">Quel que soit l'arbitrage : les composants F1 / F2 / la feuille
+        « Filtres » et le résumé des filtres actifs restent <b>les mêmes composants</b> (contrats inchangés, D-30) ;
+        seule leur <b>composition</b> sur la page change — un cas d'école de la dimension « composition de page » du futur CMS.</p>
+      </section>
+    </main>
+  </div>
+  <nav data-shell="bottom" data-current="recipes"></nav>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/cn/i18n.js"></script>
+<script src="assets/cn/common.js"></script>
+<script src="assets/cn/home.js"></script>
+<script src="assets/cn/fridge.js"></script>
+<script src="assets/cn/recipe.js"></script>
+<script src="assets/cn/flows.js"></script>
+<script src="assets/cn/account.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* Compteurs et boutons « Filtres » des variantes (composants existants réutilisés). */
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.cn-open-sheet').forEach(function (b) {
+      b.addEventListener('click', function () { CN.openFilterSheet(b); });
+    });
+    var upd = function () {
+      var n = CN.activeCount();
+      document.querySelectorAll('[data-fcount]').forEach(function (s) {
+        s.textContent = n; s.hidden = !n;
+      });
+    };
+    upd(); CN.on(upd);
+  });
+})();
+</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

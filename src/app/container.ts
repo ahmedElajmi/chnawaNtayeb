@@ -42,6 +42,7 @@ import { themesHttp } from '@/infrastructure/http/themesHttp';
 import { createHttpReviewWorkspace } from '@/infrastructure/http/reviewWorkspaceHttp';
 import { accountDirectoryHttp } from '@/infrastructure/http/accountDirectoryHttp';
 import { DataPoller, dataPoller } from '@/infrastructure/http/dataPoller';
+import { createBrowserHostLifecycle } from '@/infrastructure/host/browserHostLifecycle';
 import { fetchPollingInterval } from '@/infrastructure/http/dataApi';
 import { pollingSettingsGateway } from '@/infrastructure/http/pollingSettingsGateway';
 import { accountHttpGateway } from '@/infrastructure/http/accountHttpGateway';
@@ -208,6 +209,7 @@ export function createContainer() {
       return scope === 'local' ? null : scope;
     },
     now,
+    host: createBrowserHostLifecycle(),
   });
   kitchenSync.start();
   // Every sign-in / sign-out (including the restored session at start-up) re-scopes the kitchen

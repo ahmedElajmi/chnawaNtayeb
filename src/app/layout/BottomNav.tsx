@@ -35,7 +35,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ fridgeCount }) => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-line pb-safe shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-line pb-safe shadow-lg">
       <div className="grid grid-cols-5 h-16 items-center px-1">
         {navItems.map(({ to, label, icon: Icon, badge, alsoActive }) => (
           <NavLink
@@ -49,16 +49,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({ fridgeCount }) => {
             }}
             className={({ isActive: linkActive }) =>
               `flex flex-col items-center justify-center h-full min-h-[44px] transition-colors relative py-1 ${
-                linkActive || alsoActive
-                  ? 'text-brand-text font-bold'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                linkActive || alsoActive ? 'text-brand-text font-bold' : 'text-ink-muted hover:text-ink'
               }`
             }
           >
             {({ isActive: linkActive }) => {
               const isActive = linkActive || alsoActive;
               return (
-                <>
+                <div
+                  className={`flex flex-col items-center justify-center rounded-full px-3 py-1.5 transition-colors ${
+                    isActive ? 'bg-tint text-brand-text' : ''
+                  }`}
+                >
                   <div className="relative">
                     <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
                     {badge !== undefined && (
@@ -68,8 +70,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ fridgeCount }) => {
                     )}
                   </div>
                   <span className="text-[10px] tracking-tight mt-1 truncate max-w-[62px]">{label}</span>
-                  {isActive && <div className="absolute bottom-1 w-6 h-0.5 rounded-full bg-brand" />}
-                </>
+                </div>
               );
             }}
           </NavLink>

@@ -37,6 +37,14 @@ pnpm-lock.yaml
 __pycache__/
 *.pyc
 
+# D4 mockups: derived artifacts only (captures, D3 chart benchmark, archives) — sources stay in Git
+docs/encyclopedie/mockups/*.zip
+docs/encyclopedie/mockups/d3/
+docs/encyclopedie/mockups/d4/captures/
+docs/encyclopedie/mockups/d4/benchmark/
+docs/encyclopedie/mockups/d4/diagrammes.html
+docs/encyclopedie/donnees/lot-2.1-conception-d3-partie1.md
+
 # OS files
 .DS_Store
 Thumbs.db

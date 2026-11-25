@@ -24,7 +24,7 @@ export function ScrollToTopButton({ label, raised = false }: ScrollToTopButtonPr
       title={label}
       tabIndex={visible ? 0 : -1}
       aria-hidden={!visible}
-      className={`fixed z-40 end-4 md:end-6 ${raised ? 'bottom-44 md:bottom-28' : 'bottom-24 md:bottom-8'} w-11 h-11 rounded-full bg-brand text-on-brand shadow-lg shadow-brand/30 ring-1 ring-white/20 flex items-center justify-center hover:bg-brand-strong active:scale-90 transition-all duration-300 motion-reduce:transition-none ${
+      className={`fixed z-40 end-4 md:end-6 ${raised ? 'bottom-44 md:bottom-28' : 'bottom-24 md:bottom-8'} w-11 h-11 rounded-full bg-brand text-on-brand shadow-lg shadow-brand/30 ring-1 ring-on-brand/20 flex items-center justify-center hover:bg-brand-strong active:scale-90 transition-all duration-300 motion-reduce:transition-none ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'
       }`}
     >

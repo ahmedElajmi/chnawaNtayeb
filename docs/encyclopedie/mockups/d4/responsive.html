@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vérification responsive (vraies fenêtres) — Maquettes D3 · Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<style>
+  .vp-row { display: flex; gap: var(--sp-3); overflow-x: auto; padding: var(--sp-2) 0 var(--sp-4); }
+  .vp-cell { flex: none; }
+  .vp-cell .vp-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .vp-cell iframe { width: var(--vp-w, 375px); height: 640px; border: 2px solid var(--line-strong); border-radius: 8px; background: var(--surface); }
+</style>
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Bascules de démonstration">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A · chaleureux</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B · sobre</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK · fkhar (référence)</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false" style="display:none">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false" style="display:none">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false" style="display:none">دارجة</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="1280">
+  <div class="checklist">
+    <span class="chip-check">Chaque iframe est une vraie fenêtre : les media queries du CSS s'y appliquent selon SA largeur</span>
+    <span class="chip-check">Chaque page est chargée en mode « embed » (barre de contrôle masquée)</span>
+    <span class="chip-check">Basculez Direction / Mode ici : les iframes suivent (variables héritées du même document ? non — chaque iframe a son propre document : utilisez les contrôles DANS l'iframe si besoin)</span>
+    <span class="chip-check">À observer : dispositions, éléments qui apparaissent/disparaissent, débordements de texte, cibles tactiles</span>
+  </div>
+  <h1>Vérification responsive — de vraies fenêtres</h1>
+  <p class="muted" style="font-size:13px">Contrairement au sélecteur « Cadre » des autres pages (qui ne fait que
+  resserrer le contenu), chaque iframe ci-dessous est un <b>document réel</b> de 320 / 375 / 768 px de large :
+  les media queries s'y déclenchent, la disposition change réellement (barre basse mobile ; <b>colonne latérale
+  à ≥ 1024 px</b> ; grilles 2/3/4 ; filtres feuille→colonne) et rien ne peut « élargir la page ». Défilez
+  horizontalement pour voir les fenêtres de chaque page.</p>
+  <p class="muted" style="font-size:12px">⚠ Les iframes sont des documents séparés : les bascules de cette page
+  n'affectent pas leur contenu. Pour changer de direction/thème/langue dans une iframe, utilisez ses propres
+  contrôles (masqués en mode embed — testez la page en direct pour les variantes ; la revue navigateur peut
+  aussi redimensionner la fenêtre elle-même).</p>
+
+  <section class="demo card">
+    <h2>Shell (en-tête + navigation basse)</h2>
+    <div class="vp-row">
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="shell.html?embed=1" title="Shell à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="shell.html?embed=1" title="Shell à 375 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="shell.html?embed=1" title="Shell à 768 px" loading="lazy"></iframe></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Parcours (suggestions du frigo)</h2>
+    <div class="vp-row">
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="parcours.html?embed=1" title="Parcours à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="parcours.html?embed=1" title="Parcours à 375 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="parcours.html?embed=1" title="Parcours à 768 px" loading="lazy"></iframe></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Listes (paginée, états)</h2>
+    <div class="vp-row">
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="listes.html?embed=1" title="Listes à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="listes.html?embed=1" title="Listes à 375 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="listes.html?embed=1" title="Listes à 768 px" loading="lazy"></iframe></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Onglets et recherche</h2>
+    <div class="vp-row">
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="onglets.html?embed=1" title="Onglets à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="onglets.html?embed=1" title="Onglets à 375 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="onglets.html?embed=1" title="Onglets à 768 px" loading="lazy"></iframe></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Boutons et champs</h2>
+    <div class="vp-row">
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · boutons</div><iframe src="boutons.html?embed=1" title="Boutons à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · champs</div><iframe src="champs.html?embed=1" title="Champs à 320 px" loading="lazy"></iframe></div>
+      <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px · champs</div><iframe src="champs.html?embed=1" title="Champs à 375 px" loading="lazy"></iframe></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>Pages complètes — les VRAIES déclinaisons responsive (mobile / tablette / desktop)</h2>
+    <p class="muted" style="font-size:12px">Chaque page complète s'adapte réellement : navigation basse sur mobile,
+    <b>colonne latérale à ≥ 1024 px</b> (proposition à arbitrer), grilles 2 → 3 → 4 colonnes, panneau de filtres en
+    feuille sur mobile / colonne sur desktop. Ouvrez chaque bloc pour les 4 formats.</p>
+    <p class="anno">v4 : les écrans réécrits sont montrés aux <b>6 largeurs exigées</b> (320 · 375 · 390 · 768 · 1024 · 1280) ;
+    iframes en chargement différé (la page ne charge plus ~90 documents d'un coup).</p>
+    <details open style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Accueil C — recommandé (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="accueil-c.html?embed=1" title="accueil-c.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Frigo v4 (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="frigo.html?embed=1" title="frigo.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Suggestions v4 (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="suggestions.html?embed=1" title="suggestions.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Recette v4 (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="recette.html?embed=1" title="recette.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="recette.html?embed=1" title="recette.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="recette.html?embed=1" title="recette.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="recette.html?embed=1" title="recette.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="recette.html?embed=1" title="recette.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="recette.html?embed=1" title="recette.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Mode cuisine v4 (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="mode-cuisine.html?embed=1" title="mode-cuisine.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Courses v4 (6 largeurs)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="courses.html?embed=1" title="courses.html à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="courses.html?embed=1" title="courses.html à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:390px"><div class="vp-label">390 px</div><iframe src="courses.html?embed=1" title="courses.html à 390 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="courses.html?embed=1" title="courses.html à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1024px"><div class="vp-label">1024 px</div><iframe src="courses.html?embed=1" title="courses.html à 1024 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="courses.html?embed=1" title="courses.html à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Accueil A + B (4 formats, états)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · A</div><iframe src="accueil.html?embed=1" title="Accueil A à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px · B</div><iframe src="accueil-b.html?embed=1" title="Accueil B à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px · A</div><iframe src="accueil.html?embed=1" title="Accueil A à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px · B (rail pub)</div><iframe src="accueil-b.html?embed=1" title="Accueil B à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Recherche (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="recherche.html?embed=1" title="Recherche à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="recherche.html?embed=1" title="Recherche à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="recherche.html?embed=1" title="Recherche à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="recherche.html?embed=1" title="Recherche à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Frigo (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="frigo.html?embed=1" title="Frigo à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="frigo.html?embed=1" title="Frigo à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="frigo.html?embed=1" title="Frigo à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="frigo.html?embed=1" title="Frigo à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Suggestions (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="suggestions.html?embed=1" title="Suggestions à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="suggestions.html?embed=1" title="Suggestions à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="suggestions.html?embed=1" title="Suggestions à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="suggestions.html?embed=1" title="Suggestions à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Détail recette (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="recette.html?embed=1" title="Recette à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="recette.html?embed=1" title="Recette à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="recette.html?embed=1" title="Recette à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="recette.html?embed=1" title="Recette à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Mode cuisine (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="mode-cuisine.html?embed=1" title="Mode cuisine à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="mode-cuisine.html?embed=1" title="Mode cuisine à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="mode-cuisine.html?embed=1" title="Mode cuisine à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="mode-cuisine.html?embed=1" title="Mode cuisine à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Listes de courses (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="courses.html?embed=1" title="Courses à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="courses.html?embed=1" title="Courses à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="courses.html?embed=1" title="Courses à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="courses.html?embed=1" title="Courses à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Profil et réglages (4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="profil.html?embed=1" title="Profil à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="profil.html?embed=1" title="Profil à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="profil.html?embed=1" title="Profil à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="profil.html?embed=1" title="Profil à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Menu de la semaine (stub, 4 formats)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px</div><iframe src="planning.html?embed=1" title="Planning à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px</div><iframe src="planning.html?embed=1" title="Planning à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px</div><iframe src="planning.html?embed=1" title="Planning à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px</div><iframe src="planning.html?embed=1" title="Planning à 1280 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+    <details style="margin-top:var(--sp-2)"><summary style="cursor:pointer;font-weight:700">Nouveaux écrans (scan, favoris, liste, planning, notifications, historique, bienvenue, onboarding)</summary>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · scan</div><iframe src="scan.html?embed=1" title="Scan à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px · liste</div><iframe src="liste-detail.html?embed=1" title="Liste à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:768px"><div class="vp-label">768 px · planning</div><iframe src="planning.html?embed=1" title="Planning à 768 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:1280px"><div class="vp-label">1280 px · planning (7 colonnes)</div><iframe src="planning.html?embed=1" title="Planning à 1280 px" loading="lazy"></iframe></div>
+      </div>
+      <div class="vp-row">
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · favoris</div><iframe src="favoris.html?embed=1" title="Favoris à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px · notifications</div><iframe src="notifications.html?embed=1" title="Notifications à 375 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:320px"><div class="vp-label">320 px · bienvenue</div><iframe src="bienvenue.html?embed=1" title="Bienvenue à 320 px" loading="lazy"></iframe></div>
+        <div class="vp-cell" style="--vp-w:375px"><div class="vp-label">375 px · historique</div><iframe src="historique.html?embed=1" title="Historique à 375 px" loading="lazy"></iframe></div>
+      </div>
+    </details>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+</body>
+</html>

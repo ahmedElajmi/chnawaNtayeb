@@ -1,6 +1,7 @@
 import type { UserPreferences } from '@/core/preferences';
 import { SET_SECTIONS, STALE_DEVICE_MS } from '@/core/kitchen';
 import type {
+  HostLifecycle,
   KitchenSyncGateway,
   KitchenSyncLedger,
   PreferencesRepository,
@@ -27,7 +28,7 @@ import type { KitchenStore } from './KitchenStore';
  * (adds and deletions both propagate, through per-element versions — @/core/kitchen); menu,
  * list and preferences take the newest write. The server enforces the same rule, so any push
  * order converges. A device that has not synced within the tombstone retention resets itself
- * and re-adopts the server document (its stale pushes could resurrect purged deletions).
+ * and re-adopts the server document — its stale pushes could resurrect purged deletions.
  */
 
 export interface KitchenSyncState {
@@ -52,28 +53,31 @@ export interface KitchenSyncDeps {
   /** uid of the signed-in client/employee account, null otherwise (guests never sync) */
   owner: () => string | null;
   now: () => number;
+  /** Timers and page-visibility notifications, injected (browser adapter wired in the container) */
+  host: HostLifecycle;
 }
 
 export class KitchenSync extends Store<KitchenSyncState> {
-  private pushTimer: number | undefined;
+  private cancelPush: (() => void) | null = null;
   private lastPull = 0;
   private lastScope: string | null = null;
   /** True while applying data that came from the server: no push is scheduled for it */
   private applying = false;
-  private onVisibility: () => void;
+  private unsubscribeVisibility: (() => void) | null = null;
   private unsubscribe: (() => void) | null = null;
 
   constructor(private readonly deps: KitchenSyncDeps) {
     super({ syncing: false, pending: 0, lastPullAt: null, failed: false });
-    this.onVisibility = () => this.handleVisibility();
   }
 
   /** Follows the kitchen store and installs the page lifecycle. Called once at start-up. */
   start(): void {
     this.lastScope = this.deps.owner();
     this.unsubscribe = this.deps.kitchen.subscribe(() => this.onKitchenChanged());
-    document.addEventListener('visibilitychange', this.onVisibility);
-    window.addEventListener('pagehide', this.onVisibility);
+    this.unsubscribeVisibility = this.deps.host.subscribeVisibility(
+      () => this.handleHidden(),
+      () => this.handleVisible()
+    );
     this.updatePending();
     // Catch-up: sections pending from a previous run (crash, offline flush) go first
     void this.recover();
@@ -82,12 +86,9 @@ export class KitchenSync extends Store<KitchenSyncState> {
   stop(): void {
     this.unsubscribe?.();
     this.unsubscribe = null;
-    document.removeEventListener('visibilitychange', this.onVisibility);
-    window.removeEventListener('pagehide', this.onVisibility);
-    if (this.pushTimer !== undefined) {
-      window.clearTimeout(this.pushTimer);
-      this.pushTimer = undefined;
-    }
+    this.unsubscribeVisibility?.();
+    this.unsubscribeVisibility = null;
+    this.cancelScheduledPush();
   }
 
   /** Called on every sign-in / sign-out: reloads the state of the new scope and pulls the cloud. */
@@ -95,10 +96,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
     const scope = this.deps.owner();
     if (scope === this.lastScope) return;
     this.lastScope = scope;
-    if (this.pushTimer !== undefined) {
-      window.clearTimeout(this.pushTimer);
-      this.pushTimer = undefined;
-    }
+    this.cancelScheduledPush();
     this.applying = true;
     this.deps.kitchen.reload();
     this.applying = false;
@@ -141,11 +139,18 @@ export class KitchenSync extends Store<KitchenSyncState> {
   }
 
   private schedulePush(): void {
-    if (!this.deps.owner() || this.pushTimer !== undefined) return;
-    this.pushTimer = window.setTimeout(() => {
-      this.pushTimer = undefined;
+    if (!this.deps.owner() || this.cancelPush) return;
+    this.cancelPush = this.deps.host.defer(() => {
+      this.cancelPush = null;
       void this.pushNow();
     }, PUSH_DEBOUNCE_MS);
+  }
+
+  /** Cancels the armed push, if any (page stop, account switch). The pending sections stay
+   * pending: the next trigger (change, visibility, restart) sends them. */
+  private cancelScheduledPush(): void {
+    this.cancelPush?.();
+    this.cancelPush = null;
   }
 
   /** Pushes what is pending, then adopts what the server kept (a newer section wins over ours). */
@@ -270,18 +275,17 @@ export class KitchenSync extends Store<KitchenSyncState> {
     this.updatePending();
   }
 
-  private handleVisibility(): void {
+  /** The page goes to the background or is parked in the back/forward cache: send what is
+   * waiting now (nothing is lost on a tab close or a page swap). */
+  private handleHidden(): void {
+    if (!this.deps.owner() || !this.cancelPush) return;
+    this.cancelScheduledPush();
+    void this.pushNow();
+  }
+
+  /** Back on the page: pick up what the other devices changed (at most once a minute). */
+  private handleVisible(): void {
     if (!this.deps.owner()) return;
-    if (document.visibilityState === 'hidden') {
-      // The page goes to sleep: send what is waiting now (nothing is lost on a tab close)
-      if (this.pushTimer !== undefined) {
-        window.clearTimeout(this.pushTimer);
-        this.pushTimer = undefined;
-        void this.pushNow();
-      }
-      return;
-    }
-    // Back on the page: pick up what the other devices changed (at most once a minute)
     if (this.deps.now() - this.lastPull >= PULL_MIN_INTERVAL_MS) void this.pullNow();
   }
 }

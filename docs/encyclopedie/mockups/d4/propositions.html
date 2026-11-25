@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Propositions à valider — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<style>
+  .doc { max-width: 1080px; margin-inline: auto; padding: var(--sp-4) var(--sp-3) var(--sp-6); }
+  .doc h2 { font-size: 22px; margin-top: var(--sp-6); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-3); }
+  .opt { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: var(--sp-4); display: flex; flex-direction: column; gap: 8px; }
+  .opt.rec { border: 2px solid var(--brand); }
+  .opt h3 { margin: 0; font-size: 17px; }
+  .opt .tag { align-self: flex-start; font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--tint); color: var(--brand-text); }
+  .opt p, .opt li { font-size: 14px; margin: 0; }
+  .opt ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 2px; }
+  .pc { font-size: 13px; } .pc b { color: var(--success-text); } .pc i { font-style: normal; font-weight: 800; color: var(--danger-text); }
+  /* Croquis (fil de fer léger) */
+  .sk { background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 14px; padding: 10px; min-height: 150px; font-size: 11px; color: var(--ink-muted); }
+  .sk .b { background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  .sk .p { background: linear-gradient(135deg, #e9a26f, #b84d1a); border-radius: 8px; }
+  .sk .row-s { display: flex; gap: 6px; overflow: hidden; }
+  .sk .lbl-s { font-weight: 800; color: var(--ink); margin: 6px 0 4px; font-size: 11px; }
+  .sk .chip-s { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); margin: 2px; }
+  .sk .word { display: inline-block; padding: 0 6px; border-radius: 6px; background: var(--tint); color: var(--brand-text); font-weight: 800; border-bottom: 2px dashed var(--brand); }
+  .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: start; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+</style>
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<main class="doc">
+  <p class="muted" style="margin:0"><a href="index.html">← Maquettes D4</a> · v4.3 · 17 novembre 2026</p>
+  <h1 class="page-title">Propositions à valider avant implémentation</h1>
+  <p>Comme demandé, rien de cette page n'est encore appliqué aux écrans. Pour chaque sujet : 2 à 4 options comparables, avec
+  croquis, avantages, limites et coût ; une recommandation est encadrée. Il suffit de répondre par les codes (ex. « R1 + F3 + P2 »).</p>
+
+  <!-- ============ RECETTES ============ -->
+  <h2 id="recettes">1. Afficher la liste des recettes</h2>
+  <div class="opts">
+    <div class="opt rec"><span class="tag">recommandée</span><h3>R1 · Les étals du marché</h3>
+      <div class="sk"><div class="lbl-s">Avec ce que j'ai</div><div class="row-s"><div class="p" style="width:30%;height:44px"></div><div class="p" style="width:30%;height:44px"></div><div class="p" style="width:30%;height:44px"></div></div>
+        <div class="lbl-s">Prêt en 30 min</div><div class="row-s"><div class="p" style="width:30%;height:44px"></div><div class="p" style="width:30%;height:44px"></div><div class="p" style="width:30%;height:44px"></div></div>
+        <div class="lbl-s">Plats du vendredi · Petit budget · Ramadan…</div></div>
+      <p>La page Recettes devient une succession d'« étals » thématiques en carrousels (le composant validé), comme on flâne au marché :
+      <i>Avec ce que j'ai</i>, <i>Prêt en 30 min</i>, <i>Plats du vendredi</i>, <i>Petit budget</i>, <i>Pour recevoir</i>… Chaque étal a
+      « Tout voir » vers la grille filtrée. La recherche reste en tête.</p>
+      <p class="pc"><b>+</b> découverte, très culinaire, réutilise le carrousel · <i>−</i> moins efficace pour qui cherche un plat précis (la recherche compense) · coût : faible (étals = filtres enregistrés gérés dans /admin)</p></div>
+    <div class="opt"><h3>R2 · Le plateau du chef (mosaïque éditoriale)</h3>
+      <div class="sk"><div style="display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:50px 50px;gap:6px"><div class="p" style="grid-row:span 2"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div></div><div style="margin-top:6px" class="row-s"><div class="p" style="flex:1;height:40px"></div><div class="p" style="flex:1;height:40px"></div><div class="p" style="flex:1;height:40px"></div></div></div>
+      <p>Grille « magazine » à tailles variées : une grande carte mise en avant, puis des cartes plus petites ; les recettes
+      prêtes avec votre frigo prennent les grandes cases.</p>
+      <p class="pc"><b>+</b> très visuel sur desktop · <i>−</i> sur mobile revient à une liste ; exige de très bonnes photos partout · coût : moyen</p></div>
+    <div class="opt"><h3>R3 · « Ce soir je mange… » (cartes à faire défiler)</h3>
+      <div class="sk" style="display:flex;align-items:center;justify-content:center;gap:8px"><div class="p" style="width:30%;height:110px;opacity:.5;transform:rotate(-6deg)"></div><div class="p" style="width:38%;height:130px"></div><div class="p" style="width:30%;height:110px;opacity:.5;transform:rotate(6deg)"></div></div>
+      <p>Un mode « je ne sais pas quoi faire » : une recette à la fois, en grand ; « Pas ce soir » / « Ça me tente » (ajoute au
+      planning ou aux favoris). Accessible aussi au clavier et par boutons (pas seulement par glissement).</p>
+      <p class="pc"><b>+</b> ludique, original, décision rapide · <i>−</i> complément, pas un remplacement de la liste · coût : moyen</p></div>
+    <div class="opt"><h3>R4 · Liste compacte « je sais ce que je veux »</h3>
+      <div class="sk"><div class="b" style="height:22px;margin-bottom:5px"></div><div class="b" style="height:22px;margin-bottom:5px"></div><div class="b" style="height:22px;margin-bottom:5px"></div><div class="b" style="height:22px"></div></div>
+      <p>Lignes denses : petite photo, nom, temps, pastilles d'ingrédients (●●●○) ; bascule Grille / Liste.</p>
+      <p class="pc"><b>+</b> rapide, beaucoup de résultats à l'écran · <i>−</i> moins chaleureux · coût : faible</p></div>
+  </div>
+
+  <!-- ============ FILTRES ============ -->
+  <h2 id="filtres">2. Afficher les filtres</h2>
+  <div class="opts">
+    <div class="opt rec"><span class="tag">recommandée (avec F3)</span><h3>F1 · La phrase à compléter</h3>
+      <div class="sk" style="font-size:14px;line-height:2;color:var(--ink)">Je veux <span class="word">un plat</span> <span class="word">rapide</span> pour <span class="word">4 personnes</span>, avec <span class="word">ce que j'ai</span>, à moins de <span class="word">5 DT</span>.</div>
+      <p>Les filtres se lisent comme une phrase ; chaque mot souligné ouvre un petit choix. Original, compréhensible sans
+      connaître le mot « filtre », agréable en derja (« Nheb makla <u>sahla</u> l <u>4 ness</u>… »).</p>
+      <p class="pc"><b>+</b> très parlant, mémorable · <i>−</i> la phrase doit être rédigée dans chaque langue (ordre des mots, RTL) ; limiter à 5 mots · coût : moyen</p></div>
+    <div class="opt"><h3>F2 · « Je veux utiliser… »</h3>
+      <div class="sk"><div class="lbl-s">Avec</div><span class="chip-s">✓ Poulet</span><span class="chip-s">✓ Courgettes</span><span class="chip-s">+ ajouter</span><div class="lbl-s">Sans</div><span class="chip-s">✕ Porc</span><span class="chip-s">✕ Piment</span></div>
+      <p>Filtrer par ingrédients à inclure (puisés dans le frigo) et à exclure. Prolonge directement la promesse du produit.</p>
+      <p class="pc"><b>+</b> différenciant · <i>−</i> à combiner avec le moteur de matching (pondération) · coût : moyen</p></div>
+    <div class="opt rec"><span class="tag">base recommandée</span><h3>F3 · Puces rapides + feuille complète</h3>
+      <div class="sk"><span class="chip-s">Avec mon frigo · 5</span><span class="chip-s">≤ 30 min · 42</span><span class="chip-s">≤ 5 DT · 61</span><span class="chip-s">⚙ Filtres (2)</span><div class="b" style="height:60px;margin-top:8px"></div></div>
+      <p>Une rangée de puces fréquentes <b>avec le nombre de résultats</b>, collante en haut ; « Filtres » ouvre une feuille
+      (mobile) / un panneau (desktop) avec le reste ; le bouton de la feuille annonce « Voir 37 recettes ».</p>
+      <p class="pc"><b>+</b> standard, efficace, une main · <i>−</i> peu original seul · coût : faible</p></div>
+  </div>
+
+  <!-- ============ PLANNING ============ -->
+  <h2 id="planning">3. Menu de la semaine</h2>
+  <div class="opts">
+    <div class="opt"><h3>P1 · Bande des jours</h3>
+      <div class="sk"><div class="row-s"><div class="b" style="width:24%;height:110px;border:2px solid var(--brand)"></div><div class="b" style="width:24%;height:110px"></div><div class="b" style="width:24%;height:110px"></div><div class="b" style="width:24%;height:110px"></div></div></div>
+      <p>Les jours en carrousel, aujourd'hui en premier, chaque jour = carte haute avec photo du repas, manquants et coût.
+      Glisser-déposer entre jours sur desktop ; sur mobile « Déplacer ».</p>
+      <p class="pc"><b>+</b> moderne, lisible sur mobile · <i>−</i> vue d'ensemble moindre · coût : moyen</p></div>
+    <div class="opt rec"><span class="tag">recommandée</span><h3>P2 · La table de la semaine</h3>
+      <div class="sk"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div><div class="b" style="height:34px"></div><div class="b" style="height:34px"></div><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div><div class="p" style="height:34px"></div><div class="b" style="height:34px"></div></div><div class="b" style="height:30px;margin-top:8px"></div></div>
+      <p>Grille photo 7 × 2 (desktop) / liste des jours (mobile) : un repas = sa photo ; un créneau vide propose <b>2 idées du frigo</b>
+      en un geste ; barre du bas : « 5 repas · 6 achats · 37,40 – 48,40 DT · Créer la liste ».</p>
+      <p class="pc"><b>+</b> visuel, appétissant, garde la vue d'ensemble · <i>−</i> demande des photos pour toutes les recettes · coût : moyen</p></div>
+    <div class="opt"><h3>P3 · Améliorations applicables à P1 ou P2</h3>
+      <ul>
+        <li><b>Mode Ramadan</b> : créneaux « Iftar / Shour » au lieu de midi / soir, idées adaptées (chorba, brik…).</li>
+        <li><b>Restes</b> : « cuisiner double » → le lendemain midi rempli automatiquement avec les restes.</li>
+        <li><b>Portions par repas</b> (invités du vendredi) → quantités de la liste ajustées.</li>
+        <li><b>Copier la semaine précédente</b>, <b>note par jour</b> (« chez ma mère »).</li>
+        <li><b>Partager le menu</b> sur WhatsApp (image ou texte).</li>
+      </ul>
+      <p class="pc">Ramadan, restes et portions touchent des règles métier : à valider une par une.</p></div>
+  </div>
+
+  <!-- ============ AUTRES ============ -->
+  <h2 id="site">4. Autres optimisations et améliorations pour tout le site</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Code</th><th>Idée</th><th>Bénéfice</th><th>Coût / budget</th><th>Nature</th></tr></thead>
+    <tbody>
+      <tr><td><b>S1</b></td><td>« J'ai cuisiné ce plat » à la fin du mode cuisine : propose de retirer ou diminuer les ingrédients utilisés du frigo</td><td>le frigo reste juste sans effort ; boucle complète du produit</td><td>moyen, gratuit</td><td>🚩 règle métier</td></tr>
+      <tr><td><b>S2</b></td><td>Partage WhatsApp d'une recette et de la liste de courses (texte lisible + lien)</td><td>usage très répandu en Tunisie, croissance gratuite</td><td>faible (API native de partage)</td><td>fonction</td></tr>
+      <tr><td><b>S3</b></td><td>Recherche globale dans l'en-tête desktop (variante « Éditorial ») et raccourci « / »</td><td>accès direct aux recettes et ingrédients</td><td>faible</td><td>navigation</td></tr>
+      <tr><td><b>S4</b></td><td>Dates « à consommer vite » facultatives sur les ingrédients frais → étal « À utiliser vite »</td><td>moins de gaspillage, suggestions plus utiles</td><td>moyen</td><td>🚩 donnée nouvelle</td></tr>
+      <tr><td><b>S5</b></td><td>Mode cuisine : commandes vocales « suivant / répète » (reconnaissance vocale du navigateur)</td><td>mains sales, vraiment utile</td><td>faible, gratuit, mais support inégal (pas sur tous les navigateurs)</td><td>option</td></tr>
+      <tr><td><b>S6</b></td><td>Taille du texte (A / A+ / A++) dans le profil</td><td>lisibilité, public âgé</td><td>faible</td><td>accessibilité</td></tr>
+      <tr><td><b>S7</b></td><td>Liste de courses : tri automatique selon l'ordre de VOTRE marché (rayons réordonnables)</td><td>courses plus rapides</td><td>faible</td><td>fonction</td></tr>
+      <tr><td><b>S8</b></td><td>Couleur dominante de chaque photo enregistrée à l'import (affichée pendant le chargement au lieu du scintillement)</td><td>chargement perçu plus doux, moins de batterie</td><td>faible (calcul à l'import dans /admin)</td><td>performance</td></tr>
+      <tr><td><b>S9</b></td><td>Polices auto-hébergées, 3 graisses, sous-ensembles latin / arabe</td><td>−150 à −250 ko au premier chargement</td><td>faible</td><td>performance</td></tr>
+      <tr><td><b>S10</b></td><td>Page « by chef Souhed » : histoire, portrait, ses recettes signature</td><td>confiance, personnalité, référencement</td><td>faible (contenu à fournir)</td><td>contenu</td></tr>
+      <tr><td><b>S11</b></td><td>Badge « Hors ligne » visible sur les recettes déjà téléchargées et file d'attente des modifications</td><td>confiance en connexion faible</td><td>faible</td><td>PWA</td></tr>
+      <tr><td><b>S12</b></td><td>Préférences alimentaires dès l'onboarding (sans porc, végétarien, sans gluten…) appliquées aux suggestions</td><td>suggestions pertinentes d'emblée</td><td>moyen</td><td>🚩 règle métier (D-16)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="anno">Recommandation de lot suivant : <b>R1 + F3 (puis F1 sur la page Recettes) + P2 avec Ramadan + S1, S2, S8, S9</b> —
+  plus de personnalité tunisienne et de chaleur, sans coût récurrent ni bibliothèque.</p>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

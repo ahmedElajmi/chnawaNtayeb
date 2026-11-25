@@ -1,4 +1,5 @@
 import type { MatchingResult } from '@/core/matching';
+import { getRecipeCost } from '@/app/ContainerContext';
 import { RecipeCard } from '@/features/recipes/components/RecipeCard';
 import { useCatalog, useKitchen } from '@/app/ContainerContext';
 import { useOpenRecipe } from './hooks';
@@ -26,6 +27,7 @@ export function RecipeGrid({ results, resetKey = '' }: { results: MatchingResult
             onToggleFavorite={(id) => kitchen.toggleFavorite(id)}
             onSelectRecipe={openRecipe}
             allIngredients={ingredients}
+            cost={getRecipeCost(res.recipe, ingredients)}
           />
         ))}
       </div>

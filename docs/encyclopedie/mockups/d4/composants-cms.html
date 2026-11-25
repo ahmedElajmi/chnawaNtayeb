@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Composants CMS — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/components.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="pagewrap">
+  <header data-shell="topbar"></header>
+  <main class="page-main wide">
+    <h1 class="page-title">Bibliothèque de composants (prête pour le CMS)</h1>
+    <p class="page-lead">Chaque composant est défini <b>une seule fois</b> (<code>assets/components.js</code>), stylé une seule fois
+    (<code>assets/components.css</code>), alimenté par une source de données unique (<code>assets/data.js</code>) et placé
+    n'importe où par un bloc <code>{ "c": nom, "props": {…} }</code>. Cette page est elle-même générée depuis le registre :
+    elle ne peut pas diverger du code.</p>
+
+    <section class="card" style="padding:var(--sp-4)">
+      <h2 style="margin-top:0;font-size:18px">Contrat d'un composant (pour le moteur CMS)</h2>
+      <ul style="font-size:14px;display:grid;gap:4px;margin:0;padding-inline-start:20px">
+        <li><b>Nom</b> stable en kebab-case (<code>recipe-card</code>) — c'est la clé enregistrée dans les pages.</li>
+        <li><b>Props</b> typées et documentées (nom, type, défaut, rôle) — le CMS en tire son formulaire d'édition ; jamais de texte ou de donnée en dur dans le composant.</li>
+        <li><b>Données</b> lues par identifiant (recette, étal, catégorie) depuis la source unique — jamais recopiées dans la page.</li>
+        <li><b>Textes</b> par clé de traduction (4 langues), RTL géré par le composant.</li>
+        <li><b>État partagé</b> explicite (filtres, planning) : plusieurs composants se coordonnent sans se connaître.</li>
+        <li><b>Imbrication</b> : un conteneur (<code>panel</code>) accepte n'importe quel autre bloc ; la feuille de filtres réutilise <code>filter-sentence</code>, <code>category-rail</code> et <code>ingredient-filter</code> sans copie.</li>
+        <li><b>Implémentation React</b> : un composant = un fichier <code>src/features/…/X.tsx</code> avec le même nom et les mêmes props ; le registre devient une table <code>{ nom → composant }</code> utilisée par le rendu des pages CMS.</li>
+      </ul>
+      <h3 style="font-size:15px">Exemple de page enregistrée (page Recettes)</h3>
+      <pre id="schema-example" style="margin:0;padding:10px 12px;background:var(--surface);border-radius:10px;overflow-x:auto;font-size:12px"></pre>
+    </section>
+
+    <div id="catalog"></div>
+  </main>
+  <nav data-shell="bottom"></nav>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/cn/i18n.js"></script>
+<script src="assets/cn/common.js"></script>
+<script src="assets/cn/home.js"></script>
+<script src="assets/cn/fridge.js"></script>
+<script src="assets/cn/recipe.js"></script>
+<script src="assets/cn/flows.js"></script>
+<script src="assets/cn/account.js"></script>
+<script>
+/* Catalogue généré depuis le registre : titre, description, props, emplacements, aperçu réel, bloc JSON. */
+document.addEventListener('DOMContentLoaded', function () {
+  var CN = window.CN, esc = CN.esc, out = document.getElementById('catalog');
+  document.getElementById('schema-example').textContent = JSON.stringify({ page: 'recettes', blocks: [
+    { c: 'search-box' }, { c: 'filter-sentence' }, { c: 'panel', props: { title: 'Je veux utiliser…', c: 'ingredient-filter' } },
+    { c: 'quick-filters' }, { c: 'active-filters' }, { c: 'category-rail', props: { mode: 'filter' } }, { c: 'recipe-views', props: { view: 'shelves' } } ] }, null, 2);
+  var names = Object.keys(CN.components);
+  out.innerHTML = '<p class="muted" style="margin-top:var(--sp-4)"><b>' + names.length + ' composants</b> · ' + names.map(function (n) { return '<a href="#cmp-' + n + '"><code>' + n + '</code></a>'; }).join(' · ') + '</p>' +
+    names.map(function (n) {
+      var d = CN.components[n];
+      return '<article class="cn-doc" id="cmp-' + n + '"><header><code>' + n + '</code> — <b>' + esc(d.title) + '</b><p style="margin:4px 0 0;font-size:14px">' + esc(d.desc) + '</p></header><div class="cn-doc-body">' +
+        (d.props.length ? '<div style="overflow-x:auto"><table><thead><tr><th>Prop</th><th>Type</th><th>Défaut</th><th>Rôle</th></tr></thead><tbody>' + d.props.map(function (p) { return '<tr><td><code>' + esc(p[0]) + '</code></td><td>' + esc(p[1]) + '</td><td><code>' + esc(p[2]) + '</code></td><td>' + esc(p[3]) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted" style="margin:0;font-size:13px">Aucune prop : lit l’état partagé.</p>') +
+        '<p style="margin:0;font-size:13px"><b>Utilisé dans :</b> ' + d.usedIn.map(esc).join(' · ') + '</p>' +
+        '<pre>' + esc(JSON.stringify({ c: n, props: d.example || {} })) + '</pre>' +
+        '<div class="cn-preview"><div data-c="' + n + '" data-props="' + esc(JSON.stringify(d.example || {})) + '"></div></div></div></article>';
+    }).join('');
+  CN.mountAll(out); /* blocs créés après le montage automatique */
+});
+</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

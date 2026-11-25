@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Emplacements publicitaires — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="true">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp"><span class="lbl">Pub</span>
+    <button class="ctl ads-ctl" aria-pressed="true">On</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+<div class="frame-wrap"><div class="frame" data-w="1280">
+  <div class="checklist">
+    <span class="chip-check">Aucun service publicitaire intégré — emplacements et traitement visuel uniquement</span>
+    <span class="chip-check">Formats HORIZONTAUX (flux) et VERTICAUX (colonne desktop) étudiés séparément</span>
+    <span class="chip-check">Jamais un desktop rétréci sur mobile ; jamais de grande verticale sur mobile ; contenu jamais écrasé</span>
+    <span class="chip-check">Chaque emplacement activable/désactivable indépendamment (section 5) ; replié sans annonce</span>
+  </div>
+  <h1>Emplacements publicitaires — horizontaux et verticaux (🚩 à arbitrer)</h1>
+
+  <section class="demo card">
+    <h2>1 · Catalogue des formats de référence</h2>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="text-align:start;border-bottom:2px solid var(--line)"><th style="padding:6px">Orientation</th><th style="padding:6px">Format</th><th style="padding:6px">Écran</th><th style="padding:6px">Usage recommandé</th><th style="padding:6px">Interdits</th></tr></thead>
+      <tbody style="border-bottom:1px solid var(--line)">
+        <tr><td style="padding:6px">Horizontale</td><td style="padding:6px"><b>320 × 100</b></td><td>mobile</td><td>dans le flux (accueil, recherche, suggestions, recette)</td><td>jamais agrandie, jamais au-dessus d'une action</td></tr>
+        <tr><td style="padding:6px">Horizontale</td><td style="padding:6px"><b>728 × 90</b></td><td>tablette large + desktop</td><td>après le contenu principal (recette, accueil)</td><td>jamais rétrécie sur mobile (remplacée par 320×100)</td></tr>
+        <tr><td style="padding:6px">Horizontale</td><td style="padding:6px"><b>970 × 250</b></td><td>desktop ≥ 1200 px</td><td>bas de page accueil (option)</td><td>jamais sur tablette/mobile</td></tr>
+        <tr><td style="padding:6px">Rectangle</td><td style="padding:6px"><b>300 × 250</b></td><td>mobile ET desktop</td><td>entre deux sections (accueil), fin de flux (recette)</td><td>jamais en mode cuisine ni dans les formulaires</td></tr>
+        <tr><td style="padding:6px">Verticale</td><td style="padding:6px"><b>160 × 600</b></td><td>desktop ≥ 1024 px</td><td>colonne latérale (accueil, recherche)</td><td>jamais sur tablette/mobile</td></tr>
+        <tr><td style="padding:6px">Verticale</td><td style="padding:6px"><b>300 × 600</b></td><td>desktop ≥ 1024 px</td><td>grande colonne latérale (accueil), cumul limité à 1/page</td><td>jamais à côté du matching (suggestions)</td></tr>
+      </tbody></table></div>
+    <p class="muted" style="font-size:12px">Formats de référence — rien n'impose d'afficher tous les formats :
+    chaque emplacement déclare ses formats autorisés et choisit le meilleur disponible selon la largeur ;
+    <b>s'il n'en a aucun, il disparaît</b>.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>2 · Layout mobile — horizontale dans le flux + rectangle entre sections</h2>
+    <div class="frame-wrap" style="justify-content:flex-start"><div class="frame" data-w="320" style="border:2px solid var(--line-strong);border-radius:10px;overflow:hidden">
+      <div style="padding:var(--sp-2)">
+        <p class="muted" style="font-size:11px;margin:0 0 4px">Accueil (320 px)</p>
+        <div class="hero-photo"><div class="ph r169 broken" data-fallback="🥘"></div></div>
+        <div class="section-head"><div><span class="eyebrow">Le frigo</span><h2 style="font-size:15px">De votre frigo, aujourd’hui</h2></div></div>
+        <a class="rcard horizontal" href="recette.html"><div class="ph broken" data-fallback="🥘"></div><div class="rbody"><span class="rtitle">Ojja merguez</span><span class="rmeta">8 / 9</span></div></a>
+        <!-- Rectangle entre deux sections : 300×250 tient sur mobile, centré -->
+        <div class="adslot adslot--rect" data-ad-id="home_between_1" style="margin-block:var(--sp-3)"><span class="adslot-label">Publicité</span><span class="adslot-box">300 × 250<br />rectangle entre sections</span></div>
+        <div class="section-head"><div><span class="eyebrow">Découvrir</span><h2 style="font-size:15px">Par catégorie</h2></div></div>
+        <div class="cat-row"><span class="cat-card"><span class="ph broken" data-fallback="🍛"></span>Kosksi</span><span class="cat-card"><span class="ph broken" data-fallback="🍜"></span>Marqa</span></div>
+      </div>
+    </div></div>
+    <p class="muted" style="font-size:12px">Sur mobile : <b>aucune verticale</b> ; l'horizontale 320×100 vit dans le
+    flux, le rectangle 300×250 entre deux sections. Les hauteurs sont fixes (CLS = 0) et l'emplacement
+    disparaît si aucun format n'est servi.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>3 · Layout tablette large / desktop étroit — bannière 728×90 après le contenu</h2>
+    <div style="border:2px solid var(--line-strong);border-radius:10px;overflow:hidden;max-width:768px">
+      <div style="padding:var(--sp-3)">
+        <div class="hero-photo"><div class="ph r169 broken" data-fallback="🥘"></div></div>
+        <div class="section-head"><div><span class="eyebrow">Le frigo</span><h2 style="font-size:15px">De votre frigo, aujourd’hui</h2></div></div>
+        <div class="rgrid" style="grid-template-columns:repeat(2,1fr)">
+          <a class="rcard" href="recette.html"><div class="ph broken" data-fallback="🥘"></div><div class="rbody"><span class="rtitle">Ojja merguez</span></div></a>
+          <a class="rcard" href="recette.html"><div class="ph broken" data-fallback="🥗"></div><div class="rbody"><span class="rtitle">Salade mechouia</span></div></a>
+        </div>
+        <div class="adslot adslot--banner" data-ad-id="recipe_after_content_1" style="max-width:728px;margin-inline:auto"><span class="adslot-label">Publicité</span><span class="adslot-box">728 × 90 · après le contenu</span></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px">À 768–1023 px : la verticale n'existe pas (largeur insuffisante sans
+    écraser le contenu) ; le 728×90 reste centré, jamais étiré.</p>
+  </section>
+
+  <section class="demo card">
+    <h2>4 · Layout desktop — colonne latérale verticale (160×600 ou 300×600) + rectangle au flux</h2>
+    <div style="display:flex;border:2px solid var(--line-strong);border-radius:10px;overflow:hidden;max-width:1280px">
+      <nav class="side-nav" style="display:flex;position:static;width:180px;border-inline-end:1px solid var(--line)">
+        <div class="brand-block"><span class="brand">Chnawa Ntayeb</span></div>
+        <a class="nav" href="accueil.html" aria-current="page">Accueil</a><a class="nav" href="frigo.html">Frigo</a>
+      </nav>
+      <div style="flex:1;padding:var(--sp-3);min-width:0">
+        <div class="hero-photo"><div class="ph" data-fallback="🥘"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Couscous%20aux%20l%C3%A9gumes%2C%20k%C3%A9did%2C%20Tunisie%2C%202020.jpg?width=1024" alt="" loading="lazy" /></div></div>
+        <div class="section-head"><div><span class="eyebrow">Le frigo</span><h2 style="font-size:15px">De votre frigo, aujourd’hui</h2></div></div>
+        <div class="rgrid" style="grid-template-columns:repeat(3,1fr)">
+          <a class="rcard" href="recette.html"><div class="ph broken" data-fallback="🥘"></div><div class="rbody"><span class="rtitle">Ojja merguez</span></div></a>
+          <a class="rcard" href="recette.html"><div class="ph broken" data-fallback="🥗"></div><div class="rbody"><span class="rtitle">Salade mechouia</span></div></a>
+          <a class="rcard" href="recette.html"><div class="ph broken" data-fallback="🍛"></div><div class="rbody"><span class="rtitle">Kosksi</span></div></a>
+        </div>
+        <div class="adslot adslot--rect" data-ad-id="home_between_1" style="margin-block:var(--sp-3)"><span class="adslot-label">Publicité</span><span class="adslot-box">300 × 250</span></div>
+      </div>
+      <aside class="ad-rail" aria-label="Colonne publicitaire">
+        <div class="adslot adslot--v300" data-ad-id="home_side_1"><span class="adslot-label">Publicité</span><span class="adslot-box">300 × 600<br />colonne latérale</span></div>
+      </aside>
+    </div>
+    <p class="muted" style="font-size:12px">≥ 1024 px : la colonne latérale <b>s'ajoute</b> au contenu (jamais
+    l'écraser) ; alternative 160×600 si la mise en page est serrée ; maximum <b>une verticale par page</b>.
+    La colonne n'existe pas avant 1024 px — les formats verticaux ne sont jamais rétrécis sur tablette/mobile.</p>
+    <div class="row" style="margin-top:var(--sp-2)">
+      <div class="adslot adslot--banner" style="max-width:320px"><span class="adslot-label">Publicité</span><span class="adslot-box">320 × 100 — format du flux mobile</span></div>
+      <div class="adslot adslot--wide" style="flex:1"><span class="adslot-label">Publicité</span><span class="adslot-box">970 × 250 — grande bannière, visible uniquement ≥ 1200 px, jamais rétrécie sur tablette/mobile</span></div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>5 · Configuration par emplacement (indépendante)</h2>
+    <p class="muted" style="font-size:12px;margin-top:0">Chaque emplacement est activable/désactivable séparément
+    (configuration super admin à venir — hors périmètre). Démonstration : cochez pour afficher.</p>
+    <div class="grid2">
+      <div class="card" style="padding-inline:var(--sp-3)">
+        <label class="check"><input type="checkbox" checked data-slot-cfg="home_between_1" />accueil : <code>home_between_1</code> (300×250)</label>
+        <label class="check"><input type="checkbox" checked data-slot-cfg="recipe_after_content_1" />recette : <code>recipe_after_content_1</code> (320×100 / 728×90)</label>
+        <label class="check"><input type="checkbox" data-slot-cfg="home_side_1" />accueil desktop : <code>home_side_1</code> (160×600 ou 300×600)</label>
+        <label class="check"><input type="checkbox" data-slot-cfg="grocery_footer_1" />courses : <code>grocery_footer_1</code> (discret, à arbitrer)</label>
+      </div>
+      <div class="card">
+        <b>Comportements (rappels)</b>
+        <ul style="font-size:13px;padding-inline-start:18px">
+          <li>désactivé ou aucun annonceur → <b>replié</b> (zéro espace réservé, CLS nul)</li>
+          <li>formats choisis par l'emplacement, jamais rétrécis ni agrandis</li>
+          <li>label « Publicité » permanent, bordure pointillée, pas de photo de plat</li>
+          <li>aucun emplacement : mode cuisine, formulaires, modales, onboarding</li>
+          <li>max : 1 emplacement visible par écran mobile, 2 en desktop (flux + colonne)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo card">
+    <h2>6 · Ce qui reste ouvert (🚩)</h2>
+    <ul style="font-size:13px;padding-inline-start:18px">
+      <li>Quels emplacements conserver en définitive (fusion <code>home_inline_1</code>/<code>home_between_1</code> possible).</li>
+      <li>Activer la colonne latérale <code>home_side_1</code> (300×600 vs 160×600) sur l'accueil et/ou la recherche.</li>
+      <li>Pertinence définitive de <code>grocery_footer_1</code>.</li>
+      <li>Choix du service publicitaire et du mode d'intégration (autre lot).</li>
+      <li>Annonce native éventuelle (reste soumise à la règle « toujours identifiable »).</li>
+    </ul>
+  </section>
+</div></div>
+<script src="assets/app.js"></script>
+<script>
+/* Configuration de démonstration : chaque bascule masque/affiche son emplacement. */
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-slot-cfg]').forEach(function (cb) {
+    var id = cb.getAttribute('data-slot-cfg');
+    var apply = function () {
+      document.querySelectorAll('[data-ad-id="' + id + '"]').forEach(function (el) {
+        el.classList.toggle('adslot--off', !cb.checked);
+      });
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  });
+});
+</script>
+</body>
+</html>

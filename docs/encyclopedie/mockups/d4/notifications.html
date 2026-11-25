@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr" data-dir="C" data-mode="light" data-langs="fr,derja,ar,derja_ar">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Notifications — Chnawa Ntayeb</title>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/components.css" />
+<!-- Page générée par tools/generate-pages.mjs depuis tools/pages.mjs — ne pas modifier à la main. -->
+</head>
+<body>
+<div class="controls" role="toolbar" aria-label="Commandes de démonstration (masquables)">
+  <div class="grp"><span class="lbl">Direction</span>
+    <button class="ctl dir-ctl" data-dir="A" aria-pressed="false">A</button>
+    <button class="ctl dir-ctl" data-dir="B" aria-pressed="false">B</button>
+    <button class="ctl dir-ctl" data-dir="FK" aria-pressed="false">FK</button></div>
+  <div class="grp"><span class="lbl">Mode</span>
+    <button class="ctl mode-ctl" data-mode="light" aria-pressed="true">Clair</button>
+    <button class="ctl mode-ctl" data-mode="dark" aria-pressed="false">Sombre</button></div>
+  <div class="grp" data-lang-group><span class="lbl">Langue</span>
+    <button class="ctl lang-ctl" data-lang="fr" aria-pressed="true">FR</button>
+    <button class="ctl lang-ctl" data-lang="derja" aria-pressed="false">Derja</button>
+    <button class="ctl lang-ctl" data-lang="ar" aria-pressed="false">عربي</button>
+    <button class="ctl lang-ctl" data-lang="derja_ar" aria-pressed="false">دارجة</button></div>
+  <a class="ctl" href="index.html">← Index</a>
+</div>
+
+<div class="pagewrap">
+  <header data-shell="topbar" data-back="accueil-c.html"></header>
+  <div style="display:flex;flex:1;width:100%">
+    <nav data-shell="side"></nav>
+    <main class="page-main">
+      <div data-page-root></div>
+    </main>
+  </div>
+  <nav data-shell="bottom"></nav>
+</div>
+
+<script type="application/json" id="page-schema">
+{
+  "page": "notifications",
+  "blocks": [
+    {
+      "c": "notif-center"
+    },
+    {
+      "c": "note",
+      "props": {
+        "text": "**Mobile** : écran dédié. **Desktop** : la cloche ouvre un panneau (même source, même rendu) avec « Voir toutes » qui mène ici."
+      }
+    }
+  ]
+}
+</script>
+<script src="assets/data.js"></script>
+<script src="assets/components.js"></script>
+<script src="assets/cn/i18n.js"></script>
+<script src="assets/cn/common.js"></script>
+<script src="assets/cn/home.js"></script>
+<script src="assets/cn/fridge.js"></script>
+<script src="assets/cn/recipe.js"></script>
+<script src="assets/cn/flows.js"></script>
+<script src="assets/cn/account.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

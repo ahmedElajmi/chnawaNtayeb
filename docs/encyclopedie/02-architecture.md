@@ -29,17 +29,26 @@ adapter implémente quel port.
 
 ## Règles de dépendances
 
-| Couche                                                        | Peut importer                                       | Ne doit jamais importer                            |
-| ------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
-| `src/core`                                                    | `src/core` uniquement                               | React, Firebase, `window`, `localStorage`, `fetch` |
-| `src/application`                                             | `src/core`                                          | React, Firebase, composants                        |
-| `src/infrastructure`                                          | `src/core`, `src/application` (ports)               | React, composants                                  |
-| `src/features`, `src/shared`, `src/app` (hors `container.ts`) | `src/core`, `src/application`, `src/app` (contexte) | `src/infrastructure`, Firebase, SDK d'IA           |
-| `src/app/container.ts`                                        | tout                                                | —                                                  |
+| Couche                                                        | Peut importer                                       | Ne doit jamais importer                                                                                           |
+| ------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `src/core`                                                    | `src/core` uniquement                               | React, Firebase, `window`, `localStorage`, `fetch`                                                                |
+| `src/application`                                             | `src/core`                                          | React, Firebase, `window`, `document`, tout accès direct à la plateforme (API hôte injectée, ex. `HostLifecycle`) |
+| `src/infrastructure`                                          | `src/core`, `src/application` (ports)               | React, composants                                                                                                 |
+| `src/features`, `src/shared`, `src/app` (hors `container.ts`) | `src/core`, `src/application`, `src/app` (contexte) | `src/infrastructure`, Firebase, SDK d'IA                                                                          |
+| `src/app/container.ts`                                        | tout                                                | —                                                                                                                 |
 
 Elles sont **vérifiées automatiquement** par `src/core/architecture.test.ts` : un import
 interdit fait échouer `npm test`. Le même test impose qu'on importe un module de `core` par
 son `index.ts` (`import { matchRecipes } from '@/core/matching'`), jamais par un fichier interne.
+
+**SDK fournisseurs isolés derrière des ports** (règle permanente, lot 2.6.0 T4) : aucun SDK de
+fournisseur (Firebase, Google…) n'est importé hors de `src/infrastructure` — le domaine, les stores
+et l'interface passent toujours par un port. Un SDK nécessaire vit dans un adaptateur remplaçable
+(`src/infrastructure/<technologie>/`), branché dans `container.ts`. La plateforme elle-même est un
+port : les timers et les événements de visibilité de la page passent par `HostLifecycle`
+(`src/infrastructure/host/browserHostLifecycle.ts` côté web), jamais par un accès direct à
+`window`/`document` dans `src/application` — le même code de synchronisation tournera dans un
+futur shell natif avec son propre adaptateur.
 
 ## Ce que ça permet
 

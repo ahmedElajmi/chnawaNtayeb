@@ -18,14 +18,10 @@ export const RecipeBadges: React.FC<RecipeBadgesProps> = ({ recipe, size = 'sm',
 
   return (
     <div className={`flex flex-wrap items-center gap-1 ${className}`}>
-      <span
-        className={`${pill} rounded-md font-bold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200`}
-      >
-        {courseLabel}
-      </span>
+      <span className={`${pill} rounded-md font-bold bg-line text-ink`}>{courseLabel}</span>
       {recipe.is_healthy && (
         <span
-          className={`${pill} inline-flex items-center gap-0.5 rounded-md font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300`}
+          className={`${pill} inline-flex items-center gap-0.5 rounded-md font-bold bg-success/10 text-success-text`}
         >
           <Leaf className="w-3 h-3" />
           {t.healthyLabel}

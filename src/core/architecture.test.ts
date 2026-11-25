@@ -89,6 +89,34 @@ describe('architecture: src/application has no UI framework and no backend SDK',
     expect(files.length).toBeGreaterThan(0);
     expect(offenders).toEqual([]);
   });
+
+  // Lot 2.6.0 (T2): the platform itself is a port too (e.g. HostLifecycle) — timers and
+  // page-visibility notifications are injected, so the same code runs on the web and on
+  // a future native shell with its own adapter.
+  it('never touches the host platform directly (no browser globals: the host is behind ports)', () => {
+    const offenders = files.filter((file) => FORBIDDEN_GLOBALS.test(fs.readFileSync(file, 'utf8'))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('architecture: vendor SDKs stay isolated behind ports', () => {
+  // Lot 2.6.0 (T4): a vendor SDK (Firebase today) is allowed only inside an infrastructure
+  // adapter, behind a replaceable port. The domain, the stores and the UI never import one;
+  // swapping the vendor means writing new adapters, not touching business code.
+  it('imports firebase or google SDKs only from src/infrastructure', () => {
+    const VENDOR_SDKS = [/^firebase(\/$|\.)/, /^firebase-admin/, /^@google\//];
+    const files = ['core', 'application', 'features', 'shared', 'app', 'infrastructure'].flatMap((dir) =>
+      listFiles(path.join(SRC_DIR, dir), isSource)
+    );
+    const offenders = files
+      .filter((file) => !file.includes(`${path.sep}infrastructure${path.sep}`))
+      .flatMap((file) =>
+        importsOf(file)
+          .filter((spec) => VENDOR_SDKS.some((re) => re.test(spec)))
+          .map((spec) => `${rel(file)} -> ${spec}`)
+      );
+    expect(offenders).toEqual([]);
+  });
 });
 
 describe('architecture: src/infrastructure never depends on the UI', () => {
@@ -116,6 +144,77 @@ describe('architecture: the UI only talks to ports', () => {
           .map((spec) => `${rel(file)} -> ${spec}`)
       );
     expect(uiFiles.length).toBeGreaterThan(20);
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('architecture: the brand identity is never hardcoded in a shell component (N8)', () => {
+  it('no app/shell component contains the brand wordmark, signature or tagline', () => {
+    const BRAND_TEXTS = /Chnawa Ntayeb|Chnowa Ntayeb|by chef Souhed|by Chef Souhed|شنوة نطيب/;
+    const files = listFiles(path.join(SRC_DIR, 'app'), isSource);
+    const offenders = files
+      // The transitional default configuration is the only allowed source (src/app/brand.ts);
+      // tests may quote the texts to assert the fallback behavior.
+      .filter((file) => rel(file) !== 'app/brand.ts' && !file.endsWith('.test.ts') && !file.endsWith('.test.tsx'))
+      .filter((file) => BRAND_TEXTS.test(fs.readFileSync(file, 'utf8')))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
+const HARDCODED_PALETTE =
+  /(?:slate|rose|emerald|red|zinc|gray|orange|amber|lime|green|teal|sky|blue|indigo|violet|purple|fuchsia|pink)-\d|white\/|black\/|#[0-9a-fA-F]{3}(?![0-9a-fA-F])|#[0-9a-fA-F]{6}(?![0-9a-fA-F])/;
+
+describe('architecture: the shell uses theme tokens only (lot 2.6.1b)', () => {
+  it('no hard-coded palette class or hex color in the shell files and components of the lot', () => {
+    const shellFiles = [
+      ...listFiles(path.join(SRC_DIR, 'app', 'layout'), isSource),
+      path.join(SRC_DIR, 'app', 'AppLayout.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'Skeleton.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'AvatarButton.tsx'),
+      path.join(SRC_DIR, 'shared', 'ui', 'ScrollToTopButton.tsx'),
+    ].filter((file) => fs.existsSync(file));
+    const offenders = shellFiles.filter((file) => HARDCODED_PALETTE.test(fs.readFileSync(file, 'utf8'))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('architecture: shared components stay router-free and tokenized (lot 2.6.2)', () => {
+  const SHARED_FILES = [
+    'shared/ui/PageHeading.tsx',
+    'shared/ui/EmptyState.tsx',
+    'shared/ui/SkeletonList.tsx',
+    'shared/ui/Rail.tsx',
+    'shared/ui/Chips.tsx',
+    'shared/ui/Sheet.tsx',
+    'shared/ui/LinkTabs.tsx',
+    'shared/ui/linkComponent.tsx',
+    'features/catalog/components/PriceRange.tsx',
+    'features/catalog/components/Shelf.tsx',
+    'features/catalog/components/CategoryRail.tsx',
+    'features/recipes/components/MatchingBadge.tsx',
+    'features/recipes/components/RecipeCard.tsx',
+    'features/recipes/components/RecipeBadges.tsx',
+    'features/recipes/components/RecipeListTabs.tsx',
+    'shared/ui/OfflineIndicator.tsx',
+  ];
+
+  it('the generic components never import the router (link injected by the consumer, A-6)', () => {
+    // The generic shared components of the lot; the consumer adapters (RecipeListTabs) may import
+    // the router on purpose — that is the documented adapter location.
+    const generic = SHARED_FILES.filter((f) => f.startsWith('shared/ui/')).map((f) => path.join(SRC_DIR, f));
+    const offenders = generic.flatMap((file) =>
+      importsOf(file)
+        .filter((spec) => spec.startsWith('react-router'))
+        .map((spec) => `${rel(file)} -> ${spec}`)
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it('no hard-coded palette in the components of the lot (tokens only)', () => {
+    const files = SHARED_FILES.map((f) => path.join(SRC_DIR, f)).filter((file) => fs.existsSync(file));
+    expect(files).toHaveLength(SHARED_FILES.length);
+    const offenders = files.filter((file) => HARDCODED_PALETTE.test(fs.readFileSync(file, 'utf8'))).map(rel);
     expect(offenders).toEqual([]);
   });
 });

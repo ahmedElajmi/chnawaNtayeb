@@ -157,6 +157,39 @@ messages) ; les tris de noms suivent la langue (`compareNames`) ; les noms des c
 recette, les noms dans les autres langues ne sont affichés que s'ils diffèrent du titre (pas de nom
 en double). L'arabe et la دارجة passent la page de droite à gauche (`dir` et `lang` viennent de `LANGUAGES`).
 
+## Composants partagés (`shared/ui`, lot 2.6.2)
+
+Les composants réutilisables des couches 1–2 vivent dans `src/shared/ui/` (générique, aucun import du
+domaine) et `src/features/<domaine>/components/` (métier, importe les **types** de `@/core/...`,
+jamais de logique décisionnaire). Conventions permanentes :
+
+- **Navigation découplée** : un composant générique n'importe jamais le routeur ; il transmet toujours
+  `href` et rend un **lien natif `<a href>` par défaut**. Le consommateur React Router fournit un
+  **`LinkComponent` injectable** (`shared/ui/linkComponent.tsx`) avec un **adaptateur `href` → `to`**
+  dans son propre module (`RecipeListTabs`), pour préserver la navigation SPA — l'injection directe
+  de `Link` ne fonctionnerait pas (`Link` attend `to`). Composants concernés : `LinkTabs`
+  (liens réels, `aria-current="page"`, **jamais** un modèle `tablist`), `EmptyState`, `Shelf`,
+  `CategoryRail`.
+- **`EmptyState`** : action **exclusive** — union discriminée `kind: 'link' | 'button'`
+  (`href` ou `onClick`, jamais les deux).
+- **`Sheet`** (feuille basse mobile, centrée desktop) : **composition** de `ModalShell` +
+  `useCloseOnBack` — Échap ferme l'overlay au sommet, clic extérieur, portail, retour arrière ;
+  **un seul système de modales** dans l'application, jamais un second.
+- **`Rail`** : carrousel horizontal sans librairie (défilement par quantités, flèches ≥ 44 px
+  apparaissant seulement si le contenu déborde).
+- **`Chips`/`ChipFilter`** : boutons réels avec `aria-pressed`, cibles ≥ 44 px.
+- **`SkeletonList`** : compose `Skeleton` ; **`PriceRange`** (`features/catalog/components/`) affiche
+  toute fourchette via `formatPriceRange` ; **`PageHeading`** : titre/sous-titre/actions.
+- **`MatchingBadge`/`MatchReason`** (`features/recipes/components/`) : consomment les **codes** de la
+  règle d'affichage du core (`@/core/matching/display`) et portent **toute la traduction** — le core
+  ne contient aucun texte ni dépendance de langue. Wording D1 : « Tous les ingrédients semblent
+  présents — quantités à vérifier », CTA « Voir la recette » — jamais une garantie de réalisabilité
+  immédiate.
+- **`RecipeCard`** (variante `grid`, stabilisée au lot 2.6.2) : navigation **par callback conservée**
+  (l'état `background` ouvre la fiche en surcouche et le retour revient à la liste — un simple `href`
+  ne peut pas l'exprimer) ; coût reçu **en props** (`getRecipeCost` appelé par `RecipeGrid`) ;
+  favori = cible **44×44 px** (cercle visuel inchangé) ; tokens uniquement.
+
 ## Thèmes (`app/providers/ThemeContext.tsx`)
 
 Thèmes intégrés + thèmes publiés par le super admin, mode clair / sombre / système. Le thème actif est

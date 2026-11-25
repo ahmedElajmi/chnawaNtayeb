@@ -175,6 +175,7 @@ développements futurs, y compris ceux qui ne font pas partie du chantier de mig
 - Gestion du catalogue (ajout / modification d'ingrédients, de recettes, de prix) **réservée au super admin**
   dans `/admin` : aucun formulaire de création dans l'interface publique.
 - **Langues et variantes** : une seule liste `LANGUAGES` (`@/core/shared`) — français (référence), arabe littéraire, derja latine (3, 7, 9), derja arabe (`derja_ar`) — et contenu multilingue en champs `<champ>_<langue>` lus via `pickLocalized` / `localizedField` ; le backoffice suit la langue courante. **Aucun texte affiché en dur** (JSX, `title`, `aria-label`, `confirm`…), backoffice et accès super admin compris ; une erreur d'infrastructure est un code que l'interface traduit. Détails et exemples : `docs/encyclopedie/01-produit.md` (§ Langues), `03-domaine.md` (§ shared), `06-interface.md` (§ Langues), `07-backoffice.md`.
+- **Orientation multilingue validée (transitoire)** : à terme, registre centralisé des langues **en base** (ajout/activation/désactivation depuis le backoffice, sans modifier le schéma SQL, les composants ni les formulaires) et **tables de traduction relationnelles par entité réellement localisable** — jamais de JSON de persistance, d'EAV ni de table universelle de traductions ; les champs `<champ>_<langue>` embarqués et la liste `LANGUAGES` du core restent la convention **en vigueur** jusqu'à l'implémentation (ils deviennent transitoires). Référence : `docs/encyclopedie/donnees/orientation-multilingue-validee.md` ; l'adaptateur SQL de préparation en colonne `data` JSON est un écart architectural enregistré (voir point 9 du § Compatibilité permanente).
 - **Workflow de validation** (`@/core/review`) : un contenu n'est **jamais écrit directement dans la collection publique** — l'éditeur enregistre dans l'atelier, la publication passe par la page de validation ; toute écriture de l'atelier passe le `written_at` de la copie dont elle part (jamais d'écrasement silencieux). Détails et exemples : `docs/encyclopedie/14-refonte-backoffice.md` et `07-backoffice.md`.
 - **Catégories gérées** (`@/core/categories`, /admin › Catégories) : deux arbres en base, jamais une liste codée en dur hors des catégories d'origine des ingrédients ; une recette a plusieurs catégories, un ingrédient une seule ; le type de plat (`MealCategory`) reste un champ fixe à part. Détails et exemples : `docs/encyclopedie/03-domaine.md` (§ categories) et `07-backoffice.md`.
 - **Public = validé seulement** : aucune recette intégrée au code n'est montrée au public (collection publique sans contenu de secours, serveur SEO compris) ; « Tout remettre à valider » (Données) retire tout du site jusqu'à la publication.
@@ -196,11 +197,31 @@ développements futurs, y compris ceux qui ne font pas partie du chantier de mig
   d'une visite, reste jusqu'à fermeture, revient à la visite suivante) + Réglages › Application. Application
   installée : aucune mention « installée », tout disparaît.
 - Réglages en onglets courts (Affichage, Langue, Application) : un nouveau réglage va dans l'onglet qui lui
-  correspond plutôt que d'allonger la fenêtre ; icône d'en-tête = roue dentée.
-- En-tête mobile : la marque « Chnowa Ntayeb / by Chef Souhed » doit rester lisible ; en mode super admin, le badge
+  correspond plutôt que d'allonger la fenêtre ; icône d'en-tête = roue dentée. **Affichage = mode seulement** :
+  le thème est attribué par le backoffice, le client ne choisit que le mode (clair/sombre/système) ; le thème
+  appliqué vient de `resolveTheme` (`@/application/theme`, pure) + défaut `src/app/themeConfig.ts`, complété à la
+  lecture par `resolveThemeColors` ; le `themeId` des préférences n'est jamais source de sélection.
+- **Identité de marque** : chaîne `src/app/brand.ts` (configuration transitoire) → `BrandMark` (props) ; aucune
+  appellation en dur dans un composant du shell (garde `src/core/architecture.test.ts`) ; les 4 replis (logo absent,
+  nom absent, ressource cassée, identité partielle) sont testés ; l'éditeur d'identité = lot CMS.
+- En-tête mobile : la marque (identité résolue via `BrandMark`) doit rester lisible ; en mode super admin, le badge
   et « Quitter » sont dans Réglages › Application sur téléphone.
 - Mobile : aucun élément ne doit élargir la page ; vérifier à 375 px et 320 px.
 - **Comptes** : trois niveaux — client (formulaire), employé (créé par le super admin via le serveur, mot de passe temporaire), super admin (session serveur uniquement) ; téléphone **E.164** en un seul champ (`normalizePhone`) ; le champ `type` d'un profil vaut `client` ou `employee`, les variantes de clients sont des données ; aucun droit ne vient d'un e-mail écrit dans le code. **Création de compte atomique** : hash calculé avant toute écriture, puis `users/{uid}` + `auth/{uid}` + réservation `email_index/{email}` dans un seul `commit` gardé — l'unicité de l'adresse vient de la garde, jamais d'un seul pré-contrôle ; une suppression de compte devra libérer sa réservation. Détails et exemples : `docs/encyclopedie/13-comptes.md`.
+- **Plateforme et SDK fournisseurs derrière des ports** (règle permanente) : `src/core` et `src/application` n'importent jamais un SDK fournisseur ni n'accèdent directement à la plateforme (`window`, `document`…) — la garde d'architecture le vérifie. Un SDK nécessaire vit dans un adaptateur d'`src/infrastructure` derrière un port remplaçable ; les API de l'hôte passent par le port `HostLifecycle` (adaptateur navigateur `src/infrastructure/host/`). Détails : `docs/encyclopedie/02-architecture.md`.
+- **Composants des couches 1–2** (lot 2.6.2) : génériques dans `src/shared/ui` (aucun import du domaine),
+  métier dans `src/features/<domaine>/components` (types du core uniquement, jamais de logique
+  décisionnaire) ; un composant n'est extrait qu'avec un second consommateur réel. **Navigation
+  découplée** : un composant générique n'importe jamais le routeur — il transmet `href` et rend un
+  `<a href>` natif par défaut ; le consommateur React Router injecte un `LinkComponent` avec un
+  adaptateur `href` → `to` dans son module (ex. `RecipeListTabs`). **Règle d'affichage du matching**
+  : le moteur (`engine.ts`, `tiers.ts`) reste seul responsable du score et du tier ; `@/core/matching/display`
+  ne fait que le mapping exhaustif tier → niveau d'affichage + **codes de raisons** ; la traduction est
+  dans l'interface (`MatchingBadge`/`MatchReason`), jamais dans le core. **Un seul système de modales**
+  : `Sheet` compose `ModalShell` + `useCloseOnBack`, jamais un second mécanisme. `EmptyState` : action
+  exclusive (`href` ou `onClick`). `RecipeCard` : navigation par callback conservée (état `background`),
+  coût en props, favori 44×44 px. Détails : `docs/encyclopedie/06-interface.md` (§ Composants partagés),
+  `03-domaine.md` (§ matching).
 - **Recherche texte** : toujours via `useSearchMatches` (port `SearchEngine`, store `CatalogSearch`) et la normalisation unique `normalizeSearchText` (`@/core/search`), jamais un `toLowerCase().includes()` ; sans réponse du moteur, l'ancien filtre par nom sert de repli. Détails et exemples : `docs/encyclopedie/12-recherche.md`.
 - Deux listes de recettes séparées : `/recettes` = catalogue complet (`browseRecipes`), `/suggestions`
   = propositions du frigo par niveau (`matchRecipes`) ; onglets entre les deux (`RecipeListTabs`).

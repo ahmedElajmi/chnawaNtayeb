@@ -323,6 +323,17 @@ permet d'en demander une autre ; la simulation/persona est un endpoint réservé
 simulation ; le CMS n'accorde ni n'élargit aucun droit — l'accès aux données passe toujours par les
 contrôles métier.
 
+> **Note de cohérence (orientation multilingue validée)** — `docs/encyclopedie/donnees/orientation-multilingue-validee.md` :
+> le chef a validé des **tables de traduction relationnelles par entité réellement localisable**
+> (`recipes`+`recipe_translations`, …), **sans JSON ni EAV ni table universelle**, et un **registre
+> centralisé des langues en base** (ajout/activation/désactivation depuis le backoffice, sans modifier le
+> schéma SQL, les composants ni les formulaires). Les **colonnes localisées fixes** de ce document
+> (`slug_×4`, `title_×4`, `seo_×4` dans `page_versions` et `section_param_*`) sont **en tension** avec
+> cette orientation : les options (a) table de traduction de version alignée sur le pattern des entités ou
+> (b) conservation ciblée des colonnes fixes pour les pages seront **arbitrées au dossier du lot CMS**
+> (arbitrage A1 du document d'orientation — aucune des deux n'est pré-validée). `generation_slug_index`
+> (déjà dimensionné par `language`) reste compatible telle quelle.
+
 ## 4. Mécanismes (validés)
 
 ### 4.1 Échine Staged/Online
@@ -455,16 +466,26 @@ partagé, de synchronisation entre instances ou de capacité mémoire supplémen
 file d'écriture hors ligne** (lecture seule du publié) ; la sync frigo/courses garde ses mécanismes
 existants.
 
-### 4.4 Messages — deux étages
+### 4.4 Messages — un mécanisme i18n unique, deux sources (harmonisé)
 
-**Techniques essentiels** : embarqués dans le bundle (hors ligne garanti) — erreurs réseau, validation,
-actions critiques ; **codes d'erreur stables côté backend** (`infra.*`, codes de domaine), traduits côté
-frontend ; jamais dépendants du CMS. **Éditoriaux** : en base, publiables par l'échine, cachés hors ligne
-(dernière version) ; notifications, annonces, aides, contenus de pages. Clés stables ×4 langues, replis =
-chaîne `LANGUAGES.fallback` existante (référence finale : français) ; **rapport « traductions manquantes »**
-dans le back-office (par clé, par langue) ; le contrôle automatisé « zéro texte en dur » (extension du lot
-4.4) concerne les **textes métier et éditoriaux** — les **messages techniques essentiels** restent par
-conception **dans le bundle** (ils ne dépendent jamais du CMS ni du réseau).
+> **Harmonisation (orientation multilingue validée)** — `docs/encyclopedie/donnees/orientation-multilingue-validee.md` § 6 :
+> le chef a validé un **mécanisme i18n unique pour toute l'interface** — **les catalogues dynamiques en
+> base sont la source actualisée de tous les textes** (structurels, fonctionnels, techniques, essentiels),
+> **versionnés par langue, mis en cache IndexedDB et actualisés atomiquement en ligne, sans rechargement** ;
+> **le bundle initial fournit le fallback embarqué des messages essentiels** (l'application doit toujours
+> pouvoir afficher un message compréhensible, même sans catalogue distant). L'ancienne formulation
+> « les messages techniques essentiels restent dans le bundle et ne dépendent jamais du CMS » est
+> **remplacée** par ce principe : les messages essentiels _tirent aussi_ du catalogue dynamique, le bundle
+> n'est plus que leur **secours**. L'ajout d'une langue ne nécessite aucun redéploiement frontend.
+
+**Catalogues dynamiques** : en base, publiables par l'échine (workflow de validation), versionnés par
+langue, cachés hors ligne (dernière version valide, IndexedDB) ; **codes d'erreur stables côté backend**
+(`infra.*`, codes de domaine), traduits côté frontend. **Fallback embarqué** : messages essentiels dans le
+bundle initial (hors ligne garanti), consultés lorsque le catalogue actif n'est pas disponible. Replis =
+chaîne `LANGUAGES.fallback` existante (référence finale : français) ; **rapport « traductions
+manquantes »** dans le back-office (par clé, par langue) ; le contrôle automatisé « zéro texte en dur »
+(extension du lot 4.4) concerne les **textes métier et éditoriaux** — les **messages essentiels** sont
+couverts par le mécanisme unique (catalogue + fallback embarqué), jamais par du texte en dur.
 
 ### 4.5 Multicanal
 
