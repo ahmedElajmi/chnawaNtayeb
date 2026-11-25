@@ -32,6 +32,12 @@ import { parseStoredIngredient } from '../../src/core/catalog';
 import type { DataStore, WriteOp } from '../storage/types';
 import type { BackofficeAuthConfig } from '../backofficeAuth';
 import { verifyUserSessionToken } from '../auth/sessions';
+import {
+  PROTOCOL_STATUS_HEADER,
+  PROTOCOL_STATUS_RECONCILIATION_REQUIRED,
+  PROTOCOL_VERSION_HEADER,
+  classifyProtocolVersion,
+} from '../protocolVersion';
 
 /**
  * Personal kitchen data of one account (favorites, fridge, pantry, weekly menu, shopping
@@ -506,6 +512,33 @@ export function kitchenRoutes(
   };
   const unavailable = (res: express.Response) => res.status(503).json({ ok: false, error: 'storage_unavailable' });
 
+  // ---- Protocol version gate (lot B22-07, D16 fail-closed): writes are refused when the
+  // declared protocol version is not supported; tolerated reads carry the reconciliation
+  // signal (a per-request marker, never a device registry nor a durable proof). The gate
+  // reuses `sessionOf` and SKIPS the version for unauthenticated requests: they reach the
+  // handler and answer 401 exactly as before — the security order is untouched. Attached
+  // only to the two sync routes (`syncLimiter` first): protocol refusals are counted by
+  // the rate limiter and cannot bypass it.
+  const protocolGate =
+    (routeClass: 'read' | 'write'): express.RequestHandler =>
+    (req, res, next) => {
+      if (!sessionOf(req)) return next();
+      const declared = req.headers[PROTOCOL_VERSION_HEADER.toLowerCase()];
+      const outcome = classifyProtocolVersion(declared, req.rawHeaders);
+      if (outcome.status === 'supported') return next();
+      if (outcome.status === 'older-unsupported' || outcome.status === 'absent') {
+        if (routeClass === 'read') {
+          res.setHeader(PROTOCOL_STATUS_HEADER, PROTOCOL_STATUS_RECONCILIATION_REQUIRED);
+          return next();
+        }
+        return res.status(409).json({ ok: false, error: 'protocol-version-unsupported' });
+      }
+      if (outcome.status === 'later-unsupported') {
+        return res.status(409).json({ ok: false, error: 'protocol-version-unsupported' });
+      }
+      return res.status(400).json({ ok: false, error: 'protocol-version-invalid' });
+    };
+
   // ---- Registry cache (§ 4.5): the stock validation needs the live registries, read with a
   // short TTL (60 s, confirmed by measure § 10) and ALWAYS re-read without cache once before
   // a reference refusal — a unit or an ingredient created less than a TTL ago is never
@@ -541,7 +574,7 @@ export function kitchenRoutes(
     return category;
   };
 
-  router.get('/api/kitchen', syncLimiter, async (req, res) => {
+  router.get('/api/kitchen', syncLimiter, protocolGate('read'), async (req, res) => {
     const session = sessionOf(req);
     if (!session) return res.status(401).json({ ok: false, error: 'invalid-credentials' });
     if (!store) return unavailable(res);
@@ -549,7 +582,7 @@ export function kitchenRoutes(
     return res.json({ ok: true, doc: doc && doc.deleted !== true ? doc : null });
   });
 
-  router.put('/api/kitchen', syncLimiter, async (req, res) => {
+  router.put('/api/kitchen', syncLimiter, protocolGate('write'), async (req, res) => {
     const session = sessionOf(req);
     if (!session) return res.status(401).json({ ok: false, error: 'invalid-credentials' });
     if (!store) return unavailable(res);

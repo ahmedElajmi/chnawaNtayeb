@@ -40,6 +40,9 @@ export interface KitchenSyncState {
   lastPullAt: number | null;
   /** The last pull or push failed (kept pending; retried on the next trigger) */
   failed: boolean;
+  /** The server signaled a protocol reconciliation on the LAST pull (client-side marker,
+   * idempotent — never a device registry, a durable proof, nor a server-side state). */
+  reconciliationRequired: boolean;
 }
 
 const PUSH_DEBOUNCE_MS = 2000;
@@ -67,7 +70,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
   private unsubscribe: (() => void) | null = null;
 
   constructor(private readonly deps: KitchenSyncDeps) {
-    super({ syncing: false, pending: 0, lastPullAt: null, failed: false });
+    super({ syncing: false, pending: 0, lastPullAt: null, failed: false, reconciliationRequired: false });
   }
 
   /** Follows the kitchen store and installs the page lifecycle. Called once at start-up. */
@@ -218,7 +221,7 @@ export class KitchenSync extends Store<KitchenSyncState> {
     this.lastPull = this.deps.now();
     this.setState({ syncing: true });
     try {
-      const doc = await this.deps.gateway.pull();
+      const { doc, reconciliationRequired } = await this.deps.gateway.pull();
       // The account may have changed while the request was in flight: this response belongs
       // to the old account and must not be written into the new account's local document
       if (this.deps.owner() !== uid) return;
@@ -230,7 +233,9 @@ export class KitchenSync extends Store<KitchenSyncState> {
       if (lastSync !== null && this.deps.now() - lastSync > STALE_DEVICE_MS) this.deps.kitchen.resetLocal();
       if (doc) this.applyRemote(doc, uid);
       this.deps.ledger.recordSynced(this.deps.now());
-      this.setState({ syncing: false, failed: false, lastPullAt: this.lastPull });
+      // The signal is a per-pull marker, recorded idempotently; a pull without signal means
+      // the protocol mismatch is resolved (updated client) — never a server-side proof
+      this.setState({ syncing: false, failed: false, lastPullAt: this.lastPull, reconciliationRequired });
     } catch {
       if (this.deps.owner() !== uid) return;
       this.setState({ syncing: false, failed: true });

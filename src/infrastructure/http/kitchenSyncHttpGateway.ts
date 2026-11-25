@@ -1,11 +1,27 @@
-import type { KitchenSyncGateway, RemoteKitchenDocument, RemoteKitchenSections } from '@/application';
+import type {
+  KitchenSyncGateway,
+  RemoteKitchenDocument,
+  RemoteKitchenPull,
+  RemoteKitchenSections,
+} from '@/application';
 import { authHeaders } from './userSession';
 
 /**
  * The signed-in account's kitchen kept on our server (GET/PUT /api/kitchen, session token).
  * Guests have no kitchen on the server: the endpoints refuse them and this adapter is only
  * called when a client or employee session exists.
+ *
+ * Every request declares the application protocol version (lot B22-07); a pull answered
+ * with `X-Kitchen-Protocol-Status: reconciliation-required` carries a client-side marker
+ * back to the sync (never a server proof). Protocol refusals surface as distinct error
+ * codes; the local changes stay pending (nothing is lost, the retry happens after update).
  */
+
+/** B22-07 initial version — the evolution policy stays open (P3, server: protocolVersion.ts). */
+const PROTOCOL_VERSION = '1';
+const PROTOCOL_VERSION_HEADER = 'X-Kitchen-Protocol-Version';
+const PROTOCOL_STATUS_HEADER = 'x-kitchen-protocol-status';
+const PROTOCOL_STATUS_RECONCILIATION_REQUIRED = 'reconciliation-required';
 
 const asSection = (raw: unknown): { value: unknown; updatedAt: number } | null => {
   const section = raw as { value?: unknown; updated_at?: unknown } | null;
@@ -26,18 +42,35 @@ function asDocument(raw: unknown): RemoteKitchenDocument {
   return document;
 }
 
+/** Distinct codes for the protocol refusals (translated by the interface, never shown raw);
+ * any other refusal keeps the context's own code. */
+async function refusalCode(res: Response, fallback: string): Promise<string> {
+  const body = (await res.json().catch(() => ({}))) as { error?: unknown };
+  if (body.error === 'protocol-version-unsupported') return 'kitchen_protocol_unsupported';
+  if (body.error === 'protocol-version-invalid') return 'kitchen_protocol_invalid';
+  return fallback;
+}
+
 export const kitchenSyncHttpGateway: KitchenSyncGateway = {
-  async pull() {
-    const res = await fetch('/api/kitchen', { headers: authHeaders() });
-    if (!res.ok) throw new Error('kitchen_unavailable');
+  async pull(): Promise<RemoteKitchenPull> {
+    const res = await fetch('/api/kitchen', {
+      headers: { ...authHeaders(), [PROTOCOL_VERSION_HEADER]: PROTOCOL_VERSION },
+    });
+    if (!res.ok) throw new Error(await refusalCode(res, 'kitchen_unavailable'));
+    const signal = res.headers?.get?.(PROTOCOL_STATUS_HEADER);
+    const reconciliationRequired = signal === PROTOCOL_STATUS_RECONCILIATION_REQUIRED;
     const body = (await res.json().catch(() => ({}))) as { doc?: unknown };
-    return body.doc ? asDocument(body.doc) : null;
+    return { doc: body.doc ? asDocument(body.doc) : null, reconciliationRequired };
   },
 
   async push(sections: RemoteKitchenSections) {
     const res = await fetch('/api/kitchen', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      headers: {
+        'Content-Type': 'application/json',
+        [PROTOCOL_VERSION_HEADER]: PROTOCOL_VERSION,
+        ...authHeaders(),
+      },
       body: JSON.stringify({
         sections: Object.fromEntries(
           Object.entries(sections).map(([name, section]) => [
@@ -47,7 +80,7 @@ export const kitchenSyncHttpGateway: KitchenSyncGateway = {
         ),
       }),
     });
-    if (!res.ok) throw new Error('kitchen_refused');
+    if (!res.ok) throw new Error(await refusalCode(res, 'kitchen_refused'));
     const body = (await res.json().catch(() => ({}))) as { doc?: unknown };
     return asDocument(body.doc);
   },

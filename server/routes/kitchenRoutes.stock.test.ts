@@ -103,12 +103,18 @@ type Doc = { sections: Record<string, { value: unknown; updated_at: number } | u
 const putSections = async (token: string, sections: Record<string, unknown>) =>
   fetch(base + '/api/kitchen', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'X-Kitchen-Protocol-Version': '1',
+    },
     body: JSON.stringify({ sections }),
   });
 
 const getDoc = async (token: string): Promise<Doc> => {
-  const res = await fetch(base + '/api/kitchen', { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(base + '/api/kitchen', {
+    headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+  });
   const data = (await res.json()) as { doc: Doc | null };
   return data.doc ?? { sections: {} };
 };

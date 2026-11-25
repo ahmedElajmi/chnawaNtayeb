@@ -10,7 +10,12 @@ import { cert, deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { presenceEntryId, stockDerivedPresence, STALE_DEVICE_MS, type StockSection } from '../../src/core/kitchen';
 import { DEFAULT_PREFERENCES, type UserPreferences } from '../../src/core/preferences';
-import type { HostLifecycle, RemoteKitchenDocument, RemoteKitchenSections } from '../../src/application';
+import type {
+  HostLifecycle,
+  RemoteKitchenDocument,
+  RemoteKitchenPull,
+  RemoteKitchenSections,
+} from '../../src/application';
 import { KitchenStore } from '../../src/application/kitchen/KitchenStore';
 import { KitchenSync } from '../../src/application/kitchen/KitchenSync';
 import { createLocalKitchenRepository } from '../../src/infrastructure/local/localRepositories';
@@ -113,7 +118,11 @@ export async function registerAccount(base: string): Promise<string> {
 async function putLegacySections(base: string, token: string, sections: Record<string, unknown>): Promise<void> {
   const res = await fetch(base + '/api/kitchen', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      'X-Kitchen-Protocol-Version': '1',
+    },
     body: JSON.stringify({
       sections: Object.fromEntries(
         Object.entries(sections).map(([name, value]) => [name, { value, updated_at: Date.now() }])
@@ -127,7 +136,9 @@ export async function getRawDocument(
   base: string,
   token: string
 ): Promise<Record<string, { value: unknown; updated_at: number }> | null> {
-  const res = await fetch(base + '/api/kitchen', { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(base + '/api/kitchen', {
+    headers: { Authorization: `Bearer ${token}`, 'X-Kitchen-Protocol-Version': '1' },
+  });
   if (res.status !== 200) return null;
   const body = (await res.json()) as {
     doc?: { sections?: Record<string, { value: unknown; updated_at: number }> } | null;
@@ -188,7 +199,7 @@ export function makeDevice(
   };
   const gateway = {
     offline: false,
-    async pull(): Promise<RemoteKitchenDocument | null> {
+    async pull(): Promise<RemoteKitchenPull> {
       traffic.pulls += 1;
       try {
         const res = await fetch(base + '/api/kitchen', { headers: { Authorization: `Bearer ${token}` } });
@@ -196,7 +207,7 @@ export function makeDevice(
         const body = (await res.json()) as {
           doc?: { sections?: Record<string, { value: unknown; updated_at: number }> } | null;
         };
-        if (!body.doc) return null;
+        if (!body.doc) return { doc: null, reconciliationRequired: false };
         const sections = body.doc.sections ?? {};
         const document: RemoteKitchenDocument = {};
         for (const [name, section] of Object.entries(sections)) {
@@ -207,7 +218,7 @@ export function makeDevice(
             } as never;
           }
         }
-        return document;
+        return { doc: document, reconciliationRequired: false };
       } catch (error) {
         traffic.pullFails += 1;
         throw error;
@@ -224,7 +235,11 @@ export function makeDevice(
       }
       const res = await fetch(base + '/api/kitchen', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-Kitchen-Protocol-Version': '1',
+        },
         body: JSON.stringify({
           sections: Object.fromEntries(
             Object.entries(sections).map(([name, section]) => [

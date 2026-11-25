@@ -175,10 +175,17 @@ export interface HostLifecycle {
   subscribeVisibility(onHidden: () => void, onVisible: () => void): () => void;
 }
 
+/** The result of one pull: the stored document plus the protocol reconciliation signal of
+ * THIS response (a client-side marker — never a device registry nor a server proof). */
+export interface RemoteKitchenPull {
+  doc: RemoteKitchenDocument | null;
+  reconciliationRequired: boolean;
+}
+
 /** The signed-in account's kitchen kept on the server (never reachable for guests). */
 export interface KitchenSyncGateway {
   /** The stored document; null when the account has none yet. Throws when unreachable. */
-  pull(): Promise<RemoteKitchenDocument | null>;
+  pull(): Promise<RemoteKitchenPull>;
   /**
    * Sends the changed sections; the server keeps a section only when it is newer than the
    * stored one and answers with the document after the merge. Throws when unreachable.

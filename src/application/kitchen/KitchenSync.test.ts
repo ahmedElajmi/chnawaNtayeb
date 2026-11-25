@@ -30,6 +30,7 @@ import type {
   KitchenSyncLedger,
   PreferencesRepository,
   RemoteKitchenDocument,
+  RemoteKitchenPull,
   RemoteKitchenSections,
 } from '../ports';
 
@@ -83,9 +84,13 @@ interface Harness {
     pushes: RemoteKitchenSections[];
     remote: RemoteKitchenDocument | null;
     fail: 'pull' | 'push' | null;
+    /** Error code thrown by the fake instead of the default one (protocol refusals) */
+    failCode: string | null;
     /** Responses held in flight until the test releases them (oldest first) */
     holdPulls: number;
     holdPushes: number;
+    /** Reconciliation signal carried by the next pull (B22-07, undefined = none) */
+    reconciliationRequired: boolean | undefined;
     release: () => void;
   };
   time: { value: number };
@@ -292,8 +297,10 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     pushes: [] as RemoteKitchenSections[],
     remote: null as RemoteKitchenDocument | null,
     fail: null as 'pull' | 'push' | null,
+    failCode: null as string | null,
     holdPulls: 0,
     holdPushes: 0,
+    reconciliationRequired: undefined as boolean | undefined,
     release: () => undefined,
   };
   const held: (() => void)[] = [];
@@ -301,7 +308,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     held.shift()?.();
   };
   const gatewayPort = {
-    async pull(): Promise<RemoteKitchenDocument | null> {
+    async pull(): Promise<RemoteKitchenPull> {
       gateway.pulls += 1;
       // The document is snapshotted before waiting: the release must answer with the
       // version this request would have received, not the one the server holds later
@@ -310,8 +317,8 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         gateway.holdPulls -= 1;
         await new Promise<void>((resolve) => held.push(resolve));
       }
-      if (gateway.fail === 'pull') throw new Error('unreachable');
-      return snapshot;
+      if (gateway.fail === 'pull') throw new Error(gateway.failCode ?? 'unreachable');
+      return { doc: snapshot, reconciliationRequired: gateway.reconciliationRequired ?? false };
     },
     async push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument> {
       gateway.pushes.push(sections);
@@ -326,7 +333,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         gateway.holdPushes -= 1;
         await new Promise<void>((resolve) => held.push(resolve));
       }
-      if (gateway.fail === 'push') throw new Error('refused');
+      if (gateway.fail === 'push') throw new Error(gateway.failCode ?? 'refused');
       gateway.remote = merged;
       return merged;
     },
@@ -723,6 +730,84 @@ describe('the kitchen sync engine', () => {
     expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r1', 'r2']);
     expect(h.sync.getState().pending).toBe(0);
     expect(h.sync.getState().failed).toBe(false);
+  });
+
+  it('keeps the local modifications intact when the push is refused for the protocol version (B22-07)', async () => {
+    const h = makeHarness({ favorites: ['r0'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    // The protocol refusal surfaces as a distinct code; nothing local is lost: the change
+    // stays pending, no acknowledgment is recorded, no local data is dropped or replaced
+    h.gateway.fail = 'push';
+    h.gateway.failCode = 'kitchen_protocol_unsupported';
+    h.kitchen.toggleFavorite('r1');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1);
+    expect(h.sync.getState().failed).toBe(true);
+    expect(h.sync.getState().pending).toBe(1);
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
+    expect(h.kitchen.getState().favorites).toEqual(['r0', 'r1']);
+
+    // After the client update the same changes leave with a supported version
+    h.gateway.fail = null;
+    h.gateway.failCode = null;
+    h.time.value += 10_000;
+    h.kitchen.toggleFavorite('r2');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r0', 'r1', 'r2']);
+    expect(h.sync.getState().pending).toBe(0);
+    expect(h.sync.getState().failed).toBe(false);
+  });
+
+  it('a failed pull does not erase a recorded reconciliation signal (B22-07)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.gateway.reconciliationRequired = true;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+
+    // A failed pull changes nothing but `failed`: the signal stays until a SUCCESSFUL
+    // pull without it — which, the server signaling deterministically per declared
+    // version, only happens once the mismatch is genuinely resolved
+    h.gateway.fail = 'pull';
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+    expect(h.sync.getState().failed).toBe(true);
+
+    h.gateway.fail = null;
+    h.gateway.reconciliationRequired = false; // updated client: the server no longer signals
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
+  });
+
+  it('records the reconciliation signal idempotently and only while it is signaled (B22-07)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false); // the startup pull carries none
+
+    h.gateway.reconciliationRequired = true;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+
+    // A pull without signal means the mismatch is resolved (updated client): the marker
+    // reflects the LAST pull only — never a server proof, erased by nothing else
+    h.gateway.reconciliationRequired = false;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
   });
 
   it('reloads the local state and pulls when the account changes', async () => {

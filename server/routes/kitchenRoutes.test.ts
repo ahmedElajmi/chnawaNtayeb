@@ -67,12 +67,15 @@ afterAll(() => {
   server?.close();
 });
 
-const get = async (path: string, headers: Record<string, string> = {}) => fetch(base + path, { headers });
+const get = async (path: string, headers: Record<string, string> = {}) =>
+  fetch(base + path, {
+    headers: { 'X-Kitchen-Protocol-Version': '1', ...headers },
+  });
 
 const put = async (path: string, body: unknown, headers: Record<string, string> = {}) =>
   fetch(base + path, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: { 'Content-Type': 'application/json', 'X-Kitchen-Protocol-Version': '1', ...headers },
     body: JSON.stringify(body),
   });
 
