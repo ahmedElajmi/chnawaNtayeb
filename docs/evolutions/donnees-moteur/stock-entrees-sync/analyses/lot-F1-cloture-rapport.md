@@ -91,3 +91,19 @@
 3. Exécution des **suppressions AR-4** (inventaire déjà consigné) sous autorisation.
 4. Mise à jour `docs/roadmap.md` à la clôture effective (après fusion).
 5. Release `release/synchronization-foundation` (étape ⑨ du plan X-19) — validations complètes refaites sur l'état release.
+
+---
+
+## 7. Intégration réelle dans `develop` (25/11/2026, nuit) — clôture effective
+
+| Élément | Valeur |
+| --- | --- |
+| Branche poussée | `fix/stock-sync-integrity` → `origin/fix/stock-sync-integrity` @ `a8896f4` |
+| Commits (5, ordre du manifeste réconcilié) | `9b6a5cd` fix A4/D3 (14 fichiers) · `090818d` test scénario 6 (1) · `edaaa62` invariant serveur (1) · `9b878e5` docs (11) · `a8896f4` preuve pré-fusion (1) — **28 fichiers au total** |
+| PR | **#61** (`fix/stock-sync-integrity` → `develop`), 5 commits vérifiés, 28 fichiers, aucun fichier temporaire ni historique, `mergeable: MERGEABLE`, aucun contrôle automatique configuré |
+| **Merge commit** | **`bbb0fcf8481d8e88e26bc608b139b20cbf4f742b`** — parents `394fc0e` + `a8896f4`, **merge commit obligatoire** (aucun squash, aucun rebase) |
+| État de `develop` | `origin/develop` = **`bbb0fcf`** ; les 5 commits intégrés **SHAs identiques** (historique préservé, graphe vérifié) |
+| État de `master` | `3fb7b27` — **inchangé** (aucune fusion vers `master`, aucune release, aucun déploiement) |
+| Qualification pré-fusion | `preuves/lot-F1-prefusion-commits-2026-11-25.md` — unitaire **1 112 / 8 / 0 — 114 fichiers** ; émulateur **53/54** (seul échec = flake contractuel sporadique connu, vert isolé 25/25) ; convergence **15/15** sous réchauffage ; typecheck **8 erreurs DT-01 exactes** |
+| Anomalies conservées comme suivi indépendant | (1) émulateur Firestore à froid — **ouverte** ; (2) flake du test contractuel concurrent — **non résolu, surveillé** ; (3) DT-01 — dette gelée ; (4) suppressions AR-4 — à faire sous autorisation |
+| Statut final du chantier | Niveaux 1–4 atteints (décision, code, tests, **committé et intégré dans `develop`**) ; niveau 5 (livraison en production) **non atteint et non revendiqué** — la release et le déploiement restent des décisions distinctes |
