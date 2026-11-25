@@ -1,7 +1,16 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createLocalKitchenRepository } from './localRepositories';
 import { storage } from './storage';
 import { DEFAULT_GROCERY_LIST_NAME, type GroceryItem } from '@/core/grocery';
+import {
+  activeEnvelope,
+  presenceEntryId,
+  projectStockToLegacy,
+  stockDerivedPresence,
+  tombstoneEnvelope,
+  type ElementVersion,
+  type StockSection,
+} from '@/core/kitchen';
 
 /**
  * The scoped kitchen document is tested against a fake localStorage: the interesting part
@@ -22,6 +31,44 @@ function fakeLocalStorage(): void {
 }
 
 afterEach(() => vi.unstubAllGlobals());
+
+/** A deterministic clock: the toggles' versions are asserted exactly. By default the
+ *  built-in pantry preset is cleared so a fresh scope holds no legacy data at all. */
+function makeRepo(scope = 'u1', start = 1_000, options: { withPresetPantry?: boolean } = {}) {
+  const time = { value: start };
+  if (!options.withPresetPantry) storage.savePreferences({ pantryStaples: [] });
+  const repo = createLocalKitchenRepository(() => scope, { now: () => time.value, deviceId: 'devA' });
+  return { repo, time };
+}
+
+const version = (physical: number, device = 'remote', counter = 0): ElementVersion => ({ physical, counter, device });
+
+/** A full ACTIVE envelope for a backup-restore seed (the id must match the deterministic key). */
+const enriched = (
+  location: 'fridge' | 'pantry',
+  ingredientId: string,
+  quantity: number,
+  unit: string
+): StockSection => {
+  const id = presenceEntryId(location, ingredientId);
+  return {
+    [id]: activeEnvelope(
+      {
+        id,
+        ingredient_id: ingredientId,
+        location,
+        origin: 'manual',
+        added_at: '2026-01-01T10:00:00Z',
+        quantity,
+        unit,
+        note: 'paquet ouvert',
+      },
+      version(500, 'otherDevice')
+    ),
+  };
+};
+
+const asStored = (doc: unknown): Record<string, unknown> => doc as Record<string, unknown>;
 
 describe('the local kitchen repository', () => {
   it('saves and reads the named lists back with the active id', () => {
@@ -116,5 +163,265 @@ describe('the local kitchen repository', () => {
     expect(ledger.sectionTimes().groceryLists).toBeGreaterThan(0);
     ledger.confirm(['groceryLists']);
     expect(ledger.pending()).not.toContain('groceryLists');
+  });
+});
+
+describe('the local stock of entries (lot F1, client)', () => {
+  beforeEach(() => fakeLocalStorage());
+
+  it('a scope with no legacy data at all never gets a doc nor a stock section (no needless writes)', () => {
+    const { repo } = makeRepo(); // the built-in pantry preset is cleared: no legacy data at all
+    repo.loadGroceryLists();
+    expect(storage.getKitchenDoc('u1')).toBeNull();
+    expect(repo.loadStock()).toEqual({});
+  });
+
+  it('the built-in pantry preset adopts into the stock like any legacy data (one write)', () => {
+    const { repo } = makeRepo('u1', 1_000, { withPresetPantry: true }); // the preset stays: legacy data
+    const pantry = repo.loadPantry();
+    expect(pantry.length).toBeGreaterThan(0);
+    const stored = asStored(storage.getKitchenDoc('u1'));
+    expect(asStored(stored.stock)).toBeDefined();
+    expect(asStored(stored.pending)).toContain('stock');
+    expect(pantry).toEqual(stockDerivedPresence(repo.loadStock(), 'pantry'));
+  });
+
+  it('ensureStockState converts the legacy lists once, with the same ids and versions as the server', () => {
+    // A doc written by the previous app version: legacy lists wrapped as element sets
+    // (version carried verbatim, physical 500) and no stock section yet
+    storage.saveKitchenDoc('u1', {
+      favorites: [],
+      fridge: ['ing1'],
+      pantry: ['ing2'],
+      weeklyPlan: [],
+      groceryLists: undefined,
+      sections: { fridge: 500, pantry: 501 },
+      pending: [],
+      elements: {
+        fridge: { added: { ing1: { physical: 500, counter: 0, device: 'legacy' } }, removed: {} },
+        pantry: { added: { ing2: { physical: 501, counter: 0, device: 'legacy' } }, removed: {} },
+      },
+      deviceClock: null,
+      lastSyncedAt: null,
+    } as never);
+    const { repo } = makeRepo();
+    expect(repo.loadFridge()).toEqual(['ing1']);
+    expect(repo.loadPantry()).toEqual(['ing2']);
+    const stock = repo.loadStock();
+    const fridgeKey = presenceEntryId('fridge', 'ing1');
+    expect(stock[fridgeKey]?.state).toBe('active');
+    expect(stock[fridgeKey]?.state === 'active' ? stock[fridgeKey].version : null).toEqual({
+      physical: 500,
+      counter: 0,
+      device: 'legacy',
+    });
+    expect(stock[presenceEntryId('pantry', 'ing2')].state === 'tombstoned').toBe(false);
+    // The migrated stock is marked pending (it must reach the other devices) and saved once
+    expect(repo.ledger.pending()).toContain('stock');
+    const stored = asStored(storage.getKitchenDoc('u1'));
+    expect(stored.fridge).toEqual(['ing1']); // the legacy sections stay intact (rollback A)
+    expect(asStored(stored.elements).fridge).toBeDefined();
+    // The conversion is a one-time migration: the named lists migration also ran on this
+    // old doc; a second read adds nothing more
+    expect(repo.ledger.pending()).toEqual(['stock', 'groceryLists']);
+  });
+
+  it('a toggle creates the deterministic bare presence entry, and the list derives from the stock', () => {
+    const { repo, time } = makeRepo();
+    repo.saveFridge(['ing1']);
+    const key = presenceEntryId('fridge', 'ing1');
+    const stock = repo.loadStock();
+    expect(stock[key].state).toBe('active');
+    expect(stock[key].state === 'active' ? stock[key].entry : null).toMatchObject({
+      id: key,
+      ingredient_id: 'ing1',
+      location: 'fridge',
+      origin: 'manual',
+    });
+    expect(stock[key].state === 'active' ? 'quantity' in stock[key].entry : true).toBe(false); // bare presence
+    expect(stock[key].state === 'active' ? stock[key].version : null).toEqual({
+      physical: 1_000,
+      counter: 0,
+      device: 'devA',
+    });
+    expect(repo.loadFridge()).toEqual(['ing1']);
+    expect(repo.ledger.pending()).toContain('stock');
+    expect(repo.ledger.sectionTimes().stock).toBe(time.value);
+    // The derived lists and the local legacy card follow the stock (purely local projection)
+    const stored = asStored(storage.getKitchenDoc('u1'));
+    expect(stored.fridge).toEqual(stockDerivedPresence(repo.loadStock(), 'fridge'));
+    expect(asStored(stored.elements).fridge).toEqual(projectStockToLegacy(repo.loadStock(), 'fridge'));
+    expect(asStored(stored.sections).fridge).toBe(asStored(stored.sections).stock);
+  });
+
+  it('a second toggle tombstones the presence entry: the visible list empties', () => {
+    const { repo } = makeRepo();
+    repo.saveFridge(['ing1']);
+    repo.saveFridge([]);
+    const key = presenceEntryId('fridge', 'ing1');
+    const envelope = repo.loadStock()[key];
+    expect(envelope.state).toBe('tombstoned');
+    expect(envelope.state === 'tombstoned' ? envelope.removed : null).toEqual(envelope.version);
+    expect(repo.loadFridge()).toEqual([]);
+  });
+
+  it('re-adding after the removal creates a fresh bare entry: enriched data never comes back', () => {
+    const { repo } = makeRepo();
+    repo.saveStock(enriched('fridge', 'ing1', 2, 'g')); // an enriched entry (quantity + note)
+    repo.saveFridge([]); // the removal tombstones the enriched entry (stub from the real entry)
+    const key = presenceEntryId('fridge', 'ing1');
+    expect(repo.loadStock()[key].state).toBe('tombstoned');
+    repo.saveFridge(['ing1']); // the re-add is a legitimate new event: bare presence, new version
+    const envelope = repo.loadStock()[key];
+    expect(envelope.state).toBe('active');
+    expect(envelope.state === 'active' ? 'quantity' in envelope.entry : true).toBe(false);
+    expect(envelope.state === 'active' ? 'note' in envelope.entry : true).toBe(false);
+    expect(envelope.state === 'active' ? envelope.version.physical : 0).toBeGreaterThan(500);
+  });
+
+  it('adopting a legacy fridge section from the server converts it into the stock (same ids)', () => {
+    const { repo } = makeRepo();
+    repo.mergeElementSet('fridge', {
+      added: { ing2: { physical: 700, counter: 0, device: 'remote' } },
+      removed: {},
+    });
+    const key = presenceEntryId('fridge', 'ing2');
+    const stock = repo.loadStock();
+    expect(stock[key].state).toBe('active');
+    expect(stock[key].state === 'active' ? stock[key].version : null).toEqual({
+      physical: 700,
+      counter: 0,
+      device: 'remote',
+    });
+    expect(repo.loadFridge()).toEqual(['ing2']);
+    // An adoption records nothing pending (the server already holds the data)
+    expect(repo.ledger.pending()).toEqual([]);
+  });
+  it('mergeStock reconciles the envelopes by HLC version and re-derives the lists', () => {
+    const { repo } = makeRepo();
+    repo.saveStock(enriched('fridge', 'ing1', 2, 'g'));
+    const key = presenceEntryId('fridge', 'ing1');
+    // A remote deletion that is NEWER wins: the entry disappears (its tombstone travels)
+    repo.mergeStock({ [key]: tombstoneEnvelope({ id: key, ingredient_id: 'ing1', location: 'fridge' }, version(900)) });
+    expect(repo.loadFridge()).toEqual([]);
+    expect(repo.loadStock()[key].state).toBe('tombstoned');
+    // A remote add that is OLDER loses: no resurrection, the enriched entry could not be erased either
+    repo.mergeStock({
+      [key]: activeEnvelope(
+        { id: key, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-02T10:00:00Z' },
+        version(100)
+      ),
+    });
+    expect(repo.loadStock()[key].state).toBe('tombstoned');
+    expect(repo.loadFridge()).toEqual([]);
+  });
+
+  it('the global clear tombstones every entry of the location only (clearFridge)', () => {
+    const { repo } = makeRepo();
+    repo.saveStock({
+      ...enriched('fridge', 'ing1', 1, 'g'),
+      ...enriched('fridge', 'ing2', 3, 'kg'),
+      ...enriched('pantry', 'ing3', 1, 'l'),
+    });
+    repo.clearStockLocation('fridge');
+    const stock = repo.loadStock();
+    expect(stock[presenceEntryId('fridge', 'ing1')].state).toBe('tombstoned');
+    expect(stock[presenceEntryId('fridge', 'ing2')].state).toBe('tombstoned');
+    expect(stock[presenceEntryId('pantry', 'ing3')].state).toBe('active');
+    expect(repo.loadFridge()).toEqual([]);
+    expect(repo.loadPantry()).toEqual(['ing3']);
+    expect(repo.ledger.pending()).toContain('stock');
+  });
+
+  it('resetLocal empties the stock too (the clock and the last sync stay)', () => {
+    const { repo } = makeRepo();
+    repo.saveFridge(['ing1']);
+    repo.resetLocal();
+    expect(repo.loadStock()).toEqual({});
+    expect(repo.loadFridge()).toEqual([]);
+    // The stock is gone; the fresh default list fallback is the only pending section left
+    expect(repo.ledger.pending()).toEqual(['groceryLists']);
+    expect(repo.ledger.pending()).not.toContain('stock');
+  });
+
+  it('a backup restore replaces the whole stock and re-derives the lists', () => {
+    const { repo } = makeRepo();
+    repo.saveFridge(['old1']);
+    // One valid enriched entry and one envelope violating the identity invariant (id != key):
+    // the invalid one is dropped, the valid one is stored
+    const valid = enriched('fridge', 'ing1', 2, 'g');
+    const invalidKey = 'st_fridge_ing9';
+    repo.saveStock({
+      ...valid,
+      [invalidKey]: activeEnvelope(
+        {
+          id: 'st_fridge_ing1',
+          ingredient_id: 'ing1',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-01T10:00:00Z',
+        },
+        version(600)
+      ),
+    });
+    const stock = repo.loadStock();
+    const restored = stock[presenceEntryId('fridge', 'ing1')];
+    expect(Object.keys(stock)).toEqual([presenceEntryId('fridge', 'ing1')]);
+    expect(restored.state === 'active' ? restored.entry.quantity : null).toBe(2);
+    expect(repo.loadFridge()).toEqual(['ing1']);
+  });
+
+  it('the removal of an ingredient holding two entries targets ONE entry (E3): the ingredient stays present', () => {
+    const { repo } = makeRepo();
+    const key1 = presenceEntryId('fridge', 'ing1'); // the deterministic presence entry (bare)
+    const extra = 'st_fridge_ing1_x2'; // a second, enriched entry of the same ingredient
+    repo.saveStock({
+      [key1]: activeEnvelope(
+        { id: key1, ingredient_id: 'ing1', location: 'fridge', origin: 'manual', added_at: '2026-01-01T10:00:00Z' },
+        version(100, 'otherDevice')
+      ),
+      [extra]: activeEnvelope(
+        {
+          id: extra,
+          ingredient_id: 'ing1',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-02T10:00:00Z',
+          quantity: 3,
+          unit: 'kg',
+        },
+        version(101, 'otherDevice')
+      ),
+    });
+    repo.saveFridge([]); // the UI removes the visible ingredient once: ONE entry tombstoned
+    const stock = repo.loadStock();
+    expect(stock[key1].state).toBe('tombstoned');
+    expect(stock[extra].state).toBe('active'); // the enriched entry survives untouched
+    expect(repo.loadFridge()).toEqual(['ing1']); // still present: the contract's behavior
+    // A second removal targets the enriched entry now: the ingredient really leaves
+    repo.saveFridge([]);
+    expect(repo.loadStock()[extra].state).toBe('tombstoned');
+    expect(repo.loadFridge()).toEqual([]);
+  });
+
+  it('the ledger counts stock entries the visible lists exclude (permanent exhausted)', () => {
+    const { repo } = makeRepo();
+    const id = presenceEntryId('fridge', 'sel');
+    repo.saveStock({
+      [id]: activeEnvelope(
+        {
+          id,
+          ingredient_id: 'sel',
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-01T10:00:00Z',
+          permanent: true,
+          exhausted_at: '2026-01-01',
+        },
+        version(500)
+      ),
+    });
+    expect(repo.loadFridge()).toEqual([]); // not visible: excluded from the derived presence
+    expect(repo.ledger.hasData()).toBe(true); // but the stock holds data (lot F1 § 4.3)
   });
 });

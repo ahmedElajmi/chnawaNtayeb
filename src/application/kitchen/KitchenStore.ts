@@ -20,7 +20,7 @@ import {
   updateGroceryItemQuantity,
 } from '@/core/grocery';
 import { createId, toggleInList } from '@/core/shared';
-import type { ElementSet, SetSectionName } from '@/core/kitchen';
+import { type ElementSet, type SetSectionName, type StockSection } from '@/core/kitchen';
 import type { KitchenRepository } from '../ports';
 import { Store } from '../store';
 
@@ -70,18 +70,52 @@ export class KitchenStore extends Store<KitchenState> {
   }
 
   // --- Fridge & pantry ---
+  // Lot F1: the visible lists derive from the stock; every change is applied to the
+  // envelopes by the repository (§ 4.1) and the state is re-read from it (the recomputed
+  // presence is authoritative — with several entries for the same ingredient, the removal
+  // targets ONE entry and the ingredient may stay present, the contract's behavior).
   toggleFridgeItem(id: string): void {
     this.updateFridge(toggleInList(this.getState().fridge, id));
   }
 
   clearFridge(): void {
-    this.updateFridge([]);
+    // The explicit global clear: tombstones of EVERY entry of the location (not the E3
+    // single removal of a diff, which would leave extra entries of the same ingredient).
+    this.repo.clearStockLocation('fridge');
+    this.setState({ fridge: this.repo.loadFridge() });
   }
 
   togglePantryItem(id: string): void {
-    const pantry = toggleInList(this.getState().pantry, id);
+    this.updatePantry(toggleInList(this.getState().pantry, id));
+  }
+
+  private updateFridge(fridge: string[]): void {
+    this.repo.saveFridge(fridge);
+    this.setState({ fridge: this.repo.loadFridge() });
+  }
+
+  private updatePantry(pantry: string[]): void {
     this.repo.savePantry(pantry);
-    this.setState({ pantry });
+    this.setState({ pantry: this.repo.loadPantry() });
+  }
+
+  // --- Stock of entries (lot F1) ---
+  /** The stock of entries of this scope: one canonical envelope per entry id (backup export). */
+  stock(): StockSection {
+    return this.repo.loadStock();
+  }
+
+  /** Replaces the whole stock (backup restored): the derived lists are re-read. */
+  setStock(stock: StockSection): void {
+    this.repo.saveStock(stock);
+    this.setState({ fridge: this.repo.loadFridge(), pantry: this.repo.loadPantry() });
+  }
+
+  /** Merges a stock section adopted from the server (sync): the envelopes reconcile by HLC
+   *  version, the visible lists are re-read. */
+  mergeStock(remote: StockSection): void {
+    this.repo.mergeStock(remote);
+    this.setState({ fridge: this.repo.loadFridge(), pantry: this.repo.loadPantry() });
   }
 
   // --- Merges coming from another device (sync): the element sets carry the deletions too ---
@@ -265,11 +299,6 @@ export class KitchenStore extends Store<KitchenState> {
   }
 
   // --- internals ---
-  private updateFridge(fridge: string[]): void {
-    this.repo.saveFridge(fridge);
-    this.setState({ fridge });
-  }
-
   /** The list a change applies to: the given id when it exists, the active list otherwise. */
   private targetList(listId?: string): GroceryList {
     const { groceryLists, activeGroceryListId } = this.getState();

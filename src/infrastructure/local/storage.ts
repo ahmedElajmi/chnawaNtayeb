@@ -3,7 +3,13 @@ import { type DayPlan, DEFAULT_WEEKLY_PLAN, migrateDayPlan } from '@/core/planni
 import type { GroceryItem, GroceryList } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
 import { type AppTheme, isValidTheme } from '@/core/theme';
-import { type DeviceClock, type ElementSet, parseElementSet } from '@/core/kitchen';
+import {
+  type DeviceClock,
+  type ElementSet,
+  parseElementSet,
+  parseStockSection,
+  type StockSection,
+} from '@/core/kitchen';
 
 const KEYS = {
   RECIPES: 'chnowa_recipes_v1',
@@ -46,6 +52,9 @@ export interface StoredKitchenDoc {
   preferencesSyncedAt: number | null;
   /** Element-set state of the three set sections (added/removed versions per id, @/core/kitchen) */
   elements: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet };
+  /** The typed stock of entries (lot F1): one canonical envelope per entry id; absent while
+   *  the doc still holds only the legacy lists (converted once by ensureStockState) */
+  stock?: StockSection;
   /** This device's hybrid logical clock, per scope (never goes backwards); null = no event yet */
   deviceClock: DeviceClock | null;
   /** Last successful exchange with the server for this scope (null = never synced) */
@@ -256,6 +265,9 @@ class StorageService {
         pending: Array.isArray(doc.pending) ? doc.pending.map(String) : [],
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
         elements: readElementSets(doc.elements),
+        // The stock is read through the core parser (tolerant per envelope): a malformed
+        // envelope is dropped, the valid ones are kept — never a `undefined` toward the UI
+        stock: doc.stock === undefined ? undefined : (parseStockSection(doc.stock) ?? undefined),
         deviceClock: readDeviceClock(doc.deviceClock),
         lastSyncedAt: typeof doc.lastSyncedAt === 'number' ? doc.lastSyncedAt : null,
       };

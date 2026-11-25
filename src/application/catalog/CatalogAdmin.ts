@@ -110,8 +110,11 @@ export class CatalogAdmin {
     const { recipes, ingredients } = this.catalog.getState();
     const { weeklyPlan, favorites } = this.kitchen.getState();
     const groceryList = this.kitchen.groceryList;
+    // Lot F1 § 13-B: the stock of entries travels as full envelopes (one per entry id) —
+    // every language, quantity, date and annotation is kept through the round trip.
+    const stock = this.kitchen.stock();
     return JSON.stringify(
-      createBackup({ recipes, ingredients, weeklyPlan, favorites, groceryList }, this.deps.nowIso()),
+      createBackup({ recipes, ingredients, weeklyPlan, favorites, groceryList, stock }, this.deps.nowIso()),
       null,
       2
     );
@@ -134,6 +137,7 @@ export class CatalogAdmin {
     }
     if (backup.favorites) this.kitchen.setFavorites(backup.favorites);
     if (backup.groceryList) this.kitchen.setGroceryList(backup.groceryList);
+    if (backup.stock) this.kitchen.setStock(backup.stock);
     return {
       ok: true,
       recipes: backup.recipes?.length ?? 0,

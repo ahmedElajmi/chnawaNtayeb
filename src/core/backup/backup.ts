@@ -1,6 +1,7 @@
 import { migrateRecipes, parseStoredIngredient, parseStoredRecipe, type Ingredient, type Recipe } from '../catalog';
 import type { GroceryItem } from '../grocery';
 import type { DayPlan } from '../planning';
+import { parseStockSection, type StockSection } from '../kitchen';
 
 /** Content of a backup file once read: only the sections present and valid, plus what was skipped. */
 export interface ParsedBackup {
@@ -10,6 +11,10 @@ export interface ParsedBackup {
   weeklyPlan?: unknown[];
   favorites?: string[];
   groceryList?: GroceryItem[];
+  /** The typed stock of entries (lot F1 § 13-B): full envelopes, read through the core
+   *  parser (tolerant per envelope, identity invariant enforced there) — absent in old
+   *  backups, which stay compatible unchanged. */
+  stock?: StockSection;
   /** Entries that were not valid and were left out */
   skipped: number;
 }
@@ -39,8 +44,8 @@ function parseGroceryItem(raw: unknown): GroceryItem | null {
  */
 export function parseBackup(raw: unknown): ParsedBackup | null {
   if (!isObject(raw)) return null;
-  const known = ['recipes', 'ingredients', 'weekly_plan', 'favorites', 'grocery_list'].filter((k) =>
-    Array.isArray(raw[k])
+  const known = ['recipes', 'ingredients', 'weekly_plan', 'favorites', 'grocery_list', 'stock'].filter(
+    (k) => Array.isArray(raw[k]) || (k === 'stock' && isObject(raw[k]))
   );
   if (known.length === 0) return null;
   let skipped = 0;
@@ -59,6 +64,13 @@ export function parseBackup(raw: unknown): ParsedBackup | null {
   if (Array.isArray(raw.weekly_plan)) result.weeklyPlan = raw.weekly_plan.filter(isObject);
   if (Array.isArray(raw.favorites)) result.favorites = keep(raw.favorites, (x) => (isText(x) ? x : null));
   if (Array.isArray(raw.grocery_list)) result.groceryList = keep(raw.grocery_list, parseGroceryItem);
+  if (raw.stock !== undefined) {
+    // Envelope by envelope: a malformed envelope is dropped (read tolerance), a stock
+    // that is not an object at all is skipped and counted — never a crash
+    const stock = parseStockSection(raw.stock);
+    if (stock) result.stock = stock;
+    else if (raw.stock !== null) skipped++;
+  }
   result.skipped = skipped;
   return result;
 }
@@ -69,6 +81,8 @@ export interface BackupContent {
   weeklyPlan: DayPlan[];
   favorites: string[];
   groceryList: GroceryItem[];
+  /** The typed stock of entries (lot F1 § 13-B): full envelopes, one per entry id */
+  stock?: StockSection;
 }
 
 /**
@@ -85,5 +99,6 @@ export function createBackup(content: BackupContent, exportedAt: string) {
     weekly_plan: content.weeklyPlan,
     favorites: content.favorites,
     grocery_list: content.groceryList,
+    ...(content.stock !== undefined ? { stock: content.stock } : {}),
   };
 }

@@ -62,6 +62,13 @@ export const TOMBSTONE_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
  * clock-skew margin under the retention): a device that could resurrect an element is wiped first. */
 export const STALE_DEVICE_MS = TOMBSTONE_RETENTION_MS - 7 * 24 * 60 * 60 * 1000;
 
+/** The server-reserved device id inside sync versions (lot F1 § 7.5): only the server's own
+ *  legacy projection writes it, so a version carrying it in a pushed map is an ECHO of the
+ *  projection — never a business operation. Real device ids always contain a dash
+ *  (`crypto.randomUUID()` or the `<ts36>-<random>` fallback of `storage.deviceId()`), so they
+ *  can never equal this literal: the disjointness is structural, not conventional. */
+export const RESERVED_SYNC_DEVICE = 'server';
+
 export const EMPTY_ELEMENT_SET: ElementSet = { added: {}, removed: {} };
 
 const EMPTY_SET = (): ElementSet => ({ added: {}, removed: {} });

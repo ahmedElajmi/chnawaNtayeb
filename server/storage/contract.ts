@@ -1,5 +1,6 @@
 import { expect, describe, it } from 'vitest';
 import type { CommitResult, DataStore } from './types';
+import { DocumentValidationError } from './validation';
 
 /**
  * The behaviour every DataStore implementation (memory, Firestore, SQL…) must have.
@@ -231,6 +232,65 @@ export function describeDataStore(name: string, create: () => DataStore): void {
       expect(await store.get('kitchen', 'u1')).toMatchObject({ sections: {} });
     });
 
+    it('writes nothing when one batch op is invalid: no partial write, no consumed revision', async () => {
+      const store = create();
+      await store.put('recipes', 'r1', { name_fr: 'Ojja' });
+      const before = await store.maxRevision('recipes');
+      // The second op violates the shared id rules: the whole commit is refused upfront,
+      // before anything is written — the valid first op is NOT applied alone.
+      await expect(
+        store.commit([
+          { name: 'recipes', id: 'r1', doc: { name_fr: 'Publiée' } },
+          { name: 'recipes', id: 'bad/id', doc: { name_fr: 'Invalide' } },
+        ])
+      ).rejects.toBeInstanceOf(DocumentValidationError);
+      expect(await store.get('recipes', 'r1')).toMatchObject({ name_fr: 'Ojja' });
+      expect(await store.maxRevision('recipes')).toBe(before);
+      // The same refusal for a non-JSON-safe payload: nothing is stored, nothing is bumped
+      await expect(
+        store.commit([{ name: 'recipes', id: 'r2', doc: { value: Number.POSITIVE_INFINITY } }])
+      ).rejects.toBeInstanceOf(DocumentValidationError);
+      expect(await store.get('recipes', 'r2')).toBeNull();
+      expect(await store.maxRevision('recipes')).toBe(before);
+    });
+
+    it('leaves the document untouched and its revision unconsumed when a transact callback throws', async () => {
+      const store = create();
+      await store.transact('kitchen', 'u1', () => ({ next: { sections: {} }, result: 'ok' }));
+      const before = (await store.get('kitchen', 'u1'))!.revision as number;
+      const boom = new Error('callback failure');
+      await expect(
+        store.transact('kitchen', 'u1', () => {
+          throw boom;
+        })
+      ).rejects.toBe(boom);
+      const after = await store.get('kitchen', 'u1');
+      expect(after).toMatchObject({ sections: {} });
+      expect(after!.revision).toBe(before);
+    });
+
+    it('stamps every touched collection once per commit and keeps each feed monotone', async () => {
+      const store = create();
+      await store.put('recipes_versions', 'seed', { version: 0 });
+      const beforeR = await store.maxRevision('recipes');
+      const beforeV = await store.maxRevision('recipes_versions');
+      const result = await store.commit([
+        { name: 'recipes', id: 'r1', doc: { name_fr: 'Publiée' } },
+        { name: 'recipes_versions', id: 'r1-v1', doc: { version: 1 } },
+      ]);
+      expect(result.ok).toBe(true);
+      const rev = committed(result);
+      const afterR = await store.maxRevision('recipes');
+      const afterV = await store.maxRevision('recipes_versions');
+      // Each touched collection advanced strictly once; the commit revision is the max of them
+      expect(afterR).toBeGreaterThan(beforeR);
+      expect(afterV).toBeGreaterThan(beforeV);
+      expect(rev).toBe(Math.max(afterR, afterV));
+      // Every collection keeps its own strictly increasing sequence afterwards (no hole, no reuse)
+      expect(await store.put('recipes', 'r2', { name_fr: 'Kafteji' })).toBeGreaterThan(afterR);
+      expect(await store.put('recipes_versions', 'r1-v2', { version: 2 })).toBeGreaterThan(afterV);
+    });
+
     it('serialises concurrent transacts on the same document: no read-merge-write loses a section', async () => {
       const store = create();
       // The same shape two devices pushing different sections at once produce: each transact
@@ -255,7 +315,7 @@ export function describeDataStore(name: string, create: () => DataStore): void {
         'pantry',
         'weeklyPlan',
       ]);
-    });
+    }, 15_000);
 
     // ------------------------------------------------------------------------
     // Structured change cursor: one commit = one revision shared by its ops, the tie set

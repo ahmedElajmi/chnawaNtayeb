@@ -18,7 +18,9 @@ describe('the kitchen sync HTTP gateway', () => {
   it('answers null when the account has no document yet', async () => {
     const fetchMock = vi.fn(async () => jsonResponse(200, { ok: true, doc: null }));
     vi.stubGlobal('fetch', fetchMock);
-    await expect(kitchenSyncHttpGateway.pull()).resolves.toBeNull();
+    const pull = await kitchenSyncHttpGateway.pull();
+    expect(pull.doc).toBeNull();
+    expect(pull.reconciliationRequired).toBe(false);
   });
 
   it('reads the stored document back in the port shape', async () => {
@@ -39,8 +41,8 @@ describe('the kitchen sync HTTP gateway', () => {
       })
     );
     vi.stubGlobal('fetch', fetchMock);
-    const doc = await kitchenSyncHttpGateway.pull();
-    expect(doc).toEqual({
+    const pull = await kitchenSyncHttpGateway.pull();
+    expect(pull.doc).toEqual({
       favorites: { value: elementSet(['r1'], [], 100), updatedAt: 100 },
       groceryLists: { value: { lists: [{ id: 'l1' }], activeId: 'l1' }, updatedAt: 200 },
     });
@@ -54,9 +56,52 @@ describe('the kitchen sync HTTP gateway', () => {
     await expect(kitchenSyncHttpGateway.pull()).rejects.toThrow('kitchen_unavailable');
   });
 
+  it('declares the protocol version on every request and reads back the reconciliation signal', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      expect(headers['X-Kitchen-Protocol-Version']).toBe('1');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true, doc: null }),
+        headers: new Headers({ 'X-Kitchen-Protocol-Status': 'reconciliation-required' }),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const pull = await kitchenSyncHttpGateway.pull();
+    expect(pull.doc).toBeNull();
+    expect(pull.reconciliationRequired).toBe(true);
+  });
+
+  it('reports no reconciliation signal when the response carries none', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => jsonResponse(200, { ok: true, doc: null }))
+    );
+    const pull = await kitchenSyncHttpGateway.pull();
+    expect(pull.reconciliationRequired).toBe(false);
+  });
+
+  it('surfaces the protocol refusals as distinct codes, for pull and push alike', async () => {
+    const refused = (status: number, error: string): Response =>
+      ({ ok: false, status, json: async () => ({ ok: false, error }) }) as unknown as Response;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => refused(409, 'protocol-version-unsupported'))
+    );
+    await expect(kitchenSyncHttpGateway.pull()).rejects.toThrow('kitchen_protocol_unsupported');
+    await expect(kitchenSyncHttpGateway.push({})).rejects.toThrow('kitchen_protocol_unsupported');
+    const invalid = vi.fn(async () => refused(400, 'protocol-version-invalid'));
+    vi.stubGlobal('fetch', invalid);
+    await expect(kitchenSyncHttpGateway.pull()).rejects.toThrow('kitchen_protocol_invalid');
+    await expect(kitchenSyncHttpGateway.push({})).rejects.toThrow('kitchen_protocol_invalid');
+  });
+
   it('sends the changed sections in the server shape and returns the merged document', async () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       expect(init?.method).toBe('PUT');
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      expect(headers['X-Kitchen-Protocol-Version']).toBe('1');
       expect(JSON.parse(String(init?.body))).toEqual({
         sections: { favorites: { value: elementSet(['r1', 'r2'], [], 500), updated_at: 500 } },
       });

@@ -6,3 +6,6 @@ public
 brand
 *.py
 docs/encyclopedie/mockups
+docs/evolutions/**/analyses/
+docs/evolutions/**/preuves/
+docs/reference-visuelle/site/

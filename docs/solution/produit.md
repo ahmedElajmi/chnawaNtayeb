@@ -1,0 +1,84 @@
+# 01 · Produit
+
+## L'idée
+
+**Chnowa Ntayeb ?** (« Qu'est-ce que je cuisine ? » en derja tunisienne) by **Chef Souhed**
+aide à trouver quoi cuisiner en 30 secondes avec ce qu'il y a dans le frigo, en priorité des
+plats tunisiens familiaux. Slogan : _« Elli 3andek fel frigo, na3mlou bih makla ! »_.
+
+C'est une **application web installable (PWA)** : elle fonctionne dans le navigateur, s'installe
+sur l'écran d'accueil d'un téléphone et reste utilisable hors ligne.
+
+## Les utilisateurs
+
+| Qui                          | Ce qu'il fait                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Visiteur                     | Coche les ingrédients de son frigo, voit ses suggestions et tout le catalogue, prépare menu et courses (ne crée ni ingrédient ni recette) |
+| Visiteur avec un compte      | Idem, compte Firebase (invité ou e-mail)                                                                                                  |
+| Super admin (administrateur) | Seul à gérer recettes, ingrédients, prix, thèmes et réglages du moteur, dans `/admin`                                                     |
+
+## Les écrans
+
+| Adresse         | Écran         | Rôle                                                                                                                                                                                                                                      |
+| --------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`             | Accueil       | Présentation, raccourcis (express, < 5 DT, tradition, healthy), recettes prêtes                                                                                                                                                           |
+| `/fridge`       | El Frigo      | Cocher ses ingrédients (récapitulatif en haut), bouton panier par ingrédient (ajout à la liste de courses ; la liste cible est demandée quand il y en a plusieurs), placard, scan photo (IA) ; ajout d'ingrédients réservé au super admin |
+| `/recipes`      | Maklet        | Catalogue complet (recettes faisables avec le frigo en premier), avec filtres                                                                                                                                                             |
+| `/suggestions`  | Suggestions   | Recettes classées en « prêtes », « presque prêtes », « idées » selon le frigo                                                                                                                                                             |
+| `/recipe/:slug` | Fiche recette | Ingrédients (disponibles / manquants / remplacés), étapes, vidéo, manquants sélectionnables ajoutés aux courses                                                                                                                           |
+| `/planner`      | Menu Jom3a    | Menu de la semaine (déjeuner, dîner ; entrée, plat, dessert), génération automatique                                                                                                                                                      |
+| `/grocery`      | Qadhya        | Listes de courses nommées (créer, renommer, dupliquer, supprimer ; générée depuis le menu, ajout d'ingrédients du catalogue ou manuel avec unité), unités changeables, partage WhatsApp                                                   |
+| `/admin`        | Backoffice    | Administration (voir [07 Backoffice](backoffice.md))                                                                                                                                                                                   |
+
+## Catalogue et suggestions : deux écrans
+
+- **`/recipes` (Toutes les recettes)** : toutes les recettes publiées, quel que soit le frigo. Les
+  recettes faisables passent en premier (prêtes → presque prêtes → idées → les autres).
+- **`/suggestions` (Mes suggestions)** : uniquement les recettes liées au frigo, par niveau. C'est là
+  que mène le bouton « Trouver mes recettes ! » du frigo. Frigo vide : invitation à le remplir.
+
+Des onglets en haut des deux écrans permettent de passer de l'un à l'autre en gardant les filtres.
+
+## Les trois niveaux de suggestions
+
+- **Njem ntayebha tawa ! (prêtes)** : rien à acheter.
+- **Naqsek ken chwaya (presque prêtes)** : une ou deux courses.
+- **Afkar okhra behya (idées)** : recettes liées au frigo, mais avec davantage de courses.
+
+Le détail des règles est dans [04 Moteur de matching](moteur-matching.md).
+
+## Langues
+
+Une seule liste, `LANGUAGES` (`@/core/shared/language.ts`) : **derja** en lettres latines
+(chiffres arabizi 3, 7, 9 — langue par défaut), **français** (langue de référence), **arabe
+littéraire** et **derja en lettres arabes** (`derja_ar`, `src/shared/i18n/derjaArabic.ts`) ; la
+derja est une variante de la famille arabe (affichage de droite à gauche pour les écritures
+arabes). Chaque entrée donne le sens d'écriture, `lang`, le tri et l'**ordre de repli** (une langue
+vide affiche sa liste de repli, le français en dernier).
+
+Une variante est écrite en entier, jamais empruntée à sa famille : la derja en lettres arabes
+n'est pas de l'arabe littéraire, et l'arabe littéraire ne contient aucun mot de derja (vérifié par
+les tests des dictionnaires, voir [06](interface.md)).
+
+Chaque contenu (recette, ingrédient, thème, catégorie) porte ses champs `<champ>_<langue>`
+(`name_fr`, `name_derja`, `name_derja_ar`…) ; les variantes récentes sont facultatives (vides =
+absentes). Le backoffice suit la langue courante, comme le reste du site. Règles de lecture et
+d'affichage : [03 § shared](domaine.md) et [06 § Langues](interface.md).
+
+## Vocabulaire
+
+| Terme                    | Sens                                                                                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frigo                    | Ingrédients cochés par l'utilisateur                                                                                                                           |
+| Placard (pantry)         | Ingrédients toujours disponibles à la maison (sel, huile, épices…), réglables par l'utilisateur                                                                |
+| Ingrédient clé (`key`)   | Sans lui le plat n'existe pas (merguez d'une ojja merguez)                                                                                                     |
+| Secondaire (`secondary`) | Nécessaire, mais on peut l'acheter (oignon, poivron…)                                                                                                          |
+| Épice / base (`staple`)  | Sel, huile, épices : ne bloque jamais une recette                                                                                                              |
+| Substitution             | Ingrédient qui en remplace un autre (agneau au lieu de bœuf)                                                                                                   |
+| Unités compatibles       | Deux unités de même famille (g et kg, ml et l) : on peut les additionner et convertir ; deux choses comptées différentes (pièce, botte) ne se mélangent jamais |
+| Catégorie (course)       | Entrée, plat principal ou dessert                                                                                                                              |
+| Express                  | Recette de 20 minutes ou moins (calculé, pas saisi)                                                                                                            |
+| Healthy                  | Plat équilibré, marqué par le super admin                                                                                                                      |
+| Super admin              | Administrateur, connecté par le serveur                                                                                                                        |
+| Scénario du chef         | Règle de qualité « avec ce frigo, on doit voir ces plats »                                                                                                     |
+| DT                       | Dinar tunisien                                                                                                                                                 |

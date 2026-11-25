@@ -1,4 +1,4 @@
-import { deleteApp, initializeApp, cert, type App } from 'firebase-admin/app';
+import { deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { afterAll, beforeAll, describe } from 'vitest';
 import { createFirestoreStore } from './firestoreStore';
@@ -32,15 +32,10 @@ const emulatorReady = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env
 
 beforeAll(async () => {
   if (!emulatorReady) return;
-  app = initializeApp({
-    // The emulator accepts any credential shape; the project id comes from the environment
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      clientEmail: 'test@example.com',
-      privateKey: 'x',
-    } as never),
-    projectId: process.env.FIREBASE_PROJECT_ID,
-  });
+  // firebase-admin 14 rejects a fake `cert` key at init (OpenSSL decode). On the emulator the
+  // documented pattern is a projectId-only app: the Firestore client sees FIRESTORE_EMULATOR_HOST
+  // and uses the no-auth channel.
+  app = initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID });
 });
 
 afterAll(async () => {

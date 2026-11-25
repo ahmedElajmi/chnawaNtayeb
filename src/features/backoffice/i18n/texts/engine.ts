@@ -134,7 +134,7 @@ export const enginesTexts = defineTexts(
     engLastRun: 'Derniers tests : {time} · {passed} réussi(s), {failed} en échec.',
     engScenariosLoadError: 'Base injoignable : la liste n’a pas pu être chargée (« Lancer les tests » pour réessayer).',
     engNoScenario:
-      'Aucun scénario en base. Ajoutez-en un, ou importez un export (fichier initial : docs/encyclopedie/donnees/scenarios-initiaux.json).',
+      'Aucun scénario en base. Ajoutez-en un, ou importez un export (fichier initial : docs/solution/references/scenarios-initiaux.json).',
     engBrokenByDraft: '(cassé par le brouillon)',
     engTestScenario: 'Tester « {title} »',
     engTestHint: 'Tester : voir les suggestions',
@@ -316,7 +316,7 @@ export const enginesTexts = defineTexts(
       engLastRun: 'Ekher tests : {time} · {passed} njahou, {failed} ma njahouch.',
       engScenariosLoadError: 'El base ma tjewebch : el lista ma tchargetech (« Ebda el tests » bech t3awed).',
       engNoScenario:
-        'Ma fama 7atta scénario fel base. Zid wa7ed, walla importi export (fichier loul : docs/encyclopedie/donnees/scenarios-initiaux.json).',
+        'Ma fama 7atta scénario fel base. Zid wa7ed, walla importi export (fichier loul : docs/solution/references/scenarios-initiaux.json).',
       engBrokenByDraft: '(el brouillon kassrou)',
       engTestScenario: 'Testi « {title} »',
       engTestHint: 'Testi : chouf el suggestions',
@@ -494,7 +494,7 @@ export const enginesTexts = defineTexts(
       engScenariosLoadError:
         'تعذّر الاتصال بقاعدة البيانات: لم تُحمَّل القائمة (« تشغيل الاختبارات » لإعادة المحاولة).',
       engNoScenario:
-        'لا يوجد أي سيناريو في قاعدة البيانات. أضف واحدًا، أو استورد تصديرًا (الملف الأولي: docs/encyclopedie/donnees/scenarios-initiaux.json).',
+        'لا يوجد أي سيناريو في قاعدة البيانات. أضف واحدًا، أو استورد تصديرًا (الملف الأولي: docs/solution/references/scenarios-initiaux.json).',
       engBrokenByDraft: '(أفسدته المسودة)',
       engTestScenario: 'اختبار « {title} »',
       engTestHint: 'اختبار: عرض الاقتراحات',
@@ -672,7 +672,7 @@ export const enginesTexts = defineTexts(
       engLastRun: 'آخر تستات: {time} · {passed} نجحو، {failed} ما نجحوش.',
       engScenariosLoadError: 'القاعدة ما تجاوبش: الليستة ما تشارجاتش (« ابدا التستات » باش تعاود).',
       engNoScenario:
-        'ما فمّا حتى سيناريو في القاعدة. زيد واحد، ولّا إمپورتي إكسبور (الفيشي اللوّل: docs/encyclopedie/donnees/scenarios-initiaux.json).',
+        'ما فمّا حتى سيناريو في القاعدة. زيد واحد، ولّا إمپورتي إكسبور (الفيشي اللوّل: docs/solution/references/scenarios-initiaux.json).',
       engBrokenByDraft: '(المسودّة كسّرتو)',
       engTestScenario: 'تستي « {title} »',
       engTestHint: 'تستي: شوف الاقتراحات',

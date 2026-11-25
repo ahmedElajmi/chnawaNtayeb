@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Guards the architecture rules of docs/encyclopedie/02-architecture.md:
+ * Guards the architecture rules of docs/solution/architecture.md:
  * the domain (src/core) is plain TypeScript, with no UI framework, backend SDK or browser API,
  * so that the backend and the UI framework can be replaced without touching business rules.
  */

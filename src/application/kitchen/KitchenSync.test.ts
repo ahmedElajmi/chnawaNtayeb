@@ -4,10 +4,23 @@ import { KitchenSync } from './KitchenSync';
 import {
   EMPTY_ELEMENT_SET,
   STALE_DEVICE_MS,
+  convertLegacyElementSet,
   mergeElementSets,
+  mergeLegacyCandidates,
+  mergeStockSections,
+  parseStockSection,
+  presenceEntryId,
+  presenceEnvelope,
   presentIds,
+  stockDerivedPresence,
+  stockRemovalTarget,
+  tombstonedFromEntry,
+  tombstoneStockLocation,
   wrapLegacyList,
   type ElementSet,
+  type StockEnvelope,
+  type StockLocation,
+  type StockSection,
 } from '@/core/kitchen';
 import type { DayId } from '@/core/planning';
 import type { GroceryList } from '@/core/grocery';
@@ -17,6 +30,7 @@ import type {
   KitchenSyncLedger,
   PreferencesRepository,
   RemoteKitchenDocument,
+  RemoteKitchenPull,
   RemoteKitchenSections,
 } from '../ports';
 
@@ -70,9 +84,13 @@ interface Harness {
     pushes: RemoteKitchenSections[];
     remote: RemoteKitchenDocument | null;
     fail: 'pull' | 'push' | null;
+    /** Error code thrown by the fake instead of the default one (protocol refusals) */
+    failCode: string | null;
     /** Responses held in flight until the test releases them (oldest first) */
     holdPulls: number;
     holdPushes: number;
+    /** Reconciliation signal carried by the next pull (B22-07, undefined = none) */
+    reconciliationRequired: boolean | undefined;
     release: () => void;
   };
   time: { value: number };
@@ -110,9 +128,21 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       elements[section] = wrapLegacyList(legacyIds as string[], 100)!;
     }
   }
+  // Lot F1: the stock of entries the visible fridge/pantry lists derive from (like the real
+  // migration, the legacy lists convert once with the same core function)
+  const stock: Record<string, StockEnvelope> = {};
+  for (const location of ['fridge', 'pantry'] as const) {
+    const set = elements[location];
+    if (set) Object.assign(stock, convertLegacyElementSet(set, location));
+  }
+  const presence = (location: StockLocation): string[] => stockDerivedPresence(stock, location);
+  const refreshDerived = (): void => {
+    data.fridge = presence('fridge');
+    data.pantry = presence('pantry');
+  };
 
-  /** A local list save: the diff becomes versions, like the real repository records them. */
-  const saveList = (section: 'favorites' | 'fridge' | 'pantry', ids: string[]): void => {
+  /** A local favorites save: the diff becomes versions, like the real repository records them. */
+  const saveList = (section: 'favorites', ids: string[]): void => {
     const before = (data[section] as string[]) ?? [];
     data[section] = ids;
     const set = elements[section] ?? EMPTY_ELEMENT_SET;
@@ -129,11 +159,37 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     }
   };
 
+  /** A local fridge/pantry save: the diff becomes stock envelopes (lot F1, like the real
+   * repository records them) — the change is marked pending as the 'stock' section. */
+  const saveStockList = (location: StockLocation, ids: string[]): void => {
+    const before = presence(location);
+    if (before.length === ids.length && before.every((id, i) => id === ids[i])) return;
+    const physical = Math.max(deviceClock.physical + 1, time.value);
+    deviceClock = { physical, counter: 0, device: 'test' };
+    const version = { ...deviceClock };
+    for (const id of ids) {
+      if (before.includes(id)) continue;
+      const key = presenceEntryId(location, id);
+      if (stock[key]?.state === 'active') continue;
+      stock[key] = presenceEnvelope(location, id, version);
+    }
+    for (const id of before) {
+      if (ids.includes(id)) continue;
+      const target = stockRemovalTarget(stock, location, id);
+      if (target) stock[target] = tombstonedFromEntry(stock[target], version);
+    }
+    if (!syncState.suspended) {
+      ledgerData.pending.add('stock');
+      ledgerData.times.stock = time.value;
+    }
+    refreshDerived();
+  };
+
   const repo: KitchenRepository = {
-    loadFridge: () => data.fridge as string[],
-    saveFridge: (ids) => saveList('fridge', ids),
-    loadPantry: () => data.pantry as string[],
-    savePantry: (ids) => saveList('pantry', ids),
+    loadFridge: () => presence('fridge'),
+    saveFridge: (ids) => saveStockList('fridge', ids),
+    loadPantry: () => presence('pantry'),
+    savePantry: (ids) => saveStockList('pantry', ids),
     loadFavorites: () => data.favorites as string[],
     saveFavorites: (ids) => saveList('favorites', ids),
     loadWeeklyPlan: () => data.weeklyPlan as never,
@@ -153,10 +209,34 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       }
     },
     elementSet: (section) => elements[section] ?? EMPTY_ELEMENT_SET,
+    loadStock: () => ({ ...stock }),
+    saveStock: (next) => {
+      for (const key of Object.keys(stock)) delete stock[key];
+      Object.assign(stock, parseStockSection(next) ?? {});
+      refreshDerived();
+    },
+    mergeStock: (remote) => {
+      const parsed = parseStockSection(remote);
+      if (!parsed) return;
+      Object.assign(stock, mergeStockSections(stock, parsed));
+      refreshDerived();
+    },
+    clearStockLocation: (location) => {
+      const physical = Math.max(deviceClock.physical + 1, time.value);
+      deviceClock = { physical, counter: 0, device: 'test' };
+      Object.assign(stock, tombstoneStockLocation(stock, location, { ...deviceClock }));
+      refreshDerived();
+    },
     mergeElementSet: (section, remote) => {
       const merged = mergeElementSets(elements[section] ?? EMPTY_ELEMENT_SET, remote);
       elements[section] = merged;
-      data[section] = presentIds(merged);
+      if (section !== 'favorites') {
+        // Like the real adapter: a legacy fridge/pantry section adopted from the server
+        // converts into the stock with the same core function (§ 7.2)
+        Object.assign(stock, mergeLegacyCandidates(stock, convertLegacyElementSet(remote, section)));
+      }
+      if (section === 'favorites') data.favorites = presentIds(merged);
+      else refreshDerived();
     },
     resetLocal: () => {
       for (const section of ['favorites', 'fridge', 'pantry', 'weeklyPlan'] as const) {
@@ -166,6 +246,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
       const fresh = list('fresh');
       data.groceryLists = groceryLists([fresh]);
       for (const section of ['favorites', 'fridge', 'pantry'] as const) delete elements[section];
+      for (const key of Object.keys(stock)) delete stock[key];
       ledgerData.pending.clear();
       for (const key of Object.keys(ledgerData.times)) delete ledgerData.times[key];
     },
@@ -216,8 +297,10 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     pushes: [] as RemoteKitchenSections[],
     remote: null as RemoteKitchenDocument | null,
     fail: null as 'pull' | 'push' | null,
+    failCode: null as string | null,
     holdPulls: 0,
     holdPushes: 0,
+    reconciliationRequired: undefined as boolean | undefined,
     release: () => undefined,
   };
   const held: (() => void)[] = [];
@@ -225,7 +308,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     held.shift()?.();
   };
   const gatewayPort = {
-    async pull(): Promise<RemoteKitchenDocument | null> {
+    async pull(): Promise<RemoteKitchenPull> {
       gateway.pulls += 1;
       // The document is snapshotted before waiting: the release must answer with the
       // version this request would have received, not the one the server holds later
@@ -234,8 +317,8 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         gateway.holdPulls -= 1;
         await new Promise<void>((resolve) => held.push(resolve));
       }
-      if (gateway.fail === 'pull') throw new Error('unreachable');
-      return snapshot;
+      if (gateway.fail === 'pull') throw new Error(gateway.failCode ?? 'unreachable');
+      return { doc: snapshot, reconciliationRequired: gateway.reconciliationRequired ?? false };
     },
     async push(sections: RemoteKitchenSections): Promise<RemoteKitchenDocument> {
       gateway.pushes.push(sections);
@@ -250,7 +333,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         gateway.holdPushes -= 1;
         await new Promise<void>((resolve) => held.push(resolve));
       }
-      if (gateway.fail === 'push') throw new Error('refused');
+      if (gateway.fail === 'push') throw new Error(gateway.failCode ?? 'refused');
       gateway.remote = merged;
       return merged;
     },
@@ -320,7 +403,9 @@ describe('the kitchen sync engine', () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(h.gateway.pushes).toHaveLength(1);
     expect(presentIds(h.gateway.pushes[0].favorites!.value)).toEqual(['r0', 'r1', 'r2']);
-    expect(presentIds(h.gateway.pushes[0].fridge!.value)).toEqual(['ing1']);
+    // The fridge change travels as its stock section: one deterministic presence envelope
+    const stock = h.gateway.pushes[0].stock!.value as StockSection;
+    expect(stockDerivedPresence(stock, 'fridge')).toEqual(['ing1']);
     expect(h.sync.getState().pending).toBe(0);
   });
 
@@ -375,6 +460,67 @@ describe('the kitchen sync engine', () => {
     // The adoption marked nothing pending and triggered no push
     expect(h.ledger.pendingSet.size).toBe(0);
     expect(h.gateway.pushes).toHaveLength(0);
+  });
+
+  it('adopts a remote stock not older than ours without any echo, and ignores an older one (lot F1)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0);
+
+    // Concurrent pushes land under one server timestamp: the answer to OUR pull may carry
+    // another device's envelope inside OUR OWN section time. The stock is adopted when it
+    // is not older, and the adoption runs under suspend(): nothing pending, no push, no echo
+    h.ledger.times.stock = 500;
+    h.gateway.remote = {
+      stock: {
+        value: {
+          [presenceEntryId('fridge', 'ingX')]: presenceEnvelope('fridge', 'ingX', {
+            physical: 900,
+            counter: 0,
+            device: 'devB',
+          }),
+        },
+        updatedAt: 500,
+      },
+    };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().fridge).toEqual(['ingX']);
+    expect(h.ledger.pendingSet.size).toBe(0);
+    expect(h.gateway.pushes).toHaveLength(0);
+
+    // A strictly older remote stock changes nothing (same strict rule as the other sections)
+    h.gateway.remote = {
+      stock: {
+        value: {
+          [presenceEntryId('pantry', 'ingY')]: presenceEnvelope('pantry', 'ingY', {
+            physical: 400,
+            counter: 0,
+            device: 'devC',
+          }),
+        },
+        updatedAt: 400,
+      },
+    };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.kitchen.getState().pantry).toEqual([]);
+  });
+
+  it('never pushes a stock section stamped 0: 0 means "never written", the device clock goes out (lot F1)', async () => {
+    const h = makeHarness({ fridge: ['ing1'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.kitchen.toggleFridgeItem('ing1'); // a change flushes the pending stock section
+    h.ledger.times.stock = 0; // a persisted 0 adopted from an earlier server build (it once
+    // stamped its converted stock sections 0 — the server half of D3): the device heals by
+    // sending its own clock instead, which the fixed server accepts
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1);
+    expect(h.gateway.pushes[0].stock!.updatedAt).toBe(h.time.value);
   });
 
   it('pushes the named lists as one groceryLists section (debounced)', async () => {
@@ -584,6 +730,84 @@ describe('the kitchen sync engine', () => {
     expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r1', 'r2']);
     expect(h.sync.getState().pending).toBe(0);
     expect(h.sync.getState().failed).toBe(false);
+  });
+
+  it('keeps the local modifications intact when the push is refused for the protocol version (B22-07)', async () => {
+    const h = makeHarness({ favorites: ['r0'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    // The protocol refusal surfaces as a distinct code; nothing local is lost: the change
+    // stays pending, no acknowledgment is recorded, no local data is dropped or replaced
+    h.gateway.fail = 'push';
+    h.gateway.failCode = 'kitchen_protocol_unsupported';
+    h.kitchen.toggleFavorite('r1');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1);
+    expect(h.sync.getState().failed).toBe(true);
+    expect(h.sync.getState().pending).toBe(1);
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
+    expect(h.kitchen.getState().favorites).toEqual(['r0', 'r1']);
+
+    // After the client update the same changes leave with a supported version
+    h.gateway.fail = null;
+    h.gateway.failCode = null;
+    h.time.value += 10_000;
+    h.kitchen.toggleFavorite('r2');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(presentIds(h.gateway.pushes[1].favorites!.value)).toEqual(['r0', 'r1', 'r2']);
+    expect(h.sync.getState().pending).toBe(0);
+    expect(h.sync.getState().failed).toBe(false);
+  });
+
+  it('a failed pull does not erase a recorded reconciliation signal (B22-07)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+
+    h.gateway.reconciliationRequired = true;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+
+    // A failed pull changes nothing but `failed`: the signal stays until a SUCCESSFUL
+    // pull without it — which, the server signaling deterministically per declared
+    // version, only happens once the mismatch is genuinely resolved
+    h.gateway.fail = 'pull';
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+    expect(h.sync.getState().failed).toBe(true);
+
+    h.gateway.fail = null;
+    h.gateway.reconciliationRequired = false; // updated client: the server no longer signals
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
+  });
+
+  it('records the reconciliation signal idempotently and only while it is signaled (B22-07)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false); // the startup pull carries none
+
+    h.gateway.reconciliationRequired = true;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(true);
+
+    // A pull without signal means the mismatch is resolved (updated client): the marker
+    // reflects the LAST pull only — never a server proof, erased by nothing else
+    h.gateway.reconciliationRequired = false;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().reconciliationRequired).toBe(false);
   });
 
   it('reloads the local state and pulls when the account changes', async () => {

@@ -30,7 +30,7 @@ import { withTransactRetries, type SqlConflictClass } from './conflicts';
  * migration (lot 1.5, then the explicit decision). Every engine passes the same contract
  * suite (server/storage/contract.ts); the SQLite run proves it locally, any other engine
  * must run it (and the contention suite) before being declared compatible — capability
- * matrix in docs/encyclopedie/donnees/lot-1.4-matrice-capacites.md.
+ * matrix in docs/evolutions/fondations-techniques/bascule-fournisseur/analyses/lot-1.4-matrice-capacites.md.
  */
 
 /** The JSON path dialects of the engines we target (equality queries on one field). */

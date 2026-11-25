@@ -1,0 +1,318 @@
+# 06 · Interface
+
+React 19, Vite, Tailwind CSS 4, react-router 7, icônes lucide-react.
+
+## Organisation
+
+| Dossier                     | Contenu                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `src/app/App.tsx`           | Fournisseurs (conteneur, langue, thème) et routeur                             |
+| `src/app/AppRoutes.tsx`     | Routes ; recette par-dessus l'écran d'origine ; backoffice chargé à la demande |
+| `src/app/AppLayout.tsx`     | En-tête, contenu, pied de page, barre du bas, fenêtres compte et réglages      |
+| `src/app/layout/`           | `Header`, `BottomNav`                                                          |
+| `src/app/providers/`        | `LanguageContext`, `ThemeContext`                                              |
+| `src/app/homeNavigation.ts` | Accueil en bas de l'historique, « appuyez encore pour quitter »                |
+| `src/features/<écran>/`     | Page de l'écran + ses composants                                               |
+| `src/shared/`               | `paths.ts`, `i18n/translations.ts`, `hooks/`, `ui/`                            |
+
+## Routes
+
+Toutes les adresses sont définies dans `src/shared/paths.ts` (aussi utilisé par le serveur pour le SEO).
+
+| Adresse          | Page                                       |
+| ---------------- | ------------------------------------------ |
+| `/`              | `features/home/HomePage.tsx`               |
+| `/frigo`         | `features/fridge/FridgePage.tsx`           |
+| `/recettes`      | `features/recipes/RecipesPage.tsx`         |
+| `/suggestions`   | `features/suggestions/SuggestionsPage.tsx` |
+| `/recette/:slug` | `features/recipes/RecipeDetailRoute.tsx`   |
+| `/semaine`       | `features/planner/PlannerPage.tsx`         |
+| `/courses`       | `features/grocery/GroceryPage.tsx`         |
+| `/admin/*`       | `features/backoffice/BackofficePage.tsx`   |
+
+Une adresse inconnue renvoie à l'accueil ; l'ancienne adresse `#super admin` renvoie à `/admin`. Les pages du
+backoffice (`/admin/recettes`, `/admin/moteur/scenarios`…) sont déclarées par son registre des sections
+(voir [07](backoffice.md)) ; une adresse inconnue sous `/admin` renvoie à `/admin`.
+
+## Comportements de navigation
+
+- **Filtres de recettes dans l'adresse** : `?q=&budget=&temps=&cuisine=&plat=&healthy=1&niveau=&favoris=1`
+  (`features/recipes/recipeFilters.ts`). Une recherche se partage et survit au rechargement.
+- **Deux listes de recettes** : `/recettes` (catalogue complet, `useRecipeCatalog`) et
+  `/suggestions` (niveaux du frigo, `useRecipeMatches`), reliées par les onglets `RecipeListTabs`.
+  La barre de filtres est commune (`recipes/components/RecipeFilterBar.tsx`) ; le filtre de niveau
+  (`niveau`) n'existe que sur les suggestions. L'onglet « Recettes » du menu reste actif sur les deux.
+- **Filtres conservés entre les écrans** : tout lien vers une liste reprend les derniers filtres
+  (`useRecipesHref(PATHS.recipes | PATHS.suggestions)`) ; un raccourci de l'accueil ne change que
+  son propre filtre (`filterMemory.ts`). Le bouton du frigo et « Voir tout » de l'accueil mènent
+  aux suggestions, les autres liens au catalogue.
+- **Récapitulatif du frigo** : en haut de `/frigo`, les ingrédients choisis (retrait d'un clic,
+  « Tout effacer », repli au-delà de 12 avec « Tout voir »). Pas d'ajout d'ingrédient : réservé au super admin.
+- **Fiche recette par-dessus l'écran d'origine** : ouvrir une recette garde l'écran derrière ;
+  retour la ferme. Une adresse ouverte directement s'affiche par-dessus la liste.
+- **Accueil en bas de l'historique** : aller à l'accueil revient au début de l'historique ; une
+  page ouverte depuis un lien a l'accueil en dessous.
+- **« Appuyez encore pour quitter »** : sur l'accueil, le premier retour affiche le message, un
+  second dans les 2 secondes quitte l'application.
+- **Fenêtres et bouton retour** : `useCloseOnBack(isOpen, onClose)` (`shared/hooks/useCloseOnBack.ts`)
+  ajoute une entrée d'historique tant qu'une fenêtre est ouverte : retour la ferme au lieu de changer d'écran.
+- **Fond des fenêtres** : toute fenêtre passe par `shared/ui/ModalShell.tsx`. Il affiche le fond grisé
+  dans un portail sur `<body>`, hors de la page. Une page animée (`animate-fade-in`) ou floutée
+  (l'en-tête) capturerait sinon le `position: fixed` : le fond couvrait toute la hauteur de la page
+  et la fenêtre s'ouvrait hors de l'écran (écran gris du scan photo). La fenêtre est centrée tant
+  qu'elle tient dans l'écran ; plus haute, elle commence en haut et le fond défile, rien n'est coupé.
+  Variantes : `mobile="bottom"` (Réglages, collée en bas sur téléphone), `mobile="full"` (fiche
+  recette en plein écran sur téléphone, son contenu défile à l'intérieur).
+- **Fermer une fenêtre** : `ModalShell` exige `onDismiss` (propriété obligatoire), appelé par un clic en
+  dehors de la fenêtre et par Échap (seule la fenêtre du dessus se ferme). Les fenêtres simples passent
+  leur `onClose` ; un éditeur passe une fonction qui demande avant de perdre une saisie
+  (`useGuardedClose`, ou la confirmation de l'éditeur de recette) ; `null` seulement pour une fenêtre
+  qui ne doit pas se fermer ainsi (le scan photo pendant l'analyse).
+- **Listes longues** (`shared/hooks/usePagedList.ts`, `shared/ui/ShowMore.tsx`) : les listes de
+  recettes, du catalogue et du backoffice n'affichent que les premières pages (24 éléments), la suite
+  arrive en défilant ou avec « Voir plus ». Tout compteur (onglets, niveaux, filtres, « 24 sur 312 »)
+  vient de la liste complète (`total`), jamais du nombre affiché. Une nouvelle recherche ou de nouveaux
+  filtres repartent du début ; une mise à jour en direct ne change pas la page affichée.
+- **Bouton « haut de page »** (`shared/ui/ScrollToTopButton.tsx`, monté une fois dans `AppLayout`) :
+  apparaît après 1,5 hauteur d'écran de défilement (`shared/hooks/useScrolledPast.ts`), remonte en
+  douceur (instantané si l'appareil demande moins d'animations). En bas à droite, au-dessus de la barre
+  d'onglets ; remonté au-dessus de la barre « voir les recettes » du frigo quand des ingrédients sont
+  choisis. Libellé traduit (`scrollToTop`).
+- **Vignette d'ingrédient** (`shared/ui/IngredientThumb.tsx`) : toute image d'ingrédient passe par ce
+  composant. Avec photo : image recadrée, chargée à la demande ; si le lien ne répond pas, bascule sur
+  la pastille. Sans photo : pastille en dégradé de la couleur de la catégorie avec son emoji
+  (`shared/ui/ingredientVisuals.ts`, clair et sombre). Même taille dans les deux cas : une grille reste
+  régulière quel que soit le nombre de photos. Tailles `xs` (pastilles du récapitulatif), `sm` (fiche
+  recette, liste de courses), `md` (grille du frigo, backoffice), `lg` (aperçu du backoffice).
+  Utilisée dans : grille et récapitulatif du frigo, ingrédients disponibles / manquants de la fiche
+  recette, liste de courses (article libre = pastille sac, article acheté en gris).
+- **Prix en fourchette** : `formatPriceRange(range, t.currency)` (`shared/i18n/formatPrice.ts`) affiche
+  « 2.5 DT » ou « 2.5 – 4 DT » (« د.ت » en arabe). Sous chaque ingrédient de la grille du frigo
+  (« 2 – 3 DT / kg ») et dans le coût des courses manquantes (`groceryCost`, cartes et fiche recette).
+- **Unité affichée** (`shared/ui/UnitInfo.tsx`) : le libellé de l'unité, et quand le backoffice
+  décrit cette unité (collection partagée `units`, recherche insensible à la casse et aux espaces via
+  `useUnitDescription`), une icône d'info avec l'infobulle traduite dans la langue courante
+  (survol, focus, ou appui qui bascule). Sans description configurée, l'unité reste nue : **aucune
+  description par défaut dans le code**. Utilisée sur les lignes de /courses, les suggestions du
+  formulaire d'ajout et les manquants de la fiche recette.
+- **Listes de courses nommées** : /courses affiche une **liste à la fois** (la liste active),
+  choisie par le **sélecteur** (`GroceryListSwitcher`) — une pastille par liste (nom + compteur
+  « {n} restants », calculé sur la liste entière), qui défile horizontalement (fonctionne à 320 px),
+  et les actions sur la liste active : nouvelle, renommer, **dupliquer** (copie décochée, note
+  gardée, dépense remise à zéro), supprimer (confirmée ; le bouton disparaît quand il ne reste qu'une
+  liste). La note libre et le montant dépensé appartiennent à chaque liste. Le panneau d'**historique**
+  a un bouton « Recréer cette liste » par course archivée : une nouvelle liste décochée est créée et
+  affichée.
+- **Choisir la liste cible** (`shared/ui/GroceryListChooserModal`, pur affichage : il ne connaît
+  aucun store) : dès que l'utilisateur garde **plusieurs** listes, les points d'entrée qui ajoutent
+  des articles (frigo, fiche recette, génération du menu) posent la fenêtre « Ajouter à quelle liste
+  ? » — les listes existantes avec leur compteur, ou une **nouvelle liste** créée puis remplie.
+  Avec une seule liste (ou aucune), le comportement ne change pas : ajout direct, sans question.
+  La fenêtre fermée sans choix n'ajoute rien.
+- **Trois points d'entrée**, tous passés par `addGroceryItems` (fusion des lignes
+  en unités compatibles, voir [03](domaine.md#grocery--listes-de-courses)) :
+  - `/courses` : le formulaire d'ajout est un **choix d'ingrédient du catalogue**
+    (`GroceryIngredientPicker`) — recherche via le moteur (`useSearchMatches`, repli filtre par nom,
+    à partir de 2 caractères), 20 suggestions au plus **groupées par rayon** (comme la liste elle-même),
+    vignette, badge « déjà dans la liste » sur les suggestions présentes, fourchette de prix et unité
+    (`UnitInfo`) ; la dernière rangée ajoute la requête comme **article libre** (marqué `is_custom`,
+    rayon « autre ») — et quand le catalogue ne répond rien, cette carte devient le formulaire entier.
+    L'article libre choisit son **unité** (options du registre d'unités via `useUnitOptions`, ou
+    « autre… » en texte libre). L'ancienne section repliée de saisie libre a disparu. Chaque
+    ligne montre son unité et, pour une masse ou un volume avec plusieurs alias (g, kg, gr / ml, cl,
+    dl, l), un sélecteur qui la convertit (`KitchenStore.setGroceryItemUnit`) ; les choses comptées
+    et les unités brutes restent un simple libellé.
+  - **Frigo** : chaque carte d'ingrédient a un **bouton panier distinct** (`AddToCartButton`) qui
+    ajoute l'ingrédient à la liste (avec son `ingredient_id`, son unité par défaut et sa catégorie)
+    sans jamais cocher le frigo ; sa confirmation brève n'apparaît qu'après l'ajout réel (jamais si
+    la fenêtre de choix a été fermée) ; l'en-tête de /frigo porte une **pastille du nombre d'articles**
+    de la liste (`GroceryListChip`), lien vers /courses.
+  - **Fiche recette** : les ingrédients manquants sont **sélectionnables** (`MissingIngredientsPicker`,
+    tout coché par défaut, « Tout sélectionner / Tout désélectionner »), le bouton dit combien sont
+    choisis (« Ajouter la sélection (n) ») ; chaque article envoyé porte `ingredient_id` et
+    `category`, pour fusionner avec la même ligne et tomber dans le bon rayon. La génération depuis
+    le menu (`/semaine`) vise la liste choisie.
+- **Animation `fade-in`** (`src/index.css`) : elle ne laisse aucune transformation une fois finie
+  (`backwards`, état final `transform: none`). Toute nouvelle animation doit faire de même.
+
+## Langues (`shared/i18n/translations.ts`)
+
+Un dictionnaire typé par langue (`derja`, `derja_ar`, `fr`, `ar`), chacun écrit en entier : la derja en
+lettres arabes (`derjaArabic.ts`) est de la derja tunisienne, jamais empruntée à l'arabe littéraire, et
+l'arabe (`ar`) est de l'arabe littéraire sans aucun mot de derja (باش، شنوة، فريجيدار…). Vérifié par
+`translations.test.ts` : toutes les clés du français présentes et non vides dans chaque langue, mêmes
+`{marques}`, aucun mot de derja dans `ar`. Aucun texte affiché en dur dans les écrans publics (accueil,
+en-tête, compte, accès super admin, Réglages) : tout passe par `t`. Les erreurs de connexion (visiteur et super admin)
+arrivent de l'infrastructure sous forme de **codes** (`UserAuthError`, `BackofficeLoginError` dans
+`src/application/ports.ts`) que l'écran traduit. Sélecteurs (en-tête,
+Réglages › Langue) : Derja, دارجة, Français, العربية الفصحى (`SELECTOR_ORDER`). `useLanguage()` fournit `t` (les textes),
+`language`, `setLanguage`, et des aides (`getRecipeName`, `getIngredientName`, `getRecipeDesc`,
+`getStepText`, `getChefTip`, `getSecondaryName`, `compareNames`) qui passent toutes par `pickLocalized` du
+domaine : texte de la langue choisie, sinon sa liste de repli (`LANGUAGES`) ; `getLocalized(item, champ)`
+lit n'importe quel champ localisé. Aucun écran ne code un ordre de langues en dur,
+ni n'affiche `name_fr` directement (backoffice compris : listes, recherche d'ingrédients, moteur, thèmes,
+messages) ; les tris de noms suivent la langue (`compareNames`) ; les noms des catégories passent par
+`useCategoryNames(kind)` (`shared/i18n`). Les phrases avec des mots en gras passent par `BoldText`
+(`**gras**`, jamais de HTML). Sous le titre d'une
+recette, les noms dans les autres langues ne sont affichés que s'ils diffèrent du titre (pas de nom
+en double). L'arabe et la دارجة passent la page de droite à gauche (`dir` et `lang` viennent de `LANGUAGES`).
+
+## Composants partagés (`shared/ui`, lot 2.6.2)
+
+Les composants réutilisables des couches 1–2 vivent dans `src/shared/ui/` (générique, aucun import du
+domaine) et `src/features/<domaine>/components/` (métier, importe les **types** de `@/core/...`,
+jamais de logique décisionnaire). Conventions permanentes :
+
+- **Navigation découplée** : un composant générique n'importe jamais le routeur ; il transmet toujours
+  `href` et rend un **lien natif `<a href>` par défaut**. Le consommateur React Router fournit un
+  **`LinkComponent` injectable** (`shared/ui/linkComponent.tsx`) avec un **adaptateur `href` → `to`**
+  dans son propre module (`RecipeListTabs`), pour préserver la navigation SPA — l'injection directe
+  de `Link` ne fonctionnerait pas (`Link` attend `to`). Composants concernés : `LinkTabs`
+  (liens réels, `aria-current="page"`, **jamais** un modèle `tablist`), `EmptyState`, `Shelf`,
+  `CategoryRail`.
+- **`EmptyState`** : action **exclusive** — union discriminée `kind: 'link' | 'button'`
+  (`href` ou `onClick`, jamais les deux).
+- **`Sheet`** (feuille basse mobile, centrée desktop) : **composition** de `ModalShell` +
+  `useCloseOnBack` — Échap ferme l'overlay au sommet, clic extérieur, portail, retour arrière ;
+  **un seul système de modales** dans l'application, jamais un second.
+- **`Rail`** : carrousel horizontal sans librairie (défilement par quantités, flèches ≥ 44 px
+  apparaissant seulement si le contenu déborde).
+- **`Chips`/`ChipFilter`** : boutons réels avec `aria-pressed`, cibles ≥ 44 px.
+- **`SkeletonList`** : compose `Skeleton` ; **`PriceRange`** (`features/catalog/components/`) affiche
+  toute fourchette via `formatPriceRange` ; **`PageHeading`** : titre/sous-titre/actions.
+- **`MatchingBadge`/`MatchReason`** (`features/recipes/components/`) : consomment les **codes** de la
+  règle d'affichage du core (`@/core/matching/display`) et portent **toute la traduction** — le core
+  ne contient aucun texte ni dépendance de langue. Wording D1 : « Tous les ingrédients semblent
+  présents — quantités à vérifier », CTA « Voir la recette » — jamais une garantie de réalisabilité
+  immédiate.
+- **`RecipeCard`** (variante `grid`, stabilisée au lot 2.6.2) : navigation **par callback conservée**
+  (l'état `background` ouvre la fiche en surcouche et le retour revient à la liste — un simple `href`
+  ne peut pas l'exprimer) ; coût reçu **en props** (`getRecipeCost` appelé par `RecipeGrid`) ;
+  favori = cible **44×44 px** (cercle visuel inchangé) ; tokens uniquement.
+
+## Thèmes (`app/providers/ThemeContext.tsx`)
+
+Thèmes intégrés + thèmes publiés par le super admin, mode clair / sombre / système. Le thème actif est
+appliqué en variables CSS sur `<html>` ; une copie est enregistrée pour que `index.html` l'applique
+avant le démarrage (pas de flash). Aperçu en direct depuis l'éditeur de thèmes et les réglages.
+
+## PWA
+
+- `public/manifest.json` : nom, icônes, couleurs.
+- `public/sw.js` : pages en réseau d'abord (copie hors ligne sinon), fichiers en cache mis à jour
+  en arrière-plan, un cache par version déployée.
+- `shared/ui/UpdatePrompt.tsx` : bandeau « nouvelle version » qui active le nouveau service worker.
+  - **Détection** (`main.tsx`, planificateur unique) : à l'ouverture, au retour au premier plan, au
+    retour du réseau, et en rythme adaptatif pendant que la page est visible — 5 min tant que des
+    versions se succèdent, puis 15, 30 et 60 min (`@/core/update`, testé) ; jamais en arrière-plan.
+  - **Bannière** : suit toujours le worker en attente **le plus récent** (plusieurs déploiements
+    rapprochés = une seule bannière, mise à jour à la dernière version) et affiche le build actuel
+    et le nouveau. Le clic envoie `SKIP_WAITING` puis la page ne se recharge **que** sur
+    `controllerchange` (le nouveau worker contrôle réellement la page) — une activation bloquée
+    affiche « Réessayer », jamais un rechargement à l'aveugle. Le build accepté n'est plus annoncé
+    après le rechargement (`sessionStorage`) ; une version postérieure l'est normalement.
+  - **Aucun rechargement sans acceptation** : l'ancienne version reste utilisable indéfiniment ; les
+    données sont déjà persistées à chaque geste, le rechargement ne peut rien perdre.
+- **Installation** : tant que l'application n'est pas installée, trois points d'entrée, tous basés sur
+  `useInstallApp()` (`shared/ui/PWAInstallButton.tsx`) : la proposition d'installation du navigateur
+  quand il en offre une, sinon le guide pas à pas (`InstallGuideModal`, iOS et autres navigateurs).
+  - **Bandeau** (`shared/ui/InstallBanner.tsx`, sous l'en-tête, pas dans `/admin`) : affiché dès la
+    première page d'une visite si le navigateur sait installer l'application (proposition disponible, ou
+    iPhone / iPad). Il reste d'une page à l'autre jusqu'à ce que le visiteur le ferme (✕) ; fermé, il ne
+    revient qu'à la visite suivante (rien n'est enregistré).
+  - **Réglages › Application** : bouton « Installer l'application », toujours disponible tant que
+    l'application n'est pas installée.
+  - Bouton de l'accueil (`PWAInstallButton`).
+  - Une fois l'application installée, tout disparaît : aucun badge ni texte « installée ».
+  - L'état d'installation est partagé (`shared/hooks/usePWAInstall.ts`) : le navigateur n'envoie la
+    proposition qu'une fois, au chargement ; elle est gardée pour les composants affichés plus tard.
+- `shared/ui/OfflineIndicator.tsx` : indicateur hors ligne.
+
+## Réglages (`features/settings/SettingsModal.tsx`)
+
+Ouverts par la roue dentée de l'en-tête. Trois onglets courts, pour que chacun tienne sur un écran de
+téléphone :
+
+| Onglet      | Contenu                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| Affichage   | Mode clair / sombre / automatique, choix du thème                                                  |
+| Langue      | Derja, Français, العربية                                                                           |
+| Application | Installer l'application (si pas installée) ; section Super admin (backoffice, quitter) si connecté |
+
+L'onglet Application n'existe que s'il a quelque chose à proposer.
+
+## Mobile
+
+- Barre d'onglets en bas sur téléphone, liens dans l'en-tête sur ordinateur.
+- **Aucun élément ne doit élargir la page** : l'en-tête se resserre (logo et titre plus petits ; plus
+  de bouton d'installation dans l'en-tête, remplacé par le bandeau) ; en mode super admin, le badge
+  « Super admin » et « Quitter » ne sont dans l'en-tête qu'à partir de 640 px : sur téléphone ils sont dans
+  Réglages › Application, pour que « Chnowa Ntayeb / by Chef Souhed » reste lisible ; les rangées de filtres défilent dans leur propre
+  conteneur ; filet de sécurité `overflow-x: clip` sur `html` et `body` (`src/index.css`).
+- Vérifier à 375 px et 320 px de large avant de livrer un écran.
+
+## Socle interface — lots 2.6.0–2.6.2 (dissolution socle-shell, Étape C)
+
+> **Transfert Étape C** : consolidation réalisée en Étape B (fichier `docs/evolutions/socle-shell/dossier.md`, dissous ici — son contenu suit). Chaîne de couverture : 11 sources lot-2.6.x de `docs/encyclopedie/donnees/` → consolidation Étape B → cette section. En-têtes de dossiers 2.6.0/2.6.2 avec statuts antérieurs à la clôture : signalés [I] (fait foi = trace de session validée + rapport consolidé 2.6.2). Sources consolidées ici en Étape B, puis supprimées au nettoyage autorisé. Les contrats de composants du § 2 ci-dessous détaillent la section « Composants partagés » existante (pas de contradiction : la navigation découplée, l'extraction à second consommateur réel et le système de modales unique y sont déjà énoncés) ; D-04 (thème C « Zitouna ») reste [I] (X-01).
+
+
+# K-3 — Socle & shell : dossier consolidé
+
+> Consolidation Étape B. Sources supprimées au nettoyage autorisé. **Règle de fiabilité interne** : le rapport
+> consolidé 2.6.2 est fait foi pour le lot 2.6.2 ; certains en-têtes de dossiers portent des
+> statuts antérieurs à la clôture validée en session (signalés [I] au § 5).
+
+## 1. Lots livrés (2.6.0 – 2.6.2)
+
+| Lot | Objet | Statut | Preuve |
+|-----|-------|--------|--------|
+| 1.1 | Cartographie des données et touchpoints : **22 collections** au registre serveur, toutes utilisées ; **contrat unique `DataStore` (11 opérations** : changes, findFirst, findWhere, page, ids, get, maxRevision, put, remove, commit, transact) ; 3 implémentations (Firestore branchée, mémoire locale, SQL/Knex testée sur SQLite non branchée) | **livré**, harmonisé avec l'architecture de stockage validée | `lot-1.1-cartographie.md` |
+| 2.6.0 | Socle (vérifications préalables « étape 0 » + périmètre socle ; scripts de développement passés à `DATA_STORE=memory`, repli du premier chargement SEO conservé) | **clôturé** | commit `2ec4a74` (cité par 2.6.1) ; en-tête du dossier resté « PROPOSÉ » [I] |
+| 2.6.1 | Identité & shell (v3 finale → clôturé) : direction « C — Zitouna vive » (recoupe D-04 🚩/X-01), thèmes, en-tête, navigations, états, accessibilité, décision **Fraunces** justifiée par mesure, responsive ≠ layouts alternatifs, A3 reclassé décision retenue | **clôturé, commité** | 2.6.1a `3f7565c` (feat) + `6107ab5` (docs) ; 2.6.1b `f8fc85b` (feat, 18 fichiers) ; contrôle manuel du chef concluant ; matrice S1–S8 (320 px → desktop, 4 langues, RTL), cibles ≥ 44 px mesurées, CLS 0, LCP médiane 840 vs 848 ms, garde zéro palette |
+| 2.6.2 | Composants communs & fondations : composants génériques couches 1–2 (`src/shared/ui`), métier dans `src/features/<domaine>/components`, **navigation découplée** (composant générique jamais importé du routeur — `href` + `<a>` natif, `LinkComponent` injecté par le consommateur), `RecipeCard` (navigation par callback, état background, coût en props, favori 44×44), `RecipeListTabs`, `EmptyState` (action exclusive), un seul système de modales (`Sheet` = `ModalShell` + `useCloseOnBack`) | **clôturé** — le **rapport consolidé v2 fait foi** | `lot-2.6.2-composants-communs-rapport-consolide.md` ; commit non identifié dans les sources disponibles [I] |
+
+**Correctif distinct tracé** (2.6.2, traçabilité séparée) : crash au retour vers `/recipes`
+(`TypeError: Cannot read properties of undefined` — liste → fiche → retour → écran vide) — corrigé
+et vérifié dans le rapport consolidé.
+
+**Terminologie (précision du chef)** : les commits cités (`2ec4a74`, `3f7565c`, `6107ab5`,
+`f8fc85b`) sont **locaux, non poussés** vers le dépôt distant (17 commits en attente, X-18) ;
+**aucun déploiement en production** n'est en cause — un push n'est jamais assimilé à une livraison
+(voir `../evolutions/donnees-moteur/stock-entrees-sync/evolution.md` § 2).
+
+## 2. Contrats de composants en vigueur (issus de 2.6.2, rappelés par CLAUDE.md)
+
+- Composant générique : **aucun import du domaine**, jamais du routeur ; transmet `href`, rend un
+  `<a href>` natif par défaut ; le consommateur React Router injecte un `LinkComponent`.
+- Composant métier : types du core uniquement, **jamais de logique décisionnaire**.
+- Un composant n'est extrait qu'avec un **second consommateur réel** (ni duplication ni
+  abstraction excessive — contrat du plan consolidé § 8).
+- Un seul système de modales : `Sheet` compose `ModalShell` + `useCloseOnBack` ; `EmptyState` :
+  action exclusive (`href` **ou** `onClick`).
+
+## 3. Ce que ces lots ne contiennent pas
+
+- 2.6.3 (accueil) **n'est pas regroupé ici** : dossier en attente de validation (AR-6) →
+  `docs/evolutions/consultation-catalogue/accueil/` (dossier séparé).
+- Les maquettes D4 restent la référence UX/UI ; les **données fictives de D4 ne valent jamais
+  règles métier** tant que le chef ne les valide pas (décision répétée des lots 2.6.1/2.6.3).
+
+## 4. Sources et traçabilité
+
+`lot-1.1-cartographie.md` (analyse d'origine) · `lot-2.6.0-socle-dossier.md` + `lot-2.6.0-socle-rapport.md` ·
+`lot-2.6.1-identite-shell-dossier.md` + `lot-2.6.1a-identite-rapport(.md/-complement.md)` +
+`lot-2.6.1b-shell-composants-dossier.md` + `lot-2.6.1b-shell-composants-rapport(.md/-complement.md)` ·
+`lot-2.6.2-composants-communs-dossier.md` + `lot-2.6.2-composants-communs-rapport.md` +
+**`lot-2.6.2-composants-communs-rapport-consolide.md` (fait foi)** — sources supprimées au
+nettoyage autorisé ; le rapport consolidé 2.6.2 (fait foi) est retranscrit dans la présente section.
+
+## 5. Points ouverts / incohérences d'en-tête
+
+- **En-têtes de dossiers non mis à jour** : 2.6.0 (« PROPOSÉ ») et 2.6.2 (« attente de la
+  validation ») portent des statuts antérieurs à la clôture validée en session ; fait foi = trace
+  de session validée + rapport consolidé. Mise à jour des en-têtes proposée en Étape C (avec le
+  reclassement des fichiers) — recoupe X-08 (A3/T1).
+- **D-04 (thème C « Zitouna »)** : le shell a adopté la direction C ; le statut de la décision
+  reste [I] (X-01) — statut porté par le point ouvert X-01 de `roadmap.md` § 6.
+- **Commit du rapport consolidé 2.6.2** : non identifiable dans les sources (supprimées au nettoyage autorisé) [I] — à
+  vérifier avec `git log` au moment de la sécurisation (X-18, lecture seule).
