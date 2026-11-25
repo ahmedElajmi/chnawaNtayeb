@@ -32,6 +32,7 @@ import type {
   RemoteKitchenDocument,
   RemoteKitchenPull,
   RemoteKitchenSections,
+  UnsyncedOfflineChanges,
 } from '../ports';
 
 /**
@@ -78,6 +79,8 @@ interface Harness {
     pendingSet: Set<string>;
     times: Record<string, number>;
     prefs: { changed: number | null; synced: number | null };
+    /** Simulates an exhausted storage: the next archive save returns false */
+    archiveFails: boolean;
   };
   gateway: {
     pulls: number;
@@ -98,6 +101,9 @@ interface Harness {
   host: HostLifecycle & { fireHidden(): void; fireVisible(): void; armed(): number };
   owner: { uid: string | null };
   preferences: PreferencesRepository & { saved: Partial<{ pantryStaples: string[]; themeId: string }>[] };
+  /** Builds and starts ANOTHER sync engine over the SAME deps (gateway, kitchen, ledger,
+   *  clock): simulates a page reload — the persisted archive is found again. */
+  newEngine(): KitchenSync;
 }
 
 function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
@@ -117,6 +123,10 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     times: {} as Record<string, number>,
     prefs: { changed: null as number | null, synced: null as number | null },
     lastSynced: null as number | null,
+    // Lot F1 D3 (P1): the archive of the offline changes a stale device could not push
+    unsyncedArchive: null as UnsyncedOfflineChanges | null,
+    archives: [] as UnsyncedOfflineChanges[],
+    archiveFails: false as boolean,
   };
   /** Element-set state mirrored from the list saves (like the real repository keeps it). */
   const elements: Record<string, ElementSet> = {};
@@ -289,7 +299,27 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
         syncState.suspended = false;
       };
     },
+    // Lot F1 D3 (P1): a local archive, like the real adapter (its own storage key, outside
+    // the kitchen document, so it survives the resetLocal wipe). archiveFails simulates an
+    // exhausted storage (the real save returns false): the sync must abort the wipe.
+    unsyncedArchive: () => ledgerData.unsyncedArchive,
+    archiveUnsyncedChanges: (snapshot: UnsyncedOfflineChanges) => {
+      if (ledgerData.archiveFails) return false;
+      ledgerData.unsyncedArchive = snapshot;
+      ledgerData.archives.push(snapshot);
+      return true;
+    },
+    discardUnsyncedArchive: () => {
+      ledgerData.unsyncedArchive = null;
+    },
     hasData: () => true,
+    // Proxy to the fake storage state (the tests flip it): the ledger object exposes it
+    get archiveFails() {
+      return ledgerData.archiveFails;
+    },
+    set archiveFails(value: boolean) {
+      ledgerData.archiveFails = value;
+    },
   } as Harness['ledger'];
 
   const gateway = {
@@ -370,7 +400,7 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     armed: () => armedTimers.size,
   };
 
-  const sync = new KitchenSync({
+  const syncDeps = {
     gateway: gatewayPort,
     kitchen,
     preferences,
@@ -378,8 +408,23 @@ function makeHarness(initial?: Partial<Record<SectionName, unknown>>): Harness {
     owner: () => owner.uid,
     now: () => time.value,
     host,
-  });
-  return { sync, kitchen, ledger, gateway, time, host, owner, preferences };
+  };
+  const sync = new KitchenSync(syncDeps);
+  return {
+    sync,
+    kitchen,
+    ledger,
+    gateway,
+    time,
+    host,
+    owner,
+    preferences,
+    newEngine: () => {
+      const engine = new KitchenSync(syncDeps);
+      engine.start();
+      return engine;
+    },
+  };
 }
 
 beforeEach(() => {
@@ -955,5 +1000,146 @@ describe('the kitchen sync engine', () => {
     await vi.runAllTimersAsync();
     expect(h.sync.getState().failed).toBe(true);
     expect(h.kitchen.getState().favorites).toEqual(['kept']); // the local data is untouched
+  });
+});
+
+describe('stale device never pushes before its reset (lot F1 D3 — chef decision AR-2, option P1)', () => {
+  it('a stale device with pending changes pushes NOTHING: the refused changes are archived, then the reset re-adopts the server', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    // The device is in sync here (a pull confirmed lastSyncedAt)
+    h.time.value += STALE_DEVICE_MS + 1_000;
+    // An offline change made while already stale: it stays pending and is NEVER pushed
+    h.kitchen.toggleFavorite('r1');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(0); // the stale guard refused the push
+    expect(h.ledger.pendingSet.has('favorites')).toBe(true); // kept, never silently dropped
+    expect(h.sync.getState().pending).toBe(1);
+    // The recovery pull runs: the changes are archived BEFORE the wipe, then the state is
+    // reset and the server document adopted — no re-emission, nothing presented as synced
+    h.gateway.remote = { favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 } };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0); // nothing was ever pushed
+    expect(h.kitchen.getState().favorites).toEqual(['from-server']); // server state adopted
+    expect(h.ledger.pendingSet.size).toBe(0); // the reset cleared the pending bookkeeping
+    expect(h.sync.getState().offlineChangesArchived).toBe(true); // explicit, never hidden
+    // The archive holds exactly what the device would have pushed (favorites section)
+    const archived = h.sync.unsyncedArchive();
+    expect(archived).not.toBeNull();
+    expect(archived!.sections.favorites).toBeDefined();
+    expect(presentIds(archived!.sections.favorites!.value)).toEqual(['r1']);
+    // The archived changes are never re-emitted: further timers push nothing
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0);
+    // The interface can discard the archive once the user has acted on it
+    h.sync.discardUnsyncedArchive();
+    expect(h.sync.unsyncedArchive()).toBeNull();
+    expect(h.sync.getState().offlineChangesArchived).toBe(false);
+  });
+
+  it('a stale device keeps its pending changes when the pull FAILS: nothing wiped, nothing archived', async () => {
+    const h = makeHarness({ favorites: ['kept'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1_000;
+    h.kitchen.toggleFavorite('r2');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(0); // the stale guard refused the push
+    h.gateway.fail = 'pull';
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().failed).toBe(true);
+    // The local data is untouched: the offline change is still there (kept, never wiped,
+    // never silently lost) — a failed pull wipes nothing
+    expect(h.kitchen.getState().favorites.slice().sort()).toEqual(['kept', 'r2']);
+    expect(h.sync.unsyncedArchive()).toBeNull(); // no reset happened: nothing was archived
+    expect(h.sync.getState().offlineChangesArchived).toBe(false);
+    expect(h.ledger.pendingSet.has('favorites')).toBe(true); // still pending, retried later
+  });
+
+  it('a stale device in sync with no pending change loses nothing and archives nothing', async () => {
+    const h = makeHarness({ favorites: ['only-server'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1_000;
+    h.gateway.remote = { favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 } };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0);
+    expect(h.kitchen.getState().favorites).toEqual(['from-server']);
+    expect(h.sync.unsyncedArchive()).toBeNull(); // nothing pending: no archive
+    expect(h.sync.getState().offlineChangesArchived).toBe(false);
+  });
+
+  it('a device that is not stale keeps pushing its pending changes (the guard only bites past the margin)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.kitchen.toggleFavorite('r1');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(1); // normal push, unchanged behavior
+    expect(h.ledger.pendingSet.has('favorites')).toBe(false);
+    expect(h.sync.getState().offlineChangesArchived).toBe(false);
+  });
+
+  it('a FAILED archive save ABORTS the reset: the local changes stay intact (AR-2, no silent loss)', async () => {
+    const h = makeHarness({ favorites: ['kept'] });
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1_000;
+    h.kitchen.toggleFavorite('r2');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(h.gateway.pushes).toHaveLength(0); // the stale guard refused the push
+    // The fresh server document is here, but the archive CANNOT be persisted (storage full)
+    h.gateway.remote = { favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 } };
+    h.ledger.archiveFails = true;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    // The pull FAILED to make the device safe: the reset is ABORTED — the local state is
+    // INTACT (both the pre-existing favorite and the offline change), nothing archived,
+    // the signal never raised, and the device reports the failure explicitly
+    expect(h.kitchen.getState().favorites.slice().sort()).toEqual(['kept', 'r2']);
+    expect(h.ledger.pendingSet.has('favorites')).toBe(true); // still pending, retried later
+    expect(h.sync.unsyncedArchive()).toBeNull(); // nothing was archived
+    expect(h.sync.getState().offlineChangesArchived).toBe(false); // no false signal
+    expect(h.sync.getState().failed).toBe(true); // explicit failure, never silent
+    // A later pull with a WORKING storage completes the sequence: archive, reset, adopt
+    h.ledger.archiveFails = false;
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.gateway.pushes).toHaveLength(0); // still nothing ever pushed
+    expect(h.kitchen.getState().favorites).toEqual(['from-server']); // server state adopted
+    expect(h.sync.unsyncedArchive()).not.toBeNull(); // the refused change IS archived
+    expect(h.sync.getState().offlineChangesArchived).toBe(true);
+  });
+
+  it('the archive signal is RESTORED on start-up from the persisted archive (a reload re-shows it, no sync needed)', async () => {
+    const h = makeHarness();
+    h.sync.start();
+    await vi.runAllTimersAsync();
+    h.time.value += STALE_DEVICE_MS + 1_000;
+    h.kitchen.toggleFavorite('r1');
+    h.gateway.remote = { favorites: { value: elementSet(['from-server'], [], 9000), updatedAt: 9000 } };
+    h.time.value += 61_000;
+    h.host.fireVisible();
+    await vi.runAllTimersAsync();
+    expect(h.sync.getState().offlineChangesArchived).toBe(true); // archived during the pull
+    // A RELOAD (new engine instance, like a page refresh): the persisted archive is found
+    // again and the signal comes back WITHOUT any new synchronization
+    h.sync.stop();
+    h.gateway.pushes.length = 0;
+    const reloaded = h.newEngine();
+    expect(reloaded.getState().offlineChangesArchived).toBe(true); // restored
+    expect(h.sync.unsyncedArchive()).not.toBeNull(); // still readable
+    await vi.runAllTimersAsync();
+    expect(reloaded.getState().offlineChangesArchived).toBe(true); // stays, no push
+    expect(h.gateway.pushes).toHaveLength(0); // the archived changes are never re-emitted
   });
 });

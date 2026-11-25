@@ -642,6 +642,18 @@ actif est présent ; **les péremptions dépassées n'y sont pas appliquées** (
 
 **6.3 Retrait multi-entrées et `resetLocal` exact** :
 
+> **⚠️ ERRATUM (25/11/2026, autorisé par le chef — décision AR-2)** : la phrase finale de ce § 6.3
+> affirmait que « le test du scénario 6 vérifie les deux faces » et que le compromis était « testé
+> dans les deux faces (§ 9.6) ». **Cette affirmation était inexacte** : le test commis du scénario 6
+> ne couvrait que la face *survie* (push de rattrapage réussi) ; **aucun test n'assertait la face
+> perte**. La contradiction avec la marge `STALE_DEVICE_MS` (l'ordre réel « push avant reset »
+> laissait passer les modifications pendantes, y compris les versions > 90 j — fenêtre de
+> résurrection) est analysée dans `lot-F1-corrections-dossier.md` § 5 et tranchée par la décision
+> **AR-2 option P1** : un appareil muet > 83 j ne pousse plus ses modifications pendantes avant le
+> reset ; elles sont **archivées localement** (jamais silencieusement perdues, jamais réémises,
+> jamais présentées comme synchronisées) et le scénario 6 est réécrit en conséquence. Détails :
+> `lot-F1-D3-decision-et-implementation.md`.
+
 - **Retrait d'un ingrédient avec plusieurs entrées** (§ 15-E3) : le toggle cible d'abord
   l'**entrée de présence déterministe** ; sinon l'entrée **la plus récente** (`added_at` max,
   départage par id) ; un retrait répété supprime la suivante — **jamais toutes**. Cohérent

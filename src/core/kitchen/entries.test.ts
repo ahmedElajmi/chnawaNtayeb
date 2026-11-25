@@ -22,6 +22,7 @@ import {
   projectStockToLegacy,
   purgeStockTombstones,
   readStockSection,
+  parseStockSectionUnbounded,
   stubOfTombstone,
   stockDerivedPresence,
   stockRemovalTarget,
@@ -1140,5 +1141,45 @@ describe('the identity invariant id == key holds through every mechanism', () =>
       const identity = envelope.state === 'active' ? envelope.entry.id : envelope.stub?.id;
       expect(identity).toBe(key);
     }
+  });
+});
+
+describe('parseStockSectionUnbounded (own-state read, lot F1 A4 — chef decision AR-1, option α)', () => {
+  it('reads a stock over the caps WHOLE: 2 601 envelopes intact, no key dropped (X-17 scenario)', () => {
+    const stock: StockSection = {};
+    // 600 active entries (300 fridge + 300 pantry, the B1d adopted state) ...
+    for (let i = 0; i < 300; i++) {
+      stock[`st_fridge_i${i}`] = active({ id: `st_fridge_i${i}`, ingredient_id: `i${i}`, location: 'fridge' }, ver(100 + i));
+      stock[`st_pantry_i${i}`] = active({ id: `st_pantry_i${i}`, ingredient_id: `i${i}`, location: 'pantry' }, ver(200 + i));
+    }
+    // ... plus 2 000 tombstones (the adopted deletions) and ONE more toggle made offline
+    for (let i = 0; i < 2000; i++) {
+      stock[`st_fridge_t${i}`] = tomb(`st_fridge_t${i}`, `t${i}`, 'fridge', ver(1000 + i));
+    }
+    stock['st_fridge_ing0299'] = active({ id: 'st_fridge_ing0299', ingredient_id: 'ing0299', location: 'fridge' }, ver(5000));
+    const counts = stockSectionCounts(stock);
+    expect(counts.active.fridge).toBe(301);
+    expect(counts.active.pantry).toBe(300);
+    expect(counts.tombstones).toBe(2000);
+    // The bounded admission reader refuses the whole section (unchanged behavior)...
+    expect(parseStockSection(stock)).toBeNull();
+    // ... while the own-state reader returns EVERY envelope: the section the device holds
+    // is re-read intact — st_fridge_ing0299 present, nothing silently truncated.
+    const own = parseStockSectionUnbounded(stock);
+    expect(own && Object.keys(own).length).toBe(2601);
+    expect(own?.['st_fridge_ing0299']).toBeDefined();
+  });
+
+  it('keeps the per-envelope tolerance: one malformed envelope is still dropped', () => {
+    const parsed = parseStockSectionUnbounded({
+      st_fridge_ing1: active({ id: 'st_fridge_ing1' }, ver(100)),
+      broken: { state: 'active', version: ver(5) }, // no entry: corruption, dropped
+    });
+    expect(parsed && Object.keys(parsed)).toEqual(['st_fridge_ing1']);
+  });
+
+  it('refuses a section that is not a plain object (shape rule unchanged)', () => {
+    expect(parseStockSectionUnbounded(null)).toBeNull();
+    expect(parseStockSectionUnbounded([active({ id: 'x' }, ver(1))])).toBeNull();
   });
 });

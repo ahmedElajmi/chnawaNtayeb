@@ -5,6 +5,7 @@ import {
   mergeElementSets,
   newestVersion,
   parseElementSet,
+  parseElementSetUnbounded,
   parseTombstoneRetentionMs,
   presentIds,
   purgeTombstones,
@@ -182,5 +183,23 @@ describe('parseTombstoneRetentionMs', () => {
     expect(parseTombstoneRetentionMs('abc')).toBeNull();
     expect(parseTombstoneRetentionMs('3.5')).toBeNull();
     expect(parseTombstoneRetentionMs(String(3_600_000))).toBeNull(); // less than a day
+  });
+});
+
+describe('parseElementSetUnbounded (own-state read, lot F1 A4 — chef decision AR-1, option α)', () => {
+  it('reads a map over the caps WHOLE: the oldest versions are never dropped at read time', () => {
+    const added = Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`r${i}`, v(1_000 + i)]));
+    const parsed = parseElementSetUnbounded({ added, removed: {} });
+    expect(parsed).not.toBeNull();
+    expect(Object.keys(parsed!.added)).toHaveLength(301);
+    expect(parsed!.added['r0']).toBeDefined(); // the oldest kept (no silent écrémage)
+    // The bounded admission reader keeps its behavior (unchanged)
+    expect(Object.keys(parseElementSet({ added, removed: {} })!.added)).toHaveLength(300);
+  });
+
+  it('keeps the shape rules: malformed section or version still refused', () => {
+    expect(parseElementSetUnbounded(null)).toBeNull();
+    expect(parseElementSetUnbounded({ added: 'nope', removed: {} })).toBeNull();
+    expect(parseElementSetUnbounded({ added: { r1: { physical: -1, counter: 0, device: 'a' } }, removed: {} })).toBeNull();
   });
 });

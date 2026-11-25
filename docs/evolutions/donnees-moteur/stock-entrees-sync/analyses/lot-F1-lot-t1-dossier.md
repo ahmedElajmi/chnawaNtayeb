@@ -1,6 +1,6 @@
 # Lot T1 — Fiabilisation des campagnes de tests Firestore
 
-**Statut : dossier v2 — corrections demandées par le chef intégrées (comptage du critère 2, justification du délai de 15 s, convention des futures suites émulateur). En attente de validation définitive. L'implémentation nécessitera une autorisation distincte.**
+**Statut : clôturé le 20/11/2026 (mise à jour d'en-tête du 25/11, suivi X-08 : la clôture du 20/11 fait foi — la v2 était la version finale). Implémentation committée (`ccf1fcb`, 25/11) et intégrée dans `develop` (PR #60) : les voies Vitest `emulator` / `unit` sont en vigueur.** Rapport final T1 : jamais archivé comme fichier (suivi X-08) — les campagnes restent attestées par les logs et les dossiers de campagne du projet.**
 
 **Date :** 20 novembre 2026
 **Branche :** `feature/datastore-contract` (17 commits locaux intacts)

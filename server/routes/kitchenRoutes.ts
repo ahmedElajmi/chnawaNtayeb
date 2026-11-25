@@ -299,6 +299,14 @@ function mergeSections(
 
   // 3. The stock merges: stored ⊕ incoming, then the legacy candidates (bare-presence
   //    protection inside), then the tombstone purge (§ 4.2.3).
+  // The server's OWN stored stock is read through the bounded parser: this is safe by an
+  // invariant, not by accident — every write path that stores a stock here has passed the
+  // strict admission below (`withinStockCaps` before any store, see the merge and the
+  // legacy routes), so the stored data is always within the caps and the bounded read is
+  // lossless (lot F1 A4, AR-1: the caps are an admission policy; this read never drops a
+  // valid envelope because there is never one over the caps to drop). If a future write
+  // path ever stores a stock WITHOUT the admission check, this read would narrow the merge
+  // base — the invariant must keep holding at every new write path.
   const storedStock = stored?.stock ? (parseStockSection(stored.stock.value) ?? {}) : {};
   const incomingStock = incoming.stock ? (incoming.stock.value as StockSection) : {};
   let stock = mergeStockSections(storedStock, incomingStock);

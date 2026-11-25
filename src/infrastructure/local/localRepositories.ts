@@ -1,4 +1,4 @@
-import type { KitchenRepository, KitchenSyncLedger } from '@/application';
+import type { KitchenRepository, KitchenSyncLedger, UnsyncedOfflineChanges } from '@/application';
 import type { DayPlan } from '@/core/planning';
 import { DEFAULT_GROCERY_LIST_NAME, type GroceryList } from '@/core/grocery';
 import { createId } from '@/core/shared';
@@ -12,6 +12,7 @@ import {
   newestVersion,
   parseElementSet,
   parseStockSection,
+  parseStockSectionUnbounded,
   presenceEnvelope,
   presenceEntryId,
   presentIds,
@@ -331,12 +332,15 @@ export function createLocalKitchenRepository(
     /** The stock of entries of this scope (lot F1 § 4.3): one canonical envelope per entry id. */
     loadStock: (): StockSection => doc().stock ?? {},
 
-    /** Replaces the whole stock (backup restore): read through the core parser (tolerant
-     * per envelope, the identity invariant is enforced there — a malformed value is refused,
-     * nothing stored). A restore of an empty stock is legitimate (wipes the location lists). */
+    /** Replaces the whole stock (backup restore): read UNBOUNDED (lot F1 A4, chef decision
+     *  AR-1 option α): the caps are an admission policy, not a filter of what the user holds.
+     *  A restore of a backup exceeding the caps restores EVERYTHING (no partial restore, no
+     *  silent loss); the explicit refusal keeps happening at the sources that own it (server
+     *  caps on push, bounded adoption of server data). A malformed value is refused, nothing
+     *  stored. A restore of an empty stock is legitimate (wipes the location lists). */
     saveStock: (stock: StockSection): void =>
       withDoc((d) => {
-        const parsed = parseStockSection(stock);
+        const parsed = parseStockSectionUnbounded(stock);
         if (!parsed) return d; // malformed external data: read, refused, nothing stored
         return withStockApplied({ ...d, stock: parsed }, now());
       }),
@@ -432,6 +436,12 @@ export function createLocalKitchenRepository(
         suspended = was;
       };
     },
+    // Lot F1 D3 (P1): the offline changes a stale device could not push are archived in
+    // their OWN storage key — they survive the resetLocal wipe, are never re-emitted
+    // automatically and stay available for the interface to show what was not synced.
+    unsyncedArchive: () => storage.getKitchenUnsynced(key()),
+    archiveUnsyncedChanges: (snapshot: UnsyncedOfflineChanges): boolean => storage.saveKitchenUnsynced(key(), snapshot),
+    discardUnsyncedArchive: () => storage.clearKitchenUnsynced(key()),
   };
 
   return { ...repository, ledger };

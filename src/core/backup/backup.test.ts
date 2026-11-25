@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { initialIngredients, initialRecipes } from '../catalog';
 import { activeEnvelope, presenceEntryId, tombstoneEnvelope } from '../kitchen';
-import { createBackup, parseBackup } from './backup';
+import { createBackup, BACKUP_IMPORT_MAX_CHARS, backupImportWithinBound, parseBackup } from './backup';
 
 const recipe = initialRecipes[0];
 
@@ -136,5 +136,53 @@ describe('createBackup', () => {
     const parsed = parseBackup(broken);
     expect(parsed?.stock).toBeUndefined();
     expect(parsed?.skipped).toBe(1);
+  });
+});
+
+describe('backup restore integrity (lot F1 A4 — chef decision AR-1, option α) and import guard', () => {
+  it('restores a stock over the caps WHOLE: no partial restore, every envelope kept', () => {
+    const stock: Record<string, unknown> = {};
+    for (let i = 0; i < 301; i++) {
+      stock[`st_fridge_i${i}`] = {
+        state: 'active',
+        version: { physical: 1_000 + i, counter: 0, device: 'a' },
+        entry: {
+          id: `st_fridge_i${i}`,
+          ingredient_id: `i${i}`,
+          location: 'fridge',
+          origin: 'manual',
+          added_at: '2026-01-01T10:00:00Z',
+          quantity: 1,
+          unit: 'g',
+        },
+      };
+    }
+    const parsed = parseBackup({
+      recipes: [],
+      ingredients: [],
+      weekly_plan: [],
+      favorites: [],
+      grocery_list: [],
+      stock,
+    });
+    expect(parsed?.stock).toBeDefined();
+    expect(Object.keys(parsed!.stock!)).toHaveLength(301); // 300 = cap + 1 over: nothing dropped
+  });
+
+  it('refuses an absurdly large backup BEFORE any parse (explicit guard-rail, AR-1)', () => {
+    expect(backupImportWithinBound('x'.repeat(BACKUP_IMPORT_MAX_CHARS))).toBe(true);
+    expect(backupImportWithinBound('x'.repeat(BACKUP_IMPORT_MAX_CHARS + 1))).toBe(false);
+  });
+
+  it('counts UTF-16 code units (logical length), NOT UTF-8 bytes (documented semantics)', () => {
+    // An astral character costs 2 UTF-16 units but 4 UTF-8 bytes: a string of
+    // BACKUP_IMPORT_MAX_CHARS units of it is accepted (64 MiB only in a theoretical
+    // two-bytes-per-unit UTF-16 representation — an engine may store it more compactly)
+    // while its UTF-8 file size would be ~128 MiB — the guard bounds the logical length,
+    // not the real memory footprint nor the file size.
+    const astral = '\u{1D11E}'.repeat(BACKUP_IMPORT_MAX_CHARS / 2);
+    expect(astral.length).toBe(BACKUP_IMPORT_MAX_CHARS); // 2 units per character
+    expect(new TextEncoder().encode(astral).length).toBeGreaterThan(BACKUP_IMPORT_MAX_CHARS);
+    expect(backupImportWithinBound(astral)).toBe(true);
   });
 });

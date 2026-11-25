@@ -1,4 +1,5 @@
 import { initialRecipes } from '@/core/catalog';
+import type { UnsyncedOfflineChanges } from '@/application';
 import { type DayPlan, DEFAULT_WEEKLY_PLAN, migrateDayPlan } from '@/core/planning';
 import type { GroceryItem, GroceryList } from '@/core/grocery';
 import { type UserPreferences, DEFAULT_PREFERENCES, normalizePreferences } from '@/core/preferences';
@@ -6,8 +7,8 @@ import { type AppTheme, isValidTheme } from '@/core/theme';
 import {
   type DeviceClock,
   type ElementSet,
-  parseElementSet,
-  parseStockSection,
+  parseElementSetUnbounded,
+  parseStockSectionUnbounded,
   type StockSection,
 } from '@/core/kitchen';
 
@@ -243,6 +244,45 @@ class StorageService {
     return `chnowa_kitchen_${scope}_v1`;
   }
 
+  // --- SCOPED UNSYNCED ARCHIVE (lot F1 D3, P1) ---
+  // One key per scope, OUTSIDE the kitchen document: it must survive the resetLocal wipe
+  // (the whole point of the archive is to keep what the wipe would otherwise lose).
+  private unsyncedKey(scope: string): string {
+    return `chnowa_kitchen_unsynced_${scope}_v1`;
+  }
+
+  getKitchenUnsynced(scope: string): UnsyncedOfflineChanges | null {
+    try {
+      const data = localStorage.getItem(this.unsyncedKey(scope));
+      if (!data) return null;
+      const raw = JSON.parse(data) as Partial<UnsyncedOfflineChanges>;
+      if (!raw || typeof raw !== 'object' || typeof raw.archivedAt !== 'number' || Number.isNaN(raw.archivedAt))
+        return null;
+      if (!raw.sections || typeof raw.sections !== 'object') return null;
+      return { archivedAt: raw.archivedAt, sections: raw.sections as UnsyncedOfflineChanges['sections'] };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Persists the unsynced archive of this scope. Returns TRUE only when the write is
+   *  confirmed (lot F1 D3, AR-2: the caller must abort the local wipe on FALSE — a failed
+   *  archive save must never look like a successful archive). */
+  saveKitchenUnsynced(scope: string, snapshot: UnsyncedOfflineChanges): boolean {
+    try {
+      localStorage.setItem(this.unsyncedKey(scope), JSON.stringify(snapshot));
+      return true;
+    } catch {
+      return false; // e.g. quota exceeded: the caller must NOT wipe the local state
+    }
+  }
+
+  clearKitchenUnsynced(scope: string): void {
+    try {
+      localStorage.removeItem(this.unsyncedKey(scope));
+    } catch {}
+  }
+
   getKitchenDoc(scope: string): StoredKitchenDoc | null {
     try {
       const data = localStorage.getItem(this.kitchenKey(scope));
@@ -266,8 +306,10 @@ class StorageService {
         preferencesSyncedAt: typeof doc.preferencesSyncedAt === 'number' ? doc.preferencesSyncedAt : null,
         elements: readElementSets(doc.elements),
         // The stock is read through the core parser (tolerant per envelope): a malformed
-        // envelope is dropped, the valid ones are kept — never a `undefined` toward the UI
-        stock: doc.stock === undefined ? undefined : (parseStockSection(doc.stock) ?? undefined),
+        // envelope is dropped, the valid ones are kept — never a `undefined` toward the UI.
+        // Own persisted state is read UNBOUNDED (lot F1 A4, option α): the caps are an
+        // admission policy, re-reading what this device holds never drops entries.
+        stock: doc.stock === undefined ? undefined : (parseStockSectionUnbounded(doc.stock) ?? undefined),
         deviceClock: readDeviceClock(doc.deviceClock),
         lastSyncedAt: typeof doc.lastSyncedAt === 'number' ? doc.lastSyncedAt : null,
       };
@@ -316,13 +358,15 @@ class StorageService {
   }
 }
 
-/** The element-set state of the three set sections, read through the core parser (unknown/malformed dropped). */
+/** The element-set state of the three set sections, read through the core parser (unknown/malformed dropped).
+ *  Own persisted state is read UNBOUNDED (lot F1 A4, option α): the caps are an admission policy —
+ *  re-reading the device's own maps never silently drops the oldest versions. */
 function readElementSets(raw: unknown): { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } {
   const out: { favorites?: ElementSet; fridge?: ElementSet; pantry?: ElementSet } = {};
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
   const shape = raw as Record<string, unknown>;
   for (const name of ['favorites', 'fridge', 'pantry'] as const) {
-    const parsed = parseElementSet(shape[name]);
+    const parsed = parseElementSetUnbounded(shape[name]);
     if (parsed) out[name] = parsed;
   }
   return out;

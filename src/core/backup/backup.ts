@@ -1,7 +1,33 @@
 import { migrateRecipes, parseStoredIngredient, parseStoredRecipe, type Ingredient, type Recipe } from '../catalog';
 import type { GroceryItem } from '../grocery';
 import type { DayPlan } from '../planning';
-import { parseStockSection, type StockSection } from '../kitchen';
+import { parseStockSectionUnbounded, type StockSection } from '../kitchen';
+
+/** Transport-style guard of the backup import (lot F1 A4, chef decision AR-1): a restore
+ *  must be whole, never a memory or freeze hazard. The measured legal worst case of the
+ *  stock alone is the extreme contract bound C3 = 9 585 094 bytes (measure 2026-11-20);
+ *  the guard sits far above every legitimate backup (full stock at the extreme bound plus
+ *  a large catalog), and only refuses absurd files before any parse — an explicit refusal,
+ *  never a truncation. The guard is a guard-rail, not a business cap.
+ *
+ *  Unit (exact, not approximated): the limit counts UTF-16 code units (`string.length`),
+ *  i.e. the LOGICAL length of the already-loaded string — 33 554 432 units corresponds to
+ *  64 MiB only in a THEORETICAL UTF-16 representation of two bytes per unit; it bounds the
+ *  string's logical length, NOT its exact real memory footprint (an engine may store a
+ *  string more compactly than that) and NOT the file's UTF-8 size. The UTF-8 size of the
+ *  file on disk is a DIFFERENT quantity the guard deliberately does not measure: it varies
+ *  from about 32 MiB (pure ASCII, 1 byte per unit) up to about 128 MiB (every unit an astral
+ *  character, 4 bytes per unit). Measuring UTF-8 bytes would require encoding the whole
+ *  string first — an allocation of the same order as the parse itself, against the very
+ *  hazard this guard prevents. In every representation and encoding the bound stays far
+ *  above the measured legal worst case C3 = 9 585 094 bytes (≥ 3.4× even at 1 byte per unit). */
+export const BACKUP_IMPORT_MAX_CHARS = 33_554_432;
+
+/** True when a backup file may be parsed and restored (guard-rail, never a business rule).
+ *  Counts UTF-16 code units (logical length) — see the constant above. */
+export function backupImportWithinBound(json: string): boolean {
+  return json.length <= BACKUP_IMPORT_MAX_CHARS;
+}
 
 /** Content of a backup file once read: only the sections present and valid, plus what was skipped. */
 export interface ParsedBackup {
@@ -66,8 +92,10 @@ export function parseBackup(raw: unknown): ParsedBackup | null {
   if (Array.isArray(raw.grocery_list)) result.groceryList = keep(raw.grocery_list, parseGroceryItem);
   if (raw.stock !== undefined) {
     // Envelope by envelope: a malformed envelope is dropped (read tolerance), a stock
+    // exceeding the volume caps is read WHOLE (lot F1 A4, option α — a backup restore is
+    // never partial; the caps are an admission policy, not a restore filter), and a stock
     // that is not an object at all is skipped and counted — never a crash
-    const stock = parseStockSection(raw.stock);
+    const stock = parseStockSectionUnbounded(raw.stock);
     if (stock) result.stock = stock;
     else if (raw.stock !== null) skipped++;
   }
