@@ -58,6 +58,12 @@ async function createDataStore(): Promise<DataStore | null> {
 }
 
 /** API of the app (the web pages are added by server.ts: Vite in dev, dist/ in production). */
+/** Transport bound for /api/kitchen (lot F1 A1, chef-validated): the full-caps legitimate
+ *  worst case measured 2 435 950 bytes (report 2026-11-20, config C1, HTTP 200); 3 MiB =
+ *  3 145 728 bytes leaves +29.13 % (C2: 2 567 965 bytes, +22.50 %). Business caps remain the
+ *  reference protection; above the bound body-parser answers 413 before any handler. */
+const KITCHEN_BODY_LIMIT = '3mb';
+
 export async function createApiApp({ backofficeAuthConfig, vision }: AppDependencies): Promise<express.Express> {
   const app = express();
   // Render (and most hosts) put the app behind one proxy: needed for correct client IPs in rate limiting
@@ -76,12 +82,19 @@ export async function createApiApp({ backofficeAuthConfig, vision }: AppDependen
     return res.redirect(301, target + query);
   });
 
-  // Small JSON bodies everywhere, except the photo upload and the data batches (catalog
-  // import / replace) which carry many documents and have their own limits
+  // Small JSON bodies everywhere, except the photo upload, the data batches (catalog
+  // import / replace) which carry many documents and have their own limits, and the kitchen
+  // sync (the dedicated 3 MiB bound above — the full-caps worst case measured under it)
   const smallJson = express.json({ limit: '100kb' });
   const bigJson = express.json({ limit: '5mb' });
+  const kitchenJson = express.json({ limit: KITCHEN_BODY_LIMIT });
+  // Exact match: /api/kitchen itself and its real sub-routes (/api/kitchen/history), never
+  // a sibling path that merely starts with the same prefix (e.g. /api/kitchenX) — no
+  // accidental widening beyond the kitchen route space (lot F1 A1).
+  const isKitchenPath = (path: string): boolean => path === '/api/kitchen' || path.startsWith('/api/kitchen/');
   app.use((req, res, next) => {
     if (req.path === VISION_PATH || req.path.startsWith('/api/data/')) return bigJson(req, res, next);
+    if (isKitchenPath(req.path)) return kitchenJson(req, res, next);
     return smallJson(req, res, next);
   });
 
