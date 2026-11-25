@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { computeChanges } from './gateway';
 import { createMemoryDataStore } from './memoryDataStore';
 import { resetWatermarks } from './watermark';
+import type { ChangeCursor } from './types';
 
 const store = createMemoryDataStore();
 const publicIdentity = { read: 'public' as const };
@@ -25,9 +26,9 @@ describe('computeChanges (the batched change feed)', () => {
     // the client is now at the watermark: no delta, no query — the store is not even touched
     const spy = { calls: 0 };
     const countingStore = {
-      changes: async (name: string, since: number, limit: number) => {
+      changes: async (name: string, cursor: ChangeCursor, limit: number) => {
         spy.calls += 1;
-        return store.changes(name, since, limit);
+        return store.changes(name, cursor, limit);
       },
     };
     const second = await computeChanges({ recipes: revision }, publicIdentity, countingStore);
@@ -41,9 +42,9 @@ describe('computeChanges (the batched change feed)', () => {
     resetWatermarks(); // simulates a server restart
     const spy = { calls: 0 };
     const countingStore = {
-      changes: async (name: string, since: number, limit: number) => {
+      changes: async (name: string, cursor: ChangeCursor, limit: number) => {
         spy.calls += 1;
-        return store.changes(name, since, limit);
+        return store.changes(name, cursor, limit);
       },
     };
     // an up-to-date client costs one empty query (correctness), then the shortcut is back

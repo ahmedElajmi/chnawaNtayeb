@@ -74,12 +74,97 @@ Nouveaux adapters dans `src/infrastructure/<nouvelle-techno>/` qui passent les t
 `src/app/container.ts` : domaine, stores et écrans ne changent pas. Détails et exemples :
 `docs/encyclopedie/11-guides-pratiques.md` (§ « Changer de base de données »).
 
+## Compatibilité permanente Firebase / SQL
+
+**Contexte** : Firebase/Firestore reste le fournisseur de données actif. L'architecture est préparée pour une
+**migration globale** vers SQL — **une famille de bases relationnelles, pas un moteur désigné** : le choix
+du moteur définitif (PostgreSQL, MySQL, SQL Server, autre) est **différé** et exige une **décision
+explicite** (besoins, coûts, hébergement, performances, contraintes techniques). Un seul fournisseur actif
+à la fois, aucun mode hybride, **sans refonte des modèles métier ni réécriture des fonctionnalités**. Toute
+nouvelle fonctionnalité, toute modification d'un modèle existant et toute évolution de la structure des
+données sont donc conçues dès maintenant pour être compatibles avec les deux fournisseurs :
+
+1. **Double compatibilité dès la conception** — avant toute modification d'un modèle, analyser son
+   fonctionnement dans Firestore **et** dans une base relationnelle SQL ; ne pas introduire de structure ou
+   de comportement qui ne fonctionnerait qu'avec l'un des deux, sauf nécessité technique justifiée et
+   **isolée dans l'adaptateur concerné** ; ne jamais repousser cette réflexion à la phase de migration.
+2. **Indépendance du métier vis-à-vis du stockage** — modèles, règles métier et services applicatifs ne
+   dépendent ni d'un SDK Firebase, ni de Firestore, ni d'un moteur SQL ; les accès passent par les contrats
+   et abstractions de stockage (`DataStore`, ports applicatifs) ; les différences propres à un fournisseur
+   restent confinées dans son adaptateur.
+3. **Sémantique des données** — chaque évolution examine explicitement : identifiants et stabilité,
+   relations et références, dates/horodatages/fuseaux, valeurs nulles-absentes-par défaut, tableaux et
+   structures imbriquées, suppressions logiques et physiques, révisions-versions-synchronisation,
+   unicité et intégrité, index et besoins de recherche. **Sémantique identique sur les deux fournisseurs**,
+   même si la représentation physique diffère.
+4. **Transactions et cohérence** — toute opération impliquant plusieurs écritures est analysée sous l'angle
+   des transactions Firestore **et** SQL ; ne jamais supposer qu'une garantie d'un fournisseur existe chez
+   l'autre ; identifier les limites de taille, d'atomicité, de concurrence et d'isolation ; si une opération
+   ne peut pas être reproduite avec les mêmes garanties, proposer une **solution portable avant de
+   l'implémenter**.
+5. **Requêtes et performances** — éviter les dépendances à des fonctionnalités spécifiques d'un moteur ;
+   vérifier que recherches, filtres, tris, paginations et index nécessaires sont réalisables sur les deux ;
+   ne pas déplacer un filtrage vers SQL ou Firestore sans analyser son équivalent ; performances
+   acceptables sur le fournisseur actuel et volumes futurs anticipés.
+6. **Tests de compatibilité** — toute évolution significative du contrat ou d'un modèle est couverte par des
+   tests exécutables **sur les deux adaptateurs** ; harnais commun des tests de contrat (`DataStore`)
+   lorsque pertinent — extensible à tout moteur SQL (PostgreSQL, MySQL, SQL Server, autre) **sans modifier
+   le métier** ; les tests distinguent les **garanties communes du contrat** des **particularités de chaque
+   adaptateur SQL**. **Un dialecte implémenté ou une compatibilité théorique n'est jamais une preuve de
+   compatibilité** (statut réel : SQLite testé ; tout autre moteur — PostgreSQL, MySQL, SQL Server —
+   non démontré tant que sa suite de tests pertinente n'est pas passée).
+7. **Migrations et évolutions de schéma** — toute modification structurelle prévoit son impact sur les
+   données existantes : transformations, valeurs par défaut, rétrocompatibilité, **retour arrière** ;
+   adaptations prévues pour Firestore et SQL même si une seule migration physique est exécutée ; **jamais**
+   de modification de structure sans stratégie de compatibilité et de migration **validée**.
+8. **SQL est une famille, pas un moteur** — aucune cible SQL privilégiée dans l'architecture ; les
+   fonctionnalités SQL **standard** et les structures relationnelles **portables** sont privilégiées ; toute
+   fonctionnalité spécifique à un moteur est **isolée dans son adaptateur**, avec une solution de remplacement
+   ou une limitation **clairement documentée** ; les différences de **types, JSON, index, transactions,
+   contraintes, pagination, concurrence et migrations** sont analysées **pour chaque moteur concerné** ;
+   le contrat et les modèles n'incorporent **aucun type, méthode ou comportement propre à un moteur**.
+   8 bis. **Garantie commune des identifiants** — un identifiant de document est **non vide, unique par
+   collection, immuable, ≤ 1500 octets**, ne contient **jamais `/`**, n'est **jamais `.` ni `..`**, et ne
+   correspond **jamais au motif réservé Firestore `__.*__`** (deux underscores au début ET à la fin).
+   Aucune autre restriction de jeu de caractères : les e-mails (`email_index`), les sous d'invités
+   (`guest:`), les slugs, les ids à points uniquement (`...`) et à point initial (`.hidden`) restent
+   légaux — **aucune donnée existante n'est exclue**. Les expressions régulières des endpoints
+   (`/api/data/:name/:id`) restent des politiques d'interface, jamais des règles de contrat.
+9. **Persistance SQL relationnelle — jamais « tout en JSON »** — la cible SQL repose sur une **véritable
+   modélisation relationnelle** : tables dédiées aux domaines métier, colonnes typées, clés primaires et
+   étrangères, relations explicites, contraintes d'intégrité et d'unicité, index adaptés aux requêtes et
+   volumes — y compris pour le moteur de matching (configurations, règles, scénarios), les réglages, les
+   recettes, les ingrédients, les comptes, le frigo et les listes de courses. **JSON reste réservé aux
+   échanges API, aux imports/exports et aux sauvegardes — jamais substitut au relationnel pour la
+   persistance** ; toute exception est présentée et **validée explicitement** avant implémentation. Cette
+   règle ne transforme pas le modèle Firestore maintenant : la compatibilité est préparée **dans les deux
+   sens**, et la migration prévoira la **transformation réelle** des documents en structures relationnelles
+   (données, identifiants, relations, révisions, suppressions logiques et mécanismes de synchronisation
+   conservés) — cohérent avec la V12 § 4 (« jamais tout en JSON dans SQL »).
+
+**Exigence avant implémentation** — toute évolution significative d'un modèle présente cette analyse :
+
+| Élément                 | Analyse attendue                                    |
+| ----------------------- | --------------------------------------------------- |
+| Modèle cible            | Structure et sémantique proposées                   |
+| Compatibilité Firestore | Représentation, écritures, lectures, contraintes    |
+| Compatibilité SQL       | Tables, relations, contraintes, index, transactions |
+| Contrat de stockage     | Opérations nécessaires et garanties attendues       |
+| Données existantes      | Impact et stratégie de transition                   |
+| Tests                   | Vérifications sur les deux fournisseurs             |
+| Limites                 | Différences ou compromis identifiés                 |
+
+**Principe fondamental** : Firebase est le fournisseur actif mais ne dicte jamais seul la conception des
+modèles ; SQL est la cible mais n'impose pas prématurément de complexité inutile. La solution reste
+**cohérente, portable, maintenable et performante sur les deux**. Cette règle s'applique à tous les
+développements futurs, y compris ceux qui ne font pas partie du chantier de migration SQL.
+
 ## Conventions
 
 - Pas de duplication : une règle métier vit à un seul endroit dans `src/core`, avec ses tests à côté (`*.test.ts`).
 - Domaine pur : horloge, aléatoire et ids injectés.
 - Composants sans logique métier ; un écran = un dossier dans `src/features`.
-- **Base de données d'abord** : données partagées et réglages en Firestore ; localStorage seulement
+- **Base de données d'abord** : données partagées et réglages dans le fournisseur actif (Firestore aujourd'hui — voir § « Compatibilité permanente Firebase / SQL ») ; localStorage seulement
   comme copie hors ligne ; fichiers JSON seulement pour exporter / restaurer.
 - Moteur de matching : tout réglage passe par `MatchingConfig` + `resolveMatchingConfig` ; une
   suggestion jugée fausse devient d'abord un scénario du chef, créé dans /admin › Moteur (stocké

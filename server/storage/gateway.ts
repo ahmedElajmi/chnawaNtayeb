@@ -1,4 +1,4 @@
-import type { StorageChanges } from './types';
+import type { ChangeCursor, StorageChanges, SyncCursor } from './types';
 import { collectionSpec, type CollectionAccess } from './collections';
 import { deriveWatermark, watermarkOf } from './watermark';
 
@@ -10,9 +10,9 @@ import { deriveWatermark, watermarkOf } from './watermark';
  * re-derives it from the revisions it read.
  */
 export async function computeChanges(
-  clientRevisions: Record<string, number>,
+  clientRevisions: Record<string, ChangeCursor>,
   identity: Pick<CollectionAccess, 'read'>,
-  store: { changes(name: string, since: number, limit: number): Promise<StorageChanges> }
+  store: { changes(name: string, cursor: ChangeCursor, limit: number): Promise<StorageChanges> }
 ): Promise<Record<string, StorageChanges>> {
   const result: Record<string, StorageChanges> = {};
   // The client drives the list: only the collections it follows are queried, never the rest.
@@ -20,13 +20,19 @@ export async function computeChanges(
     const spec = collectionSpec(name);
     if (!spec) continue;
     if (spec.read !== 'public' && (spec.read !== 'admin' || identity.read !== 'admin')) continue;
-    const clientRev = typeof sent === 'number' && sent >= 0 ? sent : 0;
+    const cursor: ChangeCursor =
+      typeof sent === 'number'
+        ? sent // legacy client: strict revision, exactly as before
+        : typeof sent === 'object' && sent !== null && typeof (sent as SyncCursor).revision === 'number'
+          ? sent
+          : 0; // a malformed cursor is an unknown position: answer from the start
+    const known = typeof cursor === 'number' ? cursor : cursor.revision;
     const watermark = watermarkOf(name);
-    if (watermark !== null && clientRev >= watermark) {
+    if (watermark !== null && known >= watermark) {
       // Fast path: the write path already raised the watermark past this client.
       continue;
     }
-    const delta = await store.changes(name, clientRev, spec.pageLimit);
+    const delta = await store.changes(name, cursor, spec.pageLimit);
     deriveWatermark(name, delta.revision);
     result[name] = delta;
   }

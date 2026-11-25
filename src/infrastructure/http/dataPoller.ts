@@ -1,4 +1,4 @@
-import { fetchChanges, type ChangesPayload } from './dataApi';
+import { fetchChanges, type ClientCursor, type ChangesPayload } from './dataApi';
 
 /**
  * One shared poller for every followed collection: a single POST /api/data/changes per tick
@@ -13,6 +13,10 @@ export const DEFAULT_POLL_INTERVAL_MS = 60 * 1000;
 interface Followed {
   /** Newest revision the device applied for this collection (0 = never read) */
   revision: number;
+  /** Id of the last applied change once the server negotiated the composite cursor */
+  cursorId?: string;
+  /** True after a response carried a cursor: the device then sends the structured shape */
+  cursorMode: boolean;
   /** True until the first full read (since === null) is fully delivered */
   initialFullPending: boolean;
   /** True when the first full read needed several pages (the merge already rebuilt it all) */
@@ -43,6 +47,7 @@ export class DataPoller {
   follow(name: string, since: number | null, onChanges: Followed['onChanges'], onError: Followed['onError']): void {
     this.followed.set(name, {
       revision: since ?? 0,
+      cursorMode: false,
       initialFullPending: since === null,
       sawMore: false,
       onChanges,
@@ -106,8 +111,16 @@ export class DataPoller {
 
   private async poll(): Promise<void> {
     if (!this.followed.size) return;
-    const rev: Record<string, number> = {};
-    for (const [name, f] of this.followed) rev[name] = f.revision;
+    // Negotiation by the response: the legacy number shape until a response carries a cursor,
+    // then the structured one — an old server (which ignores objects) is never sent one.
+    const rev: Record<string, ClientCursor> = {};
+    for (const [name, f] of this.followed) {
+      rev[name] = f.cursorMode
+        ? f.cursorId !== undefined
+          ? { revision: f.revision, id: f.cursorId }
+          : { revision: f.revision }
+        : f.revision;
+    }
     const deltas = await fetchChanges(rev);
     if (!deltas) {
       // Offline or server asleep: the device copy keeps serving, the next tick retries
@@ -140,6 +153,12 @@ export class DataPoller {
     if (delta.more === true) f.sawMore = true;
     const complete = f.initialFullPending && delta.more !== true && !f.sawMore;
     if (delta.more !== true) f.initialFullPending = false;
+    // Cursor negotiation: once the server answers with the exact resume position, the device
+    // keeps it (last applied change, marker included) and switches to the structured shape.
+    if (delta.cursor && typeof delta.cursor.revision === 'number') {
+      f.cursorMode = true;
+      f.cursorId = delta.cursor.id;
+    }
     if (delta.revision > f.revision) f.revision = delta.revision;
     f.onChanges({ items: delta.items, removedIds: delta.removedIds, revision: delta.revision, complete });
   }

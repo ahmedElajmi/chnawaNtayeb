@@ -1,0 +1,2606 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chnowa Ntayeb — Maquettes back-office</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground);
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      .lead {
+        color: var(--muted-foreground);
+        font-size: 13px;
+        line-height: 1.5;
+        max-width: 640px;
+      }
+      .shot-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+      }
+      .frame {
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      /* scaled desktop mockups: design at 1200px, shown at 728px */
+      .scaler {
+        width: 1200px;
+        transform: scale(0.6067);
+        transform-origin: top left;
+      }
+      .clip {
+        height: 560px;
+        overflow: hidden;
+        position: relative;
+        background: #0f172a;
+      }
+      .clip.fade:after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 70px;
+        background: linear-gradient(transparent, #0f172a);
+      }
+      .mob-clip {
+        height: 560px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        background: #0f172a;
+      }
+    </style>
+    <style id="mock">
+      /* ==== shared mock design system (own identity, distinct from public site) ==== */
+      .mock {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-size: 14px;
+        color: #1e293b;
+        background: #f1f5f9;
+      }
+      .mock a {
+        text-decoration: none;
+        color: inherit;
+      }
+      /* sidebar */
+      .sb {
+        width: 240px;
+        background: #0f172a;
+        color: #cbd5e1;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+      }
+      .sb-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 18px;
+        border-bottom: 1px solid #1e293b;
+      }
+      .sb-brand .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+      .sb-brand b {
+        color: #fff;
+        font-size: 14px;
+        display: block;
+        line-height: 1.1;
+      }
+      .sb-brand small {
+        font-size: 10px;
+        color: #64748b;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .sb-group {
+        padding: 14px 12px 4px;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #475569;
+        font-weight: 700;
+      }
+      .sb a.item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px;
+        font-size: 13px;
+        color: #cbd5e1;
+        border-left: 3px solid transparent;
+      }
+      .sb a.item .ic {
+        width: 18px;
+        text-align: center;
+        opacity: 0.85;
+      }
+      .sb a.item .ct {
+        margin-left: auto;
+        background: #1e293b;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 7px;
+        border-radius: 99px;
+      }
+      .sb a.item:hover {
+        background: #16233d;
+      }
+      .sb a.item.on {
+        background: #1c2b47;
+        color: #fff;
+        border-left-color: #f59e0b;
+      }
+      .sb a.item.on .ct {
+        background: #f59e0b;
+        color: #0f172a;
+      }
+      .sb .foot {
+        margin-top: auto;
+        padding: 12px 18px;
+        border-top: 1px solid #1e293b;
+        font-size: 11px;
+        color: #64748b;
+      }
+      .sb .foot .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #22c55e;
+      }
+      /* main */
+      .main {
+        margin-left: 240px;
+      }
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 22px;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .search {
+        flex: 1;
+        max-width: 520px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #64748b;
+        font-size: 13px;
+      }
+      .search kbd {
+        margin-left: auto;
+        font-size: 10px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        padding: 1px 6px;
+        color: #94a3b8;
+      }
+      .top .bell {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+      }
+      .top .bell i {
+        position: absolute;
+        top: 7px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #ef4444;
+        border: 2px solid #fff;
+      }
+      .who {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .who .av {
+        width: 34px;
+        height: 34px;
+        border-radius: 99px;
+        background: #0f172a;
+        color: #fbbf24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .who div b {
+        font-size: 13px;
+        display: block;
+        line-height: 1.1;
+      }
+      .who div small {
+        color: #64748b;
+        font-size: 11px;
+      }
+      .body {
+        padding: 22px;
+      }
+      .h-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .h-row h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .h-row p {
+        margin: 2px 0 0;
+        color: #64748b;
+        font-size: 12.5px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12.5px;
+        font-weight: 600;
+        border-radius: 9px;
+        padding: 8px 13px;
+        border: 1px solid transparent;
+      }
+      .btn.pri {
+        background: #0f172a;
+        color: #fff;
+      }
+      .btn.sec {
+        background: #fff;
+        border-color: #e2e8f0;
+        color: #334155;
+      }
+      .btn.dan {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      /* widgets */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 14px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 16px;
+      }
+      .card h4 {
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .kpis {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+      .kpi {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+      .kpi .n {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .kpi .l {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .kpi .d {
+        font-size: 10.5px;
+        font-weight: 700;
+        margin-top: 6px;
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+      .up {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .dn {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .eq {
+        background: #e0e7ff;
+        color: #3730a3;
+      }
+      .w6 {
+        grid-column: span 6;
+      }
+      .w4 {
+        grid-column: span 4;
+      }
+      .w8 {
+        grid-column: span 8;
+      }
+      .w12 {
+        grid-column: span 12;
+      }
+      .bar {
+        height: 8px;
+        border-radius: 99px;
+        background: #f1f5f9;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #f59e0b, #ea580c);
+      }
+      table.t {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+      }
+      table.t th {
+        text-align: left;
+        font-size: 10.5px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 6px 8px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      table.t td {
+        padding: 9px 8px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .pill {
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 99px;
+      }
+      .ok {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .warn {
+        background: #fef9c3;
+        color: #a16207;
+      }
+      .bad {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .info {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .quick {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .qk {
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 12px;
+        color: #334155;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      /* tables screen */
+      .filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .chip {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 99px;
+        font-size: 12px;
+        padding: 6px 12px;
+        color: #475569;
+      }
+      .chip.on {
+        background: #0f172a;
+        color: #fff;
+        border-color: #0f172a;
+      }
+      .tblwrap {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .tblbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 12.5px;
+        color: #475569;
+      }
+      .check {
+        width: 15px;
+        height: 15px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 4px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .check.on {
+        background: #0f172a;
+        border-color: #0f172a;
+        position: relative;
+      }
+      .check.on:after {
+        content: '✓';
+        color: #fff;
+        font-size: 10px;
+        position: absolute;
+        top: -2px;
+        left: 2px;
+      }
+      .thumb {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #fde68a, #fca5a5);
+      }
+      .pager {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-end;
+        padding: 12px 16px;
+        font-size: 12px;
+        color: #64748b;
+      }
+      .pg {
+        min-width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+      }
+      .pg.on {
+        background: #0f172a;
+        color: #fff;
+        border-color: #0f172a;
+      }
+      .rowact {
+        display: flex;
+        gap: 8px;
+        color: #94a3b8;
+      }
+      /* mobile */
+      .mob {
+        width: 390px;
+        height: 760px;
+        background: #f1f5f9;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        color: #0f172a;
+        position: relative;
+        overflow: hidden;
+        border-left: 1px solid #334155;
+        border-right: 1px solid #334155;
+      }
+      .mob .mhead {
+        padding: 14px 18px 10px;
+        background: #0f172a;
+        color: #fff;
+      }
+      .mob .mhead .t {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+      }
+      .mob .mhead .t b {
+        font-size: 15px;
+      }
+      .mob .msearch {
+        margin-top: 10px;
+        background: #1e293b;
+        border-radius: 10px;
+        padding: 9px 12px;
+        color: #94a3b8;
+        font-size: 12.5px;
+        display: flex;
+        gap: 8px;
+      }
+      .mob .mtabs {
+        display: flex;
+        gap: 6px;
+        padding: 10px 14px;
+        overflow-x: auto;
+      }
+      .mtab {
+        white-space: nowrap;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 7px 13px;
+        border-radius: 99px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+      }
+      .mtab.on {
+        background: #0f172a;
+        color: #fff;
+        border-color: #0f172a;
+      }
+      .mcard {
+        margin: 0 14px 12px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 13px 14px;
+      }
+      .mcard .r1 {
+        display: flex;
+        gap: 11px;
+        align-items: center;
+      }
+      .mcard .t {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+      .mcard .s {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .mcard .acts {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .mbtn {
+        flex: 1;
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 8px 0;
+        border-radius: 9px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #334155;
+      }
+      .mbtn.pri {
+        background: #0f172a;
+        color: #fff;
+        border-color: #0f172a;
+      }
+      .mgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 0 14px;
+      }
+      .mk {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .mk .n {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .mk .l {
+        font-size: 10.5px;
+        color: #64748b;
+      }
+      .mnav {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        padding: 8px 6px 14px;
+      }
+      .mnav a {
+        flex: 1;
+        text-align: center;
+        font-size: 10px;
+        color: #94a3b8;
+      }
+      .mnav a .i {
+        font-size: 17px;
+        display: block;
+      }
+      .mnav a.on {
+        color: #0f172a;
+        font-weight: 700;
+      }
+      .mfab {
+        position: absolute;
+        bottom: 76px;
+        right: 16px;
+        width: 48px;
+        height: 48px;
+        border-radius: 99px;
+        background: #f59e0b;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      }
+      /* charts */
+      .legend {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 11.5px;
+        color: #475569;
+      }
+      .legend span i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 6px;
+      }
+      .axis {
+        font-size: 10px;
+        fill: #94a3b8;
+      }
+      /* preview modal */
+      .ovl {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .pvmodal {
+        width: 100%;
+        max-width: 1000px;
+        background: #f1f5f9;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      }
+      .pvhead {
+        background: #0f172a;
+        color: #fff;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .pvhead .pvtab {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 9px;
+        background: #1e293b;
+        color: #94a3b8;
+      }
+      .pvhead .pvtab.on {
+        background: #f59e0b;
+        color: #0f172a;
+      }
+      .pvhead .close {
+        margin-left: auto;
+        font-size: 14px;
+        color: #94a3b8;
+      }
+      .pvctx {
+        display: flex;
+        gap: 10px;
+        padding: 10px 18px;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 11.5px;
+        color: #475569;
+        flex-wrap: wrap;
+      }
+      .pvctx .grp {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pvctx .opts {
+        display: flex;
+        gap: 4px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 3px;
+      }
+      .pvctx .opt {
+        padding: 4px 10px;
+        border-radius: 7px;
+        font-weight: 600;
+      }
+      .pvctx .opt.on {
+        background: #0f172a;
+        color: #fff;
+      }
+      .pvstage {
+        display: flex;
+        gap: 18px;
+        padding: 18px;
+        align-items: flex-start;
+      }
+      .device {
+        border: 8px solid #1e293b;
+        border-radius: 26px;
+        overflow: hidden;
+        width: 340px;
+        background: #fff;
+        flex-shrink: 0;
+      }
+      .devnote {
+        font-size: 11px;
+        color: #64748b;
+        max-width: 280px;
+        line-height: 1.6;
+      }
+      .public-hero {
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+        color: #fff;
+        padding: 14px 16px;
+      }
+      .public-hero .badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 99px;
+        padding: 3px 10px;
+      }
+      .public-hero b {
+        display: block;
+        font-size: 16px;
+        margin-top: 6px;
+      }
+      .public-hero small {
+        opacity: 0.9;
+        font-size: 11px;
+      }
+      .prv-img {
+        height: 130px;
+        background: linear-gradient(135deg, #fde68a, #fb923c);
+      }
+      .prv-meta {
+        display: flex;
+        gap: 10px;
+        padding: 10px 16px;
+        font-size: 11px;
+        color: #64748b;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .prv-ing {
+        padding: 10px 16px 4px;
+      }
+      .prv-ing .row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11.5px;
+        color: #334155;
+        padding: 5px 0;
+        border-bottom: 1px dashed #f1f5f9;
+      }
+      .prv-step {
+        display: flex;
+        gap: 8px;
+        padding: 7px 16px;
+        font-size: 11.5px;
+        color: #334155;
+      }
+      .prv-step .n {
+        width: 18px;
+        height: 18px;
+        border-radius: 99px;
+        background: #0f172a;
+        color: #fff;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .prv-cta {
+        margin: 12px 16px;
+        background: #0f172a;
+        color: #fff;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 9px 0;
+      }
+      .pv-rtl {
+        direction: rtl;
+        text-align: right;
+      }
+      /* roles matrix */
+      .matrix td {
+        text-align: center;
+      }
+      .matrix td:first-child {
+        text-align: left;
+      }
+      .cbx {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 4px;
+      }
+      .cbx.on {
+        background: #0f172a;
+        border-color: #0f172a;
+        position: relative;
+      }
+      .cbx.on:after {
+        content: '✓';
+        color: #fff;
+        font-size: 10px;
+        position: absolute;
+        top: -2px;
+        left: 2px;
+      }
+      .cbx.dis {
+        background: #f1f5f9;
+      }
+      .banner {
+        background: #fef9c3;
+        border: 1px solid #fde047;
+        color: #854d0e;
+        font-size: 11.5px;
+        border-radius: 10px;
+        padding: 9px 13px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .hist {
+        font-size: 11px;
+        color: #64748b;
+        border-left: 2px solid #e2e8f0;
+        padding-left: 10px;
+      }
+      /* editor */
+      .tabs {
+        display: flex;
+        gap: 6px;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0 18px;
+        background: #fff;
+        border-radius: 14px 14px 0 0;
+      }
+      .tab {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 10px 14px;
+        color: #64748b;
+        border-bottom: 2px solid transparent;
+      }
+      .tab.on {
+        color: #0f172a;
+        border-bottom-color: #f59e0b;
+      }
+      .fld {
+        margin-bottom: 12px;
+      }
+      .fld label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 4px;
+      }
+      .inp {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 9px 11px;
+        font-size: 12.5px;
+        color: #334155;
+      }
+      .inp.ok {
+        border-color: #86efac;
+        background: #f0fdf4;
+      }
+      .inp.err {
+        border-color: #fca5a5;
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .errline {
+        font-size: 10.5px;
+        color: #b91c1c;
+        margin-top: 3px;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .savebar {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        padding: 12px 18px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+        color: #64748b;
+        border-radius: 0 0 14px 14px;
+      }
+      .privimg {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        height: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 11.5px;
+        text-align: center;
+        background: #f8fafc;
+      }
+      .langflag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: #e0e7ff;
+        color: #3730a3;
+      }
+      .langflag.miss {
+        background: #fef9c3;
+        color: #a16207;
+      }
+      .mbframe {
+        transform: scale(0.86);
+        transform-origin: top center;
+      }
+      /* matching lab */
+      .labgrid {
+        display: grid;
+        grid-template-columns: 240px 1fr 300px;
+        gap: 14px;
+      }
+      .line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+      .lvl {
+        font-size: 9.5px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 99px;
+        flex-shrink: 0;
+      }
+      .lvl.exact {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .lvl.partial {
+        background: #fef9c3;
+        color: #a16207;
+      }
+      .lvl.compat {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .lvl.subst {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+      .lvl.uncertain {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .lvl.missing {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .why {
+        font-size: 10.5px;
+        color: #94a3b8;
+        margin-left: auto;
+        text-align: right;
+      }
+      .verdict {
+        background: #0f172a;
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .verdict .score {
+        margin-left: auto;
+        background: #f59e0b;
+        color: #0f172a;
+        border-radius: 99px;
+        padding: 2px 10px;
+        font-size: 11px;
+      }
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11.5px;
+        color: #475569;
+        padding: 4px 0;
+        border-bottom: 1px dashed #f1f5f9;
+      }
+      .metric b.good {
+        color: #15803d;
+      }
+      .metric b.bad {
+        color: #b91c1c;
+      }
+      .gate {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 11px;
+        color: #b91c1c;
+        margin-top: 10px;
+      }
+      .gate.ok {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #15803d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <h1>Maquettes du nouveau back-office</h1>
+        <p class="lead">
+          Prototype de direction — identité visuelle propre et distincte du site public, widgets du tableau de bord par
+          permissions, tableaux avec actions groupées, version mobile/PWA adaptée (pas le desktop rétréci). La palette
+          finale sera validée avec vous.
+        </p>
+      </div>
+
+      <!-- ===================== DESKTOP : DASHBOARD ===================== -->
+      <div>
+        <div class="shot-label">Desktop — Tableau de bord (widgets selon permissions)</div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Pilotage</div>
+                <a class="item on" href="#"><span class="ic">▦</span> Tableau de bord</a>
+                <a class="item" href="#"><span class="ic">🔔</span> Notifications <span class="ct">5</span></a>
+                <div class="sb-group">Contenu</div>
+                <a class="item" href="#"><span class="ic">📖</span> Recettes <span class="ct">312</span></a>
+                <a class="item" href="#"><span class="ic">🥕</span> Ingrédients <span class="ct">184</span></a>
+                <a class="item" href="#"><span class="ic">🗂️</span> Classification</a>
+                <a class="item" href="#"><span class="ic">🗃️</span> Organisation</a>
+                <div class="sb-group">Édition</div>
+                <a class="item" href="#"><span class="ic">✅</span> À valider <span class="ct">7</span></a>
+                <a class="item" href="#"><span class="ic">🏠</span> Page d'accueil</a>
+                <div class="sb-group">Exploitation</div>
+                <a class="item" href="#"><span class="ic">🧩</span> Fonctionnalités</a>
+                <a class="item" href="#"><span class="ic">📣</span> Publicité</a>
+                <a class="item" href="#"><span class="ic">📊</span> Analytics</a>
+                <div class="sb-group">Réglages</div>
+                <a class="item" href="#"><span class="ic">👥</span> Équipe & rôles</a>
+                <a class="item" href="#"><span class="ic">⚙️</span> Paramètres</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée · SQL/Postgres</div>
+                  <div class="row">v2.0 · plateforme</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher une recette, un ingrédient, une page… <kbd>Ctrl K</kbd></div>
+                  <div class="bell">🔔<i></i></div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Bonjour 👋</h2>
+                      <p>Vendredi 13 février · vue « Gestionnaire de contenu » — configurable par rôle</p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn pri">＋ Nouvelle recette</span><span class="btn sec">Exporter</span>
+                    </div>
+                  </div>
+                  <div class="kpis">
+                    <div class="kpi">
+                      <div class="n">312</div>
+                      <div class="l">Recettes publiées</div>
+                      <div class="d up">▲ 12 ce mois</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="n">7</div>
+                      <div class="l">En attente de validation</div>
+                      <div class="d warn">3 critiques</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="n">18 400</div>
+                      <div class="l">Consultations (7 j)</div>
+                      <div class="d up">▲ 8 %</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="n">96 %</div>
+                      <div class="l">Traductions complètes</div>
+                      <div class="d eq">4 langues</div>
+                    </div>
+                  </div>
+                  <div class="grid">
+                    <div class="card w6">
+                      <h4>Recettes les plus consultées <span>7 jours</span></h4>
+                      <table class="t">
+                        <tr>
+                          <th>Recette</th>
+                          <th>Vues</th>
+                          <th>Favoris</th>
+                        </tr>
+                        <tr>
+                          <td>Couscous au poisson sfaxien</td>
+                          <td class="num">2 140</td>
+                          <td class="num">96</td>
+                        </tr>
+                        <tr>
+                          <td>Chorba frik</td>
+                          <td class="num">1 870</td>
+                          <td class="num">71</td>
+                        </tr>
+                        <tr>
+                          <td>Brik à l'œuf</td>
+                          <td class="num">1 420</td>
+                          <td class="num">58</td>
+                        </tr>
+                        <tr>
+                          <td>Mloukhiya</td>
+                          <td class="num">1 110</td>
+                          <td class="num">44</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="card w6">
+                      <h4>Recherches sans résultat <span>agrégat 24 h</span></h4>
+                      <table class="t">
+                        <tr>
+                          <th>Requête</th>
+                          <th>Occurrences</th>
+                          <th></th>
+                        </tr>
+                        <tr>
+                          <td>« roull » (rouillé?)</td>
+                          <td class="num">23</td>
+                          <td><span class="pill info">mot à corriger</span></td>
+                        </tr>
+                        <tr>
+                          <td>« mloukhiya »</td>
+                          <td class="num">17</td>
+                          <td><span class="pill warn">orthographe</span></td>
+                        </tr>
+                        <tr>
+                          <td>« recette sans gluten »</td>
+                          <td class="num">11</td>
+                          <td><span class="pill bad">axe à créer</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="card w4">
+                      <h4>À valider <span>file d'attente</span></h4>
+                      <table class="t">
+                        <tr>
+                          <th>Contenu</th>
+                          <th>Par</th>
+                          <th></th>
+                        </tr>
+                        <tr>
+                          <td>Bambalouni</td>
+                          <td>Équipe</td>
+                          <td><span class="pill warn">2 cellules</span></td>
+                        </tr>
+                        <tr>
+                          <td>Salsa Mechouia</td>
+                          <td>Équipe</td>
+                          <td><span class="pill info">1 cellule</span></td>
+                        </tr>
+                        <tr>
+                          <td>Lablabi</td>
+                          <td>Chef</td>
+                          <td><span class="pill bad">conflit</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="card w4">
+                      <h4>Traductions manquantes</h4>
+                      <div style="font-size: 12.5px; color: #475569; line-height: 2">
+                        Arabe littéraire <span class="num" style="float: right">14 recettes</span>
+                        <div class="bar"><i style="width: 88%"></i></div>
+                        Derja latine <span class="num" style="float: right">6 recettes</span>
+                        <div class="bar"><i style="width: 95%"></i></div>
+                        Derja arabe <span class="num" style="float: right">39 recettes</span>
+                        <div class="bar"><i style="width: 70%"></i></div>
+                      </div>
+                    </div>
+                    <div class="card w4">
+                      <h4>Publicité <span>7 jours</span></h4>
+                      <table class="t">
+                        <tr>
+                          <th>Campagne</th>
+                          <th>Impressions</th>
+                          <th>CTR</th>
+                        </tr>
+                        <tr>
+                          <td>Huile d'olive X</td>
+                          <td class="num">8 210</td>
+                          <td class="num">1,8 %</td>
+                        </tr>
+                        <tr>
+                          <td>Ustensiles Y</td>
+                          <td class="num">3 940</td>
+                          <td class="num">0,9 %</td>
+                        </tr>
+                      </table>
+                      <p style="font-size: 11px; color: #94a3b8; margin: 10px 0 0">
+                        Budget consommé 41 % · fréquence moy. 2,1 / visiteur / jour
+                      </p>
+                    </div>
+                    <div class="card w12">
+                      <h4>Raccourcis</h4>
+                      <div class="quick">
+                        <span class="qk">✅ Traiter les 7 validations en attente</span>
+                        <span class="qk">✏️ Compléter 14 traductions arabes</span>
+                        <span class="qk">🆕 Créer l'axe « Sans gluten »</span>
+                        <span class="qk">🏠 Revoir la home de Ramadan</span>
+                        <span class="qk">🧩 Activer le scan IA pour les employés</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : CATALOGUE (TABLE) ===================== -->
+      <div>
+        <div class="shot-label">Desktop — Catalogue : table, filtres, actions groupées</div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Pilotage</div>
+                <a class="item" href="#"><span class="ic">▦</span> Tableau de bord</a>
+                <div class="sb-group">Contenu</div>
+                <a class="item on" href="#"><span class="ic">📖</span> Recettes <span class="ct">312</span></a>
+                <a class="item" href="#"><span class="ic">🥕</span> Ingrédients <span class="ct">184</span></a>
+                <a class="item" href="#"><span class="ic">🗂️</span> Classification</a>
+                <a class="item" href="#"><span class="ic">🗃️</span> Organisation</a>
+                <div class="sb-group">Édition</div>
+                <a class="item" href="#"><span class="ic">✅</span> À valider <span class="ct">7</span></a>
+                <a class="item" href="#"><span class="ic">🏠</span> Page d'accueil</a>
+                <div class="sb-group">Exploitation</div>
+                <a class="item" href="#"><span class="ic">🧩</span> Fonctionnalités</a>
+                <a class="item" href="#"><span class="ic">📣</span> Publicité</a>
+                <div class="sb-group">Réglages</div>
+                <a class="item" href="#"><span class="ic">👥</span> Équipe & rôles</a>
+                <a class="item" href="#"><span class="ic">⚙️</span> Paramètres</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="bell">🔔</div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Recettes</h2>
+                      <p>312 recettes · compte sur le résultat complet, jamais sur la page affichée</p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">Importer</span><span class="btn sec">Exporter</span
+                      ><span class="btn pri">＋ Nouvelle recette</span>
+                    </div>
+                  </div>
+                  <div class="filters">
+                    <span class="chip on">Toutes</span><span class="chip">Brouillons</span
+                    ><span class="chip">À valider</span> <span class="chip">Publiées</span
+                    ><span class="chip">Archivées</span> <span class="chip">⚖︎ Coût&nbsp;▾</span
+                    ><span class="chip">🕐 Temps&nbsp;▾</span>
+                    <span style="margin-left: auto" class="chip">⊞ Colonnes</span>
+                  </div>
+                  <div class="tblwrap">
+                    <div class="tblbar">
+                      <span class="check on"></span> 3 sélectionnées
+                      <span class="btn sec" style="padding: 5px 10px; font-size: 11.5px">⤴ Demander validation</span>
+                      <span class="btn sec" style="padding: 5px 10px; font-size: 11.5px">🏷️ Classifier</span>
+                      <span class="btn sec" style="padding: 5px 10px; font-size: 11.5px">🌐 Traduire</span>
+                      <span class="btn dan" style="padding: 5px 10px; font-size: 11.5px">🗑 Supprimer</span>
+                    </div>
+                    <table class="t">
+                      <tr>
+                        <th style="width: 34px"><span class="check on"></span></th>
+                        <th>Recette</th>
+                        <th>Occasion</th>
+                        <th>Pays</th>
+                        <th>Coût</th>
+                        <th>Statut</th>
+                        <th></th>
+                      </tr>
+                      <tr>
+                        <td><span class="check on"></span></td>
+                        <td>
+                          <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="thumb"></span><b>Couscous au poisson sfaxien</b>
+                          </div>
+                        </td>
+                        <td>Ramadan</td>
+                        <td>Tunisie · Sfax</td>
+                        <td class="num">12–16 DT</td>
+                        <td><span class="pill ok">Publié</span></td>
+                        <td><div class="rowact">✏️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check on"></span></td>
+                        <td>
+                          <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="thumb" style="background: linear-gradient(135deg, #fca5a5, #fdba74)"></span
+                            ><b>Chorba frik</b>
+                          </div>
+                        </td>
+                        <td>Ramadan</td>
+                        <td>Tunisie</td>
+                        <td class="num">4–6 DT</td>
+                        <td><span class="pill ok">Publié</span></td>
+                        <td><div class="rowact">✏️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check on"></span></td>
+                        <td>
+                          <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="thumb" style="background: linear-gradient(135deg, #fcd34d, #fde68a)"></span
+                            ><b>Bambalouni</b>
+                          </div>
+                        </td>
+                        <td>—</td>
+                        <td>Tunisie · Sfax</td>
+                        <td class="num">2–3 DT</td>
+                        <td><span class="pill warn">À valider · 2</span></td>
+                        <td><div class="rowact">✏️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check"></span></td>
+                        <td>
+                          <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="thumb" style="background: linear-gradient(135deg, #86efac, #fde68a)"></span
+                            ><b>Salade méchouia</b>
+                          </div>
+                        </td>
+                        <td>Été</td>
+                        <td>Tunisie</td>
+                        <td class="num">5–7 DT</td>
+                        <td><span class="pill info">Brouillon</span></td>
+                        <td><div class="rowact">✏️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check"></span></td>
+                        <td>
+                          <div style="display: flex; gap: 10px; align-items: center">
+                            <span class="thumb" style="background: linear-gradient(135deg, #a5b4fc, #c4b5fd)"></span
+                            ><b>Panna cotta aux dattes</b>
+                          </div>
+                        </td>
+                        <td>Aïd</td>
+                        <td>Italie · Tunisie</td>
+                        <td class="num">8–10 DT</td>
+                        <td><span class="pill ok">Publié</span></td>
+                        <td><div class="rowact">✏️ ⋯</div></td>
+                      </tr>
+                    </table>
+                    <div class="pager">
+                      Affichage 1–24 sur 312 · pages de 24, suite au défilement <span class="pg">‹</span
+                      ><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span
+                      ><span class="pg">›</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== MOBILE / PWA ===================== -->
+      <div>
+        <div class="shot-label">Mobile / PWA — navigation tactile, cartes, actions rapides</div>
+        <div class="frame mob-clip">
+          <div class="mob">
+            <div class="mhead">
+              <div class="t"><b>☰ &nbsp;Recettes</b><span>🔔 · 👤</span></div>
+              <div class="msearch">🔎&nbsp; Rechercher une recette…</div>
+            </div>
+            <div class="mtabs">
+              <span class="mtab on">Toutes</span><span class="mtab">À valider 7</span><span class="mtab">Publiées</span
+              ><span class="mtab">Brouillons</span>
+            </div>
+            <div class="mgrid" style="margin-bottom: 12px">
+              <div class="mk">
+                <div class="n">312</div>
+                <div class="l">Recettes publiées</div>
+              </div>
+              <div class="mk">
+                <div class="n">7</div>
+                <div class="l">À valider</div>
+              </div>
+            </div>
+            <div class="mcard">
+              <div class="r1">
+                <span class="thumb"></span>
+                <div>
+                  <div class="t">Couscous au poisson sfaxien</div>
+                  <div class="s">Ramadan · Tunisie · Sfax · 12–16 DT</div>
+                </div>
+              </div>
+              <div class="acts">
+                <span class="mbtn pri">✏️ Modifier</span><span class="mbtn">✅ Valider</span><span class="mbtn">⋯</span>
+              </div>
+            </div>
+            <div class="mcard">
+              <div class="r1">
+                <span class="thumb" style="background: linear-gradient(135deg, #fca5a5, #fdba74)"></span>
+                <div>
+                  <div class="t">Chorba frik</div>
+                  <div class="s">Ramadan · Tunisie · 4–6 DT</div>
+                </div>
+              </div>
+              <div class="acts"><span class="mbtn pri">✏️ Modifier</span><span class="mbtn">⋯</span></div>
+            </div>
+            <div class="mcard">
+              <div class="r1">
+                <span class="thumb" style="background: linear-gradient(135deg, #fcd34d, #fde68a)"></span>
+                <div>
+                  <div class="t">Bambalouni</div>
+                  <div class="s">À valider · 2 cellules</div>
+                </div>
+              </div>
+              <div class="acts"><span class="mbtn pri">✅ Ouvrir la validation</span><span class="mbtn">⋯</span></div>
+            </div>
+            <div class="mfab">＋</div>
+            <div class="mnav">
+              <a class="on" href="#"><span class="i">▦</span>Pilotage</a>
+              <a href="#"><span class="i">📖</span>Catalogue</a>
+              <a href="#"><span class="i">✅</span>Validation</a>
+              <a href="#"><span class="i">🏠</span>Accueil</a>
+              <a href="#"><span class="i">⚙️</span>Réglages</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : RECETTES + DIAGRAMMES ===================== -->
+      <div>
+        <div class="shot-label">Desktop — Recettes : diagrammes détaillés (uniquement depuis les agrégats)</div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Pilotage</div>
+                <a class="item" href="#"><span class="ic">▦</span> Tableau de bord</a>
+                <div class="sb-group">Contenu</div>
+                <a class="item on" href="#"><span class="ic">📖</span> Recettes <span class="ct">312</span></a>
+                <a class="item" href="#"><span class="ic">🥕</span> Ingrédients <span class="ct">184</span></a>
+                <a class="item" href="#"><span class="ic">🗂️</span> Classification</a>
+                <a class="item" href="#"><span class="ic">🗃️</span> Organisation</a>
+                <div class="sb-group">Édition</div>
+                <a class="item" href="#"><span class="ic">✅</span> À valider <span class="ct">7</span></a>
+                <a class="item" href="#"><span class="ic">🏠</span> Page d'accueil</a>
+                <div class="sb-group">Exploitation</div>
+                <a class="item" href="#"><span class="ic">🧩</span> Fonctionnalités</a>
+                <a class="item" href="#"><span class="ic">📣</span> Publicité</a>
+                <a class="item" href="#"><span class="ic">📊</span> Analytics</a>
+                <div class="sb-group">Réglages</div>
+                <a class="item" href="#"><span class="ic">👥</span> Équipe & rôles</a>
+                <a class="item" href="#"><span class="ic">⚙️</span> Paramètres</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="bell">🔔</div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Recettes — indicateurs</h2>
+                      <p>30 derniers jours · données des agrégats quotidiens, jamais de scan du catalogue</p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">Période ▾</span><span class="btn sec">Exporter CSV</span>
+                    </div>
+                  </div>
+                  <div class="grid">
+                    <div class="card w8">
+                      <h4>Consultations et favoris <span>courbe 30 j</span></h4>
+                      <svg viewBox="0 0 560 150" style="width: 100%; height: 150px">
+                        <line x1="0" y1="120" x2="560" y2="120" stroke="#e2e8f0" />
+                        <line x1="0" y1="80" x2="560" y2="80" stroke="#f1f5f9" />
+                        <line x1="0" y1="40" x2="560" y2="40" stroke="#f1f5f9" />
+                        <polyline
+                          points="0,110 40,104 80,98 120,92 160,96 200,84 240,76 280,72 320,66 360,58 400,52 440,44 480,40 520,34 560,30"
+                          fill="none"
+                          stroke="#f59e0b"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
+                        <polyline
+                          points="0,140 40,138 80,136 120,132 160,134 200,128 240,124 280,120 320,116 360,110 400,108 440,102 480,98 520,94 560,90"
+                          fill="none"
+                          stroke="#0f172a"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-dasharray="1 6"
+                        />
+                        <text class="axis" x="0" y="148">J-30</text>
+                        <text class="axis" x="530" y="148">auj.</text>
+                      </svg>
+                      <div class="legend" style="flex-direction: row; gap: 16px; margin-top: 8px">
+                        <span><i style="background: #f59e0b"></i>Consultations</span>
+                        <span><i style="background: #0f172a"></i>Favoris</span>
+                      </div>
+                    </div>
+                    <div class="card w4">
+                      <h4>Statuts des recettes</h4>
+                      <div style="display: flex; align-items: center; gap: 14px">
+                        <svg viewBox="0 0 100 100" style="width: 104px; height: 104px">
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#dcfce7"
+                            stroke-width="16"
+                            stroke-dasharray="176 251"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#fef9c3"
+                            stroke-width="16"
+                            stroke-dasharray="43 251"
+                            stroke-dashoffset="-176"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#dbeafe"
+                            stroke-width="16"
+                            stroke-dasharray="22 251"
+                            stroke-dashoffset="-219"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <text x="50" y="54" text-anchor="middle" font-size="15" font-weight="800" fill="#0f172a">
+                            312
+                          </text>
+                        </svg>
+                        <div class="legend">
+                          <span><i style="background: #dcfce7"></i>Publiées · 247</span>
+                          <span><i style="background: #fef9c3"></i>À valider · 41</span>
+                          <span><i style="background: #dbeafe"></i>Brouillons · 24</span>
+                        </div>
+                      </div>
+                      <p style="font-size: 11px; color: #94a3b8; margin: 10px 0 0">
+                        Taux de publication 79 % · tendance +6 %
+                      </p>
+                    </div>
+                    <div class="card w4">
+                      <h4>Couverture « Occasions »</h4>
+                      <table class="t">
+                        <tr>
+                          <th>Occasion</th>
+                          <th>Recettes</th>
+                          <th></th>
+                        </tr>
+                        <tr>
+                          <td>Ramadan</td>
+                          <td class="num">38</td>
+                          <td><span class="pill ok">ok</span></td>
+                        </tr>
+                        <tr>
+                          <td>Aïd</td>
+                          <td class="num">12</td>
+                          <td><span class="pill warn">léger</span></td>
+                        </tr>
+                        <tr>
+                          <td>Été</td>
+                          <td class="num">9</td>
+                          <td><span class="pill warn">léger</span></td>
+                        </tr>
+                        <tr>
+                          <td>Mariage</td>
+                          <td class="num">0</td>
+                          <td><span class="pill bad">vide</span></td>
+                        </tr>
+                      </table>
+                      <p style="font-size: 11px; color: #94a3b8; margin: 10px 0 0">
+                        Un axe vide apparaît avant que le public le remarque
+                      </p>
+                    </div>
+                    <div class="card w4">
+                      <h4>Distribution des coûts</h4>
+                      <div style="display: flex; align-items: flex-end; gap: 7px; height: 92px; padding-top: 6px">
+                        <div style="flex: 1; height: 18%; background: #f1f5f9; border-radius: 6px 6px 0 0"></div>
+                        <div style="flex: 1; height: 44%; background: #fde68a; border-radius: 6px 6px 0 0"></div>
+                        <div style="flex: 1; height: 78%; background: #f59e0b; border-radius: 6px 6px 0 0"></div>
+                        <div style="flex: 1; height: 58%; background: #fdba74; border-radius: 6px 6px 0 0"></div>
+                        <div style="flex: 1; height: 30%; background: #fed7aa; border-radius: 6px 6px 0 0"></div>
+                        <div style="flex: 1; height: 12%; background: #f1f5f9; border-radius: 6px 6px 0 0"></div>
+                      </div>
+                      <p style="font-size: 11px; color: #64748b; margin-top: 6px">
+                        Fourchettes : &lt;5 · 5–10 · 10–15 · 15–20 · 20–30 · &gt;30 DT — 14 recettes sans fourchette
+                        <span class="pill warn">à compléter</span>
+                      </p>
+                    </div>
+                    <div class="card w4">
+                      <h4>Recettes incomplètes</h4>
+                      <table class="t">
+                        <tr>
+                          <th>Manque</th>
+                          <th>Nb</th>
+                        </tr>
+                        <tr>
+                          <td>Photo</td>
+                          <td class="num">9</td>
+                        </tr>
+                        <tr>
+                          <td>Étapes</td>
+                          <td class="num">4</td>
+                        </tr>
+                        <tr>
+                          <td>Traduction arabe</td>
+                          <td class="num">14</td>
+                        </tr>
+                        <tr>
+                          <td>Vidéo facultative</td>
+                          <td class="num">—</td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== PRÉVISUALISATION COMPLÈTE ===================== -->
+      <div>
+        <div class="shot-label">
+          Prévisualisation complète — langue, direction, thème, mode, appareil, profil, campagne
+        </div>
+        <div class="frame" style="position: relative; background: #0f172a">
+          <div style="min-height: 600px; display: flex; align-items: center; justify-content: center; padding: 20px">
+            <div class="pvmodal">
+              <div class="pvhead">
+                <b style="font-size: 13px">Aperçu public</b>
+                <span class="pvtab">Rendu public</span><span class="pvtab">Aperçu SEO (sans JS)</span>
+                <span class="close">✕</span>
+              </div>
+              <div class="pvctx">
+                <div class="grp">
+                  <b>Langue</b>
+                  <div class="opts">
+                    <span class="opt on">FR</span><span class="opt">عربية</span><span class="opt">Derja</span
+                    ><span class="opt">دارجة</span>
+                  </div>
+                </div>
+                <div class="grp">
+                  <b>Appareil</b>
+                  <div class="opts">
+                    <span class="opt on">📱 375</span><span class="opt">320</span><span class="opt">💻</span>
+                  </div>
+                </div>
+                <div class="grp">
+                  <b>Mode</b>
+                  <div class="opts"><span class="opt on">Clair</span><span class="opt">Sombre</span></div>
+                </div>
+                <div class="grp">
+                  <b>Thème</b>
+                  <div class="opts">
+                    <span class="opt on">Fkhar</span><span class="opt">Zellige</span><span class="opt">Clair</span>
+                  </div>
+                </div>
+                <div class="grp">
+                  <b>Profil</b>
+                  <div class="opts">
+                    <span class="opt on">Visiteur</span><span class="opt">Connecté</span
+                    ><span class="opt">Entitlements</span>
+                  </div>
+                </div>
+                <div class="grp">
+                  <b>Campagne</b>
+                  <div class="opts"><span class="opt on">Ramadan ✓</span><span class="opt">Sans</span></div>
+                </div>
+              </div>
+              <div class="pvstage">
+                <div class="device">
+                  <div class="public-hero">
+                    <span class="badge">🌙 Idéal pour Ramadan</span>
+                    <b>Chorba frik</b>
+                    <small>Soupe traditionnelle · 4–6 DT · 30 min</small>
+                  </div>
+                  <div class="prv-img"></div>
+                  <div class="prv-meta"><span>⏱ 10 + 20 min</span><span>👥 4 parts</span><span>📍 Tunisie</span></div>
+                  <div class="prv-ing">
+                    <div
+                      style="
+                        font-size: 11px;
+                        font-weight: 800;
+                        color: #64748b;
+                        text-transform: uppercase;
+                        letter-spacing: 0.06em;
+                        padding-bottom: 6px;
+                      "
+                    >
+                      Ingrédients
+                    </div>
+                    <div class="row"><span>Blé concassé (frik)</span><span>150 g</span></div>
+                    <div class="row"><span>Tomates</span><span>2 pièces</span></div>
+                    <div class="row"><span>Huile d'olive</span><span>2 c.à.s</span></div>
+                    <div class="row"><span>Agneau</span><span>300 g</span></div>
+                  </div>
+                  <div
+                    style="
+                      padding: 8px 0 4px;
+                      padding-left: 16px;
+                      font-size: 11px;
+                      font-weight: 800;
+                      color: #64748b;
+                      text-transform: uppercase;
+                    "
+                  >
+                    Préparation
+                  </div>
+                  <div class="prv-step">
+                    <span class="n">1</span><span>Faire revenir l'oignon et la viande dans l'huile d'olive…</span>
+                  </div>
+                  <div class="prv-step">
+                    <span class="n">2</span><span>Ajouter les tomates concassées et le frik, couvrir d'eau…</span>
+                  </div>
+                  <div class="prv-cta">＋ Ajouter les ingrédients aux courses</div>
+                </div>
+                <div class="devnote">
+                  <b style="font-size: 12.5px; color: #0f172a">Ce que montre l'aperçu</b>
+                  <ul style="margin: 8px 0 0 16px; padding: 0">
+                    <li>Les <b>vrais composants publics</b> — un seul chemin de rendu, pas une copie</li>
+                    <li>Badge de <b>campagne simulée</b> (Ramadan), indépendant de la date du jour</li>
+                    <li>
+                      La langue choisie avec ses <b>replis visibles</b> ; en arabe, toute la mise en page se retourne
+                      (RTL)
+                    </li>
+                    <li>Le <b>thème publié</b> réel (police, motif, dégradés) en clair ou sombre</li>
+                    <li>Brouillon de l'atelier <b>ou</b> version publiée — bandeau « non publiée » le cas échéant</li>
+                    <li>Cas limites : sans photo, lien vidéo cassé, ingrédient sans image</li>
+                    <li>L'onglet <b>SEO</b> montre la copie lisible servie aux robots, paginée</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : ROLES & PERMISSIONS ===================== -->
+      <div>
+        <div class="shot-label">
+          Desktop — Rôles & permissions (RBAC : union des rôles, refus par défaut, dernier super admin protégé)
+        </div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Pilotage</div>
+                <a class="item" href="#"><span class="ic">▦</span> Tableau de bord</a>
+                <div class="sb-group">Contenu</div>
+                <a class="item" href="#"><span class="ic">📖</span> Recettes</a
+                ><a class="item" href="#"><span class="ic">🥕</span> Ingrédients</a>
+                <div class="sb-group">Exploitation</div>
+                <a class="item" href="#"><span class="ic">📣</span> Publicité</a
+                ><a class="item" href="#"><span class="ic">📊</span> Analytics</a>
+                <div class="sb-group">Réglages</div>
+                <a class="item on" href="#"><span class="ic">👥</span> Équipe & rôles</a>
+                <a class="item" href="#"><span class="ic">⚙️</span> Paramètres</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="bell">🔔</div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Rôle « Éditeur »</h2>
+                      <p>Permissions par module et par action · union des rôles du membre · refus par défaut</p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">Historique</span><span class="btn pri">Enregistrer</span>
+                    </div>
+                  </div>
+                  <div class="banner" style="margin-bottom: 14px">
+                    🛡️ Le dernier super administrateur ne peut pas être rétrogradé — vérifié dans la même transaction, y
+                    compris sous concurrence. Anti-élévation : on ne peut accorder une permission que l'on détient
+                    soi-même.
+                  </div>
+                  <div class="card w12" style="margin-bottom: 14px">
+                    <h4>Matrice des permissions <span>✔ accordé · grisé = non disponible</span></h4>
+                    <table class="t matrix">
+                      <tr>
+                        <th>Module</th>
+                        <th>Accéder</th>
+                        <th>Consulter</th>
+                        <th>Rechercher</th>
+                        <th>Ajouter</th>
+                        <th>Modifier</th>
+                        <th>Supprimer</th>
+                        <th>Publier</th>
+                        <th>Exporter</th>
+                        <th>Gérer</th>
+                      </tr>
+                      <tr>
+                        <td>Recettes</td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                      </tr>
+                      <tr>
+                        <td>Ingrédients</td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                      </tr>
+                      <tr>
+                        <td>Classification</td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                      </tr>
+                      <tr>
+                        <td>Publicité</td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                      </tr>
+                      <tr>
+                        <td>Analytics</td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                        <td><span class="cbx on"></span></td>
+                        <td><span class="cbx dis"></span></td>
+                      </tr>
+                    </table>
+                    <p style="font-size: 11px; color: #94a3b8; margin: 10px 0 0">
+                      Périmètre (scope) : <span class="pill info">tous les contenus</span> — variantes « ses contenus »
+                      et « liste ciblée » modélisées, activées à la demande. Supprimer un contenu publié exige aussi le
+                      droit de publier.
+                    </p>
+                  </div>
+                  <div class="grid">
+                    <div class="card w6">
+                      <h4>Membres avec ce rôle <span>droits effectifs déduits</span></h4>
+                      <table class="t">
+                        <tr>
+                          <th>Membre</th>
+                          <th>Rôles</th>
+                          <th>Effectif</th>
+                        </tr>
+                        <tr>
+                          <td>Amel B.</td>
+                          <td>Éditeur</td>
+                          <td><span class="pill info">12 actions</span></td>
+                        </tr>
+                        <tr>
+                          <td>Karim T.</td>
+                          <td>Éditeur + Validateur</td>
+                          <td><span class="pill ok">union · 18 actions</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="card w6">
+                      <h4>Historique des changements</h4>
+                      <div class="hist" style="margin-bottom: 10px">
+                        12 fév · Chef Souhed — a retiré « publier » à Éditeur (raison : validation obligatoire)
+                      </div>
+                      <div class="hist" style="margin-bottom: 10px">
+                        8 fév · Chef Souhed — a accordé « exporter » à Éditeur
+                      </div>
+                      <div class="hist">2 fév · Création du rôle</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : EDITEUR DE RECETTE ===================== -->
+      <div>
+        <div class="shot-label">
+          Desktop — Éditeur de recette (sections, onglets de langue, erreurs sur le champ, aperçu en direct)
+        </div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Contenu</div>
+                <a class="item on" href="#"><span class="ic">📖</span> Recettes</a
+                ><a class="item" href="#"><span class="ic">🥕</span> Ingrédients</a>
+                <div class="sb-group">Édition</div>
+                <a class="item" href="#"><span class="ic">✅</span> À valider</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body" style="padding-bottom: 0">
+                  <div class="h-row">
+                    <div>
+                      <h2>Chorba frik <span class="langflag miss">derja arabe manquant</span></h2>
+                      <p>Brouillon de l'atelier · écrit depuis : 10:42 · jamais d'écrasement silencieux</p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">👁 Aperçu public</span
+                      ><span class="btn pri">Enregistrer dans l'atelier</span>
+                    </div>
+                  </div>
+                  <div class="card w12" style="padding: 0; overflow: hidden">
+                    <div class="tabs">
+                      <span class="tab on">Infos</span><span class="tab">Ingrédients (5)</span
+                      ><span class="tab">Étapes (6)</span><span class="tab">Médias</span
+                      ><span class="tab">Classification</span>
+                    </div>
+                    <div style="padding: 18px">
+                      <div style="display: flex; gap: 6px; margin-bottom: 14px">
+                        <span class="langflag" style="background: #0f172a; color: #fff">FR</span
+                        ><span class="langflag">عربية</span><span class="langflag">Derja</span
+                        ><span class="langflag miss">دارجة</span>
+                      </div>
+                      <div class="grid2">
+                        <div class="fld">
+                          <label>Nom (français) *</label>
+                          <div class="inp ok">Chorba frik</div>
+                        </div>
+                        <div class="fld">
+                          <label>Nom (derja) *</label>
+                          <div class="inp ok">Chorba frik</div>
+                        </div>
+                        <div class="fld">
+                          <label>Type de plat *</label>
+                          <div class="inp ok">Entrée ▾</div>
+                        </div>
+                        <div class="fld">
+                          <label>Difficulté</label>
+                          <div class="inp ok">Facile ▾</div>
+                        </div>
+                        <div class="fld">
+                          <label>Préparation (min) *</label>
+                          <div class="inp ok">10</div>
+                        </div>
+                        <div class="fld">
+                          <label>Cuisson (min) *</label>
+                          <div class="inp err">
+                            abc
+                            <div class="errline">Un nombre est attendu</div>
+                          </div>
+                        </div>
+                        <div class="fld">
+                          <label>Prix du plat (TND) *</label>
+                          <div class="inp ok">min 4 · max 6</div>
+                        </div>
+                        <div class="fld">
+                          <label>Occasions</label>
+                          <div class="inp ok">🌙 Ramadan ×</div>
+                        </div>
+                      </div>
+                      <div class="fld">
+                        <label>Photo</label>
+                        <div class="privimg">🖼 Lien https + aperçu en direct de ce que verra le public</div>
+                      </div>
+                    </div>
+                    <div class="savebar">
+                      ⓘ Brouillon gardé · confirmation avant de le perdre <span style="margin-left: auto"></span
+                      ><span class="btn sec">Annuler</span><span class="btn pri">Enregistrer</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== MOBILE : EDITION & VALIDATION ===================== -->
+      <div>
+        <div class="shot-label">
+          Mobile / PWA — édition tactile et file de validation (expériences dédiées, pas le desktop rétréci)
+        </div>
+        <div class="frame mob-clip" style="gap: 12px">
+          <div class="mob mbframe">
+            <div class="mhead">
+              <div class="t"><b>← &nbsp;Chorba frik</b><span>💾 brouillon</span></div>
+            </div>
+            <div class="mtabs">
+              <span class="mtab on">Infos</span><span class="mtab">Ingrédients 5</span><span class="mtab">Étapes 6</span
+              ><span class="mtab">Médias</span>
+            </div>
+            <div style="padding: 12px 14px">
+              <div style="font-size: 10px; font-weight: 800; color: #475569; margin-bottom: 5px">NOM (FRANÇAIS) *</div>
+              <div class="inp ok" style="width: 100%">Chorba frik</div>
+              <div style="font-size: 10px; font-weight: 800; color: #475569; margin: 12px 0 5px">CUISSON (MIN) *</div>
+              <div class="inp err" style="width: 100%">
+                abc
+                <div class="errline">Un nombre est attendu</div>
+              </div>
+              <div style="font-size: 10px; font-weight: 800; color: #475569; margin: 12px 0 5px">OCCASIONS</div>
+              <div style="display: flex; gap: 6px">
+                <span
+                  style="
+                    font-size: 11.5px;
+                    font-weight: 600;
+                    padding: 6px 12px;
+                    border-radius: 99px;
+                    background: #0f172a;
+                    color: #fff;
+                  "
+                  >🌙 Ramadan ×</span
+                ><span
+                  style="
+                    font-size: 11.5px;
+                    padding: 6px 12px;
+                    border-radius: 99px;
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    color: #475569;
+                  "
+                  >＋ Ajouter</span
+                >
+              </div>
+            </div>
+            <div
+              style="
+                position: absolute;
+                bottom: 64px;
+                left: 0;
+                right: 0;
+                display: flex;
+                gap: 8px;
+                padding: 10px 14px;
+                background: #fff;
+                border-top: 1px solid #e2e8f0;
+              "
+            >
+              <span
+                style="
+                  flex: 1;
+                  text-align: center;
+                  font-size: 12px;
+                  font-weight: 700;
+                  padding: 10px 0;
+                  border-radius: 10px;
+                  background: #0f172a;
+                  color: #fff;
+                "
+                >Enregistrer</span
+              >
+            </div>
+            <div class="mnav">
+              <a href="#"><span class="i">▦</span>Pilotage</a
+              ><a class="on" href="#"><span class="i">📖</span>Catalogue</a
+              ><a href="#"><span class="i">✅</span>Validation</a><a href="#"><span class="i">🏠</span>Accueil</a
+              ><a href="#"><span class="i">⚙️</span>Réglages</a>
+            </div>
+          </div>
+          <div class="mob mbframe">
+            <div class="mhead">
+              <div class="t"><b>✅ À valider</b><span>7 contenus</span></div>
+            </div>
+            <div class="mcard">
+              <div style="font-size: 13.5px; font-weight: 700">Bambalouni</div>
+              <div class="s">2 cellules à relire · modifié par Équipe à 09:12</div>
+              <div style="display: flex; gap: 6px; margin-top: 8px">
+                <span
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    padding: 2px 9px;
+                    border-radius: 99px;
+                    background: #fef9c3;
+                    color: #a16207;
+                  "
+                  >Ingrédients</span
+                ><span
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    padding: 2px 9px;
+                    border-radius: 99px;
+                    background: #fef9c3;
+                    color: #a16207;
+                  "
+                  >Étapes</span
+                >
+              </div>
+              <div class="acts"><span class="mbtn pri">Revoir</span><span class="mbtn">Historique</span></div>
+            </div>
+            <div class="mcard">
+              <div style="font-size: 13.5px; font-weight: 700">Salsa Mechouia</div>
+              <div class="s">1 cellule · conflit résolu par le chef</div>
+              <div style="display: flex; gap: 6px; margin-top: 8px">
+                <span
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    padding: 2px 9px;
+                    border-radius: 99px;
+                    background: #dbeafe;
+                    color: #1d4ed8;
+                  "
+                  >Prix</span
+                >
+              </div>
+              <div class="acts"><span class="mbtn pri">Revoir</span><span class="mbtn">⋯</span></div>
+            </div>
+            <div class="mcard">
+              <div style="font-size: 13.5px; font-weight: 700">Lablabi</div>
+              <div class="s">Conflit : le chef a modifié après l'équipe</div>
+              <div style="display: flex; gap: 6px; margin-top: 8px">
+                <span
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 700;
+                    padding: 2px 9px;
+                    border-radius: 99px;
+                    background: #fee2e2;
+                    color: #b91c1c;
+                  "
+                  >À départager</span
+                >
+              </div>
+              <div class="acts"><span class="mbtn pri">Ouvrir</span></div>
+            </div>
+            <div class="mnav">
+              <a href="#"><span class="i">▦</span>Pilotage</a><a href="#"><span class="i">📖</span>Catalogue</a
+              ><a class="on" href="#"><span class="i">✅</span>Validation</a
+              ><a href="#"><span class="i">🏠</span>Accueil</a><a href="#"><span class="i">⚙️</span>Réglages</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : FONCTIONNALITES ===================== -->
+      <div>
+        <div class="shot-label">
+          Desktop — Fonctionnalités (interrupteur global, règle d'accès, rollout, fenêtre, aperçu par profil)
+        </div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Exploitation</div>
+                <a class="item on" href="#"><span class="ic">🧩</span> Fonctionnalités</a
+                ><a class="item" href="#"><span class="ic">📣</span> Publicité</a>
+                <div class="sb-group">Réglages</div>
+                <a class="item" href="#"><span class="ic">👥</span> Équipe & rôles</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Base connectée</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="who">
+                    <div class="av">CS</div>
+                    <div><b>Chef Souhed</b><small>Super administrateur</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Fonctionnalités</h2>
+                      <p>
+                        Services dont le code existe — une configuration n'active jamais un service non développé ·
+                        brouillon → prévisualisation → publication → historique
+                      </p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">👁 Prévisualiser par profil</span
+                      ><span class="btn pri">Publier la version</span>
+                    </div>
+                  </div>
+                  <div class="tblwrap">
+                    <table class="t">
+                      <tr>
+                        <th>Service</th>
+                        <th>État</th>
+                        <th>Accès</th>
+                        <th>Déploiement</th>
+                        <th>Fenêtre</th>
+                        <th></th>
+                      </tr>
+                      <tr>
+                        <td><b>Scan photo du frigo (IA)</b></td>
+                        <td><span class="pill ok">Activé</span></td>
+                        <td><span class="pill info">Connecté + employé</span></td>
+                        <td class="num">100 %</td>
+                        <td>—</td>
+                        <td><div class="rowact">⚙️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><b>Suggestions personnalisées</b></td>
+                        <td><span class="pill ok">Activé</span></td>
+                        <td><span class="pill info">Connecté</span></td>
+                        <td class="num">100 %</td>
+                        <td>—</td>
+                        <td><div class="rowact">⚙️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><b>Historique de cuisine</b></td>
+                        <td><span class="pill warn">Test</span></td>
+                        <td><span class="pill info">Connecté</span></td>
+                        <td class="num">20 %</td>
+                        <td>→ 30 mars</td>
+                        <td><div class="rowact">⚙️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><b>Publicités</b></td>
+                        <td><span class="pill bad">Désactivé</span></td>
+                        <td><span class="pill info">Sans entitlement no_ads</span></td>
+                        <td class="num">—</td>
+                        <td>—</td>
+                        <td><div class="rowact">⚙️ ⋯</div></td>
+                      </tr>
+                      <tr>
+                        <td><b>Abonnements</b></td>
+                        <td><span class="pill warn">Préparé</span></td>
+                        <td>—</td>
+                        <td class="num">—</td>
+                        <td>—</td>
+                        <td><div class="rowact">⚙️ ⋯</div></td>
+                      </tr>
+                    </table>
+                  </div>
+                  <p style="font-size: 11.5px; color: #94a3b8; margin-top: 10px">
+                    Journal : « pourquoi ce service est-il masqué ? » répondu par le moteur (règle, fenêtre, rollout) ·
+                    audit de chaque changement (qui, quand, pourquoi)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESKTOP : LABORATOIRE DE MATCHING ===================== -->
+      <div>
+        <div class="shot-label">
+          Desktop — Laboratoire de matching (simulation individuelle, justification par ligne, comparaison de configs,
+          portes de publication)
+        </div>
+        <div class="frame clip fade">
+          <div class="scaler">
+            <div class="mock" style="min-height: 880px">
+              <nav class="sb">
+                <div class="sb-brand">
+                  <div class="logo">🍲</div>
+                  <div><b>Chnowa Ntayeb</b><small>Console admin</small></div>
+                </div>
+                <div class="sb-group">Moteur</div>
+                <a class="item on" href="#"><span class="ic">⚗️</span> Laboratoire</a>
+                <a class="item" href="#"><span class="ic">🧬</span> Règles métier</a>
+                <a class="item" href="#"><span class="ic">🎚️</span> Réglages avancés</a>
+                <a class="item" href="#"><span class="ic">📋</span> Scénarios <span class="ct">24</span></a>
+                <div class="sb-group">Contenu</div>
+                <a class="item" href="#"><span class="ic">📖</span> Recettes</a>
+                <div class="foot">
+                  <div class="row"><span class="dot"></span> Version active : v17</div>
+                  <div class="row">Brouillon : v18 (non publié)</div>
+                </div>
+              </nav>
+              <div class="main">
+                <div class="top">
+                  <div class="search">🔎&nbsp; Rechercher… <kbd>Ctrl K</kbd></div>
+                  <div class="who">
+                    <div class="av">AB</div>
+                    <div><b>Amel B.</b><small>Validatrice · auteur : Chef Souhed</small></div>
+                  </div>
+                </div>
+                <div class="body">
+                  <div class="h-row">
+                    <div>
+                      <h2>Laboratoire — scénario « Salade et variantes de tomate »</h2>
+                      <p>
+                        Brouillon v18 (profil Équilibré) vs version active v17 — chaque correspondance est justifiée
+                      </p>
+                    </div>
+                    <div class="quick">
+                      <span class="btn sec">⏯ Lancer sur tout le corpus</span><span class="btn sec">↔ Comparer</span
+                      ><span class="btn pri">Valider &amp; publier</span>
+                    </div>
+                  </div>
+                  <div class="labgrid">
+                    <div>
+                      <div class="card" style="margin-bottom: 12px">
+                        <h4>Frigo fictif</h4>
+                        <div class="line"><span>🍅 Tomates cerises</span><span class="why">500 g</span></div>
+                        <div class="line"><span>🥫 Concentré de tomate</span><span class="why">1 boîte 70 g</span></div>
+                        <div class="line"><span>🍅 Tomate fraîche</span><span class="why">2 pièces</span></div>
+                        <div class="line"><span>🧅 Oignon</span><span class="why">300 g</span></div>
+                        <div class="line"><span>🧀 Crème fraîche</span><span class="why">absente</span></div>
+                        <span class="btn sec" style="width: 100%; justify-content: center"
+                          >＋ Ajouter un ingrédient</span
+                        >
+                      </div>
+                      <div class="card">
+                        <h4>Règle en cause</h4>
+                        <p style="font-size: 11.5px; color: #334155; line-height: 1.6">
+                          « Le concentré de tomate peut remplacer la tomate fraîche dans les <b>sauces chaudes</b>,
+                          jamais dans une entrée froide. »
+                        </p>
+                        <p style="font-size: 10.5px; color: #94a3b8; margin-top: 6px">
+                          Créée par le chef · affecte 14 recettes · condition : plat principal chaud
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="verdict" style="margin-bottom: 10px">
+                        ✅ Réalisable avec substitutions<span class="score">fiabilité 92 %</span>
+                      </div>
+                      <div class="line">
+                        <span class="lvl exact">EXACT</span><b>Tomates cerises</b><span>200 g</span
+                        ><span class="why">entrée #482 · 500 g disponibles</span>
+                      </div>
+                      <div class="line">
+                        <span class="lvl compat">COMPATIBLE</span><b>Concentré de tomate</b><span>2 c.à.s</span
+                        ><span class="why">règle #23 · conversion exacte boîte 70 g</span>
+                      </div>
+                      <div class="line">
+                        <span class="lvl subst">SUBSTITUÉ</span><b>Tomate fraîche</b><span>1 pièce</span
+                        ><span class="why">via concentré · plat chaud ✓</span>
+                      </div>
+                      <div class="line">
+                        <span class="lvl exact">EXACT</span><b>Oignon</b><span>100 g</span
+                        ><span class="why">300 g disponibles</span>
+                      </div>
+                      <div class="line">
+                        <span class="lvl missing">MANQUANT</span><b>Crème fraîche</b><span>100 ml</span
+                        ><span class="why">aucune source autorisée · achat 3–4 DT</span>
+                      </div>
+                      <div class="card" style="margin-top: 10px">
+                        <h4>Pourquoi cette recette est proposée</h4>
+                        <p style="font-size: 11.5px; color: #334155; line-height: 1.6">
+                          4 des 5 besoins sont couverts (1 substitution autorisée, 1 compatibilité validée). Il manque
+                          <b>100 ml de crème fraîche</b> (secondaire). Le verdict repose sur une règle conditionnée au
+                          plat chaud — jamais sur une approximation.
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="card" style="margin-bottom: 12px">
+                        <h4>v18 (brouillon) vs v17 (active)</h4>
+                        <div class="metric"><span>Recettes réalisables</span><b>312 → 319</b></div>
+                        <div class="metric"><span>Nouvellement proposées</span><b class="good">+9</b></div>
+                        <div class="metric"><span>Disparues</span><b class="good">0</b></div>
+                        <div class="metric"><span>Faux positifs (corpus)</span><b class="good">0</b></div>
+                        <div class="metric"><span>Verdicts incertains</span><b>12 → 9</b></div>
+                        <div class="metric"><span>Temps de passe (10 000)</span><b>580 ms</b></div>
+                      </div>
+                      <div class="card" style="margin-bottom: 12px">
+                        <h4>Corpus de référence</h4>
+                        <div class="metric"><span>Scénarios</span><b>24 / 24 rejoués</b></div>
+                        <div class="metric"><span>Résultats attendus</span><b class="good">24 / 24 ✓</b></div>
+                        <div class="metric"><span>Pertinence du classement</span><b>96 %</b></div>
+                      </div>
+                      <div class="gate ok">
+                        ✔ Publication autorisée : corpus vert, zéro faux positif, budgets tenus. Amel B. valide le
+                        brouillon de Chef Souhed.
+                      </div>
+                      <div class="gate">
+                        ✋ Exemple bloqué : un faux positif détecté ou un garde-fou violé interdit la publication
+                        jusqu'à correction.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -6,8 +6,6 @@ import {
   parseStoredIngredients,
   parseStoredRecipes,
 } from '../src/core/catalog';
-import { isDeletionMarker, latestRevision } from '../src/core/sync';
-import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { slugify } from '../src/core/shared';
 import { LEGACY_PATHS, LEGACY_RECIPE_PREFIX, PATHS, recipePath as recipeAddress } from '../src/shared/paths';
 import { translations } from '../src/shared/i18n/translations';
@@ -19,7 +17,8 @@ import {
   type ContentCategory,
 } from '../src/core/categories';
 import { formatPriceRange } from '../src/shared/i18n/formatPrice';
-import { getAdminFirestore } from './firebaseAdmin';
+import type { PublishedCatalogSource, PublishedCollection } from './storage/publishedCatalog';
+import type { SyncCursor } from './storage/types';
 
 /**
  * Server-side SEO (the client router has one address per screen, see src/shared/paths.ts):
@@ -32,7 +31,7 @@ import { getAdminFirestore } from './firebaseAdmin';
  * - sitemap.xml lists every published recipe
  */
 
-/** How often the server asks the database for changes (only what changed is read). */
+/** How often the server asks the storage for changes (only what changed is read). */
 const REFRESH_MS = 60 * 1000;
 
 /** Items per page in the readable copy of a list (robots follow the "next page" links). */
@@ -45,68 +44,83 @@ export interface Catalog {
   ingredientCategories?: ContentCategory[];
 }
 
-/** One collection kept in memory, updated incrementally like the devices (see src/core/sync). */
-interface SyncedCollection<T> {
+/**
+ * One collection copy: the parsed items, plus the exact contract position the change feed was
+ * applied up to. A null cursor means "nothing loaded yet" — the first catch-up starts from the
+ * very beginning of the collection (the same complete first read as before).
+ */
+interface SyncedCopy<T> {
   items: Map<string, T>;
-  revision: number | null;
+  cursor: SyncCursor | null;
 }
 
-let recipesCopy: SyncedCollection<Recipe> = { items: new Map(), revision: null };
-let ingredientsCopy: SyncedCollection<Ingredient> = { items: new Map(), revision: null };
-let ingredientCategoriesCopy: SyncedCollection<ContentCategory> = { items: new Map(), revision: null };
+const recipesCopy: SyncedCopy<Recipe> = { items: new Map(), cursor: null };
+const ingredientsCopy: SyncedCopy<Ingredient> = { items: new Map(), cursor: null };
+const ingredientCategoriesCopy: SyncedCopy<ContentCategory> = { items: new Map(), cursor: null };
 let cache: (Catalog & { at: number }) | null = null;
 
-async function refresh<T extends { id: string; revision?: number }>(
-  db: Firestore,
-  name: string,
-  copy: SyncedCollection<T>,
-  read: (raw: unknown[]) => T[]
-): Promise<SyncedCollection<T>> {
-  const col = db.collection(name);
-  const snap = await (copy.revision === null
-    ? col.get()
-    : col.where('revision', '>=', Timestamp.fromMillis(copy.revision)).get());
-  const raw = snap.docs.map((d) => {
-    const data = d.data();
-    const revision = data.revision instanceof Timestamp ? data.revision.toMillis() : undefined;
-    return { ...data, id: d.id, revision };
-  });
-  const items = copy.revision === null ? new Map<string, T>() : new Map(copy.items);
-  const markers = raw.filter(isDeletionMarker);
-  markers.forEach((m) => items.delete(m.id));
-  const parsed = read(raw.filter((x) => !isDeletionMarker(x)));
-  parsed.forEach((item) => items.set(item.id, item));
-  return { items, revision: latestRevision([...parsed, ...markers], copy.revision ?? 0) };
+/** The published catalog source, set once at startup (server/app.ts is the only caller):
+ * the change feed of the public collections, read through the storage contract. Null until
+ * then — the server serves the built-in fallback, exactly like a server without a database. */
+let catalogSource: PublishedCatalogSource | null = null;
+
+/** Wires the published catalog source once, at startup. */
+export function setCatalogSource(source: PublishedCatalogSource | null): void {
+  catalogSource = source;
+}
+
+/** Same page limit as the data endpoints (the contract limit is soft: a revision group is
+ * never cut, a page may exceed it). */
+const CATCH_UP_PAGE = 300;
+
+/**
+ * Catch-up of one collection over the contract's change feed, page after page until the
+ * feed is exhausted. Deletions are applied first, then rewrites — the same order as before.
+ * The copy's cursor only moves to a page that was fully applied: a failure anywhere leaves
+ * it at the last applied page, and the next catch-up resumes exactly there (the catch-up is
+ * idempotent, a re-read of the same page changes nothing).
+ */
+async function catchUp<T extends { id: string }>(
+  name: PublishedCollection,
+  copy: SyncedCopy<T>,
+  read: (raw: Record<string, unknown>[]) => T[]
+): Promise<void> {
+  if (!catalogSource) return;
+  for (;;) {
+    const page = await catalogSource.changes(name, copy.cursor, CATCH_UP_PAGE);
+    for (const id of page.removedIds) copy.items.delete(id);
+    for (const item of read(page.items)) copy.items.set(item.id, item);
+    copy.cursor = page.cursor;
+    if (!page.more) return;
+  }
 }
 
 /**
- * Published catalog, read from Firestore when the server has admin access. Recipes are only the
- * validated ones of the database (none without it: a recipe is never public before validation);
- * ingredients fall back to the built-in list.
+ * Published catalog, read through the storage contract. Recipes are only the validated ones
+ * of the database (none without it: a recipe is never public before validation); ingredients
+ * fall back to the built-in list.
  */
 export async function getCatalog(): Promise<Catalog> {
   if (cache && Date.now() - cache.at < REFRESH_MS) return cache;
   let recipes: Recipe[] = [];
   let ingredients: Ingredient[] = initialIngredients;
   let ingredientCategories: ContentCategory[] = [...BUILT_IN_INGREDIENT_CATEGORIES];
-  const db = getAdminFirestore();
-  if (db) {
-    try {
-      [recipesCopy, ingredientsCopy, ingredientCategoriesCopy] = await Promise.all([
-        refresh(db, 'recipes', recipesCopy, parseStoredRecipes),
-        refresh(db, 'ingredients', ingredientsCopy, parseStoredIngredients),
-        refresh(db, 'ingredient_categories', ingredientCategoriesCopy, parseStoredCategories),
-      ]);
-      recipes = [...recipesCopy.items.values()];
-      if (ingredientsCopy.items.size) ingredients = [...ingredientsCopy.items.values()];
-      ingredientCategories = withBuiltInCategories(
-        [...ingredientCategoriesCopy.items.values()],
-        BUILT_IN_INGREDIENT_CATEGORIES
-      );
-    } catch (e) {
-      console.warn('[seo] Firestore indisponible :', (e as Error).message);
-      if (cache) return cache;
-    }
+  try {
+    await Promise.all([
+      catchUp('recipes', recipesCopy, parseStoredRecipes),
+      catchUp('ingredients', ingredientsCopy, parseStoredIngredients),
+      catchUp('ingredient_categories', ingredientCategoriesCopy, parseStoredCategories),
+    ]);
+    recipes = [...recipesCopy.items.values()];
+    if (ingredientsCopy.items.size) ingredients = [...ingredientsCopy.items.values()];
+    ingredientCategories = withBuiltInCategories(
+      [...ingredientCategoriesCopy.items.values()],
+      BUILT_IN_INGREDIENT_CATEGORIES
+    );
+  } catch (e) {
+    console.warn('[seo] storage unavailable :', (e as Error).message);
+    // Storage unavailable: keep serving the last known catalog (a robot never sees a blank site)
+    if (cache) return cache;
   }
   cache = { at: Date.now(), recipes: publishedRecipes(recipes), ingredients, ingredientCategories };
   return cache;

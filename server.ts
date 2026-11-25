@@ -34,12 +34,12 @@ if (!isFirebaseAdminConfigured()) {
   );
 }
 
-const app = createApiApp({
-  backofficeAuthConfig,
-  vision: process.env.GEMINI_API_KEY ? createGeminiVisionProvider(process.env.GEMINI_API_KEY) : null,
-});
-
 async function startServer() {
+  const app = await createApiApp({
+    backofficeAuthConfig,
+    vision: process.env.GEMINI_API_KEY ? createGeminiVisionProvider(process.env.GEMINI_API_KEY) : null,
+  });
+
   const isDev = process.env.NODE_ENV !== 'production';
 
   if (isDev) {

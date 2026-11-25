@@ -19,11 +19,17 @@ export interface ChangesPayload {
   items: Record<string, unknown>[];
   removedIds: string[];
   revision: number;
+  /** The exact resume position (last delivered change, marker included) — present once
+   *  the server speaks the composite-cursor protocol; the client then switches to it. */
+  cursor?: { revision: number; id?: string };
   more?: boolean;
 }
 
-/** Sends every followed collection's revision at once; the server answers only the late ones. */
-export async function fetchChanges(rev: Record<string, number>): Promise<Record<string, ChangesPayload> | null> {
+/** What a followed collection sends: a legacy number, or the structured cursor after negotiation. */
+export type ClientCursor = number | { revision: number; id?: string };
+
+/** Sends every followed collection's position at once; the server answers only the late ones. */
+export async function fetchChanges(rev: Record<string, ClientCursor>): Promise<Record<string, ChangesPayload> | null> {
   try {
     const res = await fetch('/api/data/changes', {
       method: 'POST',

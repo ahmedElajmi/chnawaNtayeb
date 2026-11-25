@@ -9,7 +9,27 @@ export type CollectionName = string;
 /** Rules a written document must satisfy — declared per collection in collections.ts. */
 export type ParseDoc = (raw: unknown) => Record<string, unknown> | null;
 
-/** What changed in a collection since a given revision: the shape the client already applies. */
+/**
+ * The logical position of a client in a collection's change feed: the last change actually
+ * delivered, modification or deletion marker alike. The single pagination authority —
+ * implementations never invent a second one. A plain number is the legacy cursor (strict
+ * “everything after this revision”, no id) that the negotiation keeps supporting.
+ */
+export interface SyncCursor {
+  revision: number;
+  /** Id of the last delivered change; absent = resume inclusively at the whole revision */
+  id?: string;
+}
+/** What `changes` accepts: a structured cursor, or a legacy number. */
+export type ChangeCursor = SyncCursor | number;
+
+/** Normalizes the legacy number shape into the structured one (strict resume, no id). */
+export function normalizeCursor(cursor: ChangeCursor): SyncCursor {
+  if (typeof cursor === 'number') return { revision: Math.max(0, cursor) };
+  return { revision: Math.max(0, cursor.revision), ...(cursor.id !== undefined ? { id: cursor.id } : {}) };
+}
+
+/** What changed in a collection since a given position: the shape the client applies. */
 export interface StorageChanges {
   /** Documents written since `since` (deletion markers excluded) */
   items: Record<string, unknown>[];
@@ -17,6 +37,8 @@ export interface StorageChanges {
   removedIds: string[];
   /** Newest revision of the returned set (or of `since` when nothing changed) */
   revision: number;
+  /** The position to pass back to resume exactly after the last delivered change */
+  cursor?: SyncCursor;
   /** True when the answer reached the page limit: the client polls again right away */
   more?: boolean;
 }
@@ -68,11 +90,14 @@ export interface DirectoryPage {
 
 export interface DataStore {
   /**
-   * Documents whose `revision` is strictly greater than `since`, oldest first, bounded by
-   * `limit`. Deletion markers come back through `removedIds` (their ids), not through `items`.
-   * `more` tells the client the answer was bounded and it must catch up immediately.
+   * The change feed in contract order: every change — modification or deletion marker —
+   * whose position is after `cursor`, oldest first, bounded by `limit` (a whole revision
+   * group may exceed the limit rather than be cut: the limit is soft). Deletion markers
+   * come back through `removedIds`, not through `items`. `cursor` is the exact position to
+   * pass back: resuming from it can never lose a document, even when several share the
+   * same revision. `more` tells the client the answer was bounded and it must catch up now.
    */
-  changes(name: CollectionName, since: number, limit: number): Promise<StorageChanges>;
+  changes(name: CollectionName, cursor: ChangeCursor, limit: number): Promise<StorageChanges>;
   /** The first document whose indexed field equals the value, null when none. */
   findFirst(name: CollectionName, field: string, value: string): Promise<Record<string, unknown> | null>;
   /** Every document whose field equals the value (bounded by `limit`), revision order. */
