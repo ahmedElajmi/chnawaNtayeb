@@ -23,7 +23,7 @@ export default defineConfig(() => {
       isolate: false,
       // Two lanes: the Firestore emulator suites share one emulator base and wipe
       // collections between their tests, so they must never overlap (see lot T1 and
-      // docs/encyclopedie/09-qualite-tests.md). Everything else keeps full parallelism.
+      // docs/solution/qualite-tests.md). Everything else keeps full parallelism.
       // Convention: any new test file that touches FIRESTORE_EMULATOR_HOST must be added
       // to the `emulator` project's include AND the `unit` project's exclude — both at once.
       projects: [
