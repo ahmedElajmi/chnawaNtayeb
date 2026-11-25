@@ -25,8 +25,16 @@ import { assertCommitEnvelope, assertWritable, DocumentValidationError, stripUnd
  * lives in the internal `_sync_meta` collection (adapter-owned, never served): one
  * transaction advances it and writes the documents together, so concurrent writers get
  * distinct values, and an init reads the stored max first. A counter observed behind the
- * maximum this session wrote stops the collection's writes loudly (corruption, never a
- * silent reset).
+ * maximum this session has VALIDATED stops the collection's writes loudly (corruption, never
+ * a silent reset). The maxima live at two levels: `sessionWritten` — the validated maximum,
+ * advanced only by absorption after a successful transaction — and a per-call attempt state
+ * (`seed` snapshot of the validated history, `highWater` across all executions of the
+ * callback, `assigned` for the current execution, cleared at each execution start) so a
+ * retry re-estimates cleanly, a rollback between retries is still caught, and no estimate is
+ * ever absorbed before it is validated. Within a transaction every read precedes every
+ * write — production Firestore refuses any read that runs after a write in the same
+ * transaction, so the stamp is read first (`readStampTx`) and the counter write is applied
+ * later (`writeStampTx`).
  *
  * The change feed paginates in contract order (revision, id): documents are read in real
  * timestamp order (Firestore's own), grouped by exposed revision, each complete group is
@@ -38,8 +46,27 @@ export function createFirestoreStore(db: Firestore): DataStore {
   const table = (name: CollectionName) => dbx.collection(name);
   /** Adapter-internal counters, one document per collection (`{ next }` = last assigned). */
   const counterRef = (name: CollectionName) => dbx.collection('_sync_meta').doc(name);
-  /** Highest revision this session assigned per collection: a counter behind it is corruption. */
-  const sessionMax = new Map<CollectionName, number>();
+  /** Highest revision this session VALIDATED (successfully committed) per collection. A
+   * fresh counter read behind it is external corruption: the write is refused loudly.
+   * Advanced only by absorption after a successful transaction — never during an attempt. */
+  const sessionWritten = new Map<CollectionName, number>();
+
+  /** Per-call attempt state (lot A3): `seed` snapshots the validated history at call start
+   * (it spans every execution of the callback), `highWater` keeps the highest estimate across
+   * ALL executions (it detects a regression between retries), and `assigned` holds the
+   * current execution's estimates (cleared at each execution start — a retry re-estimates
+   * cleanly, and two stampings can never share a revision within one execution). Discarded
+   * on failure: an abandoned attempt leaves nothing behind. */
+  type Attempt = {
+    seed: Map<CollectionName, number>;
+    highWater: Map<CollectionName, number>;
+    assigned: Map<CollectionName, number>;
+  };
+  const beginAttempt = (): Attempt => ({
+    seed: new Map(sessionWritten),
+    highWater: new Map(),
+    assigned: new Map(),
+  });
 
   const stamped = (doc: Record<string, unknown>, revision: number) => ({
     ...doc,
@@ -56,12 +83,21 @@ export function createFirestoreStore(db: Firestore): DataStore {
   };
 
   /**
-   * Advances the collection's sequence inside the write transaction: concurrent writers
-   * serialise on the counter document, so two commits never share a revision. A missing
-   * counter initialises above the stored maximum (fresh base, import, rollback); a counter
-   * behind what this session already wrote is corruption: the write is refused loudly.
+   * READ phase of the stamp: computes the collection's next revision inside the write
+   * transaction. Concurrent writers serialise on the counter document, so two commits never
+   * share a revision. A missing counter initialises above the stored maximum (fresh base,
+   * import, rollback); a counter behind what this session has validated — or behind an
+   * estimate already made for this attempt — is corruption: the write is refused loudly.
+   *
+   * Production Firestore requires ALL reads of a transaction before ANY write: this function
+   * performs reads only — the counter write is applied later by `writeStampTx`, after every
+   * read of the transaction has been performed.
+   *
+   * Strict operation order (lot A3): compute `next`; check the refusal conditions in order
+   * (`seed`, then `assigned`, then `highWater`) and throw BEFORE touching any maximum; only
+   * then update `assigned`, then `highWater`, and return the revision.
    */
-  const stampTx = async (tx: Transaction, name: CollectionName): Promise<number> => {
+  const readStampTx = async (tx: Transaction, name: CollectionName, attempt: Attempt): Promise<number> => {
     const snap = await tx.get(counterRef(name));
     const stored = snap.exists && typeof snap.get('next') === 'number' ? (snap.get('next') as number) : null;
     let next: number;
@@ -72,16 +108,35 @@ export function createFirestoreStore(db: Firestore): DataStore {
     } else {
       next = stored + 1;
     }
-    const observed = sessionMax.get(name) ?? 0;
-    if (next <= observed) {
+    const seeded = attempt.seed.get(name) ?? 0;
+    const assigned = attempt.assigned.get(name) ?? 0;
+    const highWater = attempt.highWater.get(name) ?? 0;
+    if (next <= seeded || next <= assigned || next < highWater) {
       console.error(
-        `[storage] sync counter corruption on ${name}: next=${next} but this session already wrote ${observed} — writes stopped`
+        `[storage] sync counter corruption on ${name}: next=${next} is behind seed=${seeded}, assigned=${assigned} or high-water=${highWater} — writes stopped`
       );
       throw new DocumentValidationError('sync_counter_corrupt', `counter behind the observed maximum on ${name}`);
     }
-    sessionMax.set(name, next);
-    tx.set(counterRef(name), { next });
+    attempt.assigned.set(name, next);
+    attempt.highWater.set(name, Math.max(highWater, next));
     return next;
+  };
+
+  /** WRITE phase of the stamp: the counter write, applied once every read of the
+   * transaction has been performed (see `readStampTx`). */
+  const writeStampTx = (tx: Transaction, name: CollectionName, revision: number): void => {
+    tx.set(counterRef(name), { next: revision });
+  };
+
+  /** Success only: fold the LAST execution's validated estimates into the session maxima.
+   * `highWater` is never absorbed (an abandoned estimate is never validated) and the merge
+   * keeps the maximum (never a regression). A failure, an abort or a commit conflict leaves
+   * the session maxima untouched. */
+  const absorbAttempt = (attempt: Attempt): void => {
+    for (const [name, value] of attempt.assigned) {
+      const written = sessionWritten.get(name) ?? 0;
+      if (value > written) sessionWritten.set(name, value);
+    }
   };
 
   const guardValue = async (tx: Transaction, guard: WriteGuard): Promise<number | null> => {
@@ -297,41 +352,66 @@ export function createFirestoreStore(db: Firestore): DataStore {
     async put(name, id, doc): Promise<number> {
       const clean = stripUndefined(doc) as Record<string, unknown>;
       assertWritable(name, id, clean);
-      return dbx.runTransaction(async (tx) => {
-        const revision = await stampTx(tx, name);
-        tx.set(table(name).doc(id), stamped(withoutOwnFields(clean), revision));
-        return revision;
+      const attempt = beginAttempt();
+      const revision = await dbx.runTransaction(async (tx) => {
+        attempt.assigned.clear(); // each callback execution re-estimates from fresh reads
+        // Reads first (the counter), writes after: legal on production Firestore.
+        const next = await readStampTx(tx, name, attempt);
+        writeStampTx(tx, name, next);
+        tx.set(table(name).doc(id), stamped(withoutOwnFields(clean), next));
+        return next;
       });
+      absorbAttempt(attempt);
+      return revision;
     },
 
     async remove(name, id): Promise<number> {
       assertWritable(name, id, { deleted: true });
-      return dbx.runTransaction(async (tx) => {
-        const revision = await stampTx(tx, name);
-        tx.set(table(name).doc(id), { deleted: true, revision: Timestamp.fromMillis(revision) });
-        return revision;
+      const attempt = beginAttempt();
+      const revision = await dbx.runTransaction(async (tx) => {
+        attempt.assigned.clear(); // each callback execution re-estimates from fresh reads
+        // Reads first (the counter), writes after: legal on production Firestore.
+        const next = await readStampTx(tx, name, attempt);
+        writeStampTx(tx, name, next);
+        tx.set(table(name).doc(id), { deleted: true, revision: Timestamp.fromMillis(next) });
+        return next;
       });
+      absorbAttempt(attempt);
+      return revision;
     },
 
     async commit(ops, guard): Promise<CommitResult> {
       assertCommitEnvelope(ops);
+      const attempt = beginAttempt();
       try {
-        return await dbx.runTransaction(async (tx) => {
+        const result = await dbx.runTransaction<CommitResult>(async (tx): Promise<CommitResult> => {
+          attempt.assigned.clear(); // each callback execution re-estimates from fresh reads
           if (guard && (await guardValue(tx, guard)) !== guard.expected) {
             return { ok: false, conflict: true }; // nothing is written
           }
           // Every collection touched gets ONE revision shared by all its ops (a commit is one
           // moment of the collection's history — the tie set a cursor group covers completely).
+          // Phase 1 — every read first: counter stamps (and their fallback probes) of ALL the
+          // collections this batch touches. Production Firestore refuses any read that runs
+          // after a write in the same transaction, so no write may start yet.
+          const batch = ops as WriteOp[];
           const revisions = new Map<CollectionName, number>();
+          for (const op of batch) {
+            if (!revisions.has(op.name)) revisions.set(op.name, await readStampTx(tx, op.name, attempt));
+          }
+          // Phase 2 — every write after: the counters, then the documents of the batch.
+          for (const [name, value] of revisions) writeStampTx(tx, name, value);
           let revision = 0;
-          for (const op of ops as WriteOp[]) {
-            if (!revisions.has(op.name)) revisions.set(op.name, await stampTx(tx, op.name));
+          for (const op of batch) {
             const value = revisions.get(op.name) as number;
             tx.set(table(op.name).doc(op.id), stamped(withoutOwnFields(op.doc), value));
             revision = Math.max(revision, value);
           }
           return { ok: true, revision };
         });
+        // Success only — a conflict return carries no estimate (nothing was stamped).
+        absorbAttempt(attempt);
+        return result;
       } catch (error) {
         if (error instanceof DocumentValidationError) throw error;
         // A concurrent guarded batch aborts this transaction. The guard is read back once more:
@@ -350,7 +430,9 @@ export function createFirestoreStore(db: Firestore): DataStore {
       // states it. The read (tx.get) and the write are atomic — the callback either applies
       // over the state it read or is re-run over the fresh one.
       const ref = table(name).doc(id);
-      return dbx.runTransaction(async (tx) => {
+      const attempt = beginAttempt();
+      const result = await dbx.runTransaction(async (tx) => {
+        attempt.assigned.clear(); // each callback execution re-estimates from fresh reads
         const snap = await tx.get(ref);
         const current =
           snap.exists && snap.get('deleted') !== true
@@ -360,11 +442,15 @@ export function createFirestoreStore(db: Firestore): DataStore {
         if (outcome.next && outcome.next !== current) {
           const doc = withoutOwnFields(stripUndefined(outcome.next) as Record<string, unknown>);
           assertWritable(name, id, doc);
-          const revision = await stampTx(tx, name);
+          // Reads first (the counter), writes after: legal on production Firestore.
+          const revision = await readStampTx(tx, name, attempt);
+          writeStampTx(tx, name, revision);
           tx.set(ref, stamped(doc, revision));
         }
         return outcome.result;
       });
+      absorbAttempt(attempt);
+      return result;
     },
   };
 }

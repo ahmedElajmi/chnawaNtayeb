@@ -30,7 +30,12 @@ export default defineConfig(() => {
         {
           test: {
             name: 'emulator',
-            include: ['server/storage/firestoreStore.test.ts', 'server/routes/kitchenStockConvergence.test.ts'],
+            include: [
+              'server/storage/firestoreStore.test.ts',
+              'server/storage/firestoreStore.attempt.test.ts',
+              'server/storage/firestoreStore.order.test.ts',
+              'server/routes/kitchenStockConvergence.test.ts',
+            ],
             // One emulator suite at a time: they share the same base.
             fileParallelism: false,
             // Different maxWorkers than `unit` requires a distinct groupOrder (Vitest 5).
@@ -45,6 +50,8 @@ export default defineConfig(() => {
               ...configDefaults.exclude,
               '**/.claude/**',
               'server/storage/firestoreStore.test.ts',
+              'server/storage/firestoreStore.attempt.test.ts',
+              'server/storage/firestoreStore.order.test.ts',
               'server/routes/kitchenStockConvergence.test.ts',
             ],
           },
