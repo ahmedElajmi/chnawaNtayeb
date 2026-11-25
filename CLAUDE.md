@@ -278,6 +278,16 @@ Cette règle s'applique à toutes les évolutions futures ; le périmètre d'aut
 cours reste maître pour l'inventaire et la suppression des fichiers temporaires déjà présents dans
 le dépôt.
 
+## Campagnes de validation et preuves (règle permanente)
+
+Chaque campagne de tests produit un **rapport distinct, daté et contextualisé** (état du code,
+commande exécutée, environnement, résultat, exclusions éventuelles) ; une nouvelle campagne
+**n'écrase jamais** une preuve antérieure (incident X-14 du 25/11/2026 : un rapport écrasé est
+une preuve historique perdue). Les sorties brutes vivent dans `.vitest/audit-<objet>-<date>/`
+(ignoré par Git) ; les preuves destinées à être conservées durablement sont archivées dans le
+dossier `preuves/` de l'évolution concernée. Avant et après chaque campagne, vérifier
+l'existence du rapport attendu.
+
 ## Organisation documentaire
 
 - **Deux familles de documents** : `docs/solution/` = référence en vigueur (métier, architecture,

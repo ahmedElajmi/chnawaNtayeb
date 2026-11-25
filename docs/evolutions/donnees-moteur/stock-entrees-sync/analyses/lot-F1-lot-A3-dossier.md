@@ -1,9 +1,12 @@
 # Lot F1 — Dossier d'exécution A3 : gestion de `sessionMax` lors des retries Firestore
 
-> **Statut** : proposé — **v4** — en attente de la validation du chef. Précisions finales
-> intégrées (2026-11-20) : **ordre strict des opérations dans `readStampTx`** (une estimation
-> refusée ne contamine jamais les maxima de tentative) et **garanties explicites de
-> l'absorption** (§ 3.4).
+> **Statut** : **clôturé le 20/11/2026** (mise à jour d'en-tête du 25/11, suivi X-08 : la clôture
+> du 20/11 fait foi — v4 était la version finale intégrée). Précisions finales de v4 :
+> **ordre strict des opérations dans `readStampTx`** (une estimation refusée ne contamine jamais
+> les maxima de tentative) et **garanties explicites de l'absorption** (§ 3.4). La correction
+> A2+A3 est **committée** (`d4d3d08`, 25/11) avec ses suites dédiées
+> (`firestoreStore.attempt.test.ts` ×10, `firestoreStore.order.test.ts` ×8) et intégrée dans
+> `develop` (PR #60). La validation émulateur de l'état commité reste [À DÉMONTRER] (JDK 21).
 > v4 (dernière correction demandée par le chef) : **trois composantes d'état** — `seed`
 > (historique validé au début de l'appel), **`attemptHighWater`** (maximum estimé au cours de
 > **toutes** les exécutions du callback de cet appel, préservé entre retries) et `assigned`

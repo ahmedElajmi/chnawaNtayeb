@@ -5,6 +5,11 @@
 > commités restent en l'état. Toute implémentation attend l'autorisation explicite du chef.
 > Références : `lot-F1-etape3-rapport.md` (mesures) et `lot-F1-etape3-rapport-complement.md`
 > (causes racines détaillées). Ce dossier ne réécrit aucun document précédent.
+>
+> **Erratum (25/11/2026, autorisé par le chef — AR-2)** : le § 5.3/§ 6 du dossier d'exécution
+> v6 et l'affirmation « testé aux deux faces » du scénario 6 étaient **inexactes** — le test
+> commis ne couvrait que la face *survie* (push réussi), aucune face *perte*. Consigné aussi
+> dans `lot-F1-D3-decision-et-implementation.md`.
 
 ---
 
