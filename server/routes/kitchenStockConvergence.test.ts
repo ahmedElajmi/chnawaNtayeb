@@ -478,7 +478,7 @@ function convergenceSuite(
       expect(deviceC.sync.getState().pending).toBe(0);
     });
 
-    it('a device that synced too long ago recovers without losing its offline change (scenario 6)', async () => {
+    it('a device that synced too long ago never pushes its offline change: it is archived and the state re-adopts the server (scenario 6, lot F1 D3 P1)', async () => {
       const token = await registerAccount(backend.base);
       const uid = 'stale-owner';
       const deviceB = makeDevice(backend.base, token, uid, 'devB', time);
@@ -499,25 +499,44 @@ function convergenceSuite(
       bump(time);
       deviceC.kitchen.togglePantryItem('ing3');
       await afterChange(deviceC);
-      // B comes back after longer than the tombstone retention: it resets itself (its local
-      // state is wiped, including the stock) and re-adopts the server document
+      // B comes back after longer than the reset margin: it must NOT push its pending
+      // change first (an old deletion could resurrect a tombstone the server purged).
+      // The refused offline change is archived locally (never silently lost), then the
+      // reset wipes the state and the server document is re-adopted.
       time.value = syncedAt + STALE_DEVICE_MS + 1_000;
+      const pushesBefore = deviceB.traffic.pushes;
       deviceB.goOnline();
       deviceB.sync.stop();
       deviceB.sync.start();
       await afterChange(deviceB);
-      // Face A: the reset + adoption left B exactly at the server's merged state — its own
-      // pushed change included (the per-envelope HLC accepted it: fresh clock, never rejected)
-      expect(deviceB.kitchen.getState().fridge.slice().sort()).toEqual(['ing1', 'ing2', 'ing3']);
+      // Face A: no push ever carried the refused offline change — the pushes before the
+      // recovery are the synced 'stock' pushes; anything pushed AFTER the reset (the
+      // migration push of the fresh default grocery list, an existing pre-reset behavior)
+      // must never carry the stock section
+      const pushesAfterReset = ((deviceB.traffic as unknown as { names?: string[][] }).names ?? []).slice(pushesBefore);
+      for (const names of pushesAfterReset) expect(names).not.toContain('stock');
+      expect(deviceB.traffic.pushes).toBeLessThanOrEqual(pushesBefore + 1);
+      // The reset + adoption left B exactly at the server's merged state — WITHOUT its own
+      // offline change (it was archived, not applied): no resurrection window
+      expect(deviceB.kitchen.getState().fridge.slice().sort()).toEqual(['ing2', 'ing3']);
       expect(deviceB.kitchen.getState().pantry).toEqual(['ing3']);
+      // The refused change is explicitly archived: not synced, never presented as synced,
+      // never re-emitted — the interface can show it and discard it once acted on
+      expect(deviceB.sync.getState().offlineChangesArchived).toBe(true);
+      const archived = deviceB.sync.unsyncedArchive();
+      expect(archived).not.toBeNull();
+      expect(archived!.sections.stock).toBeDefined();
+      const archivedStock = archived!.sections.stock!.value as StockSection;
+      expect(archivedStock[presenceEntryId('fridge', 'ing1')]).toBeDefined(); // the offline add, kept
+      expect(deviceB.sync.getState().pending).toBe(0); // the reset cleared the bookkeeping
       // Face B: the HLC clock survived the reset — the next change carries a version the
-      // server never rejects, and the change lands (it removes the re-added ingredient)
+      // server never rejects, and it lands (the stale refusal never locks the device out)
       bump(time);
       deviceB.kitchen.toggleFridgeItem('ing1');
       await afterChange(deviceB);
       expect(deviceB.sync.getState().pending).toBe(0);
       await deviceC.pull();
-      expect(deviceC.kitchen.getState().fridge.slice().sort()).toEqual(['ing2', 'ing3']);
+      expect(deviceC.kitchen.getState().fridge.slice().sort()).toEqual(['ing1', 'ing2', 'ing3']);
       expect(deviceC.kitchen.stock()).toEqual(deviceB.kitchen.stock());
     });
   });
